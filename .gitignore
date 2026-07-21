@@ -1,0 +1,29 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+.vercel
+
+# Build artifacts
+api/app.js
+api/app.js.map
+server.js
+server.cjs
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build artifacts copied to public for Vercel CDN
+public/assets/
+
+# OS
+Thumbs.db
+Desktop.ini

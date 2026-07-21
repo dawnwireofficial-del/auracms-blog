@@ -1,0 +1,411 @@
+{
+  "users": [
+    {
+      "id": "user-admin",
+      "name": "Sarah Jenkins",
+      "email": "admin@dawnwire.com",
+      "role": "super_admin",
+      "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150",
+      "bio": "Sarah Jenkins is the Editor-in-Chief and technology journalist with 10+ years of experience in tech publishing.",
+      "status": "active",
+      "createdAt": "2026-07-01T09:25:22.518Z"
+    },
+    {
+      "id": "user-editor",
+      "name": "Alex Rivera",
+      "email": "editor@dawnwire.com",
+      "role": "editor",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150",
+      "bio": "Alex Rivera is a travel blogger, digital nomad, and gadget enthusiast who loves testing gear on the road.",
+      "status": "active",
+      "createdAt": "2026-07-01T09:25:22.519Z"
+    }
+  ],
+  "passwords": {
+    "user-admin": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+    "user-editor": "ef5e5a1fb95055e0e56cccf98a41e784a132c14e7f6e1ba244302f0e72b29baf"
+  },
+  "posts": [
+    {
+      "id": "post-1",
+      "title": "The Future of AI Content Generation: Balancing Scale and Authenticity",
+      "slug": "future-of-ai-content-generation",
+      "excerpt": "Explore how AI models are changing the content creation landscape, and why maintaining a human-in-the-loop approach is critical for long-term SEO and reader trust.",
+      "content": "## The Explosion of Generative AI\n\nIn the past few years, artificial intelligence has fundamentally disrupted how we think about writing, marketing, and content strategy. With models like Gemini 3.5 capable of drafting structured, readable articles in seconds, the temptation to scale content production infinitely is higher than ever.\n\nHowever, content strategy is undergoing a silent counter-revolution. Search engines and readers alike are becoming increasingly sophisticated at spotting \"AI slop\"—generic, low-value, repetitive content that serves only to populate keyword pages.\n\n---\n\n## Why \"Pure AI\" content fails the SEO test\n\nWhile AI tools are excellent writing assistants, publishing raw AI-generated content without human curation presents significant risks:\n\n1. **Lack of Originality (E-E-A-T):** Search engines prioritize **Experience, Expertise, Authoritativeness, and Trustworthiness**. An AI model synthesizes existing web data; it cannot provide first-hand experience, take unique product photos, or conduct real-world tests.\n2. **Fact and Detail Hallucinations:** AI models can confidently invent statistics or technical facts, destroying your blog's editorial credibility.\n3. **Flat, Monotonous Voice:** Generative writing often lacks the rhythm, wit, and emotional resonance of a professional human writer.\n\n> **Pro Tip:** Use AI as an accelerator, not an author. Use it to outline ideas, brainstorm hooks, and summarize research—but let a human write the core arguments.\n\n---\n\n## The Hybrid Approach: Human-in-the-Loop Content Production\n\nTo scale production while maintaining maximum content standards, consider the following blueprint:\n\n### 1. Advanced Research Grounding\nBefore drafting, use search-grounded models to gather real-time data, verified statistics, and citation sources. This ensures your article is rooted in accurate, timely information.\n\n### 2. The Narrative Outline\nDevelop a structured skeleton. Ensure there is a logical flow, strong transition hooks, and bullet points that address specific user questions directly.\n\n### 3. Inserting Real Human Experience\nInject personal anecdotes, case study results, custom images, and hands-on reviews. This makes your content deeply authentic, earning readers' trust and driving engagement.\n\n---\n\n## Conclusion\n\nThe future of writing isn't AI replacing human creators. It is the creator who integrates AI into their research and drafting process outperforming the creator who doesn't. Emphasize depth, expertise, and polish to ensure your site remains a high-authority resource.",
+      "featuredImage": "https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&q=80&w=800",
+      "authorId": "user-admin",
+      "categoryId": "cat-tech",
+      "tags": [
+        "ai",
+        "software",
+        "productivity"
+      ],
+      "status": "published",
+      "visibility": "public",
+      "publishedAt": "2026-06-29T09:25:22.519Z",
+      "createdAt": "2026-06-29T09:25:22.519Z",
+      "updatedAt": "2026-06-29T09:25:22.519Z",
+      "readingTime": 4,
+      "isFeatured": true,
+      "isTrending": true,
+      "isEditorsPick": false,
+      "allowComments": true,
+      "seoTitle": "The Future of AI Content Generation: Scale vs Authenticity",
+      "seoDescription": "Discover why human-in-the-loop AI writing is the gold standard for SEO authority, reader retention, and building brand trust in 2026."
+    },
+    {
+      "id": "post-2",
+      "title": "Top 10 Essential Gadgets for Modern Digital Nomads",
+      "slug": "top-10-gadgets-digital-nomads",
+      "excerpt": "From high-speed portable routers to ergonomic folding stands, here is a curated list of tested gear that will supercharge your remote work setup from anywhere.",
+      "content": "## Designing the Ultimate Portable Office\n\nFor a digital nomad, your workspace isn't a room—it is your backpack. Every single ounce of weight matters, and every piece of gear must earn its spot by delivering absolute reliability, versatility, and performance.\n\nWhether you are working from a bustling cafe in Tokyo, a beachside villa in Bali, or a quiet cabin in the Pacific Northwest, here are the top gadgets that will revolutionize your remote work productivity.\n\n---\n\n## 1. Portable Multi-Screen Monitors\nWorking on a single 13-inch laptop screen can severely throttle your multitasking speed. USB-C powered portable monitors have become incredibly lightweight and high-resolution, giving you a full multi-screen productivity experience on any standard cafe table.\n\n## 2. Global eSIM & Portable Travel Router\nRelying on spotty cafe Wi-Fi is a recipe for missed calls and frustration. A global 5G portable travel router lets you insert a local SIM or purchase eSIM data packages, establishing a secure, high-speed, private hot-spot for all your devices simultaneously.\n\n## 3. Ultra-Slim Mechanical Keyboards & Folding Stands\nProlonged typing on flat laptop keyboards on low tables is an ergonomic nightmare. A portable laptop stand paired with a compact mechanical keyboard restores comfortable typing posture, preserving your spine and joints during long content creation sprints.\n\n---\n\n  ## Product Spotlight: DawnWire Travel Hub Pro\n*Highly recommended by our team for robust nomad connectivity.*\n\n[affiliate-card:product-travel-hub]\n\n---\n\n## Packing Tips for the Agile Creator\n\n*   **Double Up on USB-C:** Consolidate your power bricks. Carry a single high-wattage (100W+) GaN charger that can power your laptop, phone, and power bank simultaneously.\n*   **Acoustic Isolation:** A pair of premium Active Noise Canceling (ANC) headphones is non-negotiable for working in loud public spaces or busy flights.\n*   **Durable Tech Pouches:** Keep your cables sorted. Disorganized cables lead to wear, tear, and lost travel time.\n\nHaving the right gear doesn't just make work easier—it gives you the freedom to explore the world without compromising your professional performance.",
+      "featuredImage": "https://images.unsplash.com/photo-1527689368864-3a821dbccc34?auto=format&fit=crop&q=80&w=800",
+      "authorId": "user-editor",
+      "categoryId": "cat-lifestyle",
+      "tags": [
+        "digital-nomad",
+        "gear",
+        "productivity"
+      ],
+      "status": "published",
+      "visibility": "public",
+      "publishedAt": "2026-06-26T09:25:22.519Z",
+      "createdAt": "2026-06-26T09:25:22.519Z",
+      "updatedAt": "2026-06-26T09:25:22.519Z",
+      "readingTime": 5,
+      "isFeatured": false,
+      "isTrending": true,
+      "isEditorsPick": true,
+      "allowComments": true,
+      "seoTitle": "10 Essential Digital Nomad Gadgets & Gear List",
+      "seoDescription": "The ultimate tested gear guide for remote workers, travelers, and content creators. Supercharge your productivity from cafe or cabin."
+    },
+    {
+      "id": "post-3",
+      "title": "Unlocking Organic Reach: The Complete SEO Checklist for Bloggers",
+      "slug": "complete-seo-checklist-bloggers",
+      "excerpt": "Master the fundamentals of modern SEO, search intent, schema markup, and site structure to attract consistent, high-value organic traffic to your articles.",
+      "content": "## The Modern Search Landscape\n\nMany bloggers believe that writing high-quality content is enough to attract a massive audience. While excellent writing is a core requirement, the reality is that search algorithms are the main gateway to sustainable visibility. Without technical and structural optimization, your best articles risk remaining completely undiscovered.\n\nFortunately, modern Search Engine Optimization (SEO) isn't about gaming the algorithm. It is about organizing your content so that search crawlers can easily understand its structure, depth, and relevance.\n\n---\n\n## The On-Page SEO Checklist\n\nWhen writing a new post, run through these essential parameters before hitting publish:\n\n### 1. Title and Header Hierarchy\n*   **The H1 Title:** Must contain your primary focus keyword and be under 60 characters to avoid desktop truncation.\n*   **Subheadings (H2, H3):** Use clean, nested heading structures. Introduce secondary semantic search terms into your subheadings naturally.\n\n### 2. The Power of Meta Descriptions\nYour meta description is your billboard in the search results page. Write a highly compelling 140-160 character snippet that summarizes the article and includes a clear, conversion-oriented call-to-action.\n\n### 3. URL Structure and Slugs\nKeep your URLs short, readable, and clean. Avoid dates, dynamic query parameters, or long titles in your path.\n*   **Bad:** `/blog/2026/06/29/my-title-with-extra-words-and-and-the`\n*   **Good:** `/blog/clean-keyword-slug`\n\n---\n\n## Technical SEO Fundamentals\n\nBeyond individual page optimization, ensure your platform supports these global technical standards:\n\n*   **Dynamic XML Sitemaps:** Automatically registers new posts, categories, and tags with search consoles.\n*   **Structured Schema Markup:** Embeds JSON-LD script blocks representing `BlogPosting` or `Article` specifications. This lets search engines present rich snippet reviews, FAQs, or author blocks.\n*   **Responsive Page Load Speed:** Clean minified bundles and lazy-loaded image tags are critical for Core Web Vitals compliance.\n\n---\n\n## Consistently Auditing Your Search Strategy\n\nSEO is a long-term compound investment. Analyze your organic impressions, high-ranking pages, and user search phrases weekly. Refine historical posts with fresh data and updated keywords to preserve your search positioning as competitor landscapes shift.",
+      "featuredImage": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800",
+      "authorId": "user-admin",
+      "categoryId": "cat-seo",
+      "tags": [
+        "seo",
+        "software",
+        "productivity"
+      ],
+      "status": "published",
+      "visibility": "public",
+      "publishedAt": "2026-06-21T09:25:22.519Z",
+      "createdAt": "2026-06-21T09:25:22.519Z",
+      "updatedAt": "2026-06-21T09:25:22.519Z",
+      "readingTime": 3,
+      "isFeatured": false,
+      "isTrending": false,
+      "isEditorsPick": false,
+      "allowComments": true,
+      "seoTitle": "The Complete On-Page and Technical SEO Checklist for Bloggers",
+      "seoDescription": "An actionable roadmap for bloggers to optimize headers, meta titles, schema markups, and site speed to skyrocket organic ranking."
+    }
+  ],
+  "categories": [
+    {
+      "id": "cat-tech",
+      "name": "Technology",
+      "slug": "technology",
+      "description": "Latest news, trends, and tutorials in software, gadgets, and AI.",
+      "status": "active"
+    },
+    {
+      "id": "cat-lifestyle",
+      "name": "Lifestyle",
+      "slug": "lifestyle",
+      "description": "Digital nomad culture, productivity tips, and personal growth.",
+      "status": "active"
+    },
+    {
+      "id": "cat-seo",
+      "name": "SEO & Marketing",
+      "slug": "seo-marketing",
+      "description": "Guides, tips, and strategies for climbing search engine rankings.",
+      "status": "active"
+    },
+    {
+      "id": "cat-business",
+      "name": "Business",
+      "slug": "business",
+      "description": "Startup news, finance, management, and entrepreneurial growth.",
+      "status": "active"
+    }
+  ],
+  "tags": [
+    {
+      "id": "tag-ai",
+      "name": "AI",
+      "slug": "ai"
+    },
+    {
+      "id": "tag-software",
+      "name": "Software",
+      "slug": "software"
+    },
+    {
+      "id": "tag-nomad",
+      "name": "Digital Nomad",
+      "slug": "digital-nomad"
+    },
+    {
+      "id": "tag-seo",
+      "name": "SEO",
+      "slug": "seo"
+    },
+    {
+      "id": "tag-productivity",
+      "name": "Productivity",
+      "slug": "productivity"
+    },
+    {
+      "id": "tag-gear",
+      "name": "Gear",
+      "slug": "gear"
+    }
+  ],
+  "comments": [
+    {
+      "id": "comm-1",
+      "postId": "post-1",
+      "name": "Jessica Miller",
+      "email": "jessica@techcorp.com",
+      "content": "This hybrid human-in-the-loop strategy is exactly what we have implemented. Our traffic recovered significantly after adding expert review boxes!",
+      "status": "approved",
+      "likesCount": 5,
+      "likedBy": [],
+      "createdAt": "2026-06-30T09:25:22.519Z"
+    },
+    {
+      "id": "comm-2",
+      "postId": "post-1",
+      "parentId": "comm-1",
+      "name": "Sarah Jenkins",
+      "email": "admin@dawnwire.com",
+      "userId": "user-admin",
+      "content": "Absolutely! Adding authentic expert perspectives is the single best shield against algorithm updates.",
+      "status": "approved",
+      "likesCount": 2,
+      "likedBy": [],
+      "createdAt": "2026-06-30T15:25:22.519Z"
+    },
+    {
+      "id": "comm-3",
+      "postId": "post-1",
+      "name": "John Doe",
+      "email": "john@gmail.com",
+      "content": "Can you recommend any tools to check for AI content?",
+      "status": "approved",
+      "likesCount": 0,
+      "likedBy": [],
+      "createdAt": "2026-06-30T21:25:22.519Z"
+    },
+    {
+      "id": "comm-4",
+      "postId": "post-2",
+      "name": "Marcus Brody",
+      "email": "marcus@brody.io",
+      "content": "I bought that GaN charger last month and it has changed my life. Literally replaced 4 separate heavy power adapters.",
+      "status": "approved",
+      "likesCount": 4,
+      "likedBy": [],
+      "createdAt": "2026-06-28T09:25:22.519Z"
+    },
+    {
+      "id": "comm-5",
+      "postId": "post-1",
+      "name": "Spammy Sam",
+      "email": "sam@spam.com",
+      "content": "MAKE $5000 A DAY FROM YOUR HOME!!! CLICK HERE FOR SECRET MONEY METHOD",
+      "status": "spam",
+      "likesCount": 0,
+      "createdAt": "2026-07-01T09:25:22.519Z"
+    }
+  ],
+  "affiliateLinks": [
+    {
+      "id": "link-1",
+      "title": "DawnWire Travel Hub Pro (GaN Charger & Router)",
+      "destinationUrl": "https://amazon.com/example-travel-hub",
+      "affiliateUrl": "https://amazon.com/example-travel-hub?tag=dawnwire-20",
+      "shortSlug": "travel-hub",
+      "categoryId": "cat-lifestyle",
+      "postId": "post-2",
+      "buttonText": "Buy on Amazon",
+      "disclosureText": "As an Amazon Associate, we earn a small commission from qualifying purchases at no extra cost to you.",
+      "noFollow": true,
+      "sponsored": true,
+      "openInNewTab": true,
+      "clickCount": 124,
+      "status": "active",
+      "createdAt": "2026-07-01T09:25:22.519Z"
+    },
+    {
+      "id": "link-2",
+      "title": "Semrush SEO Tool",
+      "destinationUrl": "https://semrush.com",
+      "affiliateUrl": "https://semrush.sjv.io/dawnwire",
+      "shortSlug": "semrush",
+      "categoryId": "cat-seo",
+      "postId": "post-3",
+      "buttonText": "Start Free Trial",
+      "disclosureText": "We partner with Semrush to offer exclusive free trials. We may receive commissions upon successful signup.",
+      "noFollow": true,
+      "sponsored": true,
+      "openInNewTab": true,
+      "clickCount": 45,
+      "status": "active",
+      "createdAt": "2026-07-01T09:25:22.519Z"
+    }
+  ],
+  "pages": [
+    {
+      "id": "page-about",
+      "title": "About Us",
+      "slug": "about",
+      "content": "## Welcome to DawnWire\n\nDawnWire is a premium technology brand specializing in affiliate marketing, buying guides, SEO, AI, web development, and SaaS solutions. We help businesses grow with expert insights and trusted recommendations.\n\n### Our Mission\nWe provide technology professionals, entrepreneurs, and digital marketers with authoritative reviews, actionable guides, and cutting-edge strategies to navigate the ever-evolving digital landscape.\n\n---\n\n### What We Cover\n\n*   **Tech Reviews & Buying Guides:** In-depth, unbiased reviews of the latest hardware, software, and SaaS tools.\n*   **Affiliate Marketing:** Proven strategies and ethical frameworks for building sustainable affiliate revenue.\n*   **SEO & Digital Marketing:** Data-driven techniques to improve visibility, traffic, and conversions.\n*   **Web Development & WordPress:** Expert guidance on building high-performance websites and WooCommerce stores.\n*   **AI & Automation:** Practical applications of AI for business growth and operational efficiency.\n\nThank you for trusting DawnWire as your technology partner.",
+      "status": "published",
+      "createdAt": "2026-07-01T09:25:22.519Z",
+      "seoTitle": "About DawnWire — Premium Technology & Affiliate Marketing",
+      "seoDescription": "DawnWire is a premium technology brand specializing in affiliate marketing, buying guides, SEO, AI, web development, and SaaS solutions."
+    },
+    {
+      "id": "page-privacy",
+      "title": "Privacy Policy",
+      "slug": "privacy-policy",
+      "content": "## Privacy Policy\n\nAt DawnWire, your privacy is extremely important to us. This document outlines the types of personal data we collect, how it is secured, and how it is utilized to maintain a robust user experience across our platform.\n\n---\n\n### 1. Information We Collect\n*   **Comments Data:** When you leave a comment on a blog article, we record the name, email, IP address, user-agent details, and comment body. This data is utilized solely for comment rendering, reply notifications, and spam filtering.\n*   **Newsletter Subscribers:** When you join our newsletter, we store your email address and subscription timestamp. You may opt out at any absolute time using the unsubscribe link.\n*   **Contact Forms:** Messages sent through our support form record contact names, emails, and message text to respond to your queries.\n*   **Analytics Tracking:** We record anonymous affiliate link clicks to present reporting charts in our administrative dashboard.\n\n---\n\n### 2. Information Security\nWe implement strict cryptographic hashing, secure token headers, and rate-limiting scripts to prevent unauthorized access, database poisonings, or data leakages.\n\n### 3. Contact Us\nFor any privacy-related queries, please write to us through our primary Contact page.",
+      "status": "published",
+      "createdAt": "2026-07-01T09:25:22.519Z",
+      "seoTitle": "DawnWire Privacy Policy - Data Protection & GDPR",
+      "seoDescription": "Read the official DawnWire privacy policy, data handling practices, GDPR compliance, and cookie usage information."
+    }
+  ],
+  "settings": {
+    "siteName": "DawnWire",
+    "siteTagline": "Unlocking Tech, Lifestyle, & Business Authority",
+    "logoUrl": "",
+    "faviconUrl": "",
+    "defaultLanguage": "en",
+    "postsPerPage": 6,
+    "enableComments": true,
+    "allowGuestComments": true,
+    "requireCommentApproval": false,
+    "affiliateDisclosureText": "This article may contain affiliate links. If you buy through these links, we may earn a small commission at no extra cost to you. We only recommend products we have personally tested.",
+    "primaryColor": "#0f172a",
+    "secondaryColor": "#3b82f6",
+    "headerMenu": [
+      {
+        "label": "Home",
+        "url": "/"
+      },
+      {
+        "label": "About",
+        "url": "/#/page/about"
+      },
+      {
+        "label": "Categories",
+        "url": "/#/categories"
+      },
+      {
+        "label": "Contact",
+        "url": "/#/contact"
+      }
+    ],
+    "footerColumns": [
+      {
+        "title": "Platform",
+        "links": [
+          {
+            "label": "Home",
+            "url": "/"
+          },
+          {
+            "label": "About Us",
+            "url": "/#/page/about"
+          },
+          {
+            "label": "Contact",
+            "url": "/#/contact"
+          }
+        ]
+      },
+      {
+        "title": "Legal",
+        "links": [
+          {
+            "label": "Privacy Policy",
+            "url": "/#/page/privacy-policy"
+          },
+          {
+            "label": "Affiliate Disclosure",
+            "url": "/#/page/privacy-policy"
+          }
+        ]
+      }
+    ],
+    "socialLinks": [
+      {
+        "platform": "Twitter",
+        "url": "https://twitter.com"
+      },
+      {
+        "platform": "GitHub",
+        "url": "https://github.com"
+      },
+      {
+        "platform": "LinkedIn",
+        "url": "https://linkedin.com"
+      }
+    ]
+  },
+  "media": [
+    {
+      "id": "media-1",
+      "fileName": "ai-future.png",
+      "url": "https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&q=80&w=800",
+      "mimeType": "image/png",
+      "size": 45670,
+      "createdAt": "2026-07-01T09:25:22.519Z"
+    },
+    {
+      "id": "media-2",
+      "fileName": "nomad-setup.png",
+      "url": "https://images.unsplash.com/photo-1527689368864-3a821dbccc34?auto=format&fit=crop&q=80&w=800",
+      "mimeType": "image/png",
+      "size": 51240,
+      "createdAt": "2026-07-01T09:25:22.519Z"
+    }
+  ],
+  "messages": [
+    {
+      "id": "msg-1",
+      "name": "Robert Carter",
+      "email": "robert@marketing.net",
+      "subject": "Advertising Sponsorship Query",
+      "message": "Hi team, I represent an ergonomic workspace brand. We are looking to sponsor an upcoming post reviewing digital nomad accessories. Can you send over your monthly analytics report and rates?",
+      "createdAt": "2026-06-28T09:25:22.519Z",
+      "status": "unread"
+    }
+  ],
+  "newsletter": [
+    {
+      "id": "sub-1",
+      "email": "subscriber@gmail.com",
+      "createdAt": "2026-07-01T09:25:22.519Z"
+    }
+  ],
+  "logs": [
+    {
+      "id": "log-1",
+      "action": "System Setup",
+      "details": "Initialized database schema with expert seed records.",
+      "createdAt": "2026-07-01T09:25:22.519Z"
+    }
+  ]
+}

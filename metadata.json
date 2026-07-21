@@ -1,0 +1,6 @@
+{
+  "name": "AuraCMS - AI-Powered Blog Platform",
+  "description": "A premium, modular blogging system and content publisher featuring complete administration, affiliate marketing, SEO settings, comment moderation, and an AI co-pilot writing suite.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_COHERE_API"]
+}

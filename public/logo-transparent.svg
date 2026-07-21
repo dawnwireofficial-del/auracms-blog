@@ -1,0 +1,7 @@
+<svg width="200" height="50" viewBox="0 0 200 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- DW badge -->
+  <rect x="0" y="5" width="40" height="40" rx="10" fill="#246BFF" />
+  <text x="20" y="33" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="800" fill="white" text-anchor="middle" letter-spacing="-1">DW</text>
+  <!-- Brand text -->
+  <text x="52" y="33" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" fill="#0A1F44" letter-spacing="-0.5">DawnWire</text>
+</svg>

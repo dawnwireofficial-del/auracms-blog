@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="" />
+  <meta name="keywords" content="" />
+  <title>Ittech - Technology Business, IT Solutions & SaaS Software React JS Template</title>
+
+  <!-- Styles -->
+  <link href="assets/css/collection.css" rel="stylesheet" />
+  <link href="assets/css/custom.css" rel="stylesheet" />
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Raleway:100,300,400,500%7CLato:300,400,700" rel="stylesheet"
+    type="text/css" />
+
+  <!-- Scripts -->
+  <script src="assets/js/other.js"></script>
+  <script src="assets/js/custom.js"></script>
+</head>
+
+<body data-spy="scroll" data-target=".sidebar" data-offset="200">
+  <!-- Sidebar -->
+  <aside class="sidebar sidebar-boxed sidebar-dark">
+    <ul class="nav sidenav dropable">
+      <li><a href="#getting_started" title="Setup Development Envrionment">Setup Development Environment</a></li>
+      <li><a href="#installation" title="Installation">Installation</a></li>
+      <li><a href="#folderstructures" title="Folder Structures">Folder Structures</a></li>
+      <li><a href="#documenter_cover">Pages and Components Info</a></li>
+      <li><a href="#data">Template Data</a></li>
+      <li><a href="#dependencies" title="Dependencies">Dependencies</a></li>
+      <li><a href="#fonts_used" title="Fonts">Fonts</a></li>
+      <li><a href="#icons" title="Fonts">Icons</a></li>
+      <li><a href="#deploy" title="Credits">Deploy</a></li>
+      <li><a href="#credits" title="Credits">Credits</a></li>
+      <li><a href="#supports" title="Support">Support</a></li>
+    </ul>
+  </aside>
+  <!-- END Sidebar -->
+
+  <header class="site-header navbar-transparent">
+    <!-- Banner -->
+    <div class="banner auto-size" style="background-color: #fafafa;">
+      <div class="container-fluid">
+        <h1><strong>Ittech - React Template Documentation</strong></h1>
+        <ul>
+          <li>Template Name: ittech</li>
+          <li>Created: 23 April, 2025</li>
+          <li>Version: 1.0.0</li>
+          <li>Author: <a target="_blank" href="https://themeforest.net/user/dreamit-solution"> Dreamit-Solution</a></li>
+        </ul>
+      </div>
+    </div>
+    <!-- END Banner -->
+  </header>
+
+  <main class="container-fluid">
+    <!-- Main content -->
+    <article class="main-content" role="main">
+      <section id="getting_started">
+        <div class="page-header">
+          <h3>Setup Development Environment</h3>
+        </div>
+        <p>
+          In order to kickstart the development of your web app with ittech,
+          the very first thing you need to do is to setup a react development
+          environment.
+        </p>
+        <p>Following tools are needed to setup a react dev environment:</p>
+        <ul>
+          <li><b>Node JS</b></li>
+          <p>
+            NodeJS works as a node package manager behind the scene. It is
+            recommended to download and install the latest version of Node JS
+            from its official site
+            <a href="http://nodejs.org/" target="_blank">http://nodejs.org/</a>
+          </p>
+        </ul>
+      </section>
+      <section id="installation">
+        <div class="page-header">
+          <h3>Installation</h3>
+        </div>
+        <p>
+          To install ittech on your local matchin, download the files from Themeforest and unzip them to the local disk on your computer. <br>Inside the extracted folder you will see two folders named 'ittech-documentation' and 'ittech-react'. <br>
+          Open 'ittech-react' with a code editor like <a href="https://code.visualstudio.com/">vscode</a>. And follow
+          the
+          stapes below-
+        </p>
+        <strong>For npm:</strong> <br />
+        <p>
+          Open vscode terminal <br>
+          Then run : <code class="language-markup">npm install</code> <br>
+          Then run : <code class="language-markup">npm run dev</code> <br>
+          Now in the browser go <a href="http://localhost:5173/" target="_blank">http://localhost:5173/</a><br>
+          Production Build : <code class="language-markup">npm run build</code>
+        </p>
+        <strong>If you want to use yarn:</strong>
+        <p>
+          Open vscode terminal <br>
+          Then run : <code class="language-markup">yarn install</code> <br>
+          Then run : <code class="language-markup">yarn run dev</code> <br>
+          Now in the browser go <a href="http://localhost:5173/" target="_blank">http://localhost:5173/</a><br>
+          Production Build : <code class="language-markup">yarn build</code>
+        </p>
+
+        <strong>Further help</strong>
+         <p> You can learn more in the <a class="text-danger" href="https://vitejs.dev/guide/" target="_blank"> Vite
+                Documentation</a> To learn Vite.</p>
+
+      </section>
+      <section id="folderstructures">
+        <div class="page-header">
+          <h3>Folder Structures</h3>
+        </div>
+        <ul>
+          <!-- <li><strong>node_modules</strong> - </li> -->
+          <li><strong>public</strong> - All static files
+            <ul>
+              <li><strong>assets/images</strong> - All images for this template</li>
+            </ul>
+          </li>
+          <li><strong>src</strong> - Content all the react file
+            <ul>
+              <li><strong>Components</strong> - All components with relevant Section</li>
+              <li><strong>Data</strong> - All data on that template</li>
+              <li><strong>Layout</strong> - 2 different layout on that template</li>
+              <li><strong>Pages</strong> - All pages on that template</li>
+              <li><strong>Routes</strong> -Rroutes file</li>
+			  <li><strong>index.css</strong> - Main Css File</li>
+              <li><strong>main.jsx</strong> - Entry poing of react app</li>
+            </ul>
+          </li>
+          <li><strong>Css File</strong>
+            <ul>
+        <li><strong>src/assets/main.css</strong> - Main Css File</li>
+			  <li><strong>src/assets/responsive.css</strong> - Responsive Css File</li>
+            </ul>
+          </li>		  
+          <li><strong>package.json</strong> - All packages have information</li>
+          <li><strong>node_modules</strong> - After install ittech you can see this folder, this folder content all
+            installed package.</li>
+        </ul>
+      </section>
+
+
+      <section id="documenter_cover">
+        <div class="page-header">
+          <h3>Pages and Components Info</h3>
+        </div>
+
+        <div id="documenter_buttons"></div>
+        <ul>
+          <li>Home (<b>/Pages/Home.jsx</b>)</li>
+          <li>Home2 (<b>/Pages/Home2.jsx</b>)</li>
+          <li>Home3 (<b>/Pages/Home3.jsx</b>)</li>
+          <li>Home4 (<b>/Pages/Home4.jsx</b>)</li>
+          <li>Home5 (<b>/Pages/Home5.jsx</b>)</li>
+          <li>Home6 (<b>/Pages/Home6.jsx</b>)</li>
+          <li>Home7 (<b>/Pages/Home7.jsx</b>)</li>
+          <li>Home8 (<b>/Pages/Home8.jsx</b>)</li>
+          <li>Home9 (<b>/Pages/Home9.jsx</b>)</li>
+          <li>Home10 (<b>/Pages/Home10.jsx</b>)</li>
+          <li>About(<b>/Pages/About.jsx</b>)</li>
+          <li>Blog(<b>/Pages/Blog.jsx</b>)</li>
+          <li>BlogSidebar(<b>/Pages/BlogSidebar.jsx</b>)</li>
+          <li>BlogDetails(<b>/Pages/BlogDetails.jsx</b>)</li>
+          <li>Project(<b>/Pages/Project.jsx</b>)</li>
+          <li>ProjectDetails(<b>/Pages/ProjectDetails.jsx</b>)</li>
+          <li>Services(<b>/Pages/Services.jsx</b>)</li>
+          <li>ServiceDetails(<b>/Pages/ServiceDetails.jsx</b>)</li>
+          <li>Team(<b>/Pages/Team.jsx</b>)</li>
+          <li>TeamDetails(<b>/Pages/TeamDetails.jsx</b>)</li>
+          <li>Testimonial(<b>/Pages/Testimonial.jsx</b>)</li>
+          <li>PricingPage(<b>/Pages/PricingPage.jsx</b>)</li>
+          <li>FaqPage(<b>/Pages/FaqPage.jsx</b>)</li>
+          <li>Contact(<b>/Pages/Contact.jsx</b>)</li>
+        </ul>
+        <h6 style="margin-top: 20px;"><strong>Common Components:</strong></h6>
+        <ul>
+          <li>Header (<b>/Components/Header</b>)</li>
+          <li>Footer (<b>/Components/Footer</b>)</li>
+        </ul>
+
+        <h6 style="margin-top: 20px;"><strong>Template Features:</strong></h6>
+        <ul>
+          <li>Vite 5.4.0+</li>          
+          <li>React JS 18.3.1+</li>
+          <li>ES6+</li>
+        </ul>
+
+        <p></p>
+      </section>
+
+      <section id="data">
+        <div class="page-header">
+          <h3>Template Data</h3>
+        </div>
+
+        <div id="documenter_buttons"></div>
+        <p>The data of this application is basically given <b>src/Data</b> Folder. If you go to the page folder
+          and open any page, you can see Component.
+        </p>
+        <img src="assets/img/data.png" alt="data" />
+      </section>
+
+      <section id="dependencies">
+        <div class="page-header">
+          <h3>Dependencies</h3>
+        </div>
+        <p>
+          Here are the <strong>dependencies</strong> list which being used in
+          the ittech React Template:
+        </p>
+        <pre class="line-numbers">
+          <code class="language-markup"> 
+              "dependencies": {
+                "bootstrap": "^5.3.3",
+                "bootstrap-icons": "^1.11.3",
+                "html-react-parser": "^5.1.12",
+                "localforage": "^1.10.0",
+                "match-sorter": "^6.3.4",
+                "react": "^18.3.1",
+                "react-bootstrap": "^2.10.4",
+                "react-dom": "^18.3.1",
+                "react-router-dom": "^6.26.1",
+                "react-slick": "^0.30.2",
+                "slick-carousel": "^1.8.1",
+                "sort-by": "^1.2.0"
+              }
+          </code>
+        </pre>
+      </section>
+
+      <section id="fonts_used">
+        <div class="page-header">
+          <h3>Fonts</h3>
+        </div>
+        <p>
+          By default, the template loads <a href="https://fonts.google.com/specimen/Rajdhani">Rajdhani</a> , <a href="https://fonts.google.com/specimen/Nunito">Nunito</a> font from
+          Google Web Font Services, you can change the font with the one that
+          suits you best.
+        </p>
+        <p>
+          You will find the font code in the &quot;<strong>src/assets/main.css"</strong>
+        </p>
+        <!-- <pre class="line-numbers">
+          <code class="language-css">
+            // URL
+          </code>
+        </pre> -->
+      </section>
+      <section id="deploy">
+        <div class="page-header">
+          <h3>Deploy</h3>
+        </div>
+        <p>
+          For deploy first run the command <code class="language-markup">npm run build</code> or <code
+            class="language-markup">yarn build</code> <br>
+          Now you will get build folder. <br>
+          Using an FTP Client (such as Filezilla or Total Commander), you will need to upload all of the contents of the
+          'build' folder to your server.
+        </p>
+      </section>
+      <section id="credits">
+        <div class="page-header">
+          <h3>Credits</h3>
+        </div>
+        <strong>Framework</strong><br />
+        <a href="https://vitejs.dev/guide/" target="_blank">Vite</a><br />
+
+        <div class="height-15"></div>
+
+        <strong>Images</strong><br />
+        <a href="https://www.freepik.com/" target="_blank">Freepick</a><br />
+        <a href="https://unsplash.com/" target="_blank">Unsplash</a><br />
+
+        <div class="height-15"></div>
+
+        <strong>Packages</strong><br />
+        <a href="https://react-bootstrap.netlify.app/docs/getting-started/introduction" target="_blank">bootstrap</a><br />
+        <a href="https://www.npmjs.com/package/react-bootstrap-icons" target="_blank">bootstrap icons</a><br />
+        <a href="https://www.npmjs.com/package/html-react-parser" target="_blank">html-react-parser</a><br />
+        <a href="https://www.npmjs.com/package/react" target="_blank">react</a><br />
+        <a href="https://www.npmjs.com/package/react-dom" target="_blank">react-dom</a><br />
+        <a href="https://www.npmjs.com/package/react-router-dom" target="_blank">react-router-dom</a><br />
+        <a href="https://www.npmjs.com/package/react-slick" target="_blank">react-slick</a><br />
+        <a href="https://www.npmjs.com/package/slick-carousel" target="_blank">slick-carousel</a><br />
+      </section>
+
+      <section id="supports">
+        <div class="page-header">
+          <h3>Support</h3>
+        </div>
+        <p>
+          If you have any questions, please use our profile contact form on
+          Envato (
+          <a target="_blank" href="https://themeforest.net/user/Dreamit-Solution">https://themeforest.net/user/Dreamit-Solution</a>
+          ) Or direct email us on <a href="mailto:dreamit.websolution@gmail.com">dreamit.websolution@gmail.com</a>. <br />
+          We aim to answer all questions within <strong>5 days</strong> . In
+          some cases the waiting time can be extended to
+          <strong>7 days.</strong>
+        </p>
+      </section>
+    </article>
+    <!-- END Main content -->
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container-fluid">
+      <a id="scroll-up" href="#"><i class="fa fa-angle-up"></i></a>
+      <div class="row">
+        <div class="col-md-6 col-sm-6">
+          <p>
+            Copyright &copy; All right reserved by
+            <a href="https://themeforest.net/user/Dreamit-Solution" target="_new">Dreamit-Solution</a>
+          </p>
+        </div>
+        <div class="col-md-6 col-sm-6">
+          <ul class="footer-menu">
+            <li><a href="mailto:dreamit.websolution@gmail.com">Contact us</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <!-- END Footer -->
+</body>
+
+</html>

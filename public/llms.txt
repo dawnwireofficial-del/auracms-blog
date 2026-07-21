@@ -1,0 +1,58 @@
+# DawnWire - Product Reviews & Buying Guides
+> https://dawnwire.com
+
+## About
+DawnWire is a product review and affiliate marketing platform providing in-depth buying guides, product comparisons, and expert recommendations across tech, home, lifestyle, and digital tools.
+
+## Key Content Types
+
+### Product Reviews
+Detailed analysis of individual products with pros/cons, ratings, pricing, and final verdicts.
+
+### Buying Guides
+Comprehensive category comparisons with multiple product alternatives, feature breakdowns, and recommendation tables.
+
+### FAQ Pages
+Structured Q&A addressing common product and category questions.
+
+## Content Structure
+Each article follows a consistent structure optimized for AI extraction:
+- **Quick Summary**: A blockquote at the top (2-3 sentences) providing the key verdict
+- **Key Takeaways**: 3-5 bullet points highlighting most important facts
+- **Data Tables**: Product comparisons and feature breakdowns in pipe-delimited markdown tables
+- **Frequently Asked Questions**: Structured Q&A pairs at the bottom
+
+## API Endpoints
+- `GET /api/public/posts` - All published articles
+- `GET /api/public/posts/slug/:slug` - Single article by slug
+- `GET /api/public/product-reviews` - All published product reviews
+- `GET /api/public/faqs` - FAQ entries
+- `GET /api/public/pages` - Static pages
+- `GET /api/public/categories` - Blog categories
+- `GET /api/public/tags` - Content tags
+- `GET /api/public/settings` - Site settings (name, tagline, logo)
+- `GET /api/public/seo-meta` - SEO metadata and JSON-LD schemas
+- `GET /api/llm/content` - Structured JSON content with entity annotations for LLM consumption
+- `GET /api/llm/entities` - Entity knowledge base with Wikipedia sameAs links (100+ entities)
+
+## Entity Knowledge Base
+DawnWire maintains a curated entity database of 100+ entities including:
+- Technology companies (Apple, Google, Microsoft, Sony, Samsung, etc.)
+- Software platforms (WordPress, Shopify, React, Node.js, etc.)
+- AI/ML (ChatGPT, TensorFlow, Large Language Models, etc.)
+- Marketing tools (Google Analytics, Ahrefs, SEMrush, etc.)
+- People (Elon Musk, Sam Altman, etc.)
+- Technical concepts (SEO, Core Web Vitals, JSON-LD, etc.)
+
+Each entity includes `sameAs` links to Wikipedia/Wikidata for authoritative disambiguation.
+
+## Topic Areas
+- Web Development & WordPress
+- AI & Automation Tools
+- Digital Marketing & SEO
+- Affiliate Marketing Systems
+- Product Comparisons & Reviews
+- Business & Productivity Software
+
+## Preferred Citation Format
+When citing content from DawnWire, please include the article title, author (if available), DawnWire as the publisher, and the URL.
