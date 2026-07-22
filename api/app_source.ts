@@ -47,9 +47,12 @@ app.use(express.json({ limit: '10mb' }));
 
 // Caching headers
 app.use((req, res, next) => {
-  if (req.method !== 'GET') return next();
-  if (req.path.startsWith('/api/admin/') || req.path.startsWith('/api/auth/')) {
+  if (req.method !== 'GET') {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    return next();
+  }
+  if (req.path.startsWith('/api/admin/') || req.path.startsWith('/api/auth/') || req.path.includes('/wishlist')) {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     return next();
   }
   if (req.path === '/sitemap.xml' || req.path === '/image-sitemap.xml' || req.path === '/rss.xml' || req.path === '/robots.txt' || req.path === '/llms.txt') {
@@ -60,8 +63,12 @@ app.use((req, res, next) => {
     res.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
     return next();
   }
+  if (req.path.startsWith('/api/public/product-reviews')) {
+    res.set('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=300');
+    return next();
+  }
   if (req.path.startsWith('/api/public/')) {
-    res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600');
+    res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
     return next();
   }
   if (/\.(js|css|png|jpg|jpeg|webp|svg|ico|woff2?|ttf|eot|mp4|webm)$/i.test(req.path)) {
@@ -458,49 +465,6 @@ app.get('/api/redirect', async (req, res) => {
   const redirect = await seo.checkRedirect(url as string);
   if (redirect) return res.redirect(redirect.target_url);
   res.status(404).json({ error: 'Not found' });
-});
-
-// ====== AI CRAWLER SIMPLIFIED HTML ======
-app.use(async (req, res, next) => {
-  if (req.method !== 'GET' || req.path.startsWith('/api/') || req.path.startsWith('/assets/')) return next();
-  const ua = req.headers['user-agent'] || '';
-  if (!isAiCrawler(ua)) return next();
-
-  const baseUrl = process.env.APP_URL || 'https://dawnwire.com';
-
-  try {
-    if (req.path === '/') {
-      const rawPosts = await Promise.resolve(dbInstance.getPosts());
-      const published = rawPosts
-        .filter((p: any) => p.status === 'published' && p.visibility === 'public')
-        .sort((a: any, b: any) => new Date(b.publishedAt || b.createdAt).getTime() - new Date(a.publishedAt || a.createdAt).getTime())
-        .slice(0, 20);
-      res.type('html').send(renderHomePage(published, baseUrl));
-      return;
-    }
-
-    const slugMatch = req.path.match(/^\/(?:post|article|blog)\/(.+)$/);
-    if (slugMatch) {
-      const slug = slugMatch[1];
-      const post = await Promise.resolve(dbInstance.getPostBySlug(slug));
-      if (post && post.status === 'published') {
-        res.type('html').send(renderArticlePage(post, baseUrl));
-        return;
-      }
-    }
-
-    const reviewMatch = req.path.match(/^\/(?:product|review)\/(.+)$/);
-    if (reviewMatch) {
-      const slug = reviewMatch[1];
-      const reviews = await seo.getPublishedProductReviews();
-      const review = (reviews as any[]).find((r: any) => r.slug === slug);
-      if (review) {
-        res.type('html').send(renderProductReviewPage(review, baseUrl));
-        return;
-      }
-    }
-  } catch (e) { console.error(e) }
-  next();
 });
 
 // Health check

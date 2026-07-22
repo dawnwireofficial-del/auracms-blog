@@ -241,17 +241,8 @@ export async function createProductReview(review: any): Promise<any> {
   }
   let { data, error } = await sb.from('product_reviews').insert(reviewToInsert).select().single();
   if (error) {
-    console.warn('[Supabase Insert Warn]:', error.message);
-    const fallbackPayload = { ...reviewToInsert };
-    delete fallbackPayload.created_at;
-    delete fallbackPayload.updated_at;
-    delete fallbackPayload.cta_text;
-    delete fallbackPayload.stock_status;
-    delete fallbackPayload.key_features;
-    delete fallbackPayload.review_summary;
-    const res = await sb.from('product_reviews').insert(fallbackPayload).select().single();
-    if (res.error) throw new Error(res.error.message);
-    data = res.data;
+    console.error('[Supabase Product Review Insert Error]:', error.message);
+    throw new Error(`Failed to create product review: ${error.message}`);
   }
   return data;
 }
@@ -262,18 +253,13 @@ export async function updateProductReview(id: string, updates: any): Promise<any
   if (payload.review_summary) {
     payload.review_summary = sanitizeReviewSummary(payload.review_summary);
   }
+  // Don't modify original id
+  delete payload.id;
+  
   let { data, error } = await sb.from('product_reviews').update(payload).eq('id', id).select().single();
   if (error) {
-    console.warn('[Supabase Update Warn]:', error.message);
-    const fallbackUpdates = { ...payload };
-    delete fallbackUpdates.updated_at;
-    delete fallbackUpdates.created_at;
-    delete fallbackUpdates.cta_text;
-    delete fallbackUpdates.stock_status;
-    delete fallbackUpdates.key_features;
-    delete fallbackUpdates.review_summary;
-    const res = await sb.from('product_reviews').update(fallbackUpdates).eq('id', id).select().single();
-    if (!res.error) data = res.data;
+    console.error('[Supabase Product Review Update Error]:', error.message);
+    throw new Error(`Failed to update product review: ${error.message}`);
   }
   return data;
 }

@@ -200,23 +200,18 @@ export default function DashboardAnalytics({ token }: { token: string }) {
 
   const posts = contentPerf?.posts || [];
   const filteredPosts = posts
-    .filter(p => p.title.toLowerCase().includes(searchTerm.toLowerCase()) || p.slug.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter(p => p.title.toLowerCase().includes(perfSearch.toLowerCase()) || p.slug.toLowerCase().includes(perfSearch.toLowerCase()))
     .sort((a, b) => {
-      let aVal: any = a[sortField];
-      let bVal: any = b[sortField];
-      if (sortField === 'lastViewed') {
+      let aVal: any = (a as any)[perfSort];
+      let bVal: any = (b as any)[perfSort];
+      if (perfSort === 'lastViewed') {
         aVal = a.lastViewed ? new Date(a.lastViewed).getTime() : 0;
         bVal = b.lastViewed ? new Date(b.lastViewed).getTime() : 0;
       }
-      if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
-      if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
+      if (aVal < bVal) return perfDir === 'asc' ? -1 : 1;
+      if (aVal > bVal) return perfDir === 'asc' ? 1 : -1;
       return 0;
     });
-
-  const handleSort = (field: SortField) => {
-    if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
-    else { setSortField(field); setSortDir('desc'); }
-  };
 
   const estimatedRevenue = (clicks?.totalClicks || 0) * 0.35;
   const estimatedCommissions = estimatedRevenue.toFixed(2);
@@ -225,7 +220,7 @@ export default function DashboardAnalytics({ token }: { token: string }) {
     : '0.00';
 
   const activityItems: { icon: React.ReactNode; text: string; time: string; color: string }[] = [];
-  if (recentActivity && !recentActivity.error) {
+  if (recentActivity && !(recentActivity as any).error) {
     for (const v of (recentActivity.pageViews || []).slice(0, 8)) {
       activityItems.push({ icon: <Eye className="h-3 w-3" />, text: `Page view: ${v.path}`, time: v.time, color: 'text-blue-500' });
     }

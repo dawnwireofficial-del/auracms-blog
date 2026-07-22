@@ -26,6 +26,7 @@ import ShoppingAssistant from './ShoppingAssistant';
 import Header from './Header';
 import Footer from './Footer';
 import { MotionProvider } from './motion/MotionProvider';
+import { normalizeProducts } from '../utils/productMapper';
 
 import HomePage from './pages/HomePage';
 import PortfolioPage from './pages/PortfolioPage';
@@ -101,6 +102,7 @@ interface PublicPagesProps {
     prevArticle: Post | null;
     nextArticle: Post | null;
   };
+  initialProductReviews?: any[];
 }
 
 export default function PublicPages({
@@ -113,7 +115,8 @@ export default function PublicPages({
   settings,
   currentUser,
   onOpenLogin,
-  routeSpecific
+  routeSpecific,
+  initialProductReviews
 }: PublicPagesProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -167,7 +170,7 @@ export default function PublicPages({
   const [commentSubmittedMsg, setCommentSubmittedMsg] = useState('');
 
   // Affiliate platform state
-  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [allProducts, setAllProducts] = useState<any[]>(() => normalizeProducts(initialProductReviews || []));
   const [allBrands, setAllBrands] = useState<any[]>([]);
   const [deals, setDeals] = useState<any[]>([]);
   const [categoryPage, setCategoryPage] = useState<any>(null);
@@ -182,7 +185,13 @@ export default function PublicPages({
     const param = currentRoute.param;
 
     if (name === 'products' || name === 'category' || name === 'product' || name === 'deals' || name === 'categories' || name === 'home' || !name) {
-      fetch('/api/public/product-reviews').then(r => r.json()).then(data => setAllProducts(Array.isArray(data?.data) ? data.data : [])).catch(() => {});
+      fetch('/api/public/product-reviews')
+        .then(r => r.json())
+        .then(data => {
+          const rawItems = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+          setAllProducts(normalizeProducts(rawItems));
+        })
+        .catch(() => {});
     }
     if (name === 'category' || name === 'products' || name === 'home' || !name) {
       fetch('/api/public/brands').then(r => r.json()).then(data => setAllBrands(Array.isArray(data) ? data : [])).catch(() => {});

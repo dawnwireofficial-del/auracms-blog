@@ -87,11 +87,15 @@ export async function mergeGuestWishlist(user: any): Promise<void> {
   if (localIds.length === 0) return;
 
   try {
-    await fetch('/api/public/wishlist/merge', {
+    const res = await fetch('/api/public/wishlist/merge', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: user.id, sessionId: sid, productIds: localIds }),
     });
+    if (res.ok) {
+      // Clear guest local storage after successful merge
+      setLocalWishlistIds([]);
+    }
   } catch (e) {
     console.error('Wishlist merge failed:', e);
   }

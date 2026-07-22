@@ -20,6 +20,7 @@ interface AppProps {
     settings: SiteSettings | null;
     pages: Page[];
     affiliateLinks: AffiliateLink[];
+    productReviews?: any[];
   };
   initialRoute?: { name: string; param?: string };
   routeSpecific?: {
@@ -354,6 +355,7 @@ export default function App({ initialData, routeSpecific, initialRoute }: AppPro
             currentUser={currentUser}
             onOpenLogin={() => { setIsRegistering(false); setShowLoginModal(true); }}
             routeSpecific={routeSpecific}
+            initialProductReviews={initialData?.productReviews}
           />
         </ErrorBoundary>
       )}

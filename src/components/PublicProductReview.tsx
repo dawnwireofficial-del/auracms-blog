@@ -455,12 +455,16 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
                   {review.brand && <p className="text-white/70 text-sm mt-1">{review.brand}</p>}
                 </div>
                 <div className="flex items-center gap-4 flex-wrap">
-                  <div className="flex items-center gap-1">
-                    {[1,2,3,4,5].map(n => (
-                      <Star key={n} className={`w-5 h-5 ${n <= Math.round(rating) ? 'text-amber-400 fill-amber-400' : 'text-white/30'}`} />
-                    ))}
-                    <span className="ml-2 text-sm font-bold">{rating.toFixed(1)}</span>
-                  </div>
+                  {rating > 0 ? (
+                    <div className="flex items-center gap-1">
+                      {[1,2,3,4,5].map(n => (
+                        <Star key={n} className={`w-5 h-5 ${n <= Math.round(rating) ? 'text-amber-400 fill-amber-400' : 'text-white/30'}`} />
+                      ))}
+                      <span className="ml-2 text-sm font-bold">{rating.toFixed(1)}</span>
+                    </div>
+                  ) : (
+                    <span className="text-sm font-medium text-white/70 italic">Not rated</span>
+                  )}
                   {review.price && (
                     <span className="text-2xl font-bold text-white font-mono">{review.price}</span>
                   )}

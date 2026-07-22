@@ -23,10 +23,10 @@ interface SeoHelmetProps {
 }
 
 function getBaseUrl(): string {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
     return window.location.origin;
   }
-  return process.env.APP_URL || 'https://www.dawnwire.com';
+  return 'https://www.dawnwire.com';
 }
 
 export default function SeoHelmet({

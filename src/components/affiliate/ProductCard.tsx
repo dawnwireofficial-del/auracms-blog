@@ -21,14 +21,20 @@ export default function ProductCard({
   const discount = product.discountPercentage || (hasDiscount ? Math.round((1 - price / origPrice) * 100) : 0);
   const isOutOfStock = product.stockStatus === 'out_of_stock';
 
-  const renderStars = (rating: number) => {
+  const renderStars = (rating?: number) => {
+    if (!rating || rating <= 0) {
+      return <span className="text-[10px] text-slate-400 dark:text-zinc-500 italic">Not rated</span>;
+    }
     const full = Math.floor(rating);
     const half = rating % 1 >= 0.5;
     return (
-      <div className="flex items-center gap-0.5">
-        {[...Array(5)].map((_, i) => (
-          <Star key={i} className={`h-3 w-3 ${i < full ? 'text-amber-400 fill-amber-400' : i === full && half ? 'text-amber-400 fill-amber-400/50' : 'text-slate-200 dark:text-zinc-600'}`} />
-        ))}
+      <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5">
+          {[...Array(5)].map((_, i) => (
+            <Star key={i} className={`h-3 w-3 ${i < full ? 'text-amber-400 fill-amber-400' : i === full && half ? 'text-amber-400 fill-amber-400/50' : 'text-slate-200 dark:text-zinc-600'}`} />
+          ))}
+        </div>
+        <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-medium">({rating.toFixed(1)})</span>
       </div>
     );
   };
@@ -103,9 +109,8 @@ export default function ProductCard({
           {product.productName}
         </a>
         {/* Rating */}
-        <div className="flex items-center gap-1.5 mt-1.5">
+        <div className="mt-1.5">
           {renderStars(product.rating)}
-          <span className="text-[10px] text-slate-400 dark:text-zinc-500">({product.rating})</span>
         </div>
         {/* Best For */}
         {product.bestFor && <p className="text-[9px] text-slate-400 dark:text-zinc-500 mt-1">Best for: {product.bestFor}</p>}
@@ -166,7 +171,6 @@ export default function ProductCard({
         <div className="mt-2 flex items-center gap-2">
           <span className="text-lg font-bold text-slate-800 dark:text-zinc-100">${price.toFixed(2)}</span>
           {hasDiscount && <span className="text-xs text-slate-400 dark:text-zinc-500 line-through">${origPrice.toFixed(2)}</span>}
-          <span className="text-[10px] text-slate-400 dark:text-zinc-500 ml-2">{product.rating} stars</span>
         </div>
         {renderStockBadge()}
         <div className="mt-2 flex items-center gap-2">

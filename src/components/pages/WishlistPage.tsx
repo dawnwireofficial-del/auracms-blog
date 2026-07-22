@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, Trash2, ExternalLink, ShoppingBag, AlertCircle, Star, Scale } from 'lucide-react';
 import { motion } from 'motion/react';
-import { fetchWishlist, mergeGuestWishlist } from '../../utils/wishlist';
+import { fetchWishlist, mergeGuestWishlist, getLocalWishlistIds, setLocalWishlistIds } from '../../utils/wishlist';
+import { normalizeProduct } from '../../utils/productMapper';
 
 export default function WishlistPage({ onNavigate, user }: { onNavigate: (r: string, p?: string) => void, user: any }) {
   const [wishlistItems, setWishlistItems] = useState<any[]>([]);
@@ -32,9 +33,14 @@ export default function WishlistPage({ onNavigate, user }: { onNavigate: (r: str
   const removeFromWishlist = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
+      const itemToRemove = wishlistItems.find(item => item.id === id);
       const res = await fetch(`/api/public/wishlist/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setWishlistItems(prev => prev.filter(item => item.id !== id));
+        if (itemToRemove?.productId) {
+          const local = getLocalWishlistIds().filter(pid => pid !== itemToRemove.productId);
+          setLocalWishlistIds(local);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -48,7 +54,7 @@ export default function WishlistPage({ onNavigate, user }: { onNavigate: (r: str
         await fetch(`/api/public/wishlist/${item.id}`, { method: 'DELETE' });
       }
       setWishlistItems([]);
-      localStorage.removeItem('dw_wishlist_ids');
+      setLocalWishlistIds([]);
     } catch (err) {
       console.error(err);
     }
@@ -112,13 +118,13 @@ export default function WishlistPage({ onNavigate, user }: { onNavigate: (r: str
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {wishlistItems.map((item, i) => {
-              const prod = item.product || {};
-              const name = prod.product_name || prod.productName || `Product ID: ${item.productId}`;
-              const image = prod.product_image || prod.productImage || '';
+              const prod = normalizeProduct(item.product);
+              const name = prod.productName || `Product ID: ${item.productId}`;
+              const image = prod.productImage;
               const price = prod.price;
-              const origPrice = prod.original_price || prod.originalPrice;
+              const origPrice = prod.originalPrice;
               const brand = prod.brand;
-              const rating = prod.rating || 0;
+              const rating = prod.rating;
               const slug = prod.slug || item.productId;
 
               return (

@@ -995,12 +995,15 @@ export class SupabaseDatabase {
   // ====== Wishlist ======
   async getWishlist(userId?: string, sessionId?: string): Promise<WishlistItem[]> {
     const sb = await this.ready();
-    let q = sb.from('wishlist_items').select('*, product_reviews!inner(*)');
+    let q = sb.from('wishlist_items').select('*, product_reviews(*)');
     if (userId) q = q.eq('user_id', userId);
     else if (sessionId) q = q.eq('session_id', sessionId);
     else return [];
     const { data } = await q.order('created_at', { ascending: false });
-    return (data || []).map(r => ({ ...mapRow<WishlistItem>(r), product: mapRow<any>(r.product_reviews) })) as any;
+    return (data || []).map(r => ({
+      ...mapRow<WishlistItem>(r),
+      product: r.product_reviews ? mapRow<any>(r.product_reviews) : null
+    })) as any;
   }
   async addWishlistItem(input: Omit<WishlistItem, 'id' | 'createdAt'>): Promise<WishlistItem> {
     const sb = await this.ready();
