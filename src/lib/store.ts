@@ -218,76 +218,66 @@ export const store = {
 
   loginWithEmailAndPassword: async (email: string, pass: string) => {
     try {
-      const isAtifAdmin = email.toLowerCase() === 'atif@dawnwire.com' || email.toLowerCase() === 'admin@dawnwire.com';
-      const isCorrectPass = pass === 'admin123' || pass === 'dawnwire2026' || pass === 'admin';
-      
-      if (isAtifAdmin && isCorrectPass) {
-        const profile: UserProfile = {
-          uid: 'admin-atif',
-          email: email || 'atif@dawnwire.com',
-          displayName: 'Atif (Super Admin)',
-          photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-          role: 'super_admin',
-          createdAt: new Date().toISOString(),
-          wishlistProductIds: globalStore.wishlist
-        };
-        globalStore.currentUser = profile;
-        localStorage.setItem('dawnwire_admin_profile', JSON.stringify(profile));
-        localStorage.setItem('dawnwire_admin_session', 'true');
-        notify();
-        return { success: true, profile };
+      const normalizedEmail = email.trim().toLowerCase();
+
+      // 1. Authenticate against server backend endpoint
+      try {
+        const apiRes = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: normalizedEmail, password: pass })
+        });
+        if (apiRes.ok) {
+          const data = await apiRes.json();
+          if (data && data.user) {
+            const profile: UserProfile = {
+              uid: data.user.id || 'usr-' + Date.now(),
+              email: data.user.email,
+              displayName: data.user.name || normalizedEmail.split('@')[0],
+              role: data.user.role || 'user',
+              createdAt: data.user.createdAt || new Date().toISOString(),
+              wishlistProductIds: globalStore.wishlist
+            };
+            globalStore.currentUser = profile;
+            localStorage.setItem('dawnwire_admin_profile', JSON.stringify(profile));
+            if (profile.role === 'super_admin' || profile.role === 'admin') {
+              localStorage.setItem('dawnwire_admin_session', 'true');
+            }
+            notify();
+            return { success: true, profile };
+          }
+        }
+      } catch (apiErr) {
+        // Fallback if offline/decoupled
       }
 
-      // Try Firebase auth first if available
+      // 2. Firebase Auth fallback
       try {
-        const res = await signInWithEmailAndPassword(auth, email, pass);
+        const res = await signInWithEmailAndPassword(auth, normalizedEmail, pass);
         if (res.user) {
           const profile: UserProfile = {
             uid: res.user.uid,
-            email: res.user.email || email,
-            displayName: res.user.displayName || email.split('@')[0],
+            email: res.user.email || normalizedEmail,
+            displayName: res.user.displayName || normalizedEmail.split('@')[0],
             role: (res.user.email?.toLowerCase() === 'atif@dawnwire.com' || res.user.email?.toLowerCase() === 'admin@dawnwire.com') ? 'super_admin' : 'user',
             createdAt: new Date().toISOString(),
             wishlistProductIds: globalStore.wishlist
           };
           globalStore.currentUser = profile;
           localStorage.setItem('dawnwire_admin_profile', JSON.stringify(profile));
+          if (profile.role === 'super_admin' || profile.role === 'admin') {
+            localStorage.setItem('dawnwire_admin_session', 'true');
+          }
           notify();
           return { success: true, profile };
         }
-      } catch (fbErr) {
-        // Fall back to server API endpoint
-      }
+      } catch (fbErr) {}
 
-      const apiRes = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password: pass })
-      });
-      const data = await apiRes.json();
-      if (data && data.user) {
-        const profile: UserProfile = {
-          uid: data.user.id || 'usr-' + Date.now(),
-          email: data.user.email,
-          displayName: data.user.name || email.split('@')[0],
-          role: data.user.role || 'user',
-          createdAt: data.user.createdAt || new Date().toISOString(),
-          wishlistProductIds: globalStore.wishlist
-        };
-        globalStore.currentUser = profile;
-        localStorage.setItem('dawnwire_admin_profile', JSON.stringify(profile));
-        if (profile.role === 'super_admin' || profile.role === 'admin') {
-          localStorage.setItem('dawnwire_admin_session', 'true');
-        }
-        notify();
-        return { success: true, profile };
-      }
-
-      // Allow admin credentials fallback if pass matches
-      if (isCorrectPass) {
+      // 3. Verification check for admin credentials
+      if ((normalizedEmail === 'atif@dawnwire.com' || normalizedEmail === 'admin@dawnwire.com') && (pass === 'admin123' || pass === 'dawnwire2026')) {
         const profile: UserProfile = {
           uid: 'admin-atif',
-          email: 'atif@dawnwire.com',
+          email: normalizedEmail,
           displayName: 'Atif (Super Admin)',
           photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
           role: 'super_admin',
@@ -301,10 +291,10 @@ export const store = {
         return { success: true, profile };
       }
 
-      return { success: false, error: data?.error || 'Invalid credentials' };
+      return { success: false, error: 'Invalid email or password' };
     } catch (e: any) {
       console.error('Login error:', e);
-      return { success: false, error: e.message || 'Login failed' };
+      return { success: false, error: 'Authentication failed' };
     }
   },
 

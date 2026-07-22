@@ -23,8 +23,8 @@ export const AdminDashboardPage: React.FC = () => {
     const isSuperAdminUser = currentUser && (currentUser.role === 'super_admin' || currentUser.role === 'admin' || currentUser.email === 'atif@dawnwire.com');
     setIsAdminLoggedIn(Boolean(hasAdminSession && isSuperAdminUser));
   }, [currentUser]);
-  const [adminEmailInput, setAdminEmailInput] = useState(currentUser?.email || 'atif@dawnwire.com');
-  const [adminPasscode, setAdminPasscode] = useState('admin123');
+  const [adminEmailInput, setAdminEmailInput] = useState('');
+  const [adminPasscode, setAdminPasscode] = useState('');
   const [loginError, setLoginError] = useState('');
 
   // Active Tab
@@ -90,7 +90,7 @@ export const AdminDashboardPage: React.FC = () => {
       setIsAdminLoggedIn(true);
       localStorage.setItem('dawnwire_admin_session', 'true');
     } else {
-      setLoginError(res.error || 'Invalid Administrator credentials. Please try atif@dawnwire.com with admin123.');
+      setLoginError(res.error || 'Invalid Administrator email or password.');
     }
   };
 
@@ -509,19 +509,21 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
               <label className="block text-xs font-bold text-slate-400 mb-1">Admin Email</label>
               <input
                 type="email"
-                placeholder="atif@dawnwire.com"
+                placeholder="admin@dawnwire.com"
                 value={adminEmailInput}
                 onChange={(e) => setAdminEmailInput(e.target.value)}
                 className="w-full bg-slate-900 border border-slate-700 px-4 py-3 rounded-xl text-sm outline-none focus:border-blue-500 font-mono text-white mb-3"
+                required
               />
 
               <label className="block text-xs font-bold text-slate-400 mb-1">Admin Password</label>
               <input
                 type="password"
-                placeholder="Enter password (e.g. admin123)"
+                placeholder="Enter password"
                 value={adminPasscode}
                 onChange={(e) => setAdminPasscode(e.target.value)}
                 className="w-full bg-slate-900 border border-slate-700 px-4 py-3 rounded-xl text-sm outline-none focus:border-blue-500 font-mono text-white"
+                required
               />
             </div>
 
@@ -561,16 +563,6 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
             >
               <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
               <span>Sign in with Facebook</span>
-            </button>
-
-            <button
-              onClick={() => {
-                setIsAdminLoggedIn(true);
-                localStorage.setItem('dawnwire_admin_session', 'true');
-              }}
-              className="w-full bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 font-extrabold py-2.5 rounded-xl text-xs border border-emerald-500/30 transition-colors"
-            >
-              ⚡ Instant 1-Click Demo Admin Login
             </button>
           </div>
         </div>

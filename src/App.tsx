@@ -89,8 +89,8 @@ export function App() {
     setIsChatbotOpen(true);
   };
 
-  const [loginEmailInput, setLoginEmailInput] = useState('atif@dawnwire.com');
-  const [loginPasswordInput, setLoginPasswordInput] = useState('admin123');
+  const [loginEmailInput, setLoginEmailInput] = useState('');
+  const [loginPasswordInput, setLoginPasswordInput] = useState('');
   const [loginMsg, setLoginMsg] = useState('');
 
   const handleUserLogin = async (e: React.FormEvent) => {
@@ -221,7 +221,7 @@ export function App() {
                       type="email"
                       value={loginEmailInput}
                       onChange={(e) => setLoginEmailInput(e.target.value)}
-                      placeholder="atif@dawnwire.com"
+                      placeholder="you@example.com"
                       className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 rounded-xl text-xs outline-none focus:border-blue-500 dark:text-white"
                       required
                     />
@@ -233,7 +233,7 @@ export function App() {
                       type="password"
                       value={loginPasswordInput}
                       onChange={(e) => setLoginPasswordInput(e.target.value)}
-                      placeholder="admin123"
+                      placeholder="••••••••"
                       className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 rounded-xl text-xs outline-none focus:border-blue-500 dark:text-white"
                       required
                     />
