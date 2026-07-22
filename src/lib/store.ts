@@ -37,15 +37,7 @@ let globalStore: AppStoreState = {
   authors: SEED_AUTHORS,
   banners: SEED_BANNERS,
   seoOpportunities: SEED_SEO_OPPORTUNITIES,
-  currentUser: JSON.parse(localStorage.getItem('dawnwire_admin_profile') || 'null') || {
-    uid: 'admin-atif',
-    email: 'atif@dawnwire.com',
-    displayName: 'Atif (Super Admin)',
-    photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-    role: 'super_admin',
-    createdAt: new Date().toISOString(),
-    wishlistProductIds: ['p1', 'p2']
-  },
+  currentUser: JSON.parse(localStorage.getItem('dawnwire_admin_profile') || 'null'),
   wishlist: JSON.parse(localStorage.getItem('dawnwire_wishlist') || '["p1", "p2"]'),
   recentlyViewed: JSON.parse(localStorage.getItem('dawnwire_recently_viewed') || '["p1", "p2", "p5"]'),
   affiliateClicks: [],
@@ -326,7 +318,7 @@ export const store = {
           email: res.user.email || '',
           displayName: res.user.displayName || 'DawnWire User',
           photoURL: res.user.photoURL || undefined,
-          role: (res.user.email === 'atif@dawnwire.com' || res.user.email === 'admin@dawnwire.com' || res.user.email === 'medicaltradehub@gmail.com') ? 'super_admin' : 'user',
+          role: (res.user.email === 'atif@dawnwire.com' || res.user.email === 'admin@dawnwire.com') ? 'super_admin' : 'user',
           createdAt: new Date().toISOString(),
           wishlistProductIds: globalStore.wishlist
         };
@@ -348,7 +340,7 @@ export const store = {
           email: res.user.email || `${res.user.uid}@github.com`,
           displayName: res.user.displayName || 'GitHub User',
           photoURL: res.user.photoURL || undefined,
-          role: (res.user.email === 'atif@dawnwire.com' || res.user.email === 'admin@dawnwire.com' || res.user.email === 'medicaltradehub@gmail.com') ? 'super_admin' : 'user',
+          role: (res.user.email === 'atif@dawnwire.com' || res.user.email === 'admin@dawnwire.com') ? 'super_admin' : 'user',
           createdAt: new Date().toISOString(),
           wishlistProductIds: globalStore.wishlist
         };
@@ -380,7 +372,7 @@ export const store = {
           email: res.user.email || `${res.user.uid}@facebook.com`,
           displayName: res.user.displayName || 'Facebook User',
           photoURL: res.user.photoURL || undefined,
-          role: (res.user.email === 'atif@dawnwire.com' || res.user.email === 'admin@dawnwire.com' || res.user.email === 'medicaltradehub@gmail.com') ? 'super_admin' : 'user',
+          role: (res.user.email === 'atif@dawnwire.com' || res.user.email === 'admin@dawnwire.com') ? 'super_admin' : 'user',
           createdAt: new Date().toISOString(),
           wishlistProductIds: globalStore.wishlist
         };
@@ -430,7 +422,7 @@ export function useAppStore() {
           email: user.email || '',
           displayName: user.displayName || 'DawnWire Member',
           photoURL: user.photoURL || undefined,
-          role: (user.email === 'atif@dawnwire.com' || user.email === 'admin@dawnwire.com' || user.email === 'medicaltradehub@gmail.com') ? 'super_admin' : 'user',
+          role: (user.email === 'atif@dawnwire.com' || user.email === 'admin@dawnwire.com') ? 'super_admin' : 'user',
           createdAt: new Date().toISOString(),
           wishlistProductIds: globalStore.wishlist
         };

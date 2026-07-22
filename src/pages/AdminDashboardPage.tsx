@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppStore, store } from '../lib/store';
 import { ActivityFeedTab } from '../components/admin/ActivityFeedTab';
 import { AdminProfileCropModal } from '../components/admin/AdminProfileCropModal';
@@ -11,17 +11,18 @@ import { Product, CategoryBanner, EditorialReview, BuyingGuide } from '../types'
 export const AdminDashboardPage: React.FC = () => {
   const { products, categories, banners, reviews, buyingGuides, syncLogs, affiliateClicks, seoOpportunities, currentUser } = useAppStore();
 
-  // Authentication State
+  // Authentication State (requires active admin profile and session)
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(() => {
-    return (
-      currentUser?.role === 'super_admin' ||
-      currentUser?.role === 'admin' ||
-      currentUser?.email === 'atif@dawnwire.com' ||
-      currentUser?.email === 'admin@dawnwire.com' ||
-      currentUser?.email === 'medicaltradehub@gmail.com' ||
-      localStorage.getItem('dawnwire_admin_session') === 'true'
-    );
+    const hasAdminSession = localStorage.getItem('dawnwire_admin_session') === 'true';
+    const isSuperAdminUser = currentUser && (currentUser.role === 'super_admin' || currentUser.role === 'admin' || currentUser.email === 'atif@dawnwire.com');
+    return Boolean(hasAdminSession && isSuperAdminUser);
   });
+
+  useEffect(() => {
+    const hasAdminSession = localStorage.getItem('dawnwire_admin_session') === 'true';
+    const isSuperAdminUser = currentUser && (currentUser.role === 'super_admin' || currentUser.role === 'admin' || currentUser.email === 'atif@dawnwire.com');
+    setIsAdminLoggedIn(Boolean(hasAdminSession && isSuperAdminUser));
+  }, [currentUser]);
   const [adminEmailInput, setAdminEmailInput] = useState(currentUser?.email || 'atif@dawnwire.com');
   const [adminPasscode, setAdminPasscode] = useState('admin123');
   const [loginError, setLoginError] = useState('');
@@ -53,8 +54,8 @@ export const AdminDashboardPage: React.FC = () => {
   const [newGalleryImageUrl, setNewGalleryImageUrl] = useState('');
 
   // Admin Profile States
-  const [adminName, setAdminName] = useState(currentUser?.displayName || 'DawnWire Admin');
-  const [adminEmail, setAdminEmail] = useState(currentUser?.email || 'medicaltradehub@gmail.com');
+  const [adminName, setAdminName] = useState(currentUser?.displayName || 'Atif');
+  const [adminEmail, setAdminEmail] = useState(currentUser?.email || 'atif@dawnwire.com');
   const [adminPhoto, setAdminPhoto] = useState(currentUser?.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80');
   const [adminTitle, setAdminTitle] = useState('Chief Editorial Lead & Product Architect');
   const [adminBio, setAdminBio] = useState('Managing DawnWire affiliate product intelligence, Amazon API sync engines, and editorial lab benchmarks.');
@@ -112,8 +113,9 @@ export const AdminDashboardPage: React.FC = () => {
   };
 
   const handleAdminLogout = () => {
-    setIsAdminLoggedIn(false);
     localStorage.removeItem('dawnwire_admin_session');
+    localStorage.removeItem('dawnwire_admin_profile');
+    setIsAdminLoggedIn(false);
     store.logout();
   };
 
@@ -593,7 +595,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
           <div className="flex items-center gap-4 text-xs">
             <div className="text-right text-slate-300 hidden sm:block">
               <div>Role: <strong className="text-amber-400 uppercase">Super Admin</strong></div>
-              <div className="text-[11px] font-mono">{currentUser?.email || 'medicaltradehub@gmail.com'}</div>
+              <div className="text-[11px] font-mono">{currentUser?.email || 'atif@dawnwire.com'}</div>
             </div>
 
             <button

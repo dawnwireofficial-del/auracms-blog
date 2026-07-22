@@ -66,7 +66,7 @@ export const fetchRecentActivityEvents = async (max: number = 50): Promise<Activ
       id: 'a3',
       type: 'PRODUCT_SEARCH',
       details: 'Searched for "noise canceling headphones under $400"',
-      userEmail: 'medicaltradehub@gmail.com',
+      userEmail: 'atif@dawnwire.com',
       timestamp: new Date(now - 25 * 60 * 1000).toISOString()
     },
     {
@@ -74,7 +74,7 @@ export const fetchRecentActivityEvents = async (max: number = 50): Promise<Activ
       type: 'WISHLIST_ADD',
       productId: 'p3',
       productTitle: 'Dell XPS 15 OLED Touch Laptop',
-      userEmail: 'medicaltradehub@gmail.com',
+      userEmail: 'atif@dawnwire.com',
       details: 'Added product to personal wishlist',
       timestamp: new Date(now - 45 * 60 * 1000).toISOString()
     },

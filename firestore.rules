@@ -6,7 +6,7 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null && 
         (request.auth.token.role in ['admin', 'super_admin'] || 
-         request.auth.token.email in ['medicaltradehub@gmail.com']);
+         request.auth.token.email in ['atif@dawnwire.com', 'admin@dawnwire.com']);
     }
 
     // Public collections (Readable by anyone)
