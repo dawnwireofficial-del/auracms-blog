@@ -1,4 +1,4 @@
-import { render } from 'vike/abort';
+import { render, redirect } from 'vike/abort';
 import type { PageContextServer } from 'vike/types';
 import { dbInstance } from '../server/db';
 import { getPublishedProductReviews } from '../server/seo-engine';
@@ -9,6 +9,10 @@ export type Data = Awaited<ReturnType<typeof data>>;
 
 async function data(pageContext: PageContextServer) {
   const urlPath = pageContext.urlPathname || pageContext.urlOriginal || '/';
+
+  if (urlPath === '/review' || urlPath === '/review/' || urlPath === '/reviews' || urlPath === '/reviews/') {
+    throw redirect('/products', 301);
+  }
 
   const [allPosts, allCategories, settings, allPages, allAffiliates, rawProducts] = await Promise.all([
     Promise.resolve(dbInstance.getPosts()).catch(() => []),

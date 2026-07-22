@@ -45,6 +45,11 @@ app.use((req, res, next) => {
 
 app.use(express.json({ limit: '10mb' }));
 
+// 301 Redirect bare /review or /reviews to /products catalog page
+app.get(['/review', '/review/', '/reviews', '/reviews/'], (_req, res) => {
+  return res.redirect(301, '/products');
+});
+
 // Caching headers
 app.use((req, res, next) => {
   if (req.method !== 'GET') {
