@@ -12,6 +12,7 @@ import { Head } from 'vike-react/Head';
 import SeoHelmet from './SeoHelmet';
 import Breadcrumbs from './Breadcrumbs';
 import PublicProductReview from './PublicProductReview';
+import PublicProductsPage from './PublicProductsPage';
 import PublicPortfolio from './PublicPortfolio';
 import PublicServices from './PublicServices';
 import BuyerGuidePage from './BuyerGuidePage';
@@ -1005,16 +1006,7 @@ export default function PublicPages({
 
         {/* ===== PRODUCTS LIST VIEW ===== */}
         {currentRoute.name === 'products' && (
-          <div className="Container px-4 py-8">
-            <ProductList
-              products={allProducts}
-              categories={categories.filter((c: any) => c.status === 'active')}
-              brands={allBrands}
-              title="All Products"
-              description="Browse our curated selection of top-rated products."
-              showFilters
-            />
-          </div>
+          <PublicProductsPage onNavigate={onNavigate} />
         )}
 
         {/* ===== SEARCH VIEW ===== */}
