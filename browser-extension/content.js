@@ -16,6 +16,29 @@
     if (!apiToken) return { success: false, error: 'API token not configured. Open extension popup to set it up.' };
     const baseUrl = (apiUrl || 'https://www.dawnwire.com').replace(/\/$/, '');
     try {
+      // Check for duplicates first
+      if (data.asin) {
+        try {
+          const dupRes = await fetch(baseUrl + '/api/admin/seo/product-reviews/check-duplicate?asin=' + encodeURIComponent(data.asin), { headers: { 'Authorization': 'Bearer ' + apiToken } });
+          if (dupRes.ok) {
+            const dupData = await dupRes.json();
+            if (dupData && dupData.duplicate && dupData.id) {
+              // Update existing product
+              const updRes = await fetch(baseUrl + '/api/admin/seo/product-reviews/import', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiToken },
+                body: JSON.stringify({ ...data, id: dupData.id, status: 'published' })
+              });
+              const updResult = await updRes.json();
+              if (updRes.ok) {
+                const updId = updResult.id || updResult.review?.id;
+                if (updId && data.asin) { try { await fetch(baseUrl + '/api/admin/seo/product-reviews/fetch-video/' + updId, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiToken } }); } catch (e) { console.error('[DawnWire]', e); } }
+                return { success: true, review: updResult, id: updId, updated: true };
+              }
+            }
+          }
+        } catch (e) { console.error('[DawnWire] duplicate check failed:', e); }
+      }
       const res = await fetch(baseUrl + '/api/admin/seo/product-reviews/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiToken },

@@ -316,11 +316,25 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
-  // Save extracted product directly to catalog
-  const handlePublishExtractedProduct = () => {
+  // Save extracted product to database via API
+  const handlePublishExtractedProduct = async () => {
     if (!extractedPreview) return;
-    store.saveProduct(extractedPreview);
-    setExtractionSuccessMsg(`🚀 "${extractedPreview.title}" published live to DawnWire website catalog!`);
+    try {
+      const res = await fetch('/api/admin/products/import-from-asin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ asin: extractedPreview.asin || linkInput.match(/([A-Z0-9]{10})/i)?.[1] })
+      });
+      if (res.ok) {
+        const result = await res.json();
+        setExtractionSuccessMsg(`"${result.product?.product_name || extractedPreview.title}" published live to DawnWire!`);
+      } else {
+        const err = await res.json();
+        setExtractionSuccessMsg(`Publish failed: ${err.error || 'Unknown error'}`);
+      }
+    } catch {
+      setExtractionSuccessMsg('Publish failed. Check API connection.');
+    }
     setExtractedPreview(null);
     setLinkInput('');
     setExtractionStep('idle');
