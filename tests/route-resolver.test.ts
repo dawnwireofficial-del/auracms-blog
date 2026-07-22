@@ -7,11 +7,13 @@ describe('routeResolver', () => {
     expect(resolveRouteFromPath('/products/')).toEqual({ name: 'products' });
   });
 
-  it('maps bare /review and /reviews to products route', () => {
+  it('maps bare /review, /reviews, /product and /product/ to products route', () => {
     expect(resolveRouteFromPath('/review')).toEqual({ name: 'products' });
     expect(resolveRouteFromPath('/review/')).toEqual({ name: 'products' });
     expect(resolveRouteFromPath('/reviews')).toEqual({ name: 'products' });
     expect(resolveRouteFromPath('/reviews/')).toEqual({ name: 'products' });
+    expect(resolveRouteFromPath('/product')).toEqual({ name: 'products' });
+    expect(resolveRouteFromPath('/product/')).toEqual({ name: 'products' });
   });
 
   it('resolves /products/[slug] to review detail page with slug', () => {
