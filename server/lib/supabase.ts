@@ -8,10 +8,12 @@ let client: SupabaseClient | null = null;
 
 export function getSupabase(): SupabaseClient {
   if (!client) {
-    if (!supabaseUrl || !supabaseAnonKey) {
+    const url = process.env.SUPABASE_URL || '';
+    const key = process.env.SUPABASE_ANON_KEY || '';
+    if (!url || !key) {
       throw new Error('SUPABASE_URL and SUPABASE_ANON_KEY environment variables are required');
     }
-    client = createClient(supabaseUrl, supabaseAnonKey, {
+    client = createClient(url, key, {
       auth: { persistSession: false }
     });
   }
@@ -22,15 +24,14 @@ let adminClient: SupabaseClient | null = null;
 
 export async function getSupabaseAdmin(): Promise<SupabaseClient> {
   if (!adminClient) {
-    if (supabaseServiceKey) {
-      adminClient = createClient(supabaseUrl, supabaseServiceKey, {
-        auth: { persistSession: false }
-      });
-    } else {
-      adminClient = createClient(supabaseUrl, supabaseAnonKey, {
-        auth: { persistSession: false }
-      });
+    const url = process.env.SUPABASE_URL || '';
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || '';
+    if (!url || !key) {
+      throw new Error('SUPABASE_URL and service/anon key environment variables are required');
     }
+    adminClient = createClient(url, key, {
+      auth: { persistSession: false }
+    });
   }
   return adminClient;
 }
