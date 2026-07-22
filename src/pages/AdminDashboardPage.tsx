@@ -304,7 +304,12 @@ export const AdminDashboardPage: React.FC = () => {
 
       const data = await res.json();
       if (data && data.title) {
-        setExtractedPreview(data);
+        setExtractedPreview({
+          ...data,
+          images: data.mainImage ? [data.mainImage, ...(data.additionalImages || [])] : (data.images || []),
+          currentPrice: data.price || data.currentPrice,
+          referencePrice: data.referencePrice || data.listPrice
+        });
         setExtractionStep('complete');
         setExtractionSuccessMsg(`Successfully extracted publish-ready product data for "${data.title}"!`);
       }
@@ -778,7 +783,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                   <div className="space-y-4">
                     <div className="aspect-square rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 flex items-center justify-center">
                       <img
-                        src={extractedPreview.images[0]}
+                        src={extractedPreview.images?.[0] || extractedPreview.mainImage || ''}
                         alt={extractedPreview.title}
                         className="max-h-full object-contain"
                       />
@@ -1357,7 +1362,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                   {filteredProducts.map((p) => (
                     <tr key={p.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
                       <td className="p-4 font-bold flex items-center gap-3">
-                        <img src={p.images[0]} alt="" className="w-10 h-10 object-contain rounded-lg bg-slate-100 dark:bg-slate-800 p-1" />
+                        <img src={p.images?.[0] || p.mainImage || ''} alt="" className="w-10 h-10 object-contain rounded-lg bg-slate-100 dark:bg-slate-800 p-1" />
                         <div>
                           <div className="text-slate-900 dark:text-slate-100 line-clamp-1">{p.title}</div>
                           <div className="text-[10px] text-slate-400">{p.brand} {p.isDeal && <span className="text-orange-500 font-black ml-1">[HOT DEAL]</span>}</div>
