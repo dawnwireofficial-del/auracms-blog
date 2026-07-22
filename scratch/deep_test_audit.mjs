@@ -10,7 +10,7 @@ const endpointsToTest = [
   { path: '/categories/baby-kids', expectedStatus: 200 },
   { path: '/deals', expectedStatus: 200 },
   { path: '/compare', expectedStatus: 200 },
-  { path: '/reviews', expectedStatus: 200 },
+  { path: '/reviews', expectedStatus: 301, expectedLocation: '/products' },
   { path: '/guides', expectedStatus: 200 },
   { path: '/wishlist', expectedStatus: 200 },
   { path: '/account', expectedStatus: 200 },

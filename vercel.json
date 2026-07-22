@@ -1,22 +1,62 @@
 {
-  "name": "dawnwire",
   "buildCommand": "npm run build",
-  "installCommand": "npm install",
-  "framework": null,
+  "outputDirectory": "dist",
   "functions": {
     "api/index.js": {
       "maxDuration": 60,
-      "includeFiles": "dist/client/**"
+      "includeFiles": "dist/**"
     }
   },
-  "routes": [
-    { "src": "/api/(.*)", "dest": "api/index.js" },
-    { "src": "/(.*)", "dest": "api/index.js" }
-  ],
-  "crons": [
+  "redirects": [
     {
-      "path": "/api/cron/sync-affiliates",
-      "schedule": "0 0 * * *"
+      "source": "/review",
+      "destination": "/products",
+      "permanent": true
+    },
+    {
+      "source": "/review/",
+      "destination": "/products",
+      "permanent": true
+    },
+    {
+      "source": "/product",
+      "destination": "/products",
+      "permanent": true
+    },
+    {
+      "source": "/product/",
+      "destination": "/products",
+      "permanent": true
+    },
+    {
+      "source": "/reviews",
+      "destination": "/products",
+      "permanent": true
+    },
+    {
+      "source": "/reviews/",
+      "destination": "/products",
+      "permanent": true
+    },
+    {
+      "source": "/review/:slug",
+      "destination": "/products/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/product/:slug",
+      "destination": "/products/:slug",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
@@ -25,26 +65,13 @@
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Access-Control-Allow-Headers", "value": "Origin, X-Requested-With, Content-Type, Accept, Authorization" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
-        { "key": "Access-Control-Max-Age", "value": "86400" }
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" }
       ]
     },
     {
       "source": "/assets/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    },
-    {
-      "source": "/api/public/(settings|categories|brands|homepage|homepage-hero)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, s-maxage=300, stale-while-revalidate=600" }
-      ]
-    },
-    {
-      "source": "/api/public/product-reviews(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, s-maxage=60, stale-while-revalidate=300" }
       ]
     }
   ]
