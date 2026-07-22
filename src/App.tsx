@@ -89,6 +89,19 @@ export function App() {
     setIsChatbotOpen(true);
   };
 
+  const [loginEmailInput, setLoginEmailInput] = useState('atif@dawnwire.com');
+  const [loginPasswordInput, setLoginPasswordInput] = useState('admin123');
+  const [loginMsg, setLoginMsg] = useState('');
+
+  const handleUserLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginMsg('');
+    const res = await store.loginWithEmailAndPassword(loginEmailInput, loginPasswordInput);
+    if (!res.success) {
+      setLoginMsg(res.error || 'Invalid credentials');
+    }
+  };
+
   // Simple Router Switch
   const renderRoute = () => {
     // Product Detail (/products/:slug)
@@ -168,21 +181,77 @@ export function App() {
             <h2 className="text-2xl font-black">{currentUser ? 'User Account Profile' : 'Sign In to DawnWire'}</h2>
             {currentUser ? (
               <div className="space-y-4">
-                <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs space-y-1">
-                  <div className="font-bold text-sm">{currentUser.displayName}</div>
+                <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs space-y-1 text-left">
+                  <div className="font-bold text-sm text-slate-900 dark:text-white">{currentUser.displayName}</div>
                   <div className="text-slate-500">{currentUser.email}</div>
                   <div className="font-bold text-amber-500 uppercase mt-2">Role: {currentUser.role}</div>
                 </div>
+
+                {(currentUser.role === 'super_admin' || currentUser.role === 'admin') && (
+                  <button
+                    onClick={() => {
+                      window.history.pushState({}, '', '/admin');
+                      window.dispatchEvent(new PopStateEvent('popstate'));
+                    }}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs transition-colors shadow"
+                  >
+                    Go to Admin Dashboard
+                  </button>
+                )}
+
                 <button
                   onClick={() => store.logout()}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl text-xs"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl text-xs transition-colors"
                 >
                   Sign Out
                 </button>
               </div>
             ) : (
               <div className="space-y-4">
-                <p className="text-xs text-slate-500 dark:text-slate-400">Sign in with your preferred account to sync your wishlist and price drop alerts across all devices.</p>
+                {loginMsg && (
+                  <div className="p-3 bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300 text-xs font-bold rounded-xl border border-red-200 dark:border-red-800">
+                    {loginMsg}
+                  </div>
+                )}
+
+                <form onSubmit={handleUserLogin} className="space-y-3 text-left">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Email Address</label>
+                    <input
+                      type="email"
+                      value={loginEmailInput}
+                      onChange={(e) => setLoginEmailInput(e.target.value)}
+                      placeholder="atif@dawnwire.com"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 rounded-xl text-xs outline-none focus:border-blue-500 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Password</label>
+                    <input
+                      type="password"
+                      value={loginPasswordInput}
+                      onChange={(e) => setLoginPasswordInput(e.target.value)}
+                      placeholder="admin123"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 rounded-xl text-xs outline-none focus:border-blue-500 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs transition-colors shadow-md"
+                  >
+                    Sign In with Email
+                  </button>
+                </form>
+
+                <div className="relative py-2 flex items-center justify-center">
+                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200 dark:border-slate-800"></div></div>
+                  <span className="relative bg-white dark:bg-slate-900 px-3 text-[10px] font-extrabold uppercase text-slate-400">OR SOCIAL SIGN IN</span>
+                </div>
+
                 <div className="space-y-2.5">
                   <button
                     onClick={() => store.loginWithGoogle()}

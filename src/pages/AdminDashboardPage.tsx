@@ -16,11 +16,14 @@ export const AdminDashboardPage: React.FC = () => {
     return (
       currentUser?.role === 'super_admin' ||
       currentUser?.role === 'admin' ||
+      currentUser?.email === 'atif@dawnwire.com' ||
+      currentUser?.email === 'admin@dawnwire.com' ||
       currentUser?.email === 'medicaltradehub@gmail.com' ||
       localStorage.getItem('dawnwire_admin_session') === 'true'
     );
   });
-  const [adminPasscode, setAdminPasscode] = useState('');
+  const [adminEmailInput, setAdminEmailInput] = useState(currentUser?.email || 'atif@dawnwire.com');
+  const [adminPasscode, setAdminPasscode] = useState('admin123');
   const [loginError, setLoginError] = useState('');
 
   // Active Tab
@@ -77,15 +80,16 @@ export const AdminDashboardPage: React.FC = () => {
   const [showSitemapModal, setShowSitemapModal] = useState(false);
   const [sitemapContent, setSitemapContent] = useState('');
 
-  // Passcode authentication
-  const handleAdminLogin = (e: React.FormEvent) => {
+  // Email + Password & Passcode authentication
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (adminPasscode === 'dawnwire2026' || adminPasscode === 'admin' || adminPasscode === 'admin123') {
+    setLoginError('');
+    const res = await store.loginWithEmailAndPassword(adminEmailInput, adminPasscode);
+    if (res.success) {
       setIsAdminLoggedIn(true);
       localStorage.setItem('dawnwire_admin_session', 'true');
-      setLoginError('');
     } else {
-      setLoginError('Invalid Administrator Passcode. Try "dawnwire2026" or "admin123".');
+      setLoginError(res.error || 'Invalid Administrator credentials. Please try atif@dawnwire.com with admin123.');
     }
   };
 
@@ -500,10 +504,19 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
 
           <form onSubmit={handleAdminLogin} className="space-y-4 text-left">
             <div>
-              <label className="block text-xs font-bold text-slate-400 mb-1">Administrator Passcode</label>
+              <label className="block text-xs font-bold text-slate-400 mb-1">Admin Email</label>
+              <input
+                type="email"
+                placeholder="atif@dawnwire.com"
+                value={adminEmailInput}
+                onChange={(e) => setAdminEmailInput(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-700 px-4 py-3 rounded-xl text-sm outline-none focus:border-blue-500 font-mono text-white mb-3"
+              />
+
+              <label className="block text-xs font-bold text-slate-400 mb-1">Admin Password</label>
               <input
                 type="password"
-                placeholder="Enter passcode (e.g. dawnwire2026)"
+                placeholder="Enter password (e.g. admin123)"
                 value={adminPasscode}
                 onChange={(e) => setAdminPasscode(e.target.value)}
                 className="w-full bg-slate-900 border border-slate-700 px-4 py-3 rounded-xl text-sm outline-none focus:border-blue-500 font-mono text-white"

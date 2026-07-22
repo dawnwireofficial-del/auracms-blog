@@ -33,7 +33,7 @@ router.post('/login', async (req, res) => {
         let user = await dbInstance.getUserByEmail(email);
         if (!user) {
           // Auth user exists but no profile row — try direct PG pool first, else admin client
-          const role = email === process.env.ADMIN_EMAIL ? 'super_admin' : 'subscriber';
+          const role = (email === 'atif@dawnwire.com' || email === 'admin@dawnwire.com' || email === process.env.ADMIN_EMAIL) ? 'super_admin' : 'subscriber';
           const name = data.user.user_metadata?.name || email.split('@')[0];
           const profile = { id: data.user.id, name, email, role, status: 'active', created_at: new Date().toISOString() };
           let created = false;

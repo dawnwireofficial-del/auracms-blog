@@ -50,6 +50,16 @@ export function generateId(): string {
 function getInitialDB(): DatabaseSchema {
   const users: User[] = [
     {
+      id: 'user-atif-admin',
+      name: 'Atif',
+      email: 'atif@dawnwire.com',
+      role: 'super_admin',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
+      bio: 'Atif is the Founder and Administrator of DawnWire.',
+      status: 'active',
+      createdAt: new Date().toISOString()
+    },
+    {
       id: 'user-admin',
       name: 'Sarah Jenkins',
       email: 'admin@dawnwire.com',
@@ -72,7 +82,8 @@ function getInitialDB(): DatabaseSchema {
   ];
 
   const passwords: Record<string, string> = {
-    'user-admin': '$2b$12$kqxxO5.jf6oq9PPviX.zZ.k5lE7NQs6HzXP3fzpJDQv5w6LnBS7ny',
+    'user-atif-admin': '$2b$10$6G9rIOvyFkz9/KPr2W4quOGtAG8QIblu.a44ZWhvCTOV28Xg0Wh7u',
+    'user-admin': '$2b$10$6G9rIOvyFkz9/KPr2W4quOGtAG8QIblu.a44ZWhvCTOV28Xg0Wh7u',
     'user-editor': '$2b$12$tayhp80k0fdRYM3UMj23TOSkdQYIcfAIAKEMuFR/vMHLP.95cAEEu'
   };
 
