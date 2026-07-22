@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { DawnWireLogo } from '../common/SvgIcons';
-import { db, handleFirestoreError, OperationType } from '../../lib/firebase';
-import { collection, addDoc } from 'firebase/firestore';
+
 
 export const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -18,20 +17,20 @@ export const Footer: React.FC = () => {
     setErrorMessage('');
 
     try {
-      await addDoc(collection(db, 'newsletter'), {
-        email: cleanEmail,
-        subscribedAt: new Date().toISOString(),
-        source: 'footer_signup'
+      const response = await fetch('/api/public/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail })
       });
-      setSubscribed(true);
-      setEmail('');
-    } catch (error) {
-      console.error('Newsletter Firestore Error:', error);
-      try {
-        handleFirestoreError(error, OperationType.WRITE, 'newsletter');
-      } catch (formattedErr) {
-        setErrorMessage('Failed to save subscription. Please try again.');
+      if (response.ok) {
+        setSubscribed(true);
+        setEmail('');
+      } else {
+        const data = await response.json();
+        setErrorMessage(data.error || 'Subscription failed. Please try again.');
       }
+    } catch (error) {
+      setErrorMessage('Unable to subscribe. Please check your connection.');
     } finally {
       setIsSubmitting(false);
     }

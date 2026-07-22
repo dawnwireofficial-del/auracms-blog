@@ -10,9 +10,9 @@ export async function authenticate(req: express.Request, res: express.Response, 
     const userId = token.substring(6);
     let user = await dbInstance.getUserById(userId);
     if (!user) {
-      user = { id: userId || 'admin', name: 'Admin User', email: 'admin@aura.com', role: 'super_admin', avatar: '', bio: '', status: 'active', createdAt: new Date().toISOString() };
+      return res.status(401).json({ error: 'Unauthorized: User not found' });
     }
-    if (user.status !== 'active') user.status = 'active';
+    if (user.status !== 'active') return res.status(401).json({ error: 'Unauthorized: Account suspended' });
     (req as any).user = user;
     return next();
   }

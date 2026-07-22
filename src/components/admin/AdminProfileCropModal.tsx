@@ -1,6 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../../lib/firebase';
 
 interface AdminProfileCropModalProps {
   currentPhotoUrl?: string;
@@ -104,23 +102,24 @@ export const AdminProfileCropModal: React.FC<AdminProfileCropModalProps> = ({
     // Get Data URL
     const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.92);
 
-    // Try uploading to Firebase Storage if configured, or use cropped data URL
+    // Use server-side upload
     try {
-      const storageRef = ref(storage, `admin-avatars/profile-${Date.now()}.jpg`);
-      
-      // Convert Data URL to Blob
-      const res = await fetch(croppedDataUrl);
-      const blob = await res.blob();
-
       setUploadProgress(85);
-      const snapshot = await uploadBytes(storageRef, blob);
-      const downloadUrl = await getDownloadURL(snapshot.ref);
-      
-      setUploadProgress(100);
-      onSave(downloadUrl);
+      const res = await fetch('/api/admin/upload-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('dawnwire_auth_token')}` },
+        body: JSON.stringify({ base64: croppedDataUrl, fileName: `profile-${Date.now()}.jpg` })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUploadProgress(100);
+        onSave(data.url || croppedDataUrl);
+      } else {
+        setUploadProgress(100);
+        onSave(croppedDataUrl);
+      }
     } catch (e) {
-      console.warn('Firebase Storage upload fallback to Data URL:', e);
-      // Fallback to Data URL directly
+      console.warn('Upload fallback to Data URL:', e);
       setUploadProgress(100);
       onSave(croppedDataUrl);
     } finally {

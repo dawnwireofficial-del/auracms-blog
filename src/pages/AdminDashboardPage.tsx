@@ -11,17 +11,12 @@ import { Product, CategoryBanner, EditorialReview, BuyingGuide } from '../types'
 export const AdminDashboardPage: React.FC = () => {
   const { products, categories, banners, reviews, buyingGuides, syncLogs, affiliateClicks, seoOpportunities, currentUser } = useAppStore();
 
-  // Authentication State (requires active admin profile and session)
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(() => {
-    const hasAdminSession = localStorage.getItem('dawnwire_admin_session') === 'true';
-    const isSuperAdminUser = currentUser && (currentUser.role === 'super_admin' || currentUser.role === 'admin' || currentUser.email === 'atif@dawnwire.com');
-    return Boolean(hasAdminSession && isSuperAdminUser);
+    return !!(currentUser && (currentUser.role === 'super_admin' || currentUser.role === 'admin'));
   });
 
   useEffect(() => {
-    const hasAdminSession = localStorage.getItem('dawnwire_admin_session') === 'true';
-    const isSuperAdminUser = currentUser && (currentUser.role === 'super_admin' || currentUser.role === 'admin' || currentUser.email === 'atif@dawnwire.com');
-    setIsAdminLoggedIn(Boolean(hasAdminSession && isSuperAdminUser));
+    setIsAdminLoggedIn(!!(currentUser && (currentUser.role === 'super_admin' || currentUser.role === 'admin')));
   }, [currentUser]);
   const [adminEmailInput, setAdminEmailInput] = useState('');
   const [adminPasscode, setAdminPasscode] = useState('');
@@ -53,12 +48,11 @@ export const AdminDashboardPage: React.FC = () => {
   // Image Gallery State in Product Editor
   const [newGalleryImageUrl, setNewGalleryImageUrl] = useState('');
 
-  // Admin Profile States
-  const [adminName, setAdminName] = useState(currentUser?.displayName || 'Atif');
-  const [adminEmail, setAdminEmail] = useState(currentUser?.email || 'atif@dawnwire.com');
-  const [adminPhoto, setAdminPhoto] = useState(currentUser?.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80');
-  const [adminTitle, setAdminTitle] = useState('Chief Editorial Lead & Product Architect');
-  const [adminBio, setAdminBio] = useState('Managing DawnWire affiliate product intelligence, Amazon API sync engines, and editorial lab benchmarks.');
+  const [adminName, setAdminName] = useState(currentUser?.displayName || '');
+  const [adminEmail, setAdminEmail] = useState(currentUser?.email || '');
+  const [adminPhoto, setAdminPhoto] = useState(currentUser?.photoURL || '');
+  const [adminTitle, setAdminTitle] = useState('');
+  const [adminBio, setAdminBio] = useState('');
   const [profileSuccessMsg, setProfileSuccessMsg] = useState('');
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
 
@@ -81,40 +75,18 @@ export const AdminDashboardPage: React.FC = () => {
   const [showSitemapModal, setShowSitemapModal] = useState(false);
   const [sitemapContent, setSitemapContent] = useState('');
 
-  // Email + Password & Passcode authentication
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
     const res = await store.loginWithEmailAndPassword(adminEmailInput, adminPasscode);
     if (res.success) {
       setIsAdminLoggedIn(true);
-      localStorage.setItem('dawnwire_admin_session', 'true');
     } else {
       setLoginError(res.error || 'Invalid Administrator email or password.');
     }
   };
 
-  const handleGoogleAdminLogin = async () => {
-    await store.loginWithGoogle();
-    setIsAdminLoggedIn(true);
-    localStorage.setItem('dawnwire_admin_session', 'true');
-  };
-
-  const handleGithubAdminLogin = async () => {
-    await store.loginWithGithub();
-    setIsAdminLoggedIn(true);
-    localStorage.setItem('dawnwire_admin_session', 'true');
-  };
-
-  const handleFacebookAdminLogin = async () => {
-    await store.loginWithFacebook();
-    setIsAdminLoggedIn(true);
-    localStorage.setItem('dawnwire_admin_session', 'true');
-  };
-
   const handleAdminLogout = () => {
-    localStorage.removeItem('dawnwire_admin_session');
-    localStorage.removeItem('dawnwire_admin_profile');
     setIsAdminLoggedIn(false);
     store.logout();
   };
@@ -283,39 +255,28 @@ export const AdminDashboardPage: React.FC = () => {
     setEditingProduct(null);
   };
 
-  // ASIN Scraper Simulator
-  const handleSimulateScrape = (e: React.FormEvent) => {
+  const handleSimulateScrape = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!asinInput.trim()) return;
-
     setIsScraping(true);
     setScrapeSuccessMsg('');
-
-    setTimeout(() => {
-      setIsScraping(false);
-      setScrapeSuccessMsg(`Successfully scraped ASIN ${asinInput.toUpperCase()} from Amazon US! Data imported into catalog.`);
-      setEditingProduct({
-        asin: asinInput.toUpperCase(),
-        title: `Amazon Scraped Item (${asinInput.toUpperCase()})`,
-        brand: 'Amazon Brand',
-        mainCategory: 'Electronics',
-        subcategory: 'Smart Devices',
-        currentPrice: 149.99,
-        referencePrice: 199.99,
-        editorScore: 9.3,
-        rating: 4.7,
-        reviewCount: 420,
-        isDeal: true,
-        discountPercentage: 25,
-        affiliateUrl: `https://www.amazon.com/dp/${asinInput.toUpperCase()}?tag=${associateTag}`,
-        images: ['https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800'],
-        shortDescription: 'Auto-synchronized directly from Amazon Product Advertising API.',
-        bestFor: 'Automated price tracking pick',
-        pros: ['Direct Amazon import', 'Synced price drops', 'Verified Prime item'],
-        cons: ['High demand product']
+    try {
+      const res = await fetch('/api/admin/products/import-from-asin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('dawnwire_auth_token')}` },
+        body: JSON.stringify({ asin: asinInput.trim() })
       });
-      setAsinInput('');
-    }, 1200);
+      if (res.ok) {
+        setScrapeSuccessMsg(`Successfully imported ASIN ${asinInput.toUpperCase()} from Amazon!`);
+        setAsinInput('');
+      } else {
+        const err = await res.json();
+        setScrapeSuccessMsg(`Import failed: ${err.error || 'Unknown error'}`);
+      }
+    } catch (err) {
+      setScrapeSuccessMsg('Import failed. Check that Amazon PA-API credentials are configured.');
+    }
+    setIsScraping(false);
   };
 
   // Amazon Link Product Data Extractor Plugin
@@ -509,7 +470,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
               <label className="block text-xs font-bold text-slate-400 mb-1">Admin Email</label>
               <input
                 type="email"
-                placeholder="admin@dawnwire.com"
+                placeholder="you@email.com"
                 value={adminEmailInput}
                 onChange={(e) => setAdminEmailInput(e.target.value)}
                 className="w-full bg-slate-900 border border-slate-700 px-4 py-3 rounded-xl text-sm outline-none focus:border-blue-500 font-mono text-white mb-3"
@@ -535,36 +496,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
             </button>
           </form>
 
-          <div className="relative py-2 flex items-center justify-center">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-700"></div></div>
-            <span className="relative bg-slate-800 px-3 text-[10px] font-extrabold uppercase text-slate-500">OR</span>
-          </div>
 
-          <div className="space-y-2">
-            <button
-              onClick={handleGoogleAdminLogin}
-              className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 border border-slate-600 transition-colors"
-            >
-              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.15C3.26 21.3 7.31 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.39l3.99-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.61l3.99 3.15c.95-2.85 3.6-4.96 6.72-4.96z"/></svg>
-              <span>Sign in with Google</span>
-            </button>
-
-            <button
-              onClick={handleGithubAdminLogin}
-              className="w-full bg-slate-950 hover:bg-black text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 border border-slate-700 transition-colors"
-            >
-              <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-              <span>Sign in with GitHub</span>
-            </button>
-
-            <button
-              onClick={handleFacebookAdminLogin}
-              className="w-full bg-[#1877F2] hover:bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 border border-blue-500 transition-colors"
-            >
-              <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-              <span>Sign in with Facebook</span>
-            </button>
-          </div>
         </div>
       </div>
     );
@@ -587,7 +519,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
           <div className="flex items-center gap-4 text-xs">
             <div className="text-right text-slate-300 hidden sm:block">
               <div>Role: <strong className="text-amber-400 uppercase">Super Admin</strong></div>
-              <div className="text-[11px] font-mono">{currentUser?.email || 'atif@dawnwire.com'}</div>
+              <div className="text-[11px] font-mono">{currentUser?.email || 'admin@example.com'}</div>
             </div>
 
             <button

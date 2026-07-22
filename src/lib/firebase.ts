@@ -1,30 +1,18 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, GithubAuthProvider, FacebookAuthProvider, setPersistence, browserLocalPersistence } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+// Firebase is not used in production. Auth is handled server-side only.
+// This file exists as a stub to prevent import errors.
 
-// Configuration from applet config or fallback env
-const firebaseConfig = {
-  projectId: "gen-lang-client-0008469407",
-  appId: "1:854660750277:web:a41ebadb725cf4864fc9ac",
-  apiKey: "AIzaSyBVT2KgbmHl_xm_7OBEKLSebqir2pZq5TE",
-  authDomain: "gen-lang-client-0008469407.firebaseapp.com",
-  firestoreDatabaseId: "ai-studio-dawnwire-7393d8c5-f907-4e40-a2e2-fe5cd88ab624",
-  storageBucket: "gen-lang-client-0008469407.firebasestorage.app",
-  messagingSenderId: "854660750277"
+export const auth = {
+  currentUser: null,
+  onAuthStateChanged: () => () => {}
 };
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+export const db = {};
 
-export const auth = getAuth(app);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
-export const storage = getStorage(app);
-export const googleProvider = new GoogleAuthProvider();
-export const githubProvider = new GithubAuthProvider();
-export const facebookProvider = new FacebookAuthProvider();
+export const storage = {};
 
-// Set browser persistence
-setPersistence(auth, browserLocalPersistence).catch(() => {});
+export const googleProvider = {};
+export const githubProvider = {};
+export const facebookProvider = {};
 
 export enum OperationType {
   CREATE = 'create',
@@ -53,22 +41,5 @@ export interface FirestoreErrorInfo {
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
-  const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
-    authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-      tenantId: auth.currentUser?.tenantId,
-      providerInfo: auth.currentUser?.providerData?.map(provider => ({
-        providerId: provider.providerId,
-        email: provider.email,
-      })) || []
-    },
-    operationType,
-    path
-  };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+  console.error('Firestore unavailable: ', error);
 }

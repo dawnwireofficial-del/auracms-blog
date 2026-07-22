@@ -56,77 +56,33 @@ app.get(['/review/:slug', '/product/:slug'], (req, res) => {
   return res.redirect(301, `/products/${slug}`);
 });
 
-// Trending deals endpoint for public API
+// Trending deals endpoint — fetches from database
 app.get('/api/deals/trending', async (_req, res) => {
-  res.json({
-    timestamp: new Date().toISOString(),
-    deals: [
-      {
-        id: 'p1',
-        title: 'Sony WH-1000XM5 Wireless Noise Canceling Headphones',
-        brand: 'Sony',
-        category: 'Electronics',
-        currentPrice: 328.00,
-        referencePrice: 399.99,
-        discountPercentage: 18,
-        rating: 4.8,
-        reviewCount: 14250,
-        images: ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80'],
-        asin: 'B09XS7JWHH',
-        affiliateUrl: 'https://www.amazon.com/dp/B09XS7JWHH?tag=dawnwire-20',
-        dealBadge: '🔥 Top Tech Deal',
-        expiresInHours: 7
-      },
-      {
-        id: 'p3',
-        title: 'Breville Barista Touch Impress Espresso Machine',
-        brand: 'Breville',
-        category: 'Home & Kitchen',
-        currentPrice: 1199.95,
-        referencePrice: 1499.95,
-        discountPercentage: 20,
-        rating: 4.9,
-        reviewCount: 3820,
-        images: ['https://images.unsplash.com/photo-1517668808822-9ebd02f2a888?auto=format&fit=crop&w=800&q=80'],
-        asin: 'B0C77X8L1Z',
-        affiliateUrl: 'https://www.amazon.com/dp/B0C77X8L1Z?tag=dawnwire-20',
-        dealBadge: '⚡ Flash Kitchen Savings',
-        expiresInHours: 4
-      },
-      {
-        id: 'p5',
-        title: 'Roborock S8 Pro Ultra Robot Vacuum and Mop',
-        brand: 'Roborock',
-        category: 'Smart Home',
-        currentPrice: 1199.99,
-        referencePrice: 1599.99,
-        discountPercentage: 25,
-        rating: 4.7,
-        reviewCount: 5210,
-        images: ['https://images.unsplash.com/photo-1558317374-067fb5f30001?auto=format&fit=crop&w=800&q=80'],
-        asin: 'B0BZR2Y7L1',
-        affiliateUrl: 'https://www.amazon.com/dp/B0BZR2Y7L1?tag=dawnwire-20',
-        dealBadge: '🏷️ Lowest Price 30 Days',
-        expiresInHours: 12
-      },
-      {
-        id: 'p8',
-        title: 'Dyson V15 Detect Cordless Vacuum Cleaner',
-        brand: 'Dyson',
-        category: 'Home & Cleaning',
-        currentPrice: 619.99,
-        referencePrice: 749.99,
-        discountPercentage: 17,
-        rating: 4.8,
-        reviewCount: 8940,
-        images: ['https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80'],
-        asin: 'B09C3X9Z1L',
-        affiliateUrl: 'https://www.amazon.com/dp/B09C3X9Z1L?tag=dawnwire-20',
-        dealBadge: '💥 Editor Choice Discount',
-        expiresInHours: 9
-      }
-    ]
-  });
+  try {
+    const products = await seo.getPublishedProductReviews();
+    const deals = (products as any[])
+      .filter((p: any) => p.is_deal || p.deal_badge)
+      .slice(0, 8)
+      .map((p: any) => ({
+        id: p.id,
+        title: p.product_name,
+        brand: p.brand,
+        category: p.best_for || '',
+        currentPrice: p.price,
+        referencePrice: p.original_price,
+        discountPercentage: p.original_price && p.price ? Math.round((1 - p.price / p.original_price) * 100) : 0,
+        rating: p.rating,
+        reviewCount: p.review_count,
+        images: p.product_image ? [p.product_image] : [],
+        asin: p.specs?.asin || '',
+        affiliateUrl: p.affiliate_url || '',
+        dealBadge: p.deal_badge || '',
+        expiresInHours: 0
+      }));
+    res.json({ timestamp: new Date().toISOString(), deals });
+  } catch {
+    res.json({ timestamp: new Date().toISOString(), deals: [] });
+  }
 });
 
 // Caching headers

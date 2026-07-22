@@ -513,4 +513,101 @@ router.post('/amazon-sync/trigger-cycle', authenticate, requireRole(['super_admi
   try { const m = await sync(); const result = await m.processSyncCycle(); res.json(result); } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
+// Import product from ASIN via Amazon PA-API
+router.post('/import-from-asin', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const { asin } = req.body;
+    if (!asin || !/^[A-Z0-9]{10}$/.test(asin.toUpperCase())) {
+      return res.status(400).json({ error: 'Valid ASIN required (10 alphanumeric characters)' });
+    }
+    const cleanAsin = asin.toUpperCase();
+
+    const { extractAsinFromUrl, getItemsByAsin, getMarketplaceDomain } = await import('../../server/amazon-api-client');
+    const { dbInstance } = await import('../../server/db');
+
+    const credentials = await dbInstance.getAmazonApiCredentials().catch(() => []);
+    let config: any = null;
+    if (Array.isArray(credentials) && credentials.length > 0) {
+      const cred = credentials[0];
+      config = {
+        credentials: {
+          accessKey: cred.access_key || process.env.AMAZON_ACCESS_KEY,
+          secretKey: cred.secret_key || process.env.AMAZON_SECRET_KEY,
+          partnerTag: cred.partner_tag || process.env.AMAZON_PARTNER_TAG || 'dawnwire-20',
+          marketplace: cred.marketplace || 'US'
+        },
+        region: 'us-east-1',
+        endpoint: 'webservices.amazon.com'
+      };
+    } else if (process.env.AMAZON_ACCESS_KEY && process.env.AMAZON_SECRET_KEY) {
+      config = {
+        credentials: {
+          accessKey: process.env.AMAZON_ACCESS_KEY,
+          secretKey: process.env.AMAZON_SECRET_KEY,
+          partnerTag: process.env.AMAZON_PARTNER_TAG || 'dawnwire-20',
+          marketplace: 'US'
+        },
+        region: 'us-east-1',
+        endpoint: 'webservices.amazon.com'
+      };
+    }
+
+    if (!config) {
+      return res.status(400).json({ error: 'Amazon PA-API credentials not configured. Set AMAZON_ACCESS_KEY and AMAZON_SECRET_KEY env vars or configure via Admin > Amazon Sync > Credentials.' });
+    }
+
+    const results = await getItemsByAsin([cleanAsin], config);
+    if (!results || results.length === 0) {
+      return res.status(404).json({ error: `No product found for ASIN ${cleanAsin}` });
+    }
+
+    const amazonData = results[0];
+    const slug = (amazonData.title || `product-${cleanAsin}`).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+    const allReviews = await seo.getProductReviews();
+    const existingSlug = allReviews.find((r: any) => r.slug === slug);
+    const finalSlug = existingSlug ? `${slug}-${Date.now()}` : slug;
+
+    const productData = {
+      product_name: amazonData.title || `Amazon Product (${cleanAsin})`,
+      slug: finalSlug,
+      brand: amazonData.brand || '',
+      price: amazonData.price || null,
+      original_price: amazonData.referencePrice || null,
+      rating: null,
+      review_count: null,
+      affiliate_url: amazonData.affiliateUrl || `https://www.amazon.com/dp/${cleanAsin}?tag=${config.credentials.partnerTag}`,
+      amazon_url: amazonData.productUrl || `https://www.amazon.com/dp/${cleanAsin}`,
+      product_image: amazonData.mainImage || '',
+      gallery: amazonData.additionalImages || [],
+      review_summary: '',
+      pros: [],
+      cons: [],
+      key_features: amazonData.features || [],
+      best_for: amazonData.category || '',
+      final_verdict: '',
+      specs: {
+        asin: cleanAsin,
+        source: 'amazon-pa-api',
+        marketplace: 'US',
+        availability: amazonData.availability || null,
+        isPrime: amazonData.isPrimeDeal || amazonData.isPrimeExclusive || false
+      },
+      stock_status: amazonData.isAvailable ? 'in_stock' : 'out_of_stock',
+      deal_badge: amazonData.isDeal ? 'Amazon Deal' : null,
+      is_featured: false,
+      is_deal: amazonData.isDeal || false,
+      status: 'published'
+    };
+
+    const created = await seo.importProductReview(productData);
+    const u = (req as any).user;
+    dbInstance.log('Product Imported', `Imported: "${created.product_name}" (ASIN: ${cleanAsin})`, u.id, u.name);
+
+    return res.json({ success: true, product: created });
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message || 'Import failed' });
+  }
+});
+
 export default router;
