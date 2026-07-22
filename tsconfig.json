@@ -1,5 +1,5 @@
 {
-  "exclude": ["Envato Purchased Templates"],
+  "exclude": ["Envato Purchased Templates", "dawnwire"],
   "compilerOptions": {
     "target": "ES2022",
     "experimentalDecorators": true,

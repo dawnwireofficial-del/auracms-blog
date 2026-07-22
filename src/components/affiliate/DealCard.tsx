@@ -27,9 +27,9 @@ function Countdown({ endDate }: { endDate: string }) {
 }
 
 export default function DealCard({ product }: DealCardProps) {
-  const deal = product.deal;
-  const salePrice = deal?.salePrice || parseFloat(product.price || '0');
-  const regularPrice = deal?.regularPrice || parseFloat(product.originalPrice || '0');
+  const deal = (product as any).deal;
+  const salePrice = deal?.salePrice || parseFloat(String(product.price || product.currentPrice || '0'));
+  const regularPrice = deal?.regularPrice || parseFloat(String(product.originalPrice || product.referencePrice || '0'));
   const discount = deal?.discountPercentage || (regularPrice > salePrice ? Math.round((1 - salePrice / regularPrice) * 100) : 0);
   const endDate = deal?.endDate;
   const isFlash = deal?.dealType === 'flash';

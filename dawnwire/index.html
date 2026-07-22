@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DawnWire | AI Product Discovery & Verified Amazon Deals</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 220'><defs><linearGradient id='wG' x1='140' y1='180' x2='300' y2='20' gradientUnits='userSpaceOnUse'><stop offset='0%' stop-color='%230B2B68'/><stop offset='40%' stop-color='%231E52E8'/><stop offset='100%' stop-color='%230066FF'/></linearGradient><linearGradient id='sG' x1='90' y1='150' x2='90' y2='90' gradientUnits='userSpaceOnUse'><stop offset='0%' stop-color='%23FF7A00'/><stop offset='100%' stop-color='%23FFC700'/></linearGradient></defs><g stroke='%23FFB800' stroke-width='5' stroke-linecap='round'><line x1='90' y1='88' x2='90' y2='72'/><line x1='72' y1='95' x2='60' y2='84'/><line x1='108' y1='95' x2='120' y2='84'/></g><path d='M 60 135 A 30 30 0 0 1 120 135 Z' fill='url(%23sG)'/><path d='M 32 55 H 98 C 145 55 172 82 172 128 C 172 174 145 200 98 200 H 32 V 55 Z M 60 82 V 173 H 95 C 124 173 144 158 144 128 C 144 98 124 82 95 82 H 60 Z' fill='%230A1F44' fill-rule='evenodd'/><path d='M 152 158 C 170 140 190 128 202 148 L 225 195 L 246 128 L 268 195 L 298 75 H 275 L 260 152 L 242 98 L 216 162 L 192 118 C 180 98 162 120 152 158 Z' fill='url(%23wG)'/><path d='M 305 55 L 270 70 L 290 100 Z' fill='%230066FF'/></svg>" />
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (saved === 'dark' || (!saved && prefersDark)) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

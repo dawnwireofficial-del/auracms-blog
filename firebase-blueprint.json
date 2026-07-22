@@ -1,0 +1,55 @@
+{
+  "entities": {
+    "users": {
+      "title": "User",
+      "description": "User profile with role-based permissions",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "products": {
+      "title": "Product",
+      "description": "Amazon affiliate product discovery record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "asin": { "type": "string" },
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "brand": { "type": "string" },
+        "mainCategory": { "type": "string" },
+        "subcategory": { "type": "string" },
+        "affiliateUrl": { "type": "string" },
+        "published": { "type": "boolean" }
+      },
+      "required": ["id", "title", "slug", "affiliateUrl"]
+    }
+  },
+  "firestore": {
+    "structure": [
+      {
+        "collection": "users",
+        "entity": "users",
+        "security": {
+          "read": "request.auth != null && (request.auth.uid == resource.data.uid || request.auth.token.role in ['admin', 'super_admin'])",
+          "write": "request.auth != null && (request.auth.uid == resource.data.uid || request.auth.token.role in ['admin', 'super_admin'])"
+        }
+      },
+      {
+        "collection": "products",
+        "entity": "products",
+        "security": {
+          "read": "true",
+          "write": "request.auth != null && request.auth.token.role in ['admin', 'super_admin', 'editor', 'product_manager']"
+        }
+      }
+    ]
+  }
+}

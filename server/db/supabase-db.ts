@@ -777,14 +777,15 @@ export class SupabaseDatabase {
   }
   async updateBrand(id: string, updates: Partial<Brand>): Promise<Brand | null> {
     const sb = await this.ready();
+    const u = updates as any;
     const payload: Record<string, any> = { updated_at: new Date().toISOString() };
-    if (updates.name !== undefined) payload.name = updates.name;
-    if (updates.slug !== undefined) payload.slug = updates.slug;
-    if (updates.logo !== undefined) payload.logo = updates.logo;
-    if (updates.description !== undefined) payload.description = updates.description;
-    if (updates.website !== undefined) payload.website = updates.website;
-    if (updates.featured !== undefined) payload.featured = updates.featured;
-    if (updates.status !== undefined) payload.status = updates.status;
+    if (u.name !== undefined) payload.name = u.name;
+    if (u.slug !== undefined) payload.slug = u.slug;
+    if (u.logo !== undefined) payload.logo = u.logo;
+    if (u.description !== undefined) payload.description = u.description;
+    if (u.website !== undefined) payload.website = u.website;
+    if (u.featured !== undefined) payload.featured = u.featured;
+    if (u.status !== undefined) payload.status = u.status;
     const { data, error } = await sb.from('brands').update(payload).eq('id', id).select().single();
     if (error) return null;
     this.log('Brand Updated', `Updated brand: "${data.name}"`);
@@ -806,30 +807,32 @@ export class SupabaseDatabase {
   }
   async createCategoryBanner(input: Omit<CategoryBanner, 'id'>): Promise<CategoryBanner> {
     const sb = await this.ready();
+    const inp = input as any;
     const { data, error } = await sb.from('category_banners').insert({
-      category_id: input.categoryId, desktop_image: input.desktopImage, mobile_image: input.mobileImage,
-      heading: input.heading, description: input.description, cta_text: input.ctaText,
-      cta_link: input.ctaLink, alt_text: input.altText, sort_order: input.sortOrder || 0,
-      start_date: input.startDate, end_date: input.endDate, is_active: input.isActive ?? true,
+      category_id: inp.categoryId, desktop_image: inp.desktopImage, mobile_image: inp.mobileImage,
+      heading: inp.heading, description: inp.description, cta_text: inp.ctaText,
+      cta_link: inp.ctaLink, alt_text: inp.altText, sort_order: inp.sortOrder || 0,
+      start_date: inp.startDate, end_date: inp.endDate, is_active: inp.isActive ?? true,
     }).select().single();
     if (error) throw new Error(error.message);
     return mapRow<CategoryBanner>(data)!;
   }
   async updateCategoryBanner(id: string, updates: Partial<CategoryBanner>): Promise<CategoryBanner | null> {
     const sb = await this.ready();
+    const u = updates as any;
     const payload: Record<string, any> = { updated_at: new Date().toISOString() };
-    if (updates.desktopImage !== undefined) payload.desktop_image = updates.desktopImage;
-    if (updates.mobileImage !== undefined) payload.mobile_image = updates.mobileImage;
-    if (updates.heading !== undefined) payload.heading = updates.heading;
-    if (updates.description !== undefined) payload.description = updates.description;
-    if (updates.ctaText !== undefined) payload.cta_text = updates.ctaText;
-    if (updates.ctaLink !== undefined) payload.cta_link = updates.ctaLink;
-    if (updates.altText !== undefined) payload.alt_text = updates.altText;
-    if (updates.sortOrder !== undefined) payload.sort_order = updates.sortOrder;
-    if (updates.startDate !== undefined) payload.start_date = updates.startDate;
-    if (updates.endDate !== undefined) payload.end_date = updates.endDate;
-    if (updates.isActive !== undefined) payload.is_active = updates.isActive;
-    if (updates.isArchived !== undefined) payload.is_archived = updates.isArchived;
+    if (u.desktopImage !== undefined) payload.desktop_image = u.desktopImage;
+    if (u.mobileImage !== undefined) payload.mobile_image = u.mobileImage;
+    if (u.heading !== undefined) payload.heading = u.heading;
+    if (u.description !== undefined) payload.description = u.description;
+    if (u.ctaText !== undefined) payload.cta_text = u.ctaText;
+    if (u.ctaLink !== undefined) payload.cta_link = u.ctaLink;
+    if (u.altText !== undefined) payload.alt_text = u.altText;
+    if (u.sortOrder !== undefined) payload.sort_order = u.sortOrder;
+    if (u.startDate !== undefined) payload.start_date = u.startDate;
+    if (u.endDate !== undefined) payload.end_date = u.endDate;
+    if (u.isActive !== undefined) payload.is_active = u.isActive;
+    if (u.isArchived !== undefined) payload.is_archived = u.isArchived;
     const { data, error } = await sb.from('category_banners').update(payload).eq('id', id).select().single();
     if (error) return null;
     return mapRow<CategoryBanner>(data);
@@ -850,23 +853,25 @@ export class SupabaseDatabase {
   }
   async createCategorySection(input: Omit<CategorySection, 'id'>): Promise<CategorySection> {
     const sb = await this.ready();
+    const inp = input as any;
     const { data, error } = await sb.from('category_sections').insert({
-      category_id: input.categoryId, section_type: input.sectionType,
-      title: input.title, subtitle: input.subtitle, sort_order: input.sortOrder || 0,
-      settings: input.settings || {}, is_active: input.isActive ?? true,
+      category_id: inp.categoryId, section_type: inp.sectionType,
+      title: inp.title, subtitle: inp.subtitle, sort_order: inp.sortOrder || 0,
+      settings: inp.settings || {}, is_active: inp.isActive ?? true,
     }).select().single();
     if (error) throw new Error(error.message);
     return mapRow<CategorySection>(data)!;
   }
   async updateCategorySection(id: string, updates: Partial<CategorySection>): Promise<CategorySection | null> {
     const sb = await this.ready();
+    const u = updates as any;
     const payload: Record<string, any> = { updated_at: new Date().toISOString() };
-    if (updates.sectionType !== undefined) payload.section_type = updates.sectionType;
-    if (updates.title !== undefined) payload.title = updates.title;
-    if (updates.subtitle !== undefined) payload.subtitle = updates.subtitle;
-    if (updates.sortOrder !== undefined) payload.sort_order = updates.sortOrder;
-    if (updates.settings !== undefined) payload.settings = updates.settings;
-    if (updates.isActive !== undefined) payload.is_active = updates.isActive;
+    if (u.sectionType !== undefined) payload.section_type = u.sectionType;
+    if (u.title !== undefined) payload.title = u.title;
+    if (u.subtitle !== undefined) payload.subtitle = u.subtitle;
+    if (u.sortOrder !== undefined) payload.sort_order = u.sortOrder;
+    if (u.settings !== undefined) payload.settings = u.settings;
+    if (u.isActive !== undefined) payload.is_active = u.isActive;
     const { data, error } = await sb.from('category_sections').update(payload).eq('id', id).select().single();
     if (error) return null;
     return mapRow<CategorySection>(data);
@@ -889,11 +894,12 @@ export class SupabaseDatabase {
   }
   async createDeal(input: Omit<Deal, 'id'>): Promise<Deal> {
     const sb = await this.ready();
+    const inp = input as any;
     const { data, error } = await sb.from('deals').insert({
-      product_id: input.productId, sale_price: input.salePrice, regular_price: input.regularPrice,
-      discount_percentage: input.discountPercentage, start_date: input.startDate, end_date: input.endDate,
-      is_featured: input.isFeatured ?? false, deal_type: input.dealType || 'daily',
-      category_id: input.categoryId, status: input.status || 'active',
+      product_id: inp.productId, sale_price: inp.salePrice, regular_price: inp.regularPrice,
+      discount_percentage: inp.discountPercentage, start_date: inp.startDate, end_date: inp.endDate,
+      is_featured: inp.isFeatured ?? false, deal_type: inp.dealType || 'daily',
+      category_id: inp.categoryId, status: inp.status || 'active',
     }).select().single();
     if (error) throw new Error(error.message);
     this.log('Deal Created', `Deal for product ${data.product_id}`);
@@ -901,15 +907,16 @@ export class SupabaseDatabase {
   }
   async updateDeal(id: string, updates: Partial<Deal>): Promise<Deal | null> {
     const sb = await this.ready();
+    const u = updates as any;
     const payload: Record<string, any> = { updated_at: new Date().toISOString() };
-    if (updates.salePrice !== undefined) payload.sale_price = updates.salePrice;
-    if (updates.regularPrice !== undefined) payload.regular_price = updates.regularPrice;
-    if (updates.discountPercentage !== undefined) payload.discount_percentage = updates.discountPercentage;
-    if (updates.startDate !== undefined) payload.start_date = updates.startDate;
-    if (updates.endDate !== undefined) payload.end_date = updates.endDate;
-    if (updates.isFeatured !== undefined) payload.is_featured = updates.isFeatured;
-    if (updates.dealType !== undefined) payload.deal_type = updates.dealType;
-    if (updates.status !== undefined) payload.status = updates.status;
+    if (u.salePrice !== undefined) payload.sale_price = u.salePrice;
+    if (u.regularPrice !== undefined) payload.regular_price = u.regularPrice;
+    if (u.discountPercentage !== undefined) payload.discount_percentage = u.discountPercentage;
+    if (u.startDate !== undefined) payload.start_date = u.startDate;
+    if (u.endDate !== undefined) payload.end_date = u.endDate;
+    if (u.isFeatured !== undefined) payload.is_featured = u.isFeatured;
+    if (u.dealType !== undefined) payload.deal_type = u.dealType;
+    if (u.status !== undefined) payload.status = u.status;
     const { data, error } = await sb.from('deals').update(payload).eq('id', id).select().single();
     if (error) return null;
     return mapRow<Deal>(data);

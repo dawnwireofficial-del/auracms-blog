@@ -1,0 +1,106 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && 
+        (request.auth.token.role in ['admin', 'super_admin'] || 
+         request.auth.token.email in ['medicaltradehub@gmail.com']);
+    }
+
+    // Public collections (Readable by anyone)
+    match /products/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /categories/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /brands/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /deals/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /comparisons/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /reviews/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /guides/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /banners/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /authors/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /homepage_sections/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /redirects/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // User profiles & wishlists
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+    }
+
+    match /wishlists/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+    }
+
+    // Analytics and affiliate click tracking (Public write for event logs)
+    match /affiliateClicks/{id} {
+      allow read: if isAdmin();
+      allow create: if true;
+      allow update, delete: if isAdmin();
+    }
+
+    match /analyticsEvents/{id} {
+      allow read: if isAdmin();
+      allow create: if true;
+      allow update, delete: if isAdmin();
+    }
+
+    match /newsletter/{id} {
+      allow read: if isAdmin();
+      allow create: if true;
+      allow update, delete: if isAdmin();
+    }
+
+    match /auditLogs/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    match /seoCopilotSuggestions/{id} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

@@ -38,8 +38,8 @@ export default function CategoryLanding({ category, allProducts, allCategories, 
     return catWords.some((w: string) => bestWords.includes(w));
   }) || [];
   const featured = products.filter(p => (p as any).isFeatured);
-  const deals = products.filter(p => (p as any).isDeal || parseFloat(p.originalPrice || '0') > parseFloat(p.price || '0'));
-  const topRated = [...products].sort((a, b) => b.rating - a.rating).slice(0, 8);
+  const deals = products.filter(p => (p as any).isDeal || parseFloat(String(p.originalPrice || '0')) > parseFloat(String(p.price || p.currentPrice || '0')));
+  const topRated = [...products].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 8);
   const trending = products.filter(p => (p as any).isTrending).length > 0 ? products.filter(p => (p as any).isTrending) : [...products].sort((a, b) => (b.pageViews || 0) - (a.pageViews || 0)).slice(0, 8);
 
   // Auto-rotate hero banners
@@ -51,8 +51,9 @@ export default function CategoryLanding({ category, allProducts, allCategories, 
 
   const renderSection = (section: CategorySection) => {
     const settings = section.settings || {};
+    const sectionType = section.sectionType || section.type;
 
-    switch (section.sectionType) {
+    switch (sectionType) {
       case 'hero_banner':
         // Banners are rendered separately above
         return null;
@@ -67,7 +68,7 @@ export default function CategoryLanding({ category, allProducts, allCategories, 
                 <CategoryOrb
                   key={sub.id}
                   label={sub.name}
-                  iconUrl={sub.image}
+                  iconUrl={sub.image || sub.iconName}
                   href={`/browse/${sub.slug}`}
                   delay={i * 0.1}
                 />
@@ -78,7 +79,7 @@ export default function CategoryLanding({ category, allProducts, allCategories, 
 
       case 'product_carousel':
       case 'featured_products': {
-        const items = section.sectionType === 'featured_products' ? featured : products;
+        const items = sectionType === 'featured_products' ? featured : products;
         if (items.length === 0) return null;
         return (
           <div key={section.id} className="mb-10">

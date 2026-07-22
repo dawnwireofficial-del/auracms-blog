@@ -1,0 +1,297 @@
+import React, { useState, useEffect } from 'react';
+import { ProductCard } from '../components/common/ProductCard';
+import { DisclosureBanner } from '../components/common/DisclosureBanner';
+import { ProductCatalogSkeleton } from '../components/common/Skeletons';
+import { SideBySideComparisonModal } from '../components/product/SideBySideComparisonModal';
+import { NoResultsEmptyState } from '../components/common/EmptyState';
+import { useAppStore } from '../lib/store';
+import { triggerPageLoadProgress } from '../lib/navigation';
+
+interface ProductCatalogPageProps {
+  initialCategory?: string;
+  initialQuery?: string;
+  isLoading?: boolean;
+}
+
+export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
+  initialCategory = 'all',
+  initialQuery = '',
+  isLoading: externalIsLoading = false,
+}) => {
+  const { products, categories } = useAppStore();
+
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [onlyDeals, setOnlyDeals] = useState(false);
+  const [onlyPrime, setOnlyPrime] = useState(false);
+  const [minRating, setMinRating] = useState(0);
+  const [sortBy, setSortBy] = useState<'score' | 'price_asc' | 'price_desc' | 'rating'>('score');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  // Comparison selection state
+  const [selectedCompareIds, setSelectedCompareIds] = useState<string[]>([]);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+
+  const handleToggleCompare = (productId: string) => {
+    setSelectedCompareIds((prev) => {
+      if (prev.includes(productId)) {
+        return prev.filter((id) => id !== productId);
+      }
+      if (prev.length >= 2) {
+        // Replace second item
+        return [prev[0], productId];
+      }
+      return [...prev, productId];
+    });
+  };
+
+  useEffect(() => {
+    setSelectedCategory(initialCategory);
+    setSearchQuery(initialQuery);
+  }, [initialCategory, initialQuery]);
+
+  useEffect(() => {
+    if (selectedCompareIds.length === 2) {
+      setIsCompareModalOpen(true);
+    }
+  }, [selectedCompareIds]);
+
+  // Simulated smooth loading transition state when category or query updates
+  const [isInternalLoading, setIsInternalLoading] = useState(true);
+
+  useEffect(() => {
+    setIsInternalLoading(true);
+    triggerPageLoadProgress();
+    const timer = setTimeout(() => {
+      setIsInternalLoading(false);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [selectedCategory, searchQuery, initialCategory, initialQuery]);
+
+  const isLoading = externalIsLoading || isInternalLoading;
+
+  if (isLoading) {
+    return <ProductCatalogSkeleton />;
+  }
+
+  // Filter Logic
+  let filtered = products.filter((p) => {
+    if (selectedCategory !== 'all' && !p.mainCategory.toLowerCase().includes(selectedCategory.toLowerCase())) {
+      return false;
+    }
+    if (searchQuery.trim() && !p.title.toLowerCase().includes(searchQuery.toLowerCase()) && !p.brand.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
+    if (onlyDeals && !p.isDeal) return false;
+    if (onlyPrime && !p.isPrime) return false;
+    if (minRating > 0 && (p.rating || 0) < minRating) return false;
+    return true;
+  });
+
+  // Sort Logic
+  filtered.sort((a, b) => {
+    if (sortBy === 'price_asc') return (a.currentPrice || 0) - (b.currentPrice || 0);
+    if (sortBy === 'price_desc') return (b.currentPrice || 0) - (a.currentPrice || 0);
+    if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
+    return b.editorScore - a.editorScore; // default score
+  });
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
+      <DisclosureBanner />
+
+      {/* Header Banner */}
+      <div className="bg-[#0A1F44] text-white py-12 px-4 border-b border-blue-900">
+        <div className="max-w-7xl mx-auto space-y-2">
+          <h1 className="text-3xl sm:text-4xl font-extrabold font-display">
+            {selectedCategory === 'all' ? 'All Products & Amazon Discovery' : `${selectedCategory} Products`}
+          </h1>
+          <p className="text-sm text-slate-300 max-w-2xl">
+            Browse independently bench-marked products, verified Amazon buyer ratings, and current price drops.
+          </p>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left Col: Filters Sidebar */}
+        <div className="lg:col-span-3 space-y-6">
+          <div className="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-5">
+            <h3 className="font-extrabold text-sm text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+              Filter Products
+            </h3>
+
+            {/* Keyword Search */}
+            <div>
+              <label className="text-xs font-bold text-slate-500 block mb-1.5">Search Keywords</label>
+              <input
+                type="text"
+                placeholder="Title, brand, feature..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-100 dark:bg-slate-800 px-3.5 py-2 rounded-xl text-xs text-slate-900 dark:text-slate-100 outline-none border border-slate-200 dark:border-slate-700"
+              />
+            </div>
+
+            {/* Category Select */}
+            <div>
+              <label className="text-xs font-bold text-slate-500 block mb-1.5">Category</label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full bg-slate-100 dark:bg-slate-800 px-3.5 py-2 rounded-xl text-xs text-slate-900 dark:text-slate-100 outline-none border border-slate-200 dark:border-slate-700 cursor-pointer font-bold"
+              >
+                <option value="all">All Categories</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.slug}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Checkboxes */}
+            <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs font-bold">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={onlyDeals}
+                  onChange={(e) => setOnlyDeals(e.target.checked)}
+                  className="rounded text-orange-500 focus:ring-orange-500"
+                />
+                <span className="text-orange-600 dark:text-orange-400">🔥 Show Amazon Deals Only</span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={onlyPrime}
+                  onChange={(e) => setOnlyPrime(e.target.checked)}
+                  className="rounded text-sky-500 focus:ring-sky-500"
+                />
+                <span>Amazon Prime Eligible</span>
+              </label>
+            </div>
+
+            {/* Reset */}
+            <button
+              onClick={() => {
+                setSelectedCategory('all');
+                setSearchQuery('');
+                setOnlyDeals(false);
+                setOnlyPrime(false);
+                setMinRating(0);
+              }}
+              className="w-full text-center text-xs font-bold text-red-600 dark:text-red-400 hover:underline pt-2"
+            >
+              Reset All Filters
+            </button>
+          </div>
+        </div>
+
+        {/* Right Col: Catalog Items Grid */}
+        <div className="lg:col-span-9 space-y-6">
+          {/* Controls Bar */}
+          <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
+            <span className="text-xs font-bold text-slate-500">
+              Showing <strong>{filtered.length}</strong> Products
+            </span>
+
+            <div className="flex items-center gap-4">
+              {/* Sort dropdown */}
+              <div className="flex items-center gap-2 text-xs font-bold">
+                <span className="text-slate-400">Sort by:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl text-xs text-slate-900 dark:text-slate-100 outline-none border border-slate-200 dark:border-slate-700 cursor-pointer"
+                >
+                  <option value="score">Editor's Score</option>
+                  <option value="price_asc">Price: Low to High</option>
+                  <option value="price_desc">Price: High to Low</option>
+                  <option value="rating">Highest Rating</option>
+                </select>
+              </div>
+
+              {/* View Toggle */}
+              <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-1.5 rounded-lg text-xs transition-colors ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 shadow text-blue-600' : 'text-slate-400'}`}
+                  title="Grid View"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 002-2h2a2 2 0 002 2v2a2 2 0 002-2h-2a2 2 0 00-2-2V5zM11 13a2 2 0 002-2h2a2 2 0 002 2v2a2 2 0 002-2h-2a2 2 0 00-2-2v-2z" /></svg>
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-1.5 rounded-lg text-xs transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow text-blue-600' : 'text-slate-400'}`}
+                  title="List View"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Grid / List Display */}
+          {filtered.length === 0 ? (
+            <NoResultsEmptyState
+              query={searchQuery}
+              category={selectedCategory}
+              onReset={() => {
+                setSelectedCategory('all');
+                setSearchQuery('');
+                setOnlyDeals(false);
+                setOnlyPrime(false);
+                setMinRating(0);
+              }}
+              onNavigatePopular={() => {
+                setSelectedCategory('all');
+                setSearchQuery('');
+                setSortBy('rating');
+              }}
+            />
+          ) : viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filtered.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  viewMode="grid"
+                  onSelectCompare={handleToggleCompare}
+                  isComparing={selectedCompareIds.includes(product.id)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filtered.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  viewMode="list"
+                  onSelectCompare={handleToggleCompare}
+                  isComparing={selectedCompareIds.includes(product.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Side-by-Side Split-Screen Comparison Modal */}
+      {isCompareModalOpen && selectedCompareIds.length === 2 && (() => {
+        const pA = products.find((p) => p.id === selectedCompareIds[0]);
+        const pB = products.find((p) => p.id === selectedCompareIds[1]);
+        if (!pA || !pB) return null;
+        return (
+          <SideBySideComparisonModal
+            productA={pA}
+            productB={pB}
+            onClose={() => {
+              setIsCompareModalOpen(false);
+              setSelectedCompareIds([]);
+            }}
+          />
+        );
+      })()}
+    </div>
+  );
+};

@@ -15,8 +15,8 @@ interface ProductCardProps {
 export default function ProductCard({
   product, viewMode = 'grid', onWishlistToggle, inWishlist, onCompare, compareSelected,
 }: ProductCardProps) {
-  const price = parseFloat((product.price || '0').replace(/[^0-9.]/g, ''));
-  const origPrice = parseFloat((product.originalPrice || '0').replace(/[^0-9.]/g, ''));
+  const price = parseFloat(String(product.price || product.currentPrice || '0').replace(/[^0-9.]/g, ''));
+  const origPrice = parseFloat(String(product.originalPrice || product.referencePrice || '0').replace(/[^0-9.]/g, ''));
   const hasDiscount = origPrice > price && origPrice > 0;
   const discount = product.discountPercentage || (hasDiscount ? Math.round((1 - price / origPrice) * 100) : 0);
   const isOutOfStock = product.stockStatus === 'out_of_stock';

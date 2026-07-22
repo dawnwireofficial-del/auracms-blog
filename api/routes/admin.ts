@@ -74,7 +74,7 @@ router.post('/categories', authenticate, requireRole(['super_admin', 'admin', 'e
   const u = (req as any).user;
   const { name, slug, description, image, parentId, status } = req.body;
   if (!name || !slug) return res.status(400).json({ error: 'Name and slug required' });
-  const c = await dbInstance.createCategory({ name, slug, description: description || '', image: image || '', parentId: parentId || undefined, status: status || 'active' });
+  const c = await dbInstance.createCategory({ name, slug, description: description || '', image: image || '', parentId: parentId || undefined, status: status || 'active' } as any);
   dbInstance.log('Category Created', `Created: "${c.name}"`, u.id, u.name);
   res.json(c);
 });

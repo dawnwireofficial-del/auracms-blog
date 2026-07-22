@@ -26,15 +26,15 @@ describe('normalizeProduct', () => {
     expect(normalized.slug).toBe('graco-slimfit-car-seat');
     expect(normalized.productName).toBe('Graco Slimfit Car Seat');
     expect(normalized.brand).toBe('Graco');
-    expect(normalized.productImage).toBe('https://m.media-amazon.com/images/I/81FD3xI82ZL.jpg');
+    expect((normalized as any).productImage).toBe('https://m.media-amazon.com/images/I/81FD3xI82ZL.jpg');
     expect(normalized.affiliateUrl).toBe('https://www.amazon.com/dp/B0DHLPQ3B1');
     expect(normalized.price).toBe('$196.99');
     expect(normalized.originalPrice).toBe('$219.99');
     expect(normalized.rating).toBe(4.8);
     expect(normalized.bestFor).toBe('Space Saving Car Seats');
-    expect(normalized.stockStatus).toBe('in_stock');
-    expect(normalized.ctaText).toBe('Buy on Amazon');
-    expect(normalized.status).toBe('published');
+    expect((normalized as any).stockStatus).toBe('in_stock');
+    expect((normalized as any).ctaText).toBe('Buy on Amazon');
+    expect((normalized as any).status).toBe('published');
   });
 
   it('handles camelCase objects seamlessly', () => {
@@ -50,7 +50,7 @@ describe('normalizeProduct', () => {
 
     expect(normalized.id).toBe('prod-456');
     expect(normalized.productName).toBe('Beauty of Joseon Eye Serum');
-    expect(normalized.productImage).toBe('https://m.media-amazon.com/images/I/51PbZMgofCL.jpg');
+    expect((normalized as any).productImage).toBe('https://m.media-amazon.com/images/I/51PbZMgofCL.jpg');
     expect(normalized.rating).toBe(4.3);
   });
 

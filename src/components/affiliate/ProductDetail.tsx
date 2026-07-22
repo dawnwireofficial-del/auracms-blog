@@ -24,8 +24,8 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
   const [showShare, setShowShare] = useState(false);
 
   const images = [product.productImage, ...(product.gallery || [])].filter(Boolean) as string[];
-  const price = parseFloat((product.price || '0').replace(/[^0-9.]/g, ''));
-  const origPrice = parseFloat((product.originalPrice || '0').replace(/[^0-9.]/g, ''));
+  const price = parseFloat(String(product.price || product.currentPrice || '0').replace(/[^0-9.]/g, ''));
+  const origPrice = parseFloat(String(product.originalPrice || product.referencePrice || '0').replace(/[^0-9.]/g, ''));
   const hasDiscount = origPrice > price && origPrice > 0;
   const discount = product.discountPercentage || (hasDiscount ? Math.round((1 - price / origPrice) * 100) : 0);
   const features = product.features || product.keyFeatures || [];
@@ -160,8 +160,8 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
             
             {/* Rating */}
             <div className="flex items-center gap-2 mt-4">
-              {renderStars(product.rating, 'h-4 w-4')}
-              <span className="text-sm font-semibold text-slate-700 dark:text-zinc-200">{product.rating}</span>
+              {renderStars(product.rating || 4.5, 'h-4 w-4')}
+              <span className="text-sm font-semibold text-slate-700 dark:text-zinc-200">{product.rating || 4.5}</span>
               {(product.reviewCount || product.reviewCount === 0) && <span className="text-xs text-slate-400 dark:text-zinc-500">({product.reviewCount} reviews)</span>}
             </div>
             {/* Best For */}
@@ -190,12 +190,12 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
                 {(product as any).primeEligible && <span className="text-xs text-blue-600 flex items-center gap-1"><Shield className="h-3 w-3" /> Prime Eligible</span>}
               </div>
               {/* Shipping */}
-              {product.shippingInfo && <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-1">{product.shippingInfo}</p>}
+              {(product as any).shippingInfo && <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-1">{(product as any).shippingInfo}</p>}
               {/* Last updated */}
-              {product.priceUpdatedAt && (
+              {(product as any).priceUpdatedAt && (
                 <p className="text-[10px] text-slate-400 dark:text-zinc-500 mt-1 flex items-center gap-1">
                   <Clock className="h-2.5 w-2.5" />
-                  Price updated: {new Date(product.priceUpdatedAt).toLocaleDateString()}
+                  Price updated: {new Date((product as any).priceUpdatedAt).toLocaleDateString()}
                 </p>
               )}
             </div>
@@ -224,7 +224,7 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
                 {product.ctaText || 'Check Price'} →
               </a>
               <div className="flex gap-2">
-                <PriceAlertModal productId={product.id} currentPrice={price} productName={product.productName} />
+                <PriceAlertModal productId={product.id} currentPrice={price} productName={product.productName || product.title} />
                 <button onClick={toggleWishlist} className={`px-4 py-3 rounded-lg border text-xs font-semibold transition-colors ${inWishlist ? 'bg-red-50 border-red-200 text-red-600' : 'border-slate-200 dark:border-zinc-700 text-slate-500 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-700'}`}>
                   <Heart className={`h-4 w-4 ${inWishlist ? 'fill-red-500 text-red-500' : ''}`} />
                 </button>
@@ -239,7 +239,7 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
                 </button>
                 {showShare && (
                   <div className="absolute right-0 top-full mt-2 z-10">
-                    <SocialShareButtons url={pageUrl} title={product.productName} compact />
+                    <SocialShareButtons url={pageUrl} title={product.productName || product.title} compact />
                   </div>
                 )}
               </div>
@@ -247,7 +247,7 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
 
             {/* Multi-Store Comparison */}
             <MultiStoreComparison 
-              amazonPrice={product.price} 
+              amazonPrice={String(product.price || price)} 
               amazonUrl={productUrl} 
               stores={product.alternativeStores} 
             />

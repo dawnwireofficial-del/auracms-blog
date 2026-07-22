@@ -153,10 +153,10 @@ export default function WishlistPage({ onNavigate, user }: { onNavigate: (r: str
                     ) : (
                       <ShoppingBag className="w-16 h-16 text-slate-300 dark:text-zinc-700" />
                     )}
-                    {rating > 0 && (
+                    {(rating || 0) > 0 && (
                       <div className="absolute top-3 left-3 bg-white/90 dark:bg-zinc-900/90 text-amber-500 text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm">
                         <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                        {rating.toFixed(1)}
+                        {(rating || 0).toFixed(1)}
                       </div>
                     )}
                   </div>

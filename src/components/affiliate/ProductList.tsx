@@ -30,7 +30,7 @@ export default function ProductList({ products, categories, brands, showFilters 
   // Calculate max price from data
   useEffect(() => {
     if (!Array.isArray(products) || products.length === 0) return;
-    const prices = products.map(p => parseFloat(p.price || '0'));
+    const prices = products.map(p => parseFloat(String(p.price || p.currentPrice || '0')));
     const max = Math.max(...prices, 100);
     setMaxPrice(max);
     setPriceRange([0, max]);
@@ -53,20 +53,20 @@ export default function ProductList({ products, categories, brands, showFilters 
     }
     if (selectedBrand) items = items.filter(p => p.brand === selectedBrand || (p as any).brandId === selectedBrand);
     items = items.filter(p => {
-      const price = parseFloat(p.price || '0');
+      const price = parseFloat(String(p.price || p.currentPrice || '0'));
       return price >= priceRange[0] && price <= priceRange[1];
     });
-    if (minRating > 0) items = items.filter(p => p.rating >= minRating);
-    if (showDealsOnly) items = items.filter(p => (p as any).isDeal || ((p as any).discountPercentage || 0) > 0 || (parseFloat(p.originalPrice || '0') > parseFloat(p.price || '0')));
+    if (minRating > 0) items = items.filter(p => (p.rating || 0) >= minRating);
+    if (showDealsOnly) items = items.filter(p => (p as any).isDeal || ((p as any).discountPercentage || 0) > 0 || (parseFloat(String(p.originalPrice || '0')) > parseFloat(String(p.price || p.currentPrice || '0'))));
     if (showInStockOnly) items = items.filter(p => p.stockStatus !== 'out_of_stock');
 
     switch (sort) {
-      case 'price_asc': items.sort((a, b) => parseFloat(a.price || '0') - parseFloat(b.price || '0')); break;
-      case 'price_desc': items.sort((a, b) => parseFloat(b.price || '0') - parseFloat(a.price || '0')); break;
+      case 'price_asc': items.sort((a, b) => parseFloat(String(a.price || a.currentPrice || '0')) - parseFloat(String(b.price || b.currentPrice || '0'))); break;
+      case 'price_desc': items.sort((a, b) => parseFloat(String(b.price || b.currentPrice || '0')) - parseFloat(String(a.price || a.currentPrice || '0'))); break;
       case 'rating': items.sort((a, b) => (b.rating || 0) - (a.rating || 0)); break;
-      case 'popularity': items.sort((a, b) => (b.pageViews || 0) - (a.pageViews || 0)); break;
+      case 'popularity': items.sort((a, b) => ((b as any).pageViews || 0) - ((a as any).pageViews || 0)); break;
       case 'discount': items.sort((a, b) => ((b as any).discountPercentage || 0) - ((a as any).discountPercentage || 0)); break;
-      case 'newest': items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()); break;
+      case 'newest': items.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()); break;
       default: items.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     }
     return items;

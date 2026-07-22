@@ -1,0 +1,6 @@
+{
+  "name": "DawnWire",
+  "description": "AI-Powered Product Discovery, Expert Reviews, Comparisons and Amazon Deals Platform",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

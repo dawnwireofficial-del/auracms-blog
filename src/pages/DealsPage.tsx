@@ -1,0 +1,72 @@
+import React, { useState } from 'react';
+import { ProductCard } from '../components/common/ProductCard';
+import { DisclosureBanner } from '../components/common/DisclosureBanner';
+import { TrendingDealsSection } from '../components/deals/TrendingDealsSection';
+import { useAppStore } from '../lib/store';
+
+export const DealsPage: React.FC = () => {
+  const { products, deals } = useAppStore();
+  const [minDiscount, setMinDiscount] = useState(0);
+
+  const dealProducts = products.filter((p) => p.isDeal && (p.discountPercentage || 0) >= minDiscount);
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
+      <DisclosureBanner />
+
+      {/* Hero Header */}
+      <div className="bg-gradient-to-r from-orange-600 via-amber-600 to-orange-700 text-white py-14 px-4 shadow-inner">
+        <div className="max-w-7xl mx-auto space-y-3">
+          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-amber-200">
+            <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+            24/7 Price Tracker Active
+          </div>
+          <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight">
+            Amazon Deals & Instant Price Drops
+          </h1>
+          <p className="text-sm text-amber-100 max-w-2xl font-medium">
+            Handpicked, verified price drops on top-rated electronics, coffee makers, smart home equipment, and lifestyle products on Amazon US.
+          </p>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+        <TrendingDealsSection />
+        {/* Discount Filter Pills */}
+        <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            Filter Minimum Discount:
+          </span>
+
+          <div className="flex flex-wrap gap-2 text-xs font-bold">
+            {[
+              { label: 'All Deals', value: 0 },
+              { label: '15%+ Off', value: 15 },
+              { label: '25%+ Off', value: 25 },
+              { label: '30%+ Off', value: 30 }
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setMinDiscount(opt.value)}
+                className={`px-4 py-2 rounded-xl transition-all ${
+                  minDiscount === opt.value
+                    ? 'bg-orange-500 text-white shadow-md'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Deals Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {dealProducts.map((prod) => (
+            <ProductCard key={prod.id} product={prod} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};

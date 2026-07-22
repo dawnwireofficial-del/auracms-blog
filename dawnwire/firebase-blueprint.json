@@ -1,0 +1,139 @@
+{
+  "entities": {
+    "users": {
+      "title": "User",
+      "description": "User profile with role-based permissions",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "newsletter": {
+      "title": "Newsletter Subscription",
+      "description": "User email subscriber record for promotional updates",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email", "maxLength": 255 },
+        "subscribedAt": { "type": "string" },
+        "source": { "type": "string" }
+      },
+      "required": ["email", "subscribedAt"]
+    },
+    "products": {
+      "title": "Product",
+      "description": "Amazon affiliate product discovery record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "asin": { "type": "string" },
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "brand": { "type": "string" },
+        "mainCategory": { "type": "string" },
+        "subcategory": { "type": "string" },
+        "affiliateUrl": { "type": "string" },
+        "published": { "type": "boolean" }
+      },
+      "required": ["id", "title", "slug", "affiliateUrl"]
+    },
+    "price_history": {
+      "title": "Price History Entry",
+      "description": "Historical price datapoint for a product",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string" },
+        "price": { "type": "number" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["productId", "price", "timestamp"]
+    },
+    "price_alerts": {
+      "title": "Price Alert",
+      "description": "User target price alert for wishlist item",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "productId": { "type": "string" },
+        "productTitle": { "type": "string" },
+        "targetPrice": { "type": "number" },
+        "initialPrice": { "type": "number" },
+        "triggered": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "productId", "targetPrice"]
+    },
+    "activity_feed": {
+      "title": "User Activity Event",
+      "description": "Interaction tracking log for analytics",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" },
+        "productId": { "type": "string" },
+        "productTitle": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["type", "timestamp"]
+    }
+  },
+  "firestore": {
+    "structure": [
+      {
+        "collection": "users",
+        "entity": "users",
+        "security": {
+          "read": "request.auth != null && (request.auth.uid == resource.data.uid || request.auth.token.role in ['admin', 'super_admin'])",
+          "write": "request.auth != null && (request.auth.uid == resource.data.uid || request.auth.token.role in ['admin', 'super_admin'])"
+        }
+      },
+      {
+        "collection": "products",
+        "entity": "products",
+        "security": {
+          "read": "true",
+          "write": "request.auth != null && request.auth.token.role in ['admin', 'super_admin', 'editor', 'product_manager']"
+        }
+      },
+      {
+        "collection": "newsletter",
+        "entity": "newsletter",
+        "security": {
+          "read": "request.auth != null && request.auth.token.role in ['admin', 'super_admin']",
+          "write": "true"
+        }
+      },
+      {
+        "collection": "price_history",
+        "entity": "price_history",
+        "security": {
+          "read": "true",
+          "write": "true"
+        }
+      },
+      {
+        "collection": "price_alerts",
+        "entity": "price_alerts",
+        "security": {
+          "read": "true",
+          "write": "true"
+        }
+      },
+      {
+        "collection": "activity_feed",
+        "entity": "activity_feed",
+        "security": {
+          "read": "true",
+          "write": "true"
+        }
+      }
+    ]
+  }
+}

@@ -55,7 +55,7 @@ export function normalizeProduct(raw: any): ProductReview {
     clickCount: Number(raw.click_count || raw.clickCount || 0),
     pageViews: Number(raw.page_views || raw.pageViews || 0),
     ...(raw._entities ? { _entities: raw._entities } : {}),
-  } as ProductReview;
+  } as unknown as ProductReview;
 }
 
 export function normalizeProducts(items: any[]): ProductReview[] {
