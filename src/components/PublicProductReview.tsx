@@ -359,7 +359,7 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
       price: currentPrice.toString(),
       priceCurrency: 'USD',
       availability: availabilityMap[review.stock_status] || 'https://schema.org/InStock',
-      url: review.affiliate_url || `https://www.dawnwire.com/review/${review.slug || review.id}`,
+      url: review.affiliate_url || `https://www.dawnwire.com/products/${review.slug || review.id}`,
       seller: { '@type': 'Organization', name: 'Amazon' },
       ...(hasSavings ? { priceValidUntil: review.coupon_expiry || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] } : {}),
     } : undefined,
@@ -409,7 +409,7 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
       <SeoHelmet
         title={`${review.product_name} Review${review.brand ? ` by ${review.brand}` : ''}`}
         description={review.review_summary || `Read our in-depth review of ${review.product_name}.${review.best_for ? ` Best for: ${review.best_for}.` : ''}`}
-        canonical={`/review/${review.slug || review.id}`}
+        canonical={`/products/${review.slug || review.id}`}
         ogImage={review.product_image || ''}
         ogType="article"
         jsonLd={schemas}
@@ -435,7 +435,15 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
         <div className="bg-white dark:bg-zinc-950/40 border border-slate-200 dark:border-zinc-700/60 rounded-xl shadow-sm overflow-hidden">
           {/* Hero */}
           <div className="bg-gradient-to-r from-slate-900 to-slate-900/90 text-white p-8 md:p-10">
-            <Breadcrumbs items={[{ label: 'Home', onClick: () => onNavigate('home') }, { label: `${review.product_name} Review` }]} className="text-white/70 mb-4" />
+            <Breadcrumbs
+              items={[
+                { label: 'Home', onClick: () => onNavigate('home') },
+                { label: 'Products', onClick: () => onNavigate('products') },
+                ...(review.best_for ? [{ label: review.best_for, onClick: () => onNavigate('products', `?category=${encodeURIComponent(review.best_for)}`) }] : []),
+                { label: review.product_name }
+              ]}
+              className="text-white/70 mb-4"
+            />
             <div className="flex flex-col md:flex-row gap-6">
               {activeImage && (
                 <div className="shrink-0">

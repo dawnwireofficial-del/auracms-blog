@@ -9,9 +9,10 @@ export function resolveRouteFromPath(path: string): RouteState {
   // Strip query string and hash
   const cleanPath = path.split('?')[0].split('#')[0] || '/';
 
-  if (cleanPath === '/products') return { name: 'products' };
+  if (cleanPath === '/products' || cleanPath === '/products/') return { name: 'products' };
   if (cleanPath === '/review' || cleanPath === '/review/' || cleanPath === '/reviews' || cleanPath === '/reviews/') return { name: 'products' };
   if (cleanPath.startsWith('/products/category/')) return { name: 'category', param: cleanPath.substring(19) };
+  if (cleanPath.startsWith('/products/')) return { name: 'review', param: cleanPath.substring(10) };
   if (cleanPath.startsWith('/review/')) return { name: 'review', param: cleanPath.substring(8) };
   if (cleanPath.startsWith('/product/')) return { name: 'review', param: cleanPath.substring(9) };
   if (cleanPath.startsWith('/post/')) return { name: 'post', param: cleanPath.substring(6) };

@@ -30,7 +30,7 @@ export default function Page() {
           priceCurrency: 'USD',
           price: (p.price || '0').toString().replace(/[^0-9.]/g, '') || '0',
           availability: p.stockStatus === 'out_of_stock' ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
-          url: p.affiliateUrl || `https://www.dawnwire.com/review/${p.slug}`
+          url: p.affiliateUrl || `https://www.dawnwire.com/products/${p.slug}`
         },
         aggregateRating: (p.rating || 0) > 0 ? {
           '@type': 'AggregateRating',

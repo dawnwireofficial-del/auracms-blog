@@ -4,16 +4,24 @@ import { resolveRouteFromPath } from '../src/utils/routeResolver';
 describe('routeResolver', () => {
   it('resolves /products to products route', () => {
     expect(resolveRouteFromPath('/products')).toEqual({ name: 'products' });
+    expect(resolveRouteFromPath('/products/')).toEqual({ name: 'products' });
   });
 
-  it('maps bare /review and /reviews to products route instead of empty review', () => {
+  it('maps bare /review and /reviews to products route', () => {
     expect(resolveRouteFromPath('/review')).toEqual({ name: 'products' });
     expect(resolveRouteFromPath('/review/')).toEqual({ name: 'products' });
     expect(resolveRouteFromPath('/reviews')).toEqual({ name: 'products' });
     expect(resolveRouteFromPath('/reviews/')).toEqual({ name: 'products' });
   });
 
-  it('resolves product review detail page with slug', () => {
+  it('resolves /products/[slug] to review detail page with slug', () => {
+    expect(resolveRouteFromPath('/products/graco-car-seat')).toEqual({
+      name: 'review',
+      param: 'graco-car-seat'
+    });
+  });
+
+  it('resolves product review detail page with slug for legacy /review/[slug]', () => {
     expect(resolveRouteFromPath('/review/graco-car-seat')).toEqual({
       name: 'review',
       param: 'graco-car-seat'

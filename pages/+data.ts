@@ -34,6 +34,20 @@ async function data(pageContext: PageContextServer) {
   if (urlPath.startsWith('/review/')) {
     const slug = urlPath.replace(/^\/review\//, '').split('/')[0]?.split('?')[0];
     if (slug) {
+      throw redirect(`/products/${slug}`, 301);
+    }
+  }
+
+  if (urlPath.startsWith('/product/')) {
+    const slug = urlPath.replace(/^\/product\//, '').split('/')[0]?.split('?')[0];
+    if (slug) {
+      throw redirect(`/products/${slug}`, 301);
+    }
+  }
+
+  if (urlPath.startsWith('/products/')) {
+    const slug = urlPath.replace(/^\/products\//, '').split('/')[0]?.split('?')[0];
+    if (slug && slug !== 'category') {
       const exists = productReviews.some((p: any) => p && (p.slug === slug || p.id === slug));
       if (!exists) {
         throw render(404, 'Product review not found');

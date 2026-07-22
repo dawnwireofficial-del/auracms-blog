@@ -377,7 +377,7 @@ export default function SeoOptimizerPanel({ token, baseUrl }: SeoOptimizerPanelP
                     </td>
                     <td className="p-3 max-w-[250px]">
                       <a
-                        href={c.type === 'post' ? `/post/${c.slug}` : `/review/${c.slug}`}
+                        href={c.type === 'post' ? `/post/${c.slug}` : `/products/${c.slug}`}
                         target="_blank"
                         className="text-slate-800 dark:text-zinc-200 font-medium hover:text-[#246BFF] text-xs line-clamp-1 block"
                       >

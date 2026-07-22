@@ -50,6 +50,12 @@ app.get(['/review', '/review/', '/reviews', '/reviews/'], (_req, res) => {
   return res.redirect(301, '/products');
 });
 
+// 301 Redirect old product detail URLs /review/:slug and /product/:slug to /products/:slug
+app.get(['/review/:slug', '/product/:slug'], (req, res) => {
+  const slug = req.params.slug;
+  return res.redirect(301, `/products/${slug}`);
+});
+
 // Caching headers
 app.use((req, res, next) => {
   if (req.method !== 'GET') {
@@ -177,31 +183,19 @@ const OLD_IRRELEVANT_PATTERNS = [
 app.use(async (req, res, next) => {
   if (req.method !== 'GET' || req.path.startsWith('/api/') || req.path.startsWith('/assets/') || req.path.startsWith('/go/')) return next();
 
-  // Legacy /product/:slug redirect to canonical /review/:slug
+  // Legacy /product/:slug and /review/:slug redirect to canonical /products/:slug
   if (req.path.startsWith('/product/')) {
     const slug = req.path.substring(9);
-    if (slug) return res.redirect(301, `/review/${slug}`);
+    if (slug) return res.redirect(301, `/products/${slug}`);
   }
 
-  // Legacy /products/:idOrSlug handling
-  if (req.path.startsWith('/products/') && req.path !== '/products') {
-    const param = req.path.substring(10);
-    if (param) {
-      try {
-        const reviews = await seo.getPublishedProductReviews();
-        const found = (reviews as any[]).find(r => r.id === param || r.slug === param || (r.specs && r.specs.asin === param));
-        if (found) {
-          return res.redirect(301, `/review/${found.slug || found.id}`);
-        }
-        // Numeric legacy ID or removed marketplace spam -> 410 Gone
-        if (/^\d+$/.test(param) || param.includes('jp')) {
-          return res.status(410).type('text/html').send('<h1>410 Gone</h1><p>This product page has been permanently removed.</p>');
-        }
-        return res.status(404).type('text/html').send('<h1>404 Not Found</h1><p>Product not found.</p>');
-      } catch {
-        return res.status(404).type('text/html').send('<h1>404 Not Found</h1>');
-      }
-    }
+  if (req.path.startsWith('/review/')) {
+    const slug = req.path.substring(8);
+    if (slug) return res.redirect(301, `/products/${slug}`);
+  }
+
+  if (req.path === '/review' || req.path === '/review/' || req.path === '/reviews' || req.path === '/reviews/') {
+    return res.redirect(301, '/products');
   }
 
   for (const entry of OLD_IRRELEVANT_PATTERNS) {
@@ -221,7 +215,7 @@ app.use(async (req, res, next) => {
 // ====== Sitemap & RSS feeds ======
 app.get('/sitemap.xml', async (_req, res) => {
   try {
-    const baseUrl = process.env.APP_URL || 'https://dawnwire.com';
+    const baseUrl = process.env.APP_URL || 'https://www.dawnwire.com';
     const fmtDate = (d: string | undefined | null) => { try { return new Date(d || Date.now()).toISOString(); } catch { return new Date().toISOString(); } };
 
     // Only include affiliate-shopping relevant content
@@ -239,8 +233,8 @@ app.get('/sitemap.xml', async (_req, res) => {
       `<url><loc>${baseUrl}/categories</loc><priority>0.8</priority></url>`,
       `<url><loc>${baseUrl}/deals</loc><priority>0.8</priority></url>`,
       `<url><loc>${baseUrl}/buying-guides</loc><priority>0.7</priority></url>`,
-      // Affiliate product review detail pages (canonical /review/ route)
-      ...reviews.map((r: any) => `<url><loc>${baseUrl}/review/${r.slug || r.id}</loc><lastmod>${fmtDate(r.updated_at)}</lastmod><priority>0.9</priority></url>`),
+      // Affiliate product review detail pages (canonical /products/ route)
+      ...reviews.map((r: any) => `<url><loc>${baseUrl}/products/${r.slug || r.id}</loc><lastmod>${fmtDate(r.updated_at)}</lastmod><priority>0.9</priority></url>`),
       // Affiliate category browse pages
       ...cats.map((c: any) => `<url><loc>${baseUrl}/browse/${c.slug}</loc><priority>0.8</priority></url>`),
       // Buying guide pages
@@ -256,13 +250,13 @@ app.get('/sitemap.xml', async (_req, res) => {
 // Image sitemap — only affiliate product images
 app.get('/image-sitemap.xml', async (_req, res) => {
   try {
-    const baseUrl = process.env.APP_URL || 'https://dawnwire.com';
+    const baseUrl = process.env.APP_URL || 'https://www.dawnwire.com';
     const reviews = await seo.getPublishedProductReviews().catch(() => []) as any[];
     const entries = reviews
       .filter((r: any) => r.product_image)
       .map((r: any) => {
         const img = r.product_image.startsWith('http') ? r.product_image : baseUrl + r.product_image;
-        return `<url><loc>${baseUrl}/review/${r.slug || r.id}</loc><image:image><image:loc>${img}</image:loc>${r.product_name ? `<image:caption><![CDATA[${r.product_name}]]></image:caption>` : ''}</image:image></url>`;
+        return `<url><loc>${baseUrl}/products/${r.slug || r.id}</loc><image:image><image:loc>${img}</image:loc>${r.product_name ? `<image:caption><![CDATA[${r.product_name}]]></image:caption>` : ''}</image:image></url>`;
       });
     res.header('Content-Type', 'application/xml');
     res.send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">${entries.join('')}</urlset>`);

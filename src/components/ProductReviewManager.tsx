@@ -343,7 +343,7 @@ export default function ProductReviewManager({ token, categories = [] }: { token
                     <div className="flex items-center justify-end gap-1.5">
                       {r.status === 'published' && (
                         <button
-                          onClick={() => window.open(`/review/${r.slug || r.id}`, '_blank')}
+                          onClick={() => window.open(`/products/${r.slug || r.id}`, '_blank')}
                           className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 transition-all"
                           title="View on site"
                         >

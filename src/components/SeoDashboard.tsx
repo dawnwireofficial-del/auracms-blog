@@ -510,7 +510,7 @@ export default function SeoDashboard({ token, baseUrl }: SeoDashboardProps) {
               </div>
                 <div className="flex gap-1 ml-4">
                   {item.status === 'published' && (
-                    <button onClick={() => { navigator.clipboard.writeText(window.location.origin + '/review/' + item.id); }} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-green-600 transition-all" title="Copy review URL"><Clipboard className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => { navigator.clipboard.writeText(window.location.origin + '/products/' + item.id); }} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-green-600 transition-all" title="Copy review URL"><Clipboard className="w-3.5 h-3.5" /></button>
                   )}
                   <button
                     onClick={async () => {
