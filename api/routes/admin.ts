@@ -556,7 +556,7 @@ router.post('/import-from-asin', authenticate, requireRole(['super_admin', 'admi
       return res.status(400).json({ error: 'Amazon PA-API credentials not configured. Set AMAZON_ACCESS_KEY and AMAZON_SECRET_KEY env vars or configure via Admin > Amazon Sync > Credentials.' });
     }
 
-    const results = await getItemsByAsin([cleanAsin], config);
+    const results = await getItemsByAsin(config, [cleanAsin]);
     if (!results || results.length === 0) {
       return res.status(404).json({ error: `No product found for ASIN ${cleanAsin}` });
     }
@@ -572,8 +572,8 @@ router.post('/import-from-asin', authenticate, requireRole(['super_admin', 'admi
       product_name: amazonData.title || `Amazon Product (${cleanAsin})`,
       slug: finalSlug,
       brand: amazonData.brand || '',
-      price: amazonData.price || null,
-      original_price: amazonData.referencePrice || null,
+      price: amazonData.price ? String(amazonData.price) : undefined,
+      listPrice: amazonData.referencePrice ? String(amazonData.referencePrice) : undefined,
       rating: null,
       review_count: null,
       affiliate_url: amazonData.affiliateUrl || `https://www.amazon.com/dp/${cleanAsin}?tag=${config.credentials.partnerTag}`,
