@@ -590,8 +590,8 @@ router.post('/import-from-asin', authenticate, requireRole(['super_admin', 'admi
         asin: cleanAsin,
         source: 'amazon-pa-api',
         marketplace: 'US',
-        availability: amazonData.availability || null,
-        isPrime: amazonData.isPrimeDeal || amazonData.isPrimeExclusive || false
+        availability: amazonData.availability || '',
+        isPrime: String(amazonData.isPrimeDeal || amazonData.isPrimeExclusive || false)
       },
       stock_status: amazonData.isAvailable ? 'in_stock' : 'out_of_stock',
       deal_badge: amazonData.isDeal ? 'Amazon Deal' : null,
