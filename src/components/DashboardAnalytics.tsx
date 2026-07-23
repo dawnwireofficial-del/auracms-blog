@@ -99,7 +99,8 @@ function useAnalytics(token: string) {
   async function loadAll() {
     setLoading(true);
     setError('');
-    const headers = { Authorization: `Bearer ${token}` };
+    const authToken = token || (typeof window !== 'undefined' ? localStorage.getItem('dawnwire_auth_token') : '') || '';
+    const headers: Record<string, string> = authToken ? { Authorization: `Bearer ${authToken}` } : {};
     try {
       const [trafficRes, clicksRes, engagementRes, perfRes, actRes, productRes] = await Promise.all([
         fetch(`/api/admin/analytics/traffic?days=${days}`, { headers }).then(r => r.ok ? r.json() : null),
@@ -112,8 +113,8 @@ function useAnalytics(token: string) {
       setTraffic(trafficRes || { totalViews: 0, totalVisitors: 0, dailyViews: [] });
       setClicks(clicksRes || { totalClicks: 0, clicksByDay: [] });
       setEngagement(engagementRes || null);
-      setContentPerf(perfRes || []);
-      setRecentActivity(actRes || []);
+      setContentPerf(perfRes || { totalPosts: 0, totalViews: 0, totalVisitors: 0, posts: [] });
+      setRecentActivity(actRes || { pageViews: [], comments: [], subscriptions: [], messages: [] });
       setProductAnalytics(productRes || null);
     } catch {
       setError('Failed to load analytics data');
@@ -220,17 +221,22 @@ export default function DashboardAnalytics({ token }: { token: string }) {
     : '0.00';
 
   const activityItems: { icon: React.ReactNode; text: string; time: string; color: string }[] = [];
-  if (recentActivity && !(recentActivity as any).error) {
-    for (const v of (recentActivity.pageViews || []).slice(0, 8)) {
+  if (recentActivity && typeof recentActivity === 'object' && !(recentActivity as any).error) {
+    const pageViews = Array.isArray((recentActivity as any).pageViews) ? (recentActivity as any).pageViews : [];
+    const comments = Array.isArray((recentActivity as any).comments) ? (recentActivity as any).comments : [];
+    const subscriptions = Array.isArray((recentActivity as any).subscriptions) ? (recentActivity as any).subscriptions : [];
+    const messages = Array.isArray((recentActivity as any).messages) ? (recentActivity as any).messages : [];
+
+    for (const v of pageViews.slice(0, 8)) {
       activityItems.push({ icon: <Eye className="h-3 w-3" />, text: `Page view: ${v.path}`, time: v.time, color: 'text-blue-500' });
     }
-    for (const c of (recentActivity.comments || []).slice(0, 5)) {
+    for (const c of comments.slice(0, 5)) {
       activityItems.push({ icon: <MessageSquare className="h-3 w-3" />, text: `Comment by ${c.author}`, time: c.time, color: 'text-emerald-500' });
     }
-    for (const s of (recentActivity.subscriptions || []).slice(0, 5)) {
+    for (const s of subscriptions.slice(0, 5)) {
       activityItems.push({ icon: <Mail className="h-3 w-3" />, text: `New subscriber: ${s.email}`, time: s.time, color: 'text-violet-500' });
     }
-    for (const m of (recentActivity.messages || []).slice(0, 5)) {
+    for (const m of messages.slice(0, 5)) {
       activityItems.push({ icon: <MessageSquare className="h-3 w-3" />, text: `Contact: ${m.name} - ${m.subject}`, time: m.time, color: 'text-amber-500' });
     }
   }
@@ -602,7 +608,7 @@ export default function DashboardAnalytics({ token }: { token: string }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {productAnalytics.products.slice(0, 10).map((p: any, idx: number) => (
+                  {(productAnalytics.products || []).slice(0, 10).map((p: any, idx: number) => (
                     <motion.tr
                       key={p.id}
                       className="border-b border-slate-50 dark:border-zinc-800 text-xs"

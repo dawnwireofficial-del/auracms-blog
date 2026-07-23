@@ -22,10 +22,13 @@ export const logActivityEvent = async (event: Omit<ActivityEvent, 'id' | 'timest
 
 export const fetchRecentActivityEvents = async (max: number = 50): Promise<ActivityEvent[]> => {
   try {
-    const res = await fetch(`/api/admin/analytics/recent-activity?days=7`);
+    const token = typeof window !== 'undefined' ? localStorage.getItem('dawnwire_auth_token') : null;
+    const res = await fetch(`/api/admin/analytics/recent-activity?days=7`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
     if (res.ok) {
       const data = await res.json();
-      return data || [];
+      return Array.isArray(data) ? data : [];
     }
   } catch (err) {
     // Fallback
