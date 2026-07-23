@@ -498,68 +498,14 @@ app.get('/api/redirect', async (req, res) => {
 // AI Extract Product From Link — used by Admin "Link Importer Plugin" tab
 app.post('/api/ai/extract-product-from-link', async (req, res) => {
   try {
-    const { url } = req.body;
+    const { url, associateTag } = req.body;
     if (!url) return res.status(400).json({ error: 'url required' });
 
-    const asinMatch = url.match(/(?:\/dp\/|\/gp\/product\/|\/product\/|ASIN=)([A-Z0-9]{10})/i);
-    const asin = asinMatch ? asinMatch[1].toUpperCase() : '';
-    if (!asin) return res.status(400).json({ error: 'Could not extract ASIN from URL' });
-
-    // Try PA-API first
-    try {
-      const { getItemsByAsin } = await import('../server/amazon-api-client');
-      const { dbInstance } = await import('../server/db');
-      const credentials = await dbInstance.getAmazonApiCredentials().catch(() => []);
-      let config: any = null;
-      if (Array.isArray(credentials) && credentials.length > 0) {
-        const cred = credentials[0];
-        config = {
-          credentials: { accessKey: cred.access_key || process.env.AMAZON_ACCESS_KEY, secretKey: cred.secret_key || process.env.AMAZON_SECRET_KEY, partnerTag: cred.partner_tag || process.env.AMAZON_PARTNER_TAG || 'dawnwire-20', marketplace: cred.marketplace || 'US' },
-          region: 'us-east-1', endpoint: 'webservices.amazon.com'
-        };
-      } else if (process.env.AMAZON_ACCESS_KEY && process.env.AMAZON_SECRET_KEY) {
-        config = {
-          credentials: { accessKey: process.env.AMAZON_ACCESS_KEY, secretKey: process.env.AMAZON_SECRET_KEY, partnerTag: process.env.AMAZON_PARTNER_TAG || 'dawnwire-20', marketplace: 'US' },
-          region: 'us-east-1', endpoint: 'webservices.amazon.com'
-        };
-      }
-      if (config) {
-        const results = await getItemsByAsin(config, [asin]);
-        if (results && results.length > 0) {
-          const d = results[0];
-          return res.json({
-            asin: d.asin,
-            title: d.title || '',
-            brand: d.brand || '',
-            mainImage: d.mainImage || '',
-            additionalImages: d.additionalImages || [],
-            price: d.price ? String(d.price) : undefined,
-            referencePrice: d.referencePrice ? String(d.referencePrice) : undefined,
-            features: d.features || [],
-            category: d.category || '',
-            productUrl: d.productUrl || `https://www.amazon.com/dp/${asin}`,
-            affiliateUrl: d.affiliateUrl || `https://www.amazon.com/dp/${asin}?tag=${config.credentials.partnerTag}`,
-            availability: d.availability || '',
-            isAvailable: d.isAvailable,
-            isDeal: d.isDeal,
-            isPrimeDeal: d.isPrimeDeal,
-            isPrimeExclusive: d.isPrimeExclusive,
-            message: 'Product data extracted successfully from Amazon PA-API.'
-          });
-        }
-      }
-    } catch (_e) {
-      // PA-API failed or not configured — fall through to basic ASIN response
-    }
-
-    return res.json({
-      asin,
-      message: 'ASIN extracted. Use the "Amazon ASIN Scraper" tab below to import full product data from Amazon PA-API.',
-      title: `Amazon Product (${asin})`,
-      affiliateUrl: `https://www.amazon.com/dp/${asin}?tag=${process.env.AMAZON_PARTNER_TAG || 'dawnwire-20'}`
-    });
+    const { extractAmazonProductData } = await import('../server/amazon-extractor');
+    const productData = await extractAmazonProductData(url, associateTag || process.env.AMAZON_PARTNER_TAG || 'dawnwire-20');
+    return res.json(productData);
   } catch (e: any) {
-    return res.status(500).json({ error: e.message || 'Extraction failed' });
+    return res.status(400).json({ error: e.message || 'Failed to extract product data from link.' });
   }
 });
 
