@@ -75,6 +75,10 @@ export const AdminDashboardPage: React.FC = () => {
   const [showSitemapModal, setShowSitemapModal] = useState(false);
   const [sitemapContent, setSitemapContent] = useState('');
 
+  useEffect(() => {
+    store.fetchProducts();
+  }, []);
+
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
@@ -1107,6 +1111,30 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                   </div>
                 </div>
 
+                {/* Product Video Stream URL Section */}
+                <div className="p-4 bg-purple-500/10 dark:bg-purple-950/30 rounded-2xl border border-purple-500/30 space-y-2">
+                  <label className="block text-xs font-black text-purple-900 dark:text-purple-300 flex items-center gap-1.5">
+                    <span>🎬 Product Video URL (YouTube Review or MP4 Stream)</span>
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://www.youtube.com/watch?v=... or https://m.media-amazon.com/..."
+                    value={editingProduct.videoUrl || editingProduct.specifications?.video_url || ''}
+                    onChange={(e) => {
+                      const url = e.target.value;
+                      setEditingProduct({
+                        ...editingProduct,
+                        videoUrl: url,
+                        specifications: { ...(editingProduct.specifications || {}), video_url: url }
+                      });
+                    }}
+                    className="w-full bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 outline-none font-mono text-[11px] text-purple-900 dark:text-purple-300 focus:ring-2 focus:ring-purple-500"
+                  />
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                    Paste any YouTube video link or direct MP4/HLS stream URL. It will automatically render an interactive video player on the review page.
+                  </p>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-bold">
                   <div>
                     <label className="block text-slate-500 mb-1">Best For Badge</label>
@@ -1140,7 +1168,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                       <label className="block text-xs font-bold text-slate-900 dark:text-slate-100">
                         Product Gallery Images ({editingProduct.images?.length || 0})
                       </label>
-                      <span className="text-[10px] text-slate-500">Manage high-resolution images or attach instant tech presets.</span>
+                      <span className="text-[10px] text-slate-500">Manage high-resolution images or attach instant category presets.</span>
                     </div>
                   </div>
 
@@ -1184,17 +1212,18 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                     </button>
                   </div>
 
-                  {/* Quick Tech Image Presets */}
+                  {/* Category Image Presets */}
                   <div className="space-y-1 pt-1">
-                    <span className="text-[10px] font-bold text-slate-400 block">Quick Tech Presets (Click to add to gallery):</span>
+                    <span className="text-[10px] font-bold text-slate-400 block">Category Presets (Click to add to gallery):</span>
                     <div className="flex flex-wrap gap-1.5 text-[10px]">
                       {[
-                        { label: '🎧 Sony Headphones', url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1000&q=80' },
+                        { label: '🧴 Eye Serum Bottle', url: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=1000&q=80' },
+                        { label: '✨ Eye Cream Texture', url: 'https://images.unsplash.com/photo-1608248597263-00079996576b?auto=format&fit=crop&w=1000&q=80' },
+                        { label: '💧 Skincare Dropper', url: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=1000&q=80' },
+                        { label: '🎧 Headphones', url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1000&q=80' },
                         { label: '💻 MacBook Pro', url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1000&q=80' },
-                        { label: '📸 Mirrorless Camera', url: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1000&q=80' },
-                        { label: '⌚ Smartwatch', url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1000&q=80' },
-                        { label: '🤖 Robot Vacuum', url: 'https://images.unsplash.com/photo-1558317374-067fb5f30001?auto=format&fit=crop&w=1000&q=80' },
-                        { label: '🎮 Pro Controller', url: 'https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?auto=format&fit=crop&w=1000&q=80' }
+                        { label: '📸 Camera', url: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1000&q=80' },
+                        { label: '⌚ Smartwatch', url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1000&q=80' }
                       ].map((preset) => (
                         <button
                           key={preset.label}

@@ -86,6 +86,63 @@ export const store = {
     notify();
   },
 
+  fetchProducts: async () => {
+    try {
+      const res = await fetch('/api/public/product-reviews?limit=500');
+      if (res.ok) {
+        const raw = await res.json();
+        const items = Array.isArray(raw) ? raw : (raw.products || raw.items || []);
+        if (items.length > 0) {
+          const mapped: Product[] = items.map((d: any) => ({
+            id: d.id || d.asin || 'p-' + Math.random().toString(36).substring(2, 7),
+            title: d.product_name || d.title || 'Product Review',
+            slug: d.slug || (d.product_name || 'product').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            asin: d.asin || '',
+            brand: d.brand || 'Generic',
+            mainCategory: d.category || d.mainCategory || 'Electronics',
+            subcategory: d.subcategory || 'General',
+            productType: 'Physical Product',
+            shortDescription: d.review_summary || d.shortDescription || '',
+            fullDescription: d.review_summary || d.fullDescription || '',
+            images: Array.isArray(d.images) && d.images.length ? d.images : [d.product_image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800'],
+            amazonOriginalUrl: d.amazon_url || d.amazonOriginalUrl || '',
+            affiliateUrl: d.affiliate_url || d.affiliateUrl || `https://www.amazon.com/dp/${d.asin || ''}?tag=dawnwire-20`,
+            amazonMarketplace: 'US',
+            associateTrackingId: 'dawnwire-20',
+            currentPrice: parseFloat((d.price || d.currentPrice || '99.99').toString().replace(/[^0-9.]/g, '')) || 99.99,
+            referencePrice: parseFloat((d.original_price || d.referencePrice || '129.99').toString().replace(/[^0-9.]/g, '')) || 129.99,
+            currency: 'USD',
+            discountPercentage: Number(d.discount_percentage || d.discountPercentage) || 0,
+            isAvailable: true,
+            isDeal: Boolean(d.is_deal || d.isDeal),
+            isPrime: true,
+            rating: Number(d.rating) || 4.5,
+            reviewCount: Number(d.review_count || d.reviewCount) || 120,
+            mainFeatures: Array.isArray(d.key_features) ? d.key_features : (Array.isArray(d.mainFeatures) ? d.mainFeatures : []),
+            specifications: d.specs || d.specifications || {},
+            pros: Array.isArray(d.pros) ? d.pros : [],
+            cons: Array.isArray(d.cons) ? d.cons : [],
+            bestFor: d.best_for || d.bestFor || 'Top Pick',
+            editorVerdict: d.review_summary || d.editorVerdict || '',
+            editorScore: Number(d.rating ? d.rating * 2 : 9.0),
+            similarProductIds: [],
+            alternativeProductIds: [],
+            relatedComparisonIds: [],
+            relatedGuideIds: [],
+            isFeatured: true,
+            createdAt: d.created_at || new Date().toISOString(),
+            updatedAt: d.updated_at || new Date().toISOString(),
+            videoUrl: d.specs?.video_url || d.videoUrl || ''
+          }));
+          globalStore.products = mapped;
+          notify();
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to fetch products for store', e);
+    }
+  },
+
   saveProduct: (product: Product) => {
     const index = globalStore.products.findIndex((p) => p.id === product.id);
     if (index >= 0) {
