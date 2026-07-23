@@ -98,23 +98,25 @@ router.get('/product-reviews/slug/:slug', async (req, res) => {
   const reviews = await seo.getPublishedProductReviews();
   const rawSlug = req.params.slug;
   const decodedSlug = decodeURIComponent(rawSlug).toLowerCase().trim();
+  const normTarget = decodedSlug.replace(/[^a-z0-9]/g, '');
 
-  // Try exact match first
+  // 1. Try exact match first
   let found = (reviews as any[]).find(r => r.slug === rawSlug || r.slug === decodedSlug || r.id === rawSlug);
 
-  // Partial / prefix / ASIN fallback match if exact match not found
+  // 2. Try normalized alphanumeric match (strips punctuation differences like dots vs hyphens)
   if (!found) {
     found = (reviews as any[]).find(r => {
       if (!r.slug) return false;
-      const s = r.slug.toLowerCase();
-      if (decodedSlug.startsWith(s) || s.startsWith(decodedSlug) || decodedSlug.includes(s) || s.includes(decodedSlug)) {
-        return true;
-      }
+      const normSlug = r.slug.toLowerCase().replace(/[^a-z0-9]/g, '');
+      return normSlug === normTarget || normTarget.startsWith(normSlug) || normSlug.startsWith(normTarget) || normTarget.includes(normSlug) || normSlug.includes(normTarget);
+    });
+  }
+
+  // 3. Try ASIN match
+  if (!found) {
+    found = (reviews as any[]).find(r => {
       const asin = r.specifications?.ASIN || r.asin;
-      if (asin && decodedSlug.includes(asin.toLowerCase())) {
-        return true;
-      }
-      return false;
+      return asin && decodedSlug.includes(asin.toLowerCase());
     });
   }
 

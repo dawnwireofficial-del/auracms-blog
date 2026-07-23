@@ -295,6 +295,11 @@ export async function importProductReview(data: {
   dealBadge?: string;
   asin?: string;
   source?: string;
+  ingredients?: string;
+  unitSize?: string;
+  unitPrice?: string;
+  bsrDetail?: Array<{ rank: number; category: string }>;
+  reviewHighlights?: string;
 }): Promise<any> {
   const sb = await getClient();
   let slug = slugify(data.product_name || 'product-review');
@@ -320,6 +325,11 @@ export async function importProductReview(data: {
   if (data.priceRange) specs.priceRange = data.priceRange;
   if (data.specs && Object.keys(data.specs).length > 0) specs.details = data.specs;
   if (data.videoUrl) specs.video_url = data.videoUrl;
+  if (data.ingredients) specs.ingredients = data.ingredients;
+  if (data.unitSize) specs.unit_size = data.unitSize;
+  if (data.unitPrice) specs.unit_price = data.unitPrice;
+  if (data.bsrDetail && data.bsrDetail.length > 0) specs.best_sellers_rank_detail = data.bsrDetail;
+  if (data.reviewHighlights) specs.review_highlights = data.reviewHighlights;
   const review: any = {
     id: crypto.randomUUID(),
     product_name: data.product_name,

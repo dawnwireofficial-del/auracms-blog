@@ -222,6 +222,27 @@ Complete Vike SSR migration, deploy to Vercel, and maintain the production site 
 - **`src/components/AmazonSyncDashboard.tsx`** — Full admin UI with 4 tabs: Overview (stat cards, API usage bar, schedule info, duplicate ASIN warnings, action buttons), Products (searchable/filterable table with pagination, bulk select, per-product sync, status badges, price comparison, last sync date), Settings (sync intervals, batch size, retries, field-to-sync config, auto-overwrite fields, notification toggles), Credentials (marketplace selector, access/secret key fields, partner tag, save, saved list).
 - **`src/components/AdminPanel.tsx`** — "Amazon Sync" sidebar item added with RefreshCw icon; AmazonSyncDashboard rendered when selected.
 
+### Session 6 — Runtime Crash Fixes & Enhanced Amazon Data Extraction (this session)
+- **5 admin component crash fixes** (`AdminDeals`, `AdminBrands`, `AdminBanners`, `AdminHomepage`, `AdminCategorySections`): added `response.ok` + `Array.isArray()` guards to prevent `.map()` crash on 401 API responses.
+- **DashboardAnalytics.tsx fixed**: all 6 analytics fetches now check `res.ok` and default to safe empty states; line 294 `traffic.dailyViews.length` crash fixed with optional chaining.
+- **TrendingDealsSection.tsx fixed**: removed `console.warn` on empty deals payload; silently falls back to product-derived deals.
+- **Auth persistence restored**: session restore in `App.tsx` (`useEffect` on mount) reads `dawnwire_auth_token` from localStorage, calls `GET /api/auth/me` to rehydrate `currentUser`. Added `store.setUser()` method.
+- **Header.tsx null-guard**: wrapped mega-menu category detail panel in `{currentMegaCategory && <div>...}` to prevent `Cannot read properties of null (reading 'name')`.
+- **Import-from-ASIN route path fixed**: `POST /api/admin/products/import-from-asin` now matches route definition (was `/import-from-asin` without `/products/`).
+- **AdminDashboardPage auth header fixed**: `handlePublishExtractedProduct` now attaches `Authorization: Bearer <token>` from localStorage.
+- **Extension content.js duplicate update URL fixed**: now calls `PUT /api/admin/seo/product-reviews/{dupData.id}` (was `PUT /.../import`).
+- **Browser Extension API Token** displayed in Profile tab (read-only with Copy button).
+- **Enhanced Amazon product data extraction** — 5 new extractor functions added to `content.js`:
+  - `extractIngredients(doc)` — captures ingredients list from `#important-information`, `.ingredients`, safety info
+  - `extractUnitInfo(doc)` — captures `unitSize` (e.g., "1.01 Fl Oz (Pack of 1)") and `unitPrice` (e.g., "$11.33 / Fl Oz")
+  - `extractBSRDetail(doc)` — parses `bestSellersRank` string into structured array `[{rank: 155, category: "Beauty & Personal Care"}, {rank: 1, category: "Eye Treatment Serums"}]`
+  - `extractReviewHighlights(doc)` — captures "Customers say" AI summary section from review widget
+  - `extractProductData()` now returns `ingredients`, `unitSize`, `unitPrice`, `bsrDetail`, `reviewHighlights` fields
+- **Description extraction extended** from 500 to 3000 chars; includes A+ content fallback if initial description is short.
+- **Import banner enhanced**: shows unit size, unit price, top BSR badge, ingredients indicator, review highlights indicator.
+- **`importProductReview()` updated** in `server/seo-engine.ts` — accepts and stores all new fields in `specs` (ingredients, unit_size, unit_price, best_sellers_rank_detail, review_highlights).
+- **Deployment ready**: all fixes in source; next `git push` to Vercel will deploy the corrected bundle.
+
 ### Key design decisions
 - **PA-API 5.0 only** — No scraping. Uses official Amazon Product Advertising API with proper SigV4 authentication.
 - **ASIN is primary identifier** — Extracted from affiliate URLs on initialization, stored in both `product_reviews.asin` and `amazon_sync_status.asin`.
