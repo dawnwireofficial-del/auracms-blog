@@ -509,6 +509,34 @@ app.post('/api/ai/extract-product-from-link', async (req, res) => {
   }
 });
 
+// AI Generate Product Review (Verdict, Pros, Cons, Award Badge)
+app.post('/api/ai/generate-review', async (req, res) => {
+  try {
+    const { title, asin, category, brand, shortDescription } = req.body;
+    if (!title) return res.status(400).json({ error: 'title required' });
+
+    const { generateProductAiReview } = await import('../server/ai-generator');
+    const metadata = await generateProductAiReview({ title, asin, category, brand, shortDescription });
+    return res.json(metadata);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message || 'AI review generation failed.' });
+  }
+});
+
+// AI Generate SEO Metadata (Title, Description, Keywords)
+app.post('/api/ai/generate-seo', async (req, res) => {
+  try {
+    const { title, brand, category, shortDescription, mainFeatures, asin } = req.body;
+    if (!title) return res.status(400).json({ error: 'title required' });
+
+    const { generateProductAiSeo } = await import('../server/ai-generator');
+    const seoMetadata = await generateProductAiSeo({ title, brand, category, shortDescription, mainFeatures, asin });
+    return res.json(seoMetadata);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message || 'AI SEO generation failed.' });
+  }
+});
+
 // Health check
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: Date.now(), uptime: process.uptime() });
