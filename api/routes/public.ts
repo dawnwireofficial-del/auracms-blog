@@ -96,7 +96,28 @@ router.get('/faqs', async (_req, res) => {
 // Product reviews with entity enrichment for slug lookup
 router.get('/product-reviews/slug/:slug', async (req, res) => {
   const reviews = await seo.getPublishedProductReviews();
-  const found = (reviews as any[]).find(r => r.slug === req.params.slug || r.id === req.params.slug);
+  const rawSlug = req.params.slug;
+  const decodedSlug = decodeURIComponent(rawSlug).toLowerCase().trim();
+
+  // Try exact match first
+  let found = (reviews as any[]).find(r => r.slug === rawSlug || r.slug === decodedSlug || r.id === rawSlug);
+
+  // Partial / prefix / ASIN fallback match if exact match not found
+  if (!found) {
+    found = (reviews as any[]).find(r => {
+      if (!r.slug) return false;
+      const s = r.slug.toLowerCase();
+      if (decodedSlug.startsWith(s) || s.startsWith(decodedSlug) || decodedSlug.includes(s) || s.includes(decodedSlug)) {
+        return true;
+      }
+      const asin = r.specifications?.ASIN || r.asin;
+      if (asin && decodedSlug.includes(asin.toLowerCase())) {
+        return true;
+      }
+      return false;
+    });
+  }
+
   if (!found) return res.status(404).json({ error: 'Product review not found' });
   const pros = Array.isArray(found.pros) ? found.pros : typeof found.pros === 'string' ? [found.pros] : [];
   const cons = Array.isArray(found.cons) ? found.cons : typeof found.cons === 'string' ? [found.cons] : [];
