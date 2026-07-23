@@ -265,20 +265,27 @@ async function scrapeAmazonHtml(asin: string): Promise<Partial<ExtractedProductD
     const refPriceMatch = html.match(/<span class="a-text-price"[^>]*>[\s\S]*?\$([0-9\.,]+)/i);
     const referencePrice = refPriceMatch ? parseFloat(refPriceMatch[1].replace(/,/g, '')) : (currentPrice ? Math.round(currentPrice * 1.15 * 100) / 100 : 0);
 
-    // Parse Main Image
-    const imageMatch = html.match(/data-old-hires="([^"]+)"/i) ||
-                       html.match(/"large":"([^"]+)"/i) ||
-                       html.match(/"hiRes":"([^"]+)"/i) ||
-                       html.match(/<img[^>]+id="landingImage"[^>]+src="([^"]+)"/i);
+    // Parse ALL Unique High-Res Amazon Gallery Images from HTML
+    const allImageMatches = [...html.matchAll(/https:\/\/m\.media-amazon\.com\/images\/I\/([a-zA-Z0-9%+\-_]+)\.[^"'\s<>\)\}\]]+/gi)];
+    const seenImageIds = new Set<string>();
+    const uniqueHighResImages: string[] = [];
 
-    // Parse ALL High-Res Amazon Gallery Images from HTML
-    const allImageMatches = [...html.matchAll(/https:\/\/m\.media-amazon\.com\/images\/I\/[a-zA-Z0-9%_\-\.]+\.(?:jpg|png|webp)/gi)];
-    const extractedImages = Array.from(new Set(allImageMatches.map(m => m[0])))
-      .filter(img => !img.includes('thumbs') && !img.includes('icon') && !img.includes('sprite') && !img.includes('360') && !img.includes('SS40') && !img.includes('SX38') && !img.includes('AC_US40'))
-      .slice(0, 8);
+    for (const match of allImageMatches) {
+      const imageId = match[1];
+      if (!imageId || imageId.length < 5) continue;
+      const lowerId = imageId.toLowerCase();
+      if (lowerId.includes('sprite') || lowerId.includes('icon') || lowerId.includes('pixel') || lowerId.includes('badge') || lowerId.includes('play-button') || lowerId.includes('overlay') || lowerId.includes('logo')) {
+        continue;
+      }
 
-    const mainImage = imageMatch ? imageMatch[1] : (extractedImages[0] || '');
-    const imagesList = extractedImages.length ? extractedImages : (mainImage ? [mainImage] : []);
+      if (!seenImageIds.has(imageId)) {
+        seenImageIds.add(imageId);
+        uniqueHighResImages.push(`https://m.media-amazon.com/images/I/${imageId}._AC_SL1500_.jpg`);
+      }
+    }
+
+    const mainImage = uniqueHighResImages[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800';
+    const imagesList = uniqueHighResImages.length ? uniqueHighResImages.slice(0, 8) : [mainImage];
 
     // Parse Features / Bullet Points
     const bulletMatches = [...html.matchAll(/<span class="a-list-item">([\s\S]*?)<\/span>/gi)];
@@ -439,9 +446,20 @@ export async function extractAmazonProductData(urlOrAsin: string, associateTag: 
   const referencePrice = scraped?.referencePrice || aiData?.referencePrice || (currentPrice ? Math.round(currentPrice * 1.2) : 129.99);
   const discount = referencePrice > currentPrice ? Math.round((1 - currentPrice / referencePrice) * 100) : 0;
 
-  const images = scraped?.images && scraped.images.length
+  const rawImages = scraped?.images && scraped.images.length
     ? scraped.images
     : (aiData?.images || ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800']);
+
+  const seenIds = new Set<string>();
+  const images: string[] = [];
+  for (const imgUrl of rawImages) {
+    const match = imgUrl.match(/images\/I\/([a-zA-Z0-9%+\-_]+)\./i);
+    const id = match ? match[1] : imgUrl;
+    if (!seenIds.has(id)) {
+      seenIds.add(id);
+      images.push(imgUrl);
+    }
+  }
 
   const finalVideoUrl = scraped?.videoUrl || `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(finalBrand + ' ' + finalTitle + ' review')}`;
   const baseSpecs = aiData?.specifications || { 'ASIN': asin, 'Warranty': '1 Year Manufacturer Warranty' };
