@@ -28,6 +28,7 @@ export interface ExtractedProductData {
   isDeal: boolean;
   rating: number;
   reviewCount: number;
+  videoUrl?: string;
   source: 'pa_api' | 'web_scraper' | 'ai_synthesis' | 'dictionary';
 }
 
@@ -282,6 +283,12 @@ async function scrapeAmazonHtml(asin: string): Promise<Partial<ExtractedProductD
     const ratingMatch = html.match(/([0-9\.]+)\s+out of 5 stars/i);
     const rating = ratingMatch ? parseFloat(ratingMatch[1]) : 4.6;
 
+    // Parse Video URL (Amazon Video Stream or embedded MP4/HLS)
+    const videoMatch = html.match(/"videoUrl"\s*:\s*"(https?:[^"]+)"/i) ||
+                       html.match(/(https:\/\/[^"]+vse-vfc-transcode[^"]+\.(?:m3u8|mp4))/i) ||
+                       html.match(/(https:\/\/[^"]+\.(?:m3u8|mp4))/i);
+    const videoUrl = videoMatch ? videoMatch[1] : '';
+
     return {
       asin,
       title: rawTitle,
@@ -291,7 +298,8 @@ async function scrapeAmazonHtml(asin: string): Promise<Partial<ExtractedProductD
       mainImage: mainImage || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800',
       images: mainImage ? [mainImage] : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800'],
       mainFeatures: features.length ? features : ['High-performance build quality', 'Top-rated Amazon seller item', 'Verified customer satisfaction'],
-      rating
+      rating,
+      videoUrl: videoUrl || undefined
     };
   } catch (err) {
     return null;
@@ -369,6 +377,7 @@ export async function extractAmazonProductData(urlOrAsin: string, associateTag: 
       ? Math.round((1 - known.currentPrice / known.referencePrice) * 100)
       : 0;
 
+    const knownVideo = known.videoUrl || `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(known.brand + ' ' + known.title + ' review')}`;
     return {
       asin,
       title: known.title || `Amazon Product (${asin})`,
@@ -389,13 +398,14 @@ export async function extractAmazonProductData(urlOrAsin: string, associateTag: 
       pros: known.pros || ['Great performance', 'Top user ratings'],
       cons: known.cons || ['Higher price point'],
       mainFeatures: known.mainFeatures || ['Fast Shipping', 'Amazon Verified'],
-      specifications: known.specifications || { 'Warranty': '1 Year' },
+      specifications: { video_url: knownVideo, ...(known.specifications || { 'Warranty': '1 Year' }) },
       affiliateUrl,
       amazonOriginalUrl,
       isPrime: true,
       isDeal: discount > 0,
       rating: known.rating || 4.7,
       reviewCount: known.reviewCount || 2400,
+      videoUrl: knownVideo,
       source: 'dictionary'
     };
   }
@@ -425,6 +435,9 @@ export async function extractAmazonProductData(urlOrAsin: string, associateTag: 
     ? scraped.images
     : (aiData?.images || ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800']);
 
+  const finalVideoUrl = scraped?.videoUrl || `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(finalBrand + ' ' + finalTitle + ' review')}`;
+  const baseSpecs = aiData?.specifications || { 'ASIN': asin, 'Warranty': '1 Year Manufacturer Warranty' };
+
   return {
     asin,
     title: finalTitle,
@@ -445,13 +458,14 @@ export async function extractAmazonProductData(urlOrAsin: string, associateTag: 
     pros: aiData?.pros || ['High build quality', 'Top performance', 'Verified Amazon rating'],
     cons: aiData?.cons || ['Slightly higher price than basic models'],
     mainFeatures: scraped?.mainFeatures || aiData?.mainFeatures || ['Independent Benchmarking', 'Fast Delivery', 'Top Buyer Ratings'],
-    specifications: aiData?.specifications || { 'ASIN': asin, 'Warranty': '1 Year Manufacturer Warranty' },
+    specifications: { video_url: finalVideoUrl, ...baseSpecs },
     affiliateUrl,
     amazonOriginalUrl,
     isPrime: true,
     isDeal: discount > 0,
     rating: scraped?.rating || 4.6,
     reviewCount: 1250,
+    videoUrl: finalVideoUrl,
     source: scraped ? 'web_scraper' : aiData ? 'ai_synthesis' : 'dictionary'
   };
 }

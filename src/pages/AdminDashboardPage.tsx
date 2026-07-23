@@ -311,6 +311,7 @@ export const AdminDashboardPage: React.FC = () => {
         const rawImages = data.images && Array.isArray(data.images) ? data.images : (data.mainImage ? [data.mainImage, ...(data.additionalImages || [])] : []);
         const specs = typeof data.specifications === 'object' && data.specifications !== null ? data.specifications : (typeof data.specs === 'object' && data.specs !== null ? data.specs : {});
 
+        const videoUrl = data.videoUrl || specs.video_url;
         setExtractedPreview({
           ...data,
           title,
@@ -328,7 +329,8 @@ export const AdminDashboardPage: React.FC = () => {
           pros,
           cons,
           mainFeatures,
-          specifications: specs,
+          specifications: { video_url: videoUrl, ...specs },
+          videoUrl,
           affiliateUrl: data.affiliateUrl || `https://www.amazon.com/dp/${data.asin || ''}?tag=${associateTag}`
         });
         setExtractionStep('complete');
@@ -342,10 +344,18 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
-  // Save extracted product to database via API
+  // Save extracted product to database via API & Store
   const handlePublishExtractedProduct = async () => {
     if (!extractedPreview) return;
     const token = localStorage.getItem('dawnwire_auth_token');
+    
+    // Save to local store state immediately
+    const fullProductToSave: Product = {
+      ...extractedPreview,
+      videoUrl: extractedPreview.videoUrl || extractedPreview.specifications?.video_url,
+      specifications: { video_url: extractedPreview.videoUrl || extractedPreview.specifications?.video_url, ...(extractedPreview.specifications || {}) }
+    };
+    store.saveProduct(fullProductToSave);
     try {
       const res = await fetch('/api/admin/products/import-from-asin', {
         method: 'POST',
@@ -893,6 +903,20 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                         ))}
                       </div>
                     </div>
+
+                    {/* Extracted Product Video Stream */}
+                    {(extractedPreview.videoUrl || extractedPreview.specifications?.video_url) && (
+                      <div>
+                        <span className="text-[10px] font-extrabold uppercase text-purple-500 tracking-wider block mb-1">🎬 Extracted Product Video Stream</span>
+                        <div className="p-3 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/80 rounded-2xl text-[11px] font-mono flex items-center justify-between text-purple-900 dark:text-purple-300">
+                          <div className="flex items-center gap-2 truncate">
+                            <span className="text-base">▶️</span>
+                            <span className="truncate max-w-md font-bold">{extractedPreview.videoUrl || extractedPreview.specifications?.video_url}</span>
+                          </div>
+                          <span className="px-2 py-0.5 bg-purple-600 text-white rounded text-[9px] font-bold shrink-0">READY TO EMBED</span>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Affiliate Link Verification */}
                     <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 rounded-2xl text-[11px] font-mono flex items-center justify-between text-amber-900 dark:text-amber-300">
