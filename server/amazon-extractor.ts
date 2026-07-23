@@ -270,7 +270,15 @@ async function scrapeAmazonHtml(asin: string): Promise<Partial<ExtractedProductD
                        html.match(/"large":"([^"]+)"/i) ||
                        html.match(/"hiRes":"([^"]+)"/i) ||
                        html.match(/<img[^>]+id="landingImage"[^>]+src="([^"]+)"/i);
-    const mainImage = imageMatch ? imageMatch[1] : '';
+
+    // Parse ALL High-Res Amazon Gallery Images from HTML
+    const allImageMatches = [...html.matchAll(/https:\/\/m\.media-amazon\.com\/images\/I\/[a-zA-Z0-9%_\-\.]+\.(?:jpg|png|webp)/gi)];
+    const extractedImages = Array.from(new Set(allImageMatches.map(m => m[0])))
+      .filter(img => !img.includes('thumbs') && !img.includes('icon') && !img.includes('sprite') && !img.includes('360') && !img.includes('SS40') && !img.includes('SX38') && !img.includes('AC_US40'))
+      .slice(0, 8);
+
+    const mainImage = imageMatch ? imageMatch[1] : (extractedImages[0] || '');
+    const imagesList = extractedImages.length ? extractedImages : (mainImage ? [mainImage] : []);
 
     // Parse Features / Bullet Points
     const bulletMatches = [...html.matchAll(/<span class="a-list-item">([\s\S]*?)<\/span>/gi)];
@@ -296,7 +304,7 @@ async function scrapeAmazonHtml(asin: string): Promise<Partial<ExtractedProductD
       currentPrice: currentPrice || 99.99,
       referencePrice: referencePrice || (currentPrice ? Math.round(currentPrice * 1.15) : 129.99),
       mainImage: mainImage || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800',
-      images: mainImage ? [mainImage] : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800'],
+      images: imagesList,
       mainFeatures: features.length ? features : ['High-performance build quality', 'Top-rated Amazon seller item', 'Verified customer satisfaction'],
       rating,
       videoUrl: videoUrl || undefined

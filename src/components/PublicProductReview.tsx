@@ -287,12 +287,29 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
   const features: string[] = parseArrayField(review.key_features);
   const displayPros = showAllPros ? pros : pros.slice(0, 5);
   const specs: any = review.specs || {};
-  const gallery: string[] = specs.gallery || [];
+  let gallery: string[] = [];
+  if (Array.isArray(review.images) && review.images.length > 0) {
+    gallery = [...review.images];
+  } else if (Array.isArray(specs.gallery) && specs.gallery.length > 0) {
+    gallery = [...specs.gallery];
+  } else if (Array.isArray(review.gallery) && review.gallery.length > 0) {
+    gallery = [...review.gallery];
+  } else if (Array.isArray(review.additional_images) && review.additional_images.length > 0) {
+    gallery = [review.product_image || '', ...review.additional_images];
+  }
+  gallery = gallery.filter((img: any) => img && typeof img === 'string' && img.trim() !== '');
+
+  if (review.product_image && gallery.length > 1) {
+    gallery = gallery.filter((img: string) => !img.includes('unsplash.com/photo-1505740420928-5e560c06d30e'));
+  }
   if (review.product_image && !gallery.includes(review.product_image)) {
     gallery.unshift(review.product_image);
   }
-  const videoUrl: string = specs.video_url || '';
-  const isValidVideoUrl = videoUrl && !videoUrl.startsWith('blob:') && !videoUrl.startsWith('data:');
+  gallery = Array.from(new Set(gallery));
+
+  const rawVideoUrl: string = specs.video_url || review.videoUrl || review.video_url || specs.videoUrl || '';
+  const videoUrl: string = rawVideoUrl || (review.product_name ? `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent((review.brand || '') + ' ' + review.product_name + ' review')}` : '');
+  const isValidVideoUrl = Boolean(videoUrl && !videoUrl.startsWith('blob:') && !videoUrl.startsWith('data:'));
   const cleanSummary = sanitizeHtml(review.review_summary);
   const aiSummaryBadge = cleanSummary ? cleanSummary.length > 150 ? cleanSummary.substring(0, 150) + '...' : cleanSummary : '';
   const activeImage = gallery[activeImageIdx] || review.product_image || '';
@@ -570,8 +587,14 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
                 <div className="aspect-video rounded-2xl overflow-hidden bg-black shadow-lg">
                   {videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be') ? (
                     <iframe
-                      src={videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/').split('&')[0]}
-                      className="w-full h-full"
+                      src={
+                        videoUrl.includes('watch?v=')
+                          ? videoUrl.replace('watch?v=', 'embed/').split('&')[0]
+                          : videoUrl.includes('youtu.be/')
+                          ? videoUrl.replace('youtu.be/', 'youtube.com/embed/').split('?')[0]
+                          : videoUrl
+                      }
+                      className="w-full h-full border-0"
                       allowFullScreen
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       title="Product video"
