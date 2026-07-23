@@ -13,7 +13,7 @@ export function normalizeProduct(raw: any): ProductReview {
       schemaEnabled: false,
       status: 'draft',
       createdAt: new Date().toISOString(),
-    };
+    } as unknown as ProductReview;
   }
 
   const rawRating = raw.rating !== undefined && raw.rating !== null ? Number(raw.rating) : undefined;

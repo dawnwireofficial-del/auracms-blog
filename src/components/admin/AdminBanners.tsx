@@ -12,7 +12,8 @@ export default function AdminBanners({ token, categories }: { token: string; cat
   const load = async () => {
     if (!selectedCat) return;
     const r = await fetch(`/api/admin/category-banners/${selectedCat}`, { headers: { Authorization: `Bearer ${token}` } });
-    setBanners(await r.json());
+    const data = r.ok ? await r.json() : [];
+    setBanners(Array.isArray(data) ? data : []);
   };
   useEffect(() => { load(); }, [selectedCat]);
 

@@ -192,7 +192,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
       ).slice(0, 3)
     : [];
 
-  const currentMegaCategory = categories.find((c) => c.id === activeMegaCat) || categories[0];
+  const currentMegaCategory = categories.find((c) => c.id === activeMegaCat) || categories[0] || null;
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 transition-colors">
@@ -601,7 +601,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
                   </div>
 
                   {/* Category Detail Panel */}
-                  <div className="col-span-8 p-6">
+                  {currentMegaCategory && <div className="col-span-8 p-6">
                     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
                       <div>
                         <h4 className="text-base font-extrabold text-slate-900 dark:text-slate-100">
@@ -657,7 +657,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
                         See Deals &rarr;
                       </a>
                     </div>
-                  </div>
+                  </div>}
                 </div>
               )}
             </div>

@@ -35,6 +35,7 @@ function dawnwireApiPlugin(): Plugin {
 
 export default defineConfig(() => {
   return {
+    build: { sourcemap: true },
     plugins: [react(), tailwindcss(), dawnwireApiPlugin()],
     resolve: {
       alias: {

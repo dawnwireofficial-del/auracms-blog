@@ -10,12 +10,14 @@ export default function AdminDeals({ token }: { token: string }) {
   const [filterStatus, setFilterStatus] = useState('active');
 
   const load = async () => {
-    const [d, p] = await Promise.all([
-      fetch(`/api/admin/deals?status=${filterStatus}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-      fetch('/api/public/product-reviews').then(r => r.json()),
+    const [dRes, pRes] = await Promise.all([
+      fetch(`/api/admin/deals?status=${filterStatus}`, { headers: { Authorization: `Bearer ${token}` } }),
+      fetch('/api/public/product-reviews'),
     ]);
-    setDeals(d || []);
-    setProducts(p.data || []);
+    const d = dRes.ok ? await dRes.json() : [];
+    const p = pRes.ok ? await pRes.json() : { data: [] };
+    setDeals(Array.isArray(d) ? d : []);
+    setProducts(Array.isArray(p.data) ? p.data : []);
   };
   useEffect(() => { load(); }, [filterStatus]);
 

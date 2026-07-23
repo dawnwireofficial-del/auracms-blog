@@ -40,12 +40,14 @@ export default function AdminHomepage({ token }: { token: string }) {
   const [tab, setTab] = useState<'sections' | 'hero'>('sections');
 
   const load = async () => {
-    const [s, h] = await Promise.all([
-      fetch('/api/admin/homepage-sections', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-      fetch('/api/admin/homepage-hero', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+    const [sRes, hRes] = await Promise.all([
+      fetch('/api/admin/homepage-sections', { headers: { Authorization: `Bearer ${token}` } }),
+      fetch('/api/admin/homepage-hero', { headers: { Authorization: `Bearer ${token}` } }),
     ]);
-    setSections((s || []).sort((a: any, b: any) => a.sortOrder - b.sortOrder));
-    setHeroSlides((h || []).sort((a: any, b: any) => a.sortOrder - b.sortOrder));
+    const s = sRes.ok ? await sRes.json() : [];
+    const h = hRes.ok ? await hRes.json() : [];
+    setSections(Array.isArray(s) ? [...s].sort((a: any, b: any) => a.sortOrder - b.sortOrder) : []);
+    setHeroSlides(Array.isArray(h) ? [...h].sort((a: any, b: any) => a.sortOrder - b.sortOrder) : []);
   };
   useEffect(() => { load(); }, []);
 

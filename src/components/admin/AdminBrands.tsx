@@ -11,7 +11,8 @@ export default function AdminBrands({ token }: { token: string }) {
 
   const load = async () => {
     const r = await fetch('/api/admin/brands', { headers: { Authorization: `Bearer ${token}` } });
-    setBrands(await r.json());
+    const data = r.ok ? await r.json() : [];
+    setBrands(Array.isArray(data) ? data : []);
   };
   useEffect(() => { load(); }, []);
 

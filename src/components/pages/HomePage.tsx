@@ -8,6 +8,7 @@ import ParticleNetwork from '../motion/ParticleNetwork';
 import CategoryConstellation from '../motion/CategoryConstellation';
 import TrendWave from '../motion/TrendWave';
 import { Suspense, lazy } from 'react';
+import MascotAnimation from '../MascotAnimation';
 const ParticleCanvas = lazy(() => import('../ParticleCanvas'));
 
 interface HomePageProps {
@@ -148,18 +149,7 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
                 <div className="relative w-full bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl p-4 md:p-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                     <div className="flex flex-col items-center text-center">
-                      {/* Animated robot mascot placeholder with rotating rings — IT Tech style */}
-                      <div className="relative w-36 h-36 md:w-40 md:h-40">
-                        <div className="absolute inset-0 rounded-full border-2 border-primary2/30 animate-dance4" />
-                        <div className="absolute inset-2 rounded-full border border-primary3/20 animate-dance3" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary2 to-primary3 flex items-center justify-center shadow-lg shadow-primary2/30">
-                            <Monitor className="w-10 h-10 text-white" />
-                          </div>
-                        </div>
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary2 rounded-full shadow-[0_0_10px_2px_rgba(26,144,255,0.6)]" />
-                        <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-primary3 rounded-full shadow-[0_0_10px_2px_rgba(51,38,252,0.6)]" />
-                      </div>
+                      <MascotAnimation className="w-36 h-36 md:w-40 md:h-40" />
                       <span className="text-[10px] font-bold uppercase tracking-widest text-primary2 mt-2">AI-Powered</span>
                     </div>
                     <div className="border-t sm:border-t-0 sm:border-l border-white/10 pt-4 sm:pt-0 sm:pl-4">

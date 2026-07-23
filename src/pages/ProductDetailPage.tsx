@@ -378,7 +378,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   <span className="text-3xl font-black text-slate-900 dark:text-slate-100">
                     ${product.currentPrice?.toFixed(2)}
                   </span>
-                  {product.referencePrice && product.referencePrice > product.currentPrice && (
+                  {product.referencePrice && product.currentPrice && product.referencePrice > product.currentPrice && (
                     <span className="text-sm text-slate-400 line-through font-semibold">
                       ${product.referencePrice.toFixed(2)}
                     </span>

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { GravityParticleCanvas } from '../components/common/GravityParticleCanvas';
-import { HeroChatbotIllustration, CategoryIcon, TrustBadges } from '../components/common/SvgIcons';
+import { CategoryIcon, TrustBadges } from '../components/common/SvgIcons';
 import { ProductCard } from '../components/common/ProductCard';
 import { DisclosureBanner } from '../components/common/DisclosureBanner';
 import { BannerCarousel } from '../components/common/BannerCarousel';
 import { TrendingDealsSection } from '../components/deals/TrendingDealsSection';
+import MascotAnimation from '../components/MascotAnimation';
 import { useAppStore } from '../lib/store';
 import { triggerPageLoadProgress } from '../lib/navigation';
 
@@ -111,7 +112,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             className="lg:col-span-5 flex justify-center relative"
           >
             <div className="absolute -inset-4 bg-gradient-to-r from-blue-600/30 to-amber-500/20 rounded-full blur-3xl opacity-50 animate-pulse" />
-            <HeroChatbotIllustration />
+            <MascotAnimation className="w-full max-w-md" />
           </motion.div>
         </div>
       </section>

@@ -16,7 +16,7 @@ export const PriceHistoryTracker: React.FC<PriceHistoryTrackerProps> = ({ produc
 
   // Target price alert modal state
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
-  const currentPrice = product.currentPrice || 100;
+  const currentPrice: number = typeof product.currentPrice === 'number' ? product.currentPrice : parseFloat(String(product.price || '0')) || 100;
   const [targetPrice, setTargetPrice] = useState<number>(Math.round(currentPrice * 0.85));
   const [userEmail, setUserEmail] = useState<string>(currentUser?.email || '');
   const [alertStatus, setAlertStatus] = useState<{ type: 'idle' | 'submitting' | 'success' | 'error'; message: string }>({ type: 'idle', message: '' });
@@ -42,7 +42,7 @@ export const PriceHistoryTracker: React.FC<PriceHistoryTrackerProps> = ({ produc
       setAlertStatus({ type: 'error', message: 'Please enter a valid email address.' });
       return;
     }
-    if (targetPrice >= product.currentPrice) {
+    if (targetPrice >= currentPrice) {
       setAlertStatus({ type: 'error', message: 'Target price must be lower than the current price.' });
       return;
     }
@@ -55,7 +55,7 @@ export const PriceHistoryTracker: React.FC<PriceHistoryTrackerProps> = ({ produc
       productId: product.id,
       productTitle: product.title,
       targetPrice: Number(targetPrice),
-      initialPrice: product.currentPrice
+      initialPrice: currentPrice
     });
 
     setAlertStatus({ type: 'success', message: result.message });
@@ -94,7 +94,7 @@ export const PriceHistoryTracker: React.FC<PriceHistoryTrackerProps> = ({ produc
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/60 dark:border-slate-800">
           <span className="text-[10px] font-bold text-slate-400 uppercase block">Current Price</span>
-          <span className="text-base font-black text-slate-900 dark:text-slate-100">${product.currentPrice.toFixed(2)}</span>
+          <span className="text-base font-black text-slate-900 dark:text-slate-100">${currentPrice.toFixed(2)}</span>
         </div>
         <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200/60 dark:border-emerald-900/40">
           <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase block">All-Time Low</span>
@@ -172,7 +172,7 @@ export const PriceHistoryTracker: React.FC<PriceHistoryTrackerProps> = ({ produc
 
               <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-xs flex justify-between items-center">
                 <span className="text-slate-500">Current Amazon Price:</span>
-                <span className="font-extrabold text-slate-900 dark:text-slate-100">${product.currentPrice.toFixed(2)}</span>
+                <span className="font-extrabold text-slate-900 dark:text-slate-100">${currentPrice.toFixed(2)}</span>
               </div>
 
               {/* Preset buttons */}
@@ -180,7 +180,7 @@ export const PriceHistoryTracker: React.FC<PriceHistoryTrackerProps> = ({ produc
                 <label className="text-[11px] font-bold text-slate-500 uppercase block">Quick Presets</label>
                 <div className="grid grid-cols-3 gap-2">
                   {[0.9, 0.8, 0.7].map((pct) => {
-                    const priceVal = Math.round(product.currentPrice * pct);
+                    const priceVal = Math.round(currentPrice * pct);
                     return (
                       <button
                         key={pct}

@@ -102,19 +102,19 @@ function useAnalytics(token: string) {
     const headers = { Authorization: `Bearer ${token}` };
     try {
       const [trafficRes, clicksRes, engagementRes, perfRes, actRes, productRes] = await Promise.all([
-        fetch(`/api/admin/analytics/traffic?days=${days}`, { headers }).then(r => r.json()),
-        fetch(`/api/admin/analytics/clicks?days=${days}`, { headers }).then(r => r.json()),
-        fetch(`/api/admin/analytics/engagement?days=${days}`, { headers }).then(r => r.json()),
-        fetch(`/api/admin/analytics/content-performance?days=${days}`, { headers }).then(r => r.json()),
-        fetch(`/api/admin/analytics/recent-activity?days=7`, { headers }).then(r => r.json()),
-        fetch(`/api/admin/analytics/products?days=${days}`, { headers }).then(r => r.json()),
+        fetch(`/api/admin/analytics/traffic?days=${days}`, { headers }).then(r => r.ok ? r.json() : null),
+        fetch(`/api/admin/analytics/clicks?days=${days}`, { headers }).then(r => r.ok ? r.json() : null),
+        fetch(`/api/admin/analytics/engagement?days=${days}`, { headers }).then(r => r.ok ? r.json() : null),
+        fetch(`/api/admin/analytics/content-performance?days=${days}`, { headers }).then(r => r.ok ? r.json() : null),
+        fetch(`/api/admin/analytics/recent-activity?days=7`, { headers }).then(r => r.ok ? r.json() : null),
+        fetch(`/api/admin/analytics/products?days=${days}`, { headers }).then(r => r.ok ? r.json() : null),
       ]);
-      setTraffic(trafficRes);
-      setClicks(clicksRes);
-      setEngagement(engagementRes);
-      setContentPerf(perfRes);
-      setRecentActivity(actRes);
-      setProductAnalytics(productRes);
+      setTraffic(trafficRes || { totalViews: 0, totalVisitors: 0, dailyViews: [] });
+      setClicks(clicksRes || { totalClicks: 0, clicksByDay: [] });
+      setEngagement(engagementRes || null);
+      setContentPerf(perfRes || []);
+      setRecentActivity(actRes || []);
+      setProductAnalytics(productRes || null);
     } catch {
       setError('Failed to load analytics data');
     } finally {
@@ -291,7 +291,7 @@ export default function DashboardAnalytics({ token }: { token: string }) {
           icon={<Eye className="h-5 w-5" />}
           label="Total Views"
           value={(traffic?.totalViews || 0).toLocaleString()}
-          sub={traffic && traffic.dailyViews.length > 0 ? `+${traffic.dailyViews[traffic.dailyViews.length - 1]?.views || 0} today` : undefined}
+          sub={traffic?.dailyViews?.length ? `+${traffic.dailyViews[traffic.dailyViews.length - 1]?.views || 0} today` : undefined}
           color="bg-blue-50 dark:bg-blue-900/30 text-[#246BFF]"
         />
         <StatCard

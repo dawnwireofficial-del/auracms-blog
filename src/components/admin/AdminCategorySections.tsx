@@ -30,7 +30,8 @@ export default function AdminCategorySections({ token, categories }: { token: st
   const load = async () => {
     if (!selectedCat) return;
     const r = await fetch(`/api/admin/category-sections/${selectedCat}`, { headers: { Authorization: `Bearer ${token}` } });
-    setSections((await r.json() || []).sort((a: any, b: any) => a.sortOrder - b.sortOrder));
+    const data = r.ok ? await r.json() : [];
+    setSections(Array.isArray(data) ? [...data].sort((a: any, b: any) => a.sortOrder - b.sortOrder) : []);
   };
   useEffect(() => { load(); }, [selectedCat]);
 

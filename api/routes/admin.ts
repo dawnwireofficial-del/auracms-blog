@@ -514,7 +514,7 @@ router.post('/amazon-sync/trigger-cycle', authenticate, requireRole(['super_admi
 });
 
 // Import product from ASIN via Amazon PA-API
-router.post('/import-from-asin', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+router.post('/products/import-from-asin', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
   try {
     const { asin } = req.body;
     if (!asin || !/^[A-Z0-9]{10}$/.test(asin.toUpperCase())) {

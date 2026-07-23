@@ -1,160 +1,37 @@
-import React from 'react';
-
-const styles = `
-  .bot {
-    transform-origin: 600px 710px;
-    animation: jump 2.5s ease-in-out infinite;
-  }
-  .shadow {
-    transform-origin: 600px 1238px;
-    animation: shadowPulse 2.5s ease-in-out infinite;
-  }
-  .head {
-    transform-origin: 600px 510px;
-    animation: headTurn 3.8s ease-in-out infinite;
-  }
-  .face-look {
-    animation: lookAround 3.8s ease-in-out infinite;
-  }
-  .blink {
-    transform-origin: 600px 533px;
-    animation: blink 3.8s ease-in-out infinite;
-  }
-  .smile {
-    animation: smileShift 3.8s ease-in-out infinite;
-  }
-  .rocket-flame {
-    transform-origin: 600px 1086px;
-    animation: flameBlast 0.26s ease-in-out infinite alternate;
-  }
-  .rocket-core {
-    transform-origin: 600px 1086px;
-    animation: flameCore 0.22s ease-in-out infinite alternate;
-  }
-  .arms {
-    transform-origin: 600px 740px;
-    animation: armBounce 2.5s ease-in-out infinite;
-  }
-  .bodyBob {
-    transform-origin: 600px 710px;
-    animation: bodyTilt 2.5s ease-in-out infinite;
-  }
-  @keyframes jump {
-    0%, 100% { transform: translateY(0px); }
-    15% { transform: translateY(18px); }
-    45% { transform: translateY(-58px); }
-    60% { transform: translateY(-86px); }
-    78% { transform: translateY(-16px); }
-  }
-  @keyframes shadowPulse {
-    0%, 100% { transform: scaleX(1) scaleY(1); opacity: .26; }
-    55% { transform: scaleX(.68) scaleY(.72); opacity: .14; }
-  }
-  @keyframes headTurn {
-    0%, 18%, 100% { transform: rotate(0deg); }
-    28%, 42% { transform: rotate(-6deg); }
-    58%, 74% { transform: rotate(6deg); }
-  }
-  @keyframes lookAround {
-    0%, 18%, 100% { transform: translateX(0px); }
-    28%, 42% { transform: translateX(-16px); }
-    58%, 74% { transform: translateX(16px); }
-  }
-  @keyframes blink {
-    0%, 12%, 28%, 54%, 78%, 100% { transform: scaleY(1); opacity: 1; }
-    14%, 16% { transform: scaleY(.08); opacity: .9; }
-    56%, 58% { transform: scaleY(.08); opacity: .9; }
-    80%, 82% { transform: scaleY(.08); opacity: .9; }
-  }
-  @keyframes smileShift {
-    0%, 18%, 100% { transform: translateX(0px); }
-    28%, 42% { transform: translateX(-8px); }
-    58%, 74% { transform: translateX(8px); }
-  }
-  @keyframes flameBlast {
-    0%   { transform: scaleY(.75) scaleX(.88); opacity: .75; }
-    100% { transform: scaleY(1.25) scaleX(1.08); opacity: 1; }
-  }
-  @keyframes flameCore {
-    0%   { transform: scaleY(.78) scaleX(.9); opacity: .72; }
-    100% { transform: scaleY(1.18) scaleX(1.04); opacity: 1; }
-  }
-  @keyframes armBounce {
-    0%, 100% { transform: translateY(0px); }
-    55% { transform: translateY(-8px); }
-  }
-  @keyframes bodyTilt {
-    0%, 100% { transform: rotate(0deg); }
-    20% { transform: rotate(-2deg); }
-    60% { transform: rotate(2deg); }
-  }
-`;
-
 export default function MascotAnimation({ className = '' }: { className?: string }) {
   return (
     <div className={`relative ${className}`}>
-      <style>{styles}</style>
       <svg
-        width="100%"
-        height="100%"
-        viewBox="0 0 1200 1400"
         xmlns="http://www.w3.org/2000/svg"
+        width="100%" height="100%"
+        viewBox="0 0 512 512"
+        role="img"
+        aria-labelledby="mascot-title mascot-desc"
         className="w-full h-full"
         style={{ maxWidth: 320, maxHeight: 380 }}
       >
+        <title id="mascot-title">DawnWire AI Chatbot</title>
+        <desc id="mascot-desc">An animated rocket-style chatbot mascot with blinking eyes, pulsing antenna, chat dots, and sparkles.</desc>
+
         <defs>
-          <linearGradient id="botBody" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#ffffff"/>
-            <stop offset="55%" stopColor="#F3F7FF"/>
-            <stop offset="100%" stopColor="#DCEAFF"/>
-          </linearGradient>
-          <linearGradient id="botShadow" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#fefefe"/>
-            <stop offset="65%" stopColor="#EAF2FF"/>
-            <stop offset="100%" stopColor="#9BC2FF"/>
-          </linearGradient>
-          <linearGradient id="purple" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#6EA2FF"/>
-            <stop offset="50%" stopColor="#246BFF"/>
+          <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#2E7CF6"/>
             <stop offset="100%" stopColor="#0A1F44"/>
           </linearGradient>
-          <radialGradient id="faceGlow" cx="50%" cy="45%" r="70%">
-            <stop offset="0%" stopColor="#0D2B5F"/>
-            <stop offset="55%" stopColor="#08152E"/>
-            <stop offset="100%" stopColor="#030C10"/>
-          </radialGradient>
-          <linearGradient id="cyanGlow" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#A9ECFF"/>
-            <stop offset="45%" stopColor="#4DA3FF"/>
-            <stop offset="100%" stopColor="#246BFF"/>
+          <linearGradient id="faceGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#FFFFFF"/>
+            <stop offset="100%" stopColor="#EAF2FF"/>
           </linearGradient>
-          <radialGradient id="flameOuter" cx="50%" cy="25%" r="70%">
-            <stop offset="0%" stopColor="#fff3a8"/>
-            <stop offset="40%" stopColor="#ffba49"/>
-            <stop offset="78%" stopColor="#ff6d2e"/>
-            <stop offset="100%" stopColor="#246BFF" stopOpacity="0.78"/>
-          </radialGradient>
-          <radialGradient id="flameInner" cx="50%" cy="20%" r="80%">
-            <stop offset="0%" stopColor="#ffffff"/>
-            <stop offset="45%" stopColor="#cfffff"/>
-            <stop offset="100%" stopColor="#4DA3FF" stopOpacity="0.8"/>
-          </radialGradient>
-          <radialGradient id="groundGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#246BFF" stopOpacity="0.32"/>
-            <stop offset="100%" stopColor="#246BFF" stopOpacity="0"/>
-          </radialGradient>
-          <filter id="softShadow" x="-35%" y="-35%" width="170%" height="170%">
-            <feDropShadow dx="0" dy="20" stdDeviation="24" floodColor="#246BFF" floodOpacity="0.20"/>
+          <linearGradient id="flameGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#FFD66B"/>
+            <stop offset="55%" stopColor="#FF8A00"/>
+            <stop offset="100%" stopColor="#FF4D00"/>
+          </linearGradient>
+          <filter id="softShadow" x="-40%" y="-40%" width="180%" height="180%">
+            <feDropShadow dx="0" dy="14" stdDeviation="16" floodColor="#0A1F44" floodOpacity="0.22"/>
           </filter>
-          <filter id="glowBlue" x="-100%" y="-100%" width="300%" height="300%">
-            <feGaussianBlur stdDeviation="5" result="blur"/>
-            <feMerge>
-              <feMergeNode in="blur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-          <filter id="glowFlame" x="-100%" y="-100%" width="300%" height="300%">
-            <feGaussianBlur stdDeviation="10" result="blur"/>
+          <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur stdDeviation="6" result="blur"/>
             <feMerge>
               <feMergeNode in="blur"/>
               <feMergeNode in="SourceGraphic"/>
@@ -162,91 +39,104 @@ export default function MascotAnimation({ className = '' }: { className?: string
           </filter>
         </defs>
 
-        <rect width="1200" height="1400" fill="transparent"/>
+        <style>{`
+          .mascot-float { transform-origin: 256px 260px; animation: mascotFloat 3.6s ease-in-out infinite; }
+          .mascot-shadow { transform-origin: 256px 438px; animation: mascotShadowPulse 3.6s ease-in-out infinite; }
+          .mascot-antenna-dot { transform-origin: 256px 109px; animation: mascotPulse 1.8s ease-in-out infinite; }
+          .mascot-eye { transform-box: fill-box; transform-origin: center; animation: mascotBlink 4.2s infinite; }
+          .mascot-dot1 { animation: mascotTyping 1.2s ease-in-out infinite; }
+          .mascot-dot2 { animation: mascotTyping 1.2s ease-in-out .18s infinite; }
+          .mascot-dot3 { animation: mascotTyping 1.2s ease-in-out .36s infinite; }
+          .mascot-flame { transform-box: fill-box; transform-origin: 50% 0%; animation: mascotFlame 0.45s ease-in-out infinite alternate; }
+          .mascot-spark1 { animation: mascotSparkle 2.4s ease-in-out infinite; }
+          .mascot-spark2 { animation: mascotSparkle 2.4s ease-in-out .8s infinite; }
+          .mascot-spark3 { animation: mascotSparkle 2.4s ease-in-out 1.4s infinite; }
 
-        <ellipse className="shadow" cx="600" cy="1238" rx="170" ry="46" fill="url(#groundGlow)"/>
+          @keyframes mascotFloat {
+            0%,100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-13px) rotate(1.2deg); }
+          }
+          @keyframes mascotShadowPulse {
+            0%,100% { transform: scaleX(1); opacity:.20; }
+            50% { transform: scaleX(.82); opacity:.12; }
+          }
+          @keyframes mascotPulse {
+            0%,100% { transform: scale(1); opacity:1; }
+            50% { transform: scale(1.28); opacity:.65; }
+          }
+          @keyframes mascotBlink {
+            0%,44%,48%,100% { transform: scaleY(1); }
+            46% { transform: scaleY(.08); }
+          }
+          @keyframes mascotTyping {
+            0%,60%,100% { transform: translateY(0); opacity:.55; }
+            30% { transform: translateY(-8px); opacity:1; }
+          }
+          @keyframes mascotFlame {
+            from { transform: scaleY(.88) scaleX(.96); opacity:.9; }
+            to { transform: scaleY(1.08) scaleX(1.03); opacity:1; }
+          }
+          @keyframes mascotSparkle {
+            0%,100% { opacity:.2; transform: scale(.7) rotate(0deg); }
+            50% { opacity:1; transform: scale(1.15) rotate(18deg); }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .mascot-float, .mascot-shadow, .mascot-antenna-dot, .mascot-eye,
+            .mascot-dot1, .mascot-dot2, .mascot-dot3, .mascot-flame,
+            .mascot-spark1, .mascot-spark2, .mascot-spark3 { animation: none !important; }
+          }
+        `}</style>
 
-        <g className="bot" filter="url(#softShadow)">
-          <g className="rocket-flame" filter="url(#glowFlame)">
-            <path d="M548 1082 C550 1144 564 1190 600 1256 C636 1190 650 1144 652 1082 C642 1100 624 1110 600 1111 C576 1110 558 1100 548 1082Z" fill="url(#flameOuter)" opacity=".94"/>
+        <ellipse className="mascot-shadow" cx="256" cy="438" rx="92" ry="18" fill="#0A1F44"/>
+
+        <g fill="#FF8A00" filter="url(#glow)">
+          <path className="mascot-spark1" d="M105 188h12v-12h8v12h12v8h-12v12h-8v-12h-12z"/>
+          <path className="mascot-spark2" d="M391 145h9v-9h6v9h9v6h-9v9h-6v-9h-9z"/>
+          <path className="mascot-spark3" d="M402 322h11v-11h7v11h11v7h-11v11h-7v-11h-11z"/>
+        </g>
+
+        <g className="mascot-float" filter="url(#softShadow)">
+          <rect x="252" y="88" width="8" height="35" rx="4" fill="#0A1F44"/>
+          <circle className="mascot-antenna-dot" cx="256" cy="82" r="13" fill="#FF8A00"/>
+          <circle cx="256" cy="82" r="5" fill="#FFFFFF" opacity=".9"/>
+
+          <path d="M153 284c-28 17-47 46-51 84 27-9 52-7 72 2l18-76z" fill="#0A1F44"/>
+          <path d="M359 284c28 17 47 46 51 84-27-9-52-7-72 2l-18-76z" fill="#0A1F44"/>
+
+          <path d="M256 111c-76 0-126 66-126 155 0 79 40 134 98 151h56c58-17 98-72 98-151 0-89-50-155-126-155z" fill="url(#bodyGrad)"/>
+
+          <rect x="166" y="175" width="180" height="133" rx="54" fill="url(#faceGrad)"/>
+          <rect x="176" y="185" width="160" height="113" rx="44" fill="none" stroke="#CFE0FF" strokeWidth="5"/>
+
+          <g fill="#0A1F44">
+            <ellipse className="mascot-eye" cx="218" cy="231" rx="17" ry="22"/>
+            <ellipse className="mascot-eye" cx="294" cy="231" rx="17" ry="22"/>
           </g>
-          <g className="rocket-core" filter="url(#glowBlue)">
-            <path d="M575 1090 C578 1135 586 1164 600 1198 C614 1164 622 1135 625 1090 C618 1098 609 1103 600 1103 C591 1103 582 1098 575 1090Z" fill="url(#flameInner)" opacity=".95"/>
+          <g fill="#FFFFFF" opacity=".9">
+            <circle cx="212" cy="224" r="5"/>
+            <circle cx="288" cy="224" r="5"/>
           </g>
 
-          <g className="bodyBob">
-            <path d="M520 258 C559 184 651 155 736 157 C758 158 768 172 755 188 C730 179 693 182 665 210 C624 251 578 282 536 287 C517 289 508 279 520 258Z" fill="url(#botShadow)" stroke="#BBD3FF" strokeWidth="3"/>
-            <path d="M642 184 C695 167 742 171 760 195 C728 184 690 187 664 211 C648 225 632 238 615 250" fill="none" stroke="#246BFF" strokeWidth="16" strokeLinecap="round" opacity=".5"/>
+          <path d="M215 266c11 13 26 19 41 19s30-6 41-19" fill="none" stroke="#0A1F44" strokeWidth="9" strokeLinecap="round"/>
 
-            <g className="head">
-              <path d="M332 472 C332 350 435 226 593 214 C766 201 868 323 868 481 C868 608 775 675 596 675 C426 675 332 604 332 472Z" fill="url(#botBody)"/>
-              <path d="M337 419 C300 454 296 532 337 576 C322 511 322 465 337 419Z" fill="#246BFF" opacity=".38"/>
-              <path d="M863 424 C904 458 902 536 862 579 C876 515 876 471 863 424Z" fill="#246BFF" opacity=".38"/>
-              <path d="M367 449 C373 384 413 350 487 350 H702 C788 350 828 396 825 469 C823 550 773 589 689 589 H482 C408 589 362 534 367 449Z" fill="url(#faceGlow)" stroke="#246BFF" strokeWidth="5"/>
-              <ellipse cx="400" cy="384" rx="20" ry="11" fill="#fff" opacity=".35" transform="rotate(-38 400 384)"/>
-              <ellipse cx="727" cy="383" rx="18" ry="10" fill="#fff" opacity=".2" transform="rotate(30 727 383)"/>
+          <g transform="translate(301 304)">
+            <rect x="0" y="0" width="90" height="58" rx="25" fill="#FFFFFF"/>
+            <path d="M22 53l-8 17 22-11" fill="#FFFFFF"/>
+            <circle className="mascot-dot1" cx="28" cy="29" r="6" fill="#2E7CF6"/>
+            <circle className="mascot-dot2" cx="45" cy="29" r="6" fill="#2E7CF6"/>
+            <circle className="mascot-dot3" cx="62" cy="29" r="6" fill="#2E7CF6"/>
+          </g>
 
-              <g className="face-look">
-                <g className="blink">
-                  <path d="M402 479 C410 437 456 434 465 479" fill="none" stroke="url(#cyanGlow)" strokeWidth="18" strokeLinecap="round" filter="url(#glowBlue)"/>
-                  <path d="M568 479 C576 437 622 434 631 479" fill="none" stroke="url(#cyanGlow)" strokeWidth="18" strokeLinecap="round" filter="url(#glowBlue)"/>
-                </g>
-                <g className="smile">
-                  <path d="M482 519 C496 542 531 545 546 521" fill="none" stroke="url(#cyanGlow)" strokeWidth="9" strokeLinecap="round" filter="url(#glowBlue)"/>
-                </g>
-              </g>
+          <g transform="translate(219 330)">
+            <circle cx="37" cy="37" r="34" fill="#FFFFFF" opacity=".98"/>
+            <path d="M24 20h17c17 0 28 9 28 24 0 17-12 29-31 29H24V20zm14 12v29h3c10 0 16-6 16-16 0-9-5-13-16-13z" fill="#0A1F44"/>
+            <path d="M55 18h14L58 29z" fill="#FF8A00"/>
+          </g>
 
-              <g>
-                <circle cx="840" cy="479" r="63" fill="url(#botShadow)" stroke="#BBD3FF" strokeWidth="4"/>
-                <circle cx="840" cy="479" r="44" fill="url(#purple)" opacity=".95"/>
-                <circle cx="840" cy="479" r="26" fill="#EAF2FF" opacity=".8"/>
-                <circle cx="840" cy="479" r="54" fill="none" stroke="#FF8A00" strokeWidth="6" opacity=".42"/>
-              </g>
-
-              <g opacity=".58">
-                <ellipse cx="332" cy="479" rx="25" ry="56" fill="url(#purple)"/>
-                <ellipse cx="332" cy="479" rx="15" ry="42" fill="#DCEAFF"/>
-              </g>
-            </g>
-
-            <path d="M449 646 C492 677 707 678 754 645 L750 697 C696 727 501 726 455 697Z" fill="url(#purple)"/>
-            <path d="M463 665 C524 686 678 687 740 665" fill="none" stroke="#A9ECFF" strokeWidth="10" opacity=".82" filter="url(#glowBlue)"/>
-
-            <path d="M425 689 C463 653 732 654 782 690 C848 736 838 865 802 920 C767 972 684 994 600 992 C494 990 412 954 383 886 C357 824 367 743 425 689Z" fill="url(#botBody)" stroke="#BBD3FF" strokeWidth="4"/>
-            <path d="M455 710 C492 745 531 767 601 768 C678 769 726 744 768 706 C822 789 796 902 713 939 C633 975 500 951 437 890 C402 829 413 756 455 710Z" fill="#fff" opacity=".38"/>
-            <path d="M441 780 C469 829 519 873 588 878 C646 883 709 865 758 805" fill="none" stroke="#7EA7EF" strokeWidth="4" opacity=".75"/>
-
-            <g transform="translate(0 0)">
-              <rect x="524" y="788" width="152" height="70" rx="24" fill="#08152E" opacity="0.96"/>
-              <path d="M548 832 C570 804 608 804 629 831 C600 820 575 820 548 832Z" fill="#FF8A00" opacity="0.95"/>
-              <path d="M545 826 L578 826 C595 826 606 815 608 801 C618 819 630 834 648 839 L667 803" fill="none" stroke="#FFFFFF" strokeWidth="14" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M646 838 L675 791 L704 838 L730 783" fill="none" stroke="#246BFF" strokeWidth="14" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M730 783 L728 815 M730 783 L700 790" fill="none" stroke="#246BFF" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="590" cy="818" r="18" fill="#FF8A00" opacity="0.35"/>
-            </g>
-
-            <circle cx="562" cy="875" r="4" fill="#FF8A00" opacity="0.9"/>
-            <circle cx="581" cy="878" r="4" fill="#FF8A00" opacity="0.8"/>
-            <circle cx="600" cy="880" r="4" fill="#FF8A00" opacity="0.7"/>
-
-            <g className="arms">
-              <g>
-                <path d="M386 732 C326 757 279 828 255 880 C245 904 260 923 284 910 C345 876 402 833 425 775 C435 747 416 721 386 732Z" fill="url(#botShadow)" stroke="#BBD3FF" strokeWidth="4"/>
-                <path d="M281 871 C321 812 365 772 409 755 C391 812 348 859 281 902Z" fill="url(#purple)" opacity=".88"/>
-                <circle cx="398" cy="736" r="33" fill="url(#purple)" opacity=".86"/>
-              </g>
-              <g>
-                <path d="M823 730 C885 755 930 824 954 877 C966 902 949 922 923 909 C863 876 806 832 783 775 C772 746 791 719 823 730Z" fill="url(#botShadow)" stroke="#BBD3FF" strokeWidth="4"/>
-                <path d="M926 870 C887 812 843 772 799 756 C818 810 860 857 926 900Z" fill="url(#purple)" opacity=".88"/>
-                <circle cx="810" cy="735" r="33" fill="url(#purple)" opacity=".86"/>
-              </g>
-            </g>
-
-            <path d="M503 940 C543 954 660 958 701 940 C694 987 651 1032 602 1032 C553 1032 512 985 503 940Z" fill="url(#purple)"/>
-            <path d="M523 962 C563 974 637 974 681 963" fill="none" stroke="#A9ECFF" strokeWidth="10" opacity=".83" filter="url(#glowBlue)"/>
-            <ellipse cx="602" cy="1024" rx="47" ry="20" fill="#0A1F44" opacity=".78"/>
-            <ellipse cx="714" cy="718" rx="28" ry="17" fill="#fff" opacity=".62"/>
-            <ellipse cx="787" cy="824" rx="16" ry="11" fill="#fff" opacity=".44"/>
+          <path d="M226 409h60l-9 28h-42z" fill="#0A1F44"/>
+          <g className="mascot-flame">
+            <path d="M239 433c5 18 10 32 17 45 8-13 13-27 17-45z" fill="url(#flameGrad)"/>
+            <path d="M248 433c2 13 5 23 8 31 4-8 7-18 9-31z" fill="#FFF3B0" opacity=".95"/>
           </g>
         </g>
       </svg>

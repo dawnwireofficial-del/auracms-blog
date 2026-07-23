@@ -121,7 +121,7 @@ export default function CategoryLanding({ category, allProducts, allCategories, 
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {deals.slice(0, (settings as any).limit || 4).map(p => (
-                <DealCard key={p.id} product={{ ...p, deal: { salePrice: parseFloat(p.price || '0'), regularPrice: parseFloat(p.originalPrice || '0'), discountPercentage: (p as any).discountPercentage || 0, endDate: '', dealType: 'daily' } }} />
+                <DealCard key={p.id} product={{ ...p, deal: { salePrice: parseFloat(String(p.price || 0)), regularPrice: parseFloat(String(p.originalPrice || 0)), discountPercentage: (p as any).discountPercentage || 0, endDate: '', dealType: 'daily' } }} />
               ))}
             </div>
           </div>
@@ -155,7 +155,7 @@ export default function CategoryLanding({ category, allProducts, allCategories, 
 
       case 'products_by_price': {
         const maxPrice = (settings as any).priceMax || 50;
-        const byPrice = products.filter(p => parseFloat(p.price || '0') <= maxPrice);
+        const byPrice = products.filter(p => parseFloat(String(p.price || 0)) <= maxPrice);
         if (byPrice.length === 0) return null;
         return (
           <div key={section.id} className="mb-10">
@@ -343,7 +343,7 @@ export default function CategoryLanding({ category, allProducts, allCategories, 
                 <h2 className="text-lg font-bold text-slate-800 dark:text-zinc-100 mb-4">Amazon Deals in {category.name}</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {deals.slice(0, 4).map(p => (
-                    <DealCard key={p.id} product={{ ...p, deal: { salePrice: parseFloat(p.price || '0'), regularPrice: parseFloat(p.originalPrice || '0'), discountPercentage: (p as any).discountPercentage || 0, endDate: '', dealType: 'daily' } }} />
+                    <DealCard key={p.id} product={{ ...p, deal: { salePrice: parseFloat(String(p.price || 0)), regularPrice: parseFloat(String(p.originalPrice || 0)), discountPercentage: (p as any).discountPercentage || 0, endDate: '', dealType: 'daily' } }} />
                   ))}
                 </div>
               </div>

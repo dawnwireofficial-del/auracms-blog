@@ -24,10 +24,10 @@
             const dupData = await dupRes.json();
             if (dupData && dupData.duplicate && dupData.id) {
               // Update existing product
-              const updRes = await fetch(baseUrl + '/api/admin/seo/product-reviews/import', {
+              const updRes = await fetch(baseUrl + '/api/admin/seo/product-reviews/' + dupData.id, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiToken },
-                body: JSON.stringify({ ...data, id: dupData.id, status: 'published' })
+                body: JSON.stringify({ ...data, status: 'published' })
               });
               const updResult = await updRes.json();
               if (updRes.ok) {

@@ -43,6 +43,27 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    const token = localStorage.getItem('dawnwire_auth_token');
+    if (token && !currentUser) {
+      fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data && data.email) {
+            store.setUser({
+              uid: data.id || 'usr-' + Date.now(),
+              email: data.email,
+              displayName: data.name || data.email.split('@')[0],
+              role: data.role || 'user',
+              createdAt: data.createdAt || new Date().toISOString(),
+              wishlistProductIds: [],
+            });
+          }
+        })
+        .catch(() => localStorage.removeItem('dawnwire_auth_token'));
+    }
+  }, []);
+
+  useEffect(() => {
     const cleanupInterceptor = setupGlobalLinkInterceptor();
 
     const handlePopState = () => {

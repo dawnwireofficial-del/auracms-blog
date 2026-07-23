@@ -159,6 +159,11 @@ export const store = {
     }
   },
 
+  setUser: (user: UserProfile) => {
+    globalStore.currentUser = user;
+    notify();
+  },
+
   loginWithEmailAndPassword: async (email: string, pass: string) => {
     try {
       const normalizedEmail = email.trim().toLowerCase();

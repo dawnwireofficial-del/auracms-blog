@@ -249,8 +249,8 @@ router.get('/categories/:slug/subcategories', async (req, res) => {
   res.json(cats.filter((c: any) => c.parentId === cat.id && c.status === 'active'));
 });
 
-// Product reviews with filters, sorting, pagination, entity enrichment
-router.get('/product-reviews', async (req, res) => {
+// Product reviews & products with filters, sorting, pagination, entity enrichment
+router.get(['/product-reviews', '/products'], async (req, res) => {
   let items = await seo.getProductReviews();
   items = items.filter((r: any) => r.status === 'published');
   // Entity enrichment
@@ -342,6 +342,21 @@ router.get('/homepage', async (_req, res) => {
     sections: sections.filter((s: any) => s.isActive).sort((a: any, b: any) => a.sortOrder - b.sortOrder),
     products: publishedReviews,
   });
+});
+
+// Public Search Endpoint
+router.get('/search', async (req, res) => {
+  const q = (req.query.q as string || req.query.search as string || '').toLowerCase().trim();
+  const reviews = await seo.getProductReviews();
+  const published = reviews.filter((r: any) => r.status === 'published');
+  if (!q) return res.json(published);
+  const matched = published.filter((r: any) =>
+    (r.product_name || r.productName || '').toLowerCase().includes(q) ||
+    (r.brand || '').toLowerCase().includes(q) ||
+    (r.best_for || r.bestFor || '').toLowerCase().includes(q) ||
+    (r.review_summary || r.reviewSummary || '').toLowerCase().includes(q)
+  );
+  res.json(matched);
 });
 
 // Search suggestions

@@ -105,7 +105,7 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
           { label: 'Home', onClick: () => onNavigate?.('home') },
           { label: 'Categories', onClick: () => onNavigate?.('categories') },
           { label: product.bestFor || 'Products' },
-          { label: product.productName },
+          { label: product.productName || product.title || 'Product Detail' },
         ]} />
       </div>
 
@@ -311,7 +311,7 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
         {/* Discovery Trail Relationship Visualization */}
         <DiscoveryTrail
           className="mt-8"
-          currentProductTitle={product.productName}
+          currentProductTitle={product.productName || product.title || ''}
           categoryName={product.bestFor || 'Technology'}
           similarProductsCount={(similarProducts || []).length}
           onNavigate={(r, p) => onNavigate?.(r, p)}
