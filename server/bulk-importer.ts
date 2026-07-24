@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import { scrapeAmazonSearch, searchAmazon } from './amazon-search-scraper';
+import { scrapeAmazonSearch, searchAmazon, MARKETPLACE_DOMAIN } from './amazon-search-scraper';
 import { extractAmazonProductData } from './amazon-extractor';
 import { importProductReview, updateProductReview } from './seo-engine';
 import { getSupabaseAdmin } from './lib/supabase';
@@ -69,7 +69,7 @@ function buildDirectAmazonUrl(asin: string, marketplace: string = DEFAULT_MARKET
   return `https://${domain}/dp/${asin}?tag=${PARTNER_TAG}`;
 }
 
-async function getAdminToken(params: BulkImportParams): string {
+async function getAdminToken(params: BulkImportParams): Promise<string> {
   if (params.adminToken) return params.adminToken;
   const apiUrl = process.env.APP_URL || 'https://www.dawnwire.com';
   const res = await fetch(`${apiUrl}/api/auth/login`, {
@@ -78,7 +78,7 @@ async function getAdminToken(params: BulkImportParams): string {
     body: JSON.stringify({ username: process.env.BULK_IMPORT_ADMIN_USER, password: process.env.BULK_IMPORT_ADMIN_PASS }),
   });
   if (!res.ok) throw new Error('Failed to get admin token for bulk import');
-  const data = await res.json();
+  const data = await res.json() as any;
   return data.token;
 }
 
@@ -117,9 +117,21 @@ async function createCloakedLink(
 async function updateJobProgress(jobId: string, updates: Partial<BulkImportJob>): Promise<void> {
   try {
     const sb = await getSupabaseAdmin();
+    const dbUpdates: Record<string, any> = { updated_at: new Date().toISOString() };
+    const keyMap: Record<string, string> = {
+      totalItems: 'total_items',
+      processedItems: 'processed_items',
+      errorMessage: 'error_message',
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+    };
+    for (const [key, value] of Object.entries(updates)) {
+      const dbKey = keyMap[key] || key;
+      dbUpdates[dbKey] = value;
+    }
     const { error } = await sb
       .from('bulk_import_jobs')
-      .update({ ...updates, updated_at: new Date().toISOString() })
+      .update(dbUpdates)
       .eq('id', jobId);
     if (error) console.error('[BulkImport] Failed to update job progress:', error.message);
   } catch (e) {
@@ -181,7 +193,7 @@ export async function startBulkImport(params: BulkImportParams): Promise<BulkImp
 
   processBulkImport(job.id).catch(err => {
     console.error(`[BulkImport] Job ${job.id} crashed:`, err);
-    updateJobProgress(job.id, { status: 'failed', error_message: err.message });
+    updateJobProgress(job.id, { status: 'failed', errorMessage: err.message });
   });
 
   return job as BulkImportJob;
@@ -234,7 +246,7 @@ export async function processBulkImport(jobId: string): Promise<BulkImportJob> {
 
   resolvedAsins.length = Math.min(resolvedAsins.length, maxProducts);
 
-  await updateJobProgress(jobId, { total_items: resolvedAsins.length });
+  await updateJobProgress(jobId, { totalItems: resolvedAsins.length });
 
   let succeeded = 0;
   let failed = 0;
@@ -336,7 +348,7 @@ export async function processBulkImport(jobId: string): Promise<BulkImportJob> {
 
     const processed = i + 1;
     await updateJobProgress(jobId, {
-      processed_items: processed,
+      processedItems: processed,
       succeeded,
       failed,
       skipped,
@@ -355,7 +367,7 @@ export async function processBulkImport(jobId: string): Promise<BulkImportJob> {
   const finalStatus = failed > 0 && succeeded === 0 ? 'failed' : 'completed';
   await updateJobProgress(jobId, {
     status: finalStatus,
-    processed_items: resolvedAsins.length,
+    processedItems: resolvedAsins.length,
     succeeded,
     failed,
     skipped,

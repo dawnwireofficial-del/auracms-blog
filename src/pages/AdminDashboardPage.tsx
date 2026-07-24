@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppStore, store } from '../lib/store';
 import ExtensionManager from '../components/ExtensionManager';
+import AmazonBulkImporter from '../components/AmazonBulkImporter';
 import { ActivityFeedTab } from '../components/admin/ActivityFeedTab';
 import { AdminProfileCropModal } from '../components/admin/AdminProfileCropModal';
 import { ActivityHeatmapD3 } from '../components/admin/ActivityHeatmapD3';
@@ -24,7 +25,13 @@ export const AdminDashboardPage: React.FC = () => {
   const [loginError, setLoginError] = useState('');
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'products' | 'activity-feed' | 'link-importer' | 'scraper' | 'reviews' | 'banners' | 'analytics' | 'seo' | 'firebase' | 'profile' | 'extension'>('products');
+  const getInitialTab = (): typeof activeTab => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab === 'bulk-import') return 'bulk-import';
+    return 'products';
+  };
+  const [activeTab, setActiveTab] = useState<'products' | 'activity-feed' | 'link-importer' | 'scraper' | 'reviews' | 'banners' | 'analytics' | 'seo' | 'firebase' | 'profile' | 'extension' | 'bulk-import'>(getInitialTab);
 
   // Form states
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
@@ -629,7 +636,8 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
             { id: 'seo', label: 'SEO & Sitemap' },
             { id: 'firebase', label: 'Firebase & Backup' },
             { id: 'profile', label: '👤 Admin Profile & Settings' },
-            { id: 'extension', label: '🔌 Extension Settings' }
+            { id: 'extension', label: '🔌 Extension Settings' },
+            { id: 'bulk-import', label: '📦 Bulk Import' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -2269,6 +2277,13 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
         {activeTab === 'extension' && (
           <div className="bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 shadow-sm p-6">
             <ExtensionManager token={(localStorage.getItem('dawnwire_auth_token') || '').trim()} />
+          </div>
+        )}
+
+        {/* Tab: Bulk Import */}
+        {activeTab === 'bulk-import' && (
+          <div className="bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 shadow-sm p-6">
+            <AmazonBulkImporter token={(localStorage.getItem('dawnwire_auth_token') || '').trim()} />
           </div>
         )}
 

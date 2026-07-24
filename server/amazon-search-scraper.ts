@@ -34,7 +34,7 @@ const LOCALE_MAP: Record<string, string> = {
   MX: 'es-MX,es;q=0.9',
 };
 
-const MARKETPLACE_DOMAIN: Record<string, string> = {
+export const MARKETPLACE_DOMAIN: Record<string, string> = {
   US: 'www.amazon.com',
   UK: 'www.amazon.co.uk',
   AE: 'www.amazon.ae',
