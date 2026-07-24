@@ -357,6 +357,13 @@ export async function importProductReview(data: {
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
+
+  const rawUrl = review.affiliate_url || '';
+  if (rawUrl && rawUrl.includes('amazon') && !rawUrl.includes('tag=')) {
+    review.affiliate_url = rawUrl + (rawUrl.includes('?') ? '&' : '?') + 'tag=dawnwire-20';
+  } else if (rawUrl && rawUrl.includes('amazon') && !rawUrl.includes('dawnwire-20')) {
+    review.affiliate_url = rawUrl.replace(/tag=[^&]+/, 'tag=dawnwire-20');
+  }
   // store individual variation prices in key_features summary
   if (data.variations && data.variations.length > 0) {
     const varSummary = [];

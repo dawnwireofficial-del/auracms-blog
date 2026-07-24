@@ -5,6 +5,8 @@ import { sendNewsletterBroadcast } from '../../server/email';
 import { sendDripEmail, getDripCampaignConfig, getNextDripStep } from '../../server/drip-campaign';
 import { getSupabaseAdmin } from '../../server/lib/supabase';
 import { authenticate, requireRole } from './middleware';
+import { startBulkImport, processBulkImport, getBulkImportJob, cancelBulkImport } from '../../server/bulk-importer';
+import { searchAmazon } from '../../server/amazon-search-scraper';
 
 const router = express.Router();
 
@@ -703,6 +705,74 @@ router.post('/setup/product-categories', async (_req, res) => {
     res.json({ success: true, created, message: created.length ? `Added: ${created.join(', ')}` : 'All categories already exist' });
   } catch (e: any) {
     res.status(500).json({ error: e.message || 'Setup failed' });
+  }
+});
+
+// ====== Bulk Amazon Product Import ======
+router.post('/products/bulk-import', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const { source, asins, queries, marketplace, maxProducts, updateExisting } = req.body;
+    if (!source || !['csv', 'search', 'category'].includes(source)) {
+      return res.status(400).json({ error: 'Invalid source. Use csv, search, or category.' });
+    }
+    if (source === 'csv' && (!asins || !Array.isArray(asins) || asins.length === 0)) {
+      return res.status(400).json({ error: 'asins array required for csv source' });
+    }
+    if ((source === 'search' || source === 'category') && (!queries || !Array.isArray(queries) || queries.length === 0)) {
+      return res.status(400).json({ error: 'queries array required for search/category source' });
+    }
+
+    const u = (req as any).user;
+    const token = req.headers.authorization?.replace('Bearer ', '') || '';
+
+    const job = await startBulkImport({
+      source,
+      asins,
+      queries,
+      marketplace: marketplace || 'US',
+      maxProducts: maxProducts || 1000,
+      updateExisting: updateExisting !== false,
+      adminToken: token,
+    });
+
+    dbInstance.log('Bulk Import Started', `Source: ${source}, Total: ${job.totalItems}`, u.id, u.name);
+    res.json({ success: true, job });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message || 'Failed to start bulk import' });
+  }
+});
+
+router.get('/products/bulk-import/:jobId', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const job = await getBulkImportJob(req.params.jobId);
+    if (!job) return res.status(404).json({ error: 'Job not found' });
+    res.json(job);
+  } catch (e: any) {
+    res.status(500).json({ error: e.message || 'Failed to fetch job' });
+  }
+});
+
+router.post('/products/bulk-import/:jobId/cancel', authenticate, requireRole(['super_admin', 'admin']), async (req, res) => {
+  try {
+    const ok = await cancelBulkImport(req.params.jobId);
+    if (!ok) return res.status(404).json({ error: 'Job not found' });
+    res.json({ success: true });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message || 'Failed to cancel job' });
+  }
+});
+
+router.post('/products/search-amazon', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const { query, marketplace = 'US', maxResults = 50 } = req.body;
+    if (!query) return res.status(400).json({ error: 'query required' });
+    const results = await searchAmazon(query, marketplace, maxResults);
+    if (results === null) {
+      return res.status(429).json({ error: 'Amazon returned a CAPTCHA or blocked the request. Try again later.' });
+    }
+    res.json({ results });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message || 'Search failed' });
   }
 });
 

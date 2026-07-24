@@ -4,7 +4,7 @@ import {
   LayoutDashboard, BookOpen, FolderOpen, MessageSquare, Link2, 
   Settings as SettingsIcon, LogOut, Mail, List, Eye, 
   Image as ImageIcon, FileText, Search, Star, ShoppingBag, Layers, Timer,
-  Bell, RefreshCw, Download
+  Bell, RefreshCw, Download, Package
 } from 'lucide-react';
 
 import { Post, Category, Comment, AffiliateLink, Page, SiteSettings, User, ContactMessage, NewsletterSubscriber, ActivityLog, MediaItem } from '../types';
@@ -31,6 +31,7 @@ import AdminContact from './admin/AdminContact';
 import AdminSettings from './admin/AdminSettings';
 import AdminLogs from './admin/AdminLogs';
 import ExtensionManager from './ExtensionManager';
+import AmazonBulkImporter from './AmazonBulkImporter';
 
 interface AdminPanelProps {
   token: string;
@@ -39,7 +40,7 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
-  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'posts' | 'categories' | 'comments' | 'products' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'seo' | 'ai' | 'clusters' | 'media' | 'brands' | 'banners' | 'deals' | 'homepage' | 'sections' | 'amazon-sync' | 'extension'>('dashboard');
+  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'posts' | 'categories' | 'comments' | 'products' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'seo' | 'ai' | 'clusters' | 'media' | 'brands' | 'banners' | 'deals' | 'homepage' | 'sections' | 'amazon-sync' | 'extension' | 'bulk-import'>('dashboard');
   
   // Data States
   const [posts, setPosts] = useState<Post[]>([]);
@@ -178,6 +179,7 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
             { key: 'sections', icon: LayoutDashboard, label: 'Sections' },
             { key: 'amazon-sync', icon: RefreshCw, label: 'Amazon Sync' },
             { key: 'extension', icon: Download, label: 'Extension' },
+            { key: 'bulk-import', icon: Package, label: 'Bulk Import' },
             { key: 'media', icon: ImageIcon, label: `Media (${media.length})` },
             { key: 'clusters', icon: Layers, label: 'Clusters' },
           ].map(item => (
@@ -321,6 +323,13 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
           {activeMenu === 'extension' && (
             <div id="admin-workspace-extension">
               <ExtensionManager token={token} />
+            </div>
+          )}
+
+          {/* E0c: BULK IMPORT */}
+          {activeMenu === 'bulk-import' && (
+            <div id="admin-workspace-bulk-import">
+              <AmazonBulkImporter token={token} />
             </div>
           )}
 
