@@ -153,9 +153,24 @@ async function findDuplicateAsin(asin: string): Promise<{ id: string; slug: stri
       .contains('specs', { asin })
       .limit(1)
       .maybeSingle();
-    const { data } = await withTimeout(query, 5000, { data: null } as any);
+    const { data } = await withTimeout(Promise.resolve(query), 5000, { data: null } as any);
     if (data?.id) return { id: data.id, slug: data.slug };
     return null;
+  } catch {
+    return null;
+  }
+}
+
+async function findCategoryIdByName(name: string): Promise<string | null> {
+  try {
+    const sb = await getSupabaseAdmin();
+    const { data } = await sb
+      .from('categories')
+      .select('id')
+      .ilike('name', name)
+      .limit(1)
+      .maybeSingle();
+    return data?.id || null;
   } catch {
     return null;
   }
@@ -290,8 +305,15 @@ export async function processBulkImport(jobId: string): Promise<BulkImportJob> {
               product_name: freshData.title,
               brand: freshData.brand,
               product_image: freshData.mainImage,
+              best_for: freshData.bestFor || null,
+              final_verdict: freshData.editorVerdict || null,
+              editor_score: freshData.editorScore || null,
               updated_at: new Date().toISOString(),
             };
+            if (freshData.mainCategory) {
+              const catId = await findCategoryIdByName(freshData.mainCategory);
+              if (catId) updates.category_id = catId;
+            }
             if (freshData.images && freshData.images.length) {
               updates.specs = {
                 ...((await sb.from('product_reviews').select('specs').eq('id', dup.id).single()).data?.specs || {}),
@@ -336,12 +358,20 @@ export async function processBulkImport(jobId: string): Promise<BulkImportJob> {
             },
             stock_status: productData.isDeal ? 'deal' : 'in_stock',
             deal_badge: productData.isDeal ? 'Amazon Deal' : null,
+            best_for: productData.bestFor || null,
+            final_verdict: productData.editorVerdict || null,
+            editor_score: productData.editorScore || null,
             is_featured: false,
             is_deal: !!productData.isDeal,
             status: 'published',
             rating: productData.rating || 0,
             review_count: productData.reviewCount || 0,
           };
+
+          if (productData.mainCategory) {
+            const catId = await findCategoryIdByName(productData.mainCategory);
+            if (catId) mapped.category_id = catId;
+          }
 
           if (productData.videoUrl) {
             mapped.specs.video_url = productData.videoUrl;

@@ -302,6 +302,10 @@ export async function importProductReview(data: {
   reviewHighlights?: string;
   reviews?: Array<{ name: string; avatar?: string; rating: number; title?: string; date?: string; body?: string; verified?: boolean; images?: string[] }>;
   reviewStats?: { total: number; average: number; distribution: { 5: number; 4: number; 3: number; 2: number; 1: number } };
+  best_for?: string;
+  category_id?: string;
+  final_verdict?: string;
+  editor_score?: number;
 }): Promise<any> {
   const sb = await getClient();
   let slug = slugify(data.product_name || 'product-review');
@@ -351,6 +355,10 @@ export async function importProductReview(data: {
     slug,
     stock_status: data.stockStatus || 'in_stock',
     deal_badge: data.dealBadge || null,
+    best_for: data.best_for || null,
+    category_id: data.category_id || null,
+    final_verdict: data.final_verdict || null,
+    editor_score: data.editor_score || null,
     specs: Object.keys(specs).length > 0 ? specs : null,
     cta_text: 'Buy on Amazon',
     status: 'published',
