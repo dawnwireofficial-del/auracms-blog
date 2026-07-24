@@ -87,7 +87,10 @@ export const AdminDashboardPage: React.FC = () => {
 
   useEffect(() => {
     store.fetchProducts();
-      fetch('/api/admin/analytics/clicks')
+    const token = localStorage.getItem('dawnwire_auth_token');
+    fetch('/api/admin/analytics/clicks', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then(r => r.json())
       .then(data => {
         if (data && typeof data.totalClicks === 'number') {
