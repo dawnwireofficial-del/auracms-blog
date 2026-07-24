@@ -174,7 +174,7 @@ export const ChatbotDrawer: React.FC<ChatbotDrawerProps> = ({
                         <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">{prod.title}</h4>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-sm font-black text-slate-900 dark:text-slate-100">
-                            {prod.currentPrice ? `$${prod.currentPrice.toFixed(2)}` : 'Check Price'}
+                            {prod.currentPrice ? `$${Number(prod.currentPrice).toFixed(2)}` : 'Check Price'}
                           </span>
                           <span className="text-[10px] text-amber-500 font-bold">★ {prod.rating || 4.7}</span>
                         </div>

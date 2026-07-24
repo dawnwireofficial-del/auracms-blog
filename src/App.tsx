@@ -51,7 +51,10 @@ export function App() {
     const token = localStorage.getItem('dawnwire_auth_token');
     if (token && !currentUser) {
       fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
-        .then(r => r.ok ? r.json() : null)
+        .then(r => {
+          if (r.status === 401) localStorage.removeItem('dawnwire_auth_token');
+          return r.ok ? r.json() : null;
+        })
         .then(data => {
           if (data && data.email) {
             store.setUser({

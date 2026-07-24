@@ -89,66 +89,74 @@ export const store = {
   fetchProducts: async () => {
     try {
       const token = localStorage.getItem('dawnwire_auth_token') || '';
-      const url = token ? '/api/admin/product-reviews?limit=500' : '/api/public/product-reviews?limit=500';
-      const res = await fetch(url, token ? { headers: { 'Authorization': `Bearer ${token}` } } : {});
-      if (res.ok) {
+      const mapper = (d: any): Product => ({
+        id: d.id || d.asin || 'p-' + Math.random().toString(36).substring(2, 7),
+        title: d.product_name || d.title || 'Product Review',
+        slug: d.slug || (d.product_name || 'product').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        asin: d.asin || '',
+        brand: d.brand || '',
+        mainCategory: d.category || d.mainCategory || '',
+        subcategory: d.subcategory || '',
+        productType: 'Physical Product',
+        shortDescription: d.review_summary || d.shortDescription || '',
+        fullDescription: d.review_summary || d.fullDescription || '',
+        images: (() => {
+          const imgs: string[] = [];
+          if (d.product_image) imgs.push(d.product_image);
+          const dbGallery = d.gallery;
+          if (Array.isArray(dbGallery)) dbGallery.forEach((u: string) => { if (u && !imgs.includes(u)) imgs.push(u); });
+          const specsGallery = d.specs?.gallery;
+          if (Array.isArray(specsGallery)) specsGallery.forEach((u: string) => { if (u && !imgs.includes(u)) imgs.push(u); });
+          return imgs;
+        })(),
+        amazonOriginalUrl: d.amazon_url || d.amazonOriginalUrl || '',
+        affiliateUrl: d.affiliate_url || d.affiliateUrl || '',
+        amazonMarketplace: 'US',
+        associateTrackingId: 'dawnwire-20',
+        currentPrice: Number(parseFloat(String(d.price || d.currentPrice || '0').replace(/[^0-9.]/g, ''))) || 0,
+        referencePrice: Number(parseFloat(String(d.original_price || d.referencePrice || '0').replace(/[^0-9.]/g, ''))) || 0,
+        currency: 'USD',
+        discountPercentage: Number(d.discount_percentage || d.discountPercentage) || 0,
+        isAvailable: d.stock_status !== 'out_of_stock',
+        isDeal: Boolean(d.is_deal || d.isDeal),
+        isPrime: true,
+        rating: Number(d.rating) || 0,
+        reviewCount: Number(d.review_count || d.reviewCount) || 0,
+        mainFeatures: Array.isArray(d.key_features) ? d.key_features : (Array.isArray(d.mainFeatures) ? d.mainFeatures : []),
+        specifications: d.specs || d.specifications || {},
+        pros: Array.isArray(d.pros) ? d.pros : [],
+        cons: Array.isArray(d.cons) ? d.cons : [],
+        bestFor: d.best_for || d.bestFor || '',
+        editorVerdict: d.review_summary || d.editorVerdict || '',
+        editorScore: Number(d.rating ? Number(d.rating) * 2 : 0),
+        similarProductIds: [],
+        alternativeProductIds: [],
+        relatedComparisonIds: [],
+        relatedGuideIds: [],
+        isFeatured: !!d.is_featured,
+        isTrending: !!d.is_trending,
+        isBestSeller: !!d.is_best_seller,
+        published: d.status !== 'draft',
+        status: d.status || 'published',
+        lastSyncedAt: d.last_synced_at || '',
+        videoUrl: d.specs?.video_url || d.videoUrl || ''
+      });
+
+      const tryFetch = async (url: string, headers?: Record<string, string>): Promise<Product[] | null> => {
+        const res = await fetch(url, headers ? { headers } : {});
+        if (!res.ok) return null;
         const raw = await res.json();
         const items = Array.isArray(raw) ? raw : (raw.data || raw.products || raw.items || []);
-        if (items.length > 0) {
-          const mapped: Product[] = items.map((d: any) => ({
-            id: d.id || d.asin || 'p-' + Math.random().toString(36).substring(2, 7),
-            title: d.product_name || d.title || 'Product Review',
-            slug: d.slug || (d.product_name || 'product').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-            asin: d.asin || '',
-            brand: d.brand || '',
-            mainCategory: d.category || d.mainCategory || '',
-            subcategory: d.subcategory || '',
-            productType: 'Physical Product',
-            shortDescription: d.review_summary || d.shortDescription || '',
-            fullDescription: d.review_summary || d.fullDescription || '',
-            images: (() => {
-              const imgs: string[] = [];
-              if (d.product_image) imgs.push(d.product_image);
-              const dbGallery = d.gallery;
-              if (Array.isArray(dbGallery)) dbGallery.forEach((u: string) => { if (u && !imgs.includes(u)) imgs.push(u); });
-              const specsGallery = d.specs?.gallery;
-              if (Array.isArray(specsGallery)) specsGallery.forEach((u: string) => { if (u && !imgs.includes(u)) imgs.push(u); });
-              return imgs;
-            })(),
-            amazonOriginalUrl: d.amazon_url || d.amazonOriginalUrl || '',
-            affiliateUrl: d.affiliate_url || d.affiliateUrl || '',
-            amazonMarketplace: 'US',
-            associateTrackingId: 'dawnwire-20',
-            currentPrice: parseFloat(String(d.price || d.currentPrice || '0').replace(/[^0-9.]/g, '')) || 0,
-            referencePrice: parseFloat(String(d.original_price || d.referencePrice || '0').replace(/[^0-9.]/g, '')) || 0,
-            currency: 'USD',
-            discountPercentage: Number(d.discount_percentage || d.discountPercentage) || 0,
-            isAvailable: d.stock_status !== 'out_of_stock',
-            isDeal: Boolean(d.is_deal || d.isDeal),
-            isPrime: true,
-            rating: Number(d.rating) || 0,
-            reviewCount: Number(d.review_count || d.reviewCount) || 0,
-            mainFeatures: Array.isArray(d.key_features) ? d.key_features : (Array.isArray(d.mainFeatures) ? d.mainFeatures : []),
-            specifications: d.specs || d.specifications || {},
-            pros: Array.isArray(d.pros) ? d.pros : [],
-            cons: Array.isArray(d.cons) ? d.cons : [],
-            bestFor: d.best_for || d.bestFor || '',
-            editorVerdict: d.review_summary || d.editorVerdict || '',
-            editorScore: Number(d.rating ? d.rating * 2 : 0),
-            similarProductIds: [],
-            alternativeProductIds: [],
-            relatedComparisonIds: [],
-            relatedGuideIds: [],
-            isFeatured: !!d.is_featured,
-            published: d.status !== 'draft',
-            status: d.status || 'published',
-            createdAt: d.created_at || new Date().toISOString(),
-            updatedAt: d.updated_at || new Date().toISOString(),
-            videoUrl: d.specs?.video_url || d.videoUrl || ''
-          }));
-          globalStore.products = mapped;
-          notify();
-        }
+        if (!items.length) return null;
+        return items.map(mapper);
+      };
+
+      let mapped: Product[] | null = null;
+      if (token) mapped = await tryFetch('/api/admin/product-reviews?limit=500', { 'Authorization': `Bearer ${token}` });
+      if (!mapped) mapped = await tryFetch('/api/public/product-reviews?limit=500');
+      if (mapped && mapped.length > 0) {
+        globalStore.products = mapped;
+        notify();
       }
     } catch (e) {
       console.warn('Failed to fetch products for store', e);

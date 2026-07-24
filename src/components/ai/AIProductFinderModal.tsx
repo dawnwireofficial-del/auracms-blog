@@ -261,7 +261,7 @@ export const AIProductFinderModal: React.FC<AIProductFinderModalProps> = ({ isOp
                         <strong>Why matched:</strong> Rated {prod.editorScore}/10 with {prod.pros[0]}
                       </p>
                       <div className="text-sm font-black text-slate-900 dark:text-slate-100 mt-1">
-                        {prod.currentPrice ? `$${prod.currentPrice.toFixed(2)}` : 'Check Price'}
+                        {prod.currentPrice ? `$${Number(prod.currentPrice).toFixed(2)}` : 'Check Price'}
                       </div>
                     </div>
                     <AffiliateCTA

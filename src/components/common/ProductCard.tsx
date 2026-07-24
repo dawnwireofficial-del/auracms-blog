@@ -152,14 +152,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {/* Bottom Price & CTA */}
           <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700/60 flex flex-wrap items-center justify-between gap-3">
             <div>
-              {product.currentPrice ? (
+              {(product.currentPrice || product.price) ? (
                 <div className="flex items-baseline gap-2">
                   <span className="text-xl font-black text-slate-900 dark:text-slate-100">
-                    ${product.currentPrice.toFixed(2)}
+                    ${Number(product.currentPrice || product.price || 0).toFixed(2)}
                   </span>
-                  {product.referencePrice && product.referencePrice > product.currentPrice && (
+                  {product.referencePrice && Number(product.referencePrice) > Number(product.currentPrice || 0) && (
                     <span className="text-xs text-slate-400 line-through">
-                      ${product.referencePrice.toFixed(2)}
+                      ${Number(product.referencePrice).toFixed(2)}
                     </span>
                   )}
                   {product.isPrime && (
@@ -298,14 +298,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700/60 space-y-3">
           <div className="flex items-baseline justify-between">
             <div>
-              {product.currentPrice ? (
+              {(product.currentPrice || product.price) ? (
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-lg font-black text-slate-900 dark:text-slate-100">
-                    ${product.currentPrice.toFixed(2)}
+                    ${Number(product.currentPrice || product.price || 0).toFixed(2)}
                   </span>
-                  {product.referencePrice && product.referencePrice > product.currentPrice && (
+                  {product.referencePrice && Number(product.referencePrice) > Number(product.currentPrice || 0) && (
                     <span className="text-xs text-slate-400 line-through">
-                      ${product.referencePrice.toFixed(2)}
+                      ${Number(product.referencePrice).toFixed(2)}
                     </span>
                   )}
                 </div>
