@@ -397,9 +397,9 @@ export async function processBulkImport(jobId: string): Promise<BulkImportJob> {
   return finalJob as BulkImportJob;
 }
 
-function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+function withTimeout<T>(promise: Promise<T> | { then: (onFulfilled: (value: T) => void, onRejected?: (reason: any) => void) => any }, ms: number, fallback: T): Promise<T> {
   return Promise.race([
-    promise,
+    Promise.resolve(promise as any),
     new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
   ]);
 }
