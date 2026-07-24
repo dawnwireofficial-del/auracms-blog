@@ -33,12 +33,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// HTTPS redirect & HSTS
+// HSTS header (Vercel handles HTTPS redirect at the edge)
 app.use((req, res, next) => {
-  const proto = req.headers['x-forwarded-proto'] as string | undefined;
-  if (proto && proto !== 'https') {
-    return res.redirect(301, `https://${req.headers.host}${req.url}`);
-  }
   res.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   next();
 });

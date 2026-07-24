@@ -70,6 +70,7 @@ export const Footer: React.FC = () => {
                       value={email}
                       disabled={isSubmitting}
                       onChange={(e) => setEmail(e.target.value)}
+                      autoComplete="email"
                       className="bg-slate-900 text-sm text-white px-3.5 py-2.5 rounded-xl border border-slate-700 outline-none focus:border-amber-400 flex-1 placeholder-slate-500 disabled:opacity-50"
                     />
                     <button
@@ -103,15 +104,15 @@ export const Footer: React.FC = () => {
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">
               Explore Products
             </h4>
-            <ul className="space-y-2.5 text-xs text-slate-400">
-              <li><a href="/products" className="hover:text-amber-400 transition-colors">All Products (/products)</a></li>
-              <li><a href="/deals" className="hover:text-amber-400 transition-colors text-orange-400 font-bold">Today's Amazon Deals</a></li>
-              <li><a href="/best" className="hover:text-amber-400 transition-colors">Best Sellers & Editors' Picks</a></li>
-              <li><a href="/trending" className="hover:text-amber-400 transition-colors">Trending Products</a></li>
-              <li><a href="/compare" className="hover:text-amber-400 transition-colors">Product Comparisons</a></li>
-              <li><a href="/categories" className="hover:text-amber-400 transition-colors">Category Directory</a></li>
-              <li><a href="/brands" className="hover:text-amber-400 transition-colors">Featured Brands</a></li>
-            </ul>
+            <ul className="space-y-2.5 text-xs text-slate-300">
+               <li><a href="/products" className="hover:text-amber-400 transition-colors">All Products (/products)</a></li>
+               <li><a href="/deals" className="hover:text-amber-400 transition-colors text-orange-400 font-bold">Today's Amazon Deals</a></li>
+               <li><a href="/best" className="hover:text-amber-400 transition-colors">Best Sellers & Editors' Picks</a></li>
+               <li><a href="/trending" className="hover:text-amber-400 transition-colors">Trending Products</a></li>
+               <li><a href="/compare" className="hover:text-amber-400 transition-colors">Product Comparisons</a></li>
+               <li><a href="/categories" className="hover:text-amber-400 transition-colors">Category Directory</a></li>
+               <li><a href="/brands" className="hover:text-amber-400 transition-colors">Featured Brands</a></li>
+             </ul>
           </div>
 
           {/* Col 3: Editorial & Reviews */}
@@ -119,15 +120,15 @@ export const Footer: React.FC = () => {
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">
               Editorial Content
             </h4>
-            <ul className="space-y-2.5 text-xs text-slate-400">
-              <li><a href="/reviews" className="hover:text-amber-400 transition-colors">Expert Reviews (/reviews)</a></li>
-              <li><a href="/guides" className="hover:text-amber-400 transition-colors">Buying Guides (/guides)</a></li>
-              <li><a href="/how-we-review" className="hover:text-amber-400 transition-colors">How We Review</a></li>
-              <li><a href="/editorial-policy" className="hover:text-amber-400 transition-colors">Editorial Policy</a></li>
-              <li><a href="/corrections-policy" className="hover:text-amber-400 transition-colors">Corrections Policy</a></li>
-              <li><a href="/about" className="hover:text-amber-400 transition-colors">About DawnWire</a></li>
-              <li><a href="/contact" className="hover:text-amber-400 transition-colors">Contact Us</a></li>
-            </ul>
+            <ul className="space-y-2.5 text-xs text-slate-300">
+               <li><a href="/reviews" className="hover:text-amber-400 transition-colors">Expert Reviews (/reviews)</a></li>
+               <li><a href="/guides" className="hover:text-amber-400 transition-colors">Buying Guides (/guides)</a></li>
+               <li><a href="/how-we-review" className="hover:text-amber-400 transition-colors">How We Review</a></li>
+               <li><a href="/editorial-policy" className="hover:text-amber-400 transition-colors">Editorial Policy</a></li>
+               <li><a href="/corrections-policy" className="hover:text-amber-400 transition-colors">Corrections Policy</a></li>
+               <li><a href="/about" className="hover:text-amber-400 transition-colors">About DawnWire</a></li>
+               <li><a href="/contact" className="hover:text-amber-400 transition-colors">Contact Us</a></li>
+             </ul>
           </div>
 
           {/* Col 4: Legal & Account */}
@@ -135,15 +136,15 @@ export const Footer: React.FC = () => {
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">
               Account & Legal
             </h4>
-            <ul className="space-y-2.5 text-xs text-slate-400">
-              <li><a href="/account" className="hover:text-amber-400 transition-colors">User Account</a></li>
-              <li><a href="/wishlist" className="hover:text-amber-400 transition-colors">Saved Wishlist</a></li>
-              <li><a href="/recently-viewed" className="hover:text-amber-400 transition-colors">Recently Viewed</a></li>
-              <li><a href="/affiliate-disclosure" className="hover:text-amber-400 transition-colors">Affiliate Disclosure</a></li>
-              <li><a href="/privacy-policy" className="hover:text-amber-400 transition-colors">Privacy Policy</a></li>
-              <li><a href="/terms" className="hover:text-amber-400 transition-colors">Terms of Service</a></li>
-              <li><a href="/admin" className="hover:text-amber-400 transition-colors font-semibold text-slate-300">Admin Dashboard</a></li>
-            </ul>
+            <ul className="space-y-2.5 text-xs text-slate-300">
+               <li><a href="/account" className="hover:text-amber-400 transition-colors">User Account</a></li>
+               <li><a href="/wishlist" className="hover:text-amber-400 transition-colors">Saved Wishlist</a></li>
+               <li><a href="/recently-viewed" className="hover:text-amber-400 transition-colors">Recently Viewed</a></li>
+               <li><a href="/affiliate-disclosure" className="hover:text-amber-400 transition-colors">Affiliate Disclosure</a></li>
+               <li><a href="/privacy-policy" className="hover:text-amber-400 transition-colors">Privacy Policy</a></li>
+               <li><a href="/terms" className="hover:text-amber-400 transition-colors">Terms of Service</a></li>
+               <li><a href="/admin" className="hover:text-amber-400 transition-colors font-semibold text-slate-300">Admin Dashboard</a></li>
+             </ul>
           </div>
         </div>
 
@@ -163,11 +164,11 @@ export const Footer: React.FC = () => {
             &copy; {new Date().getFullYear()} DawnWire. All rights reserved.
           </div>
           <div className="flex items-center gap-4">
-            <a href="/sitemap.xml" className="hover:text-slate-300">Sitemap XML</a>
+            <a href="/sitemap.xml" className="hover:text-slate-200">Sitemap XML</a>
             <span>•</span>
-            <a href="/robots.txt" className="hover:text-slate-300">Robots.txt</a>
+            <a href="/robots.txt" className="hover:text-slate-200">Robots.txt</a>
             <span>•</span>
-            <a href="/llms.txt" className="hover:text-slate-300">llms.txt</a>
+            <a href="/llms.txt" className="hover:text-slate-200">llms.txt</a>
           </div>
         </div>
       </div>

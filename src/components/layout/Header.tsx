@@ -200,7 +200,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
       <div className="bg-[#0A1F44] text-white text-xs font-medium py-1.5 px-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="bg-orange-500 text-white font-black text-[10px] px-1.5 py-0.5 rounded uppercase">
+            <span className="bg-orange-600 text-white font-black text-[10px] px-1.5 py-0.5 rounded uppercase">
               NEW
             </span>
             <span className="truncate">
@@ -230,6 +230,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
             <select
               value={selectedSearchCat}
               onChange={(e) => setSelectedSearchCat(e.target.value)}
+              aria-label="Search category"
               className="bg-slate-200/60 dark:bg-slate-700/60 text-xs font-bold text-slate-700 dark:text-slate-200 px-3 py-2.5 outline-none border-r border-slate-300 dark:border-slate-600 cursor-pointer"
             >
               <option value="all">All Categories</option>
@@ -483,7 +484,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
           )}
 
           {/* Wishlist */}
-          <a href="/wishlist" className="relative p-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
+          <a href="/wishlist" aria-label="Wishlist" className="relative p-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
@@ -643,7 +644,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
                     {/* Quick Category Deals Promo */}
                     <div className="p-3 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 rounded-xl border border-orange-200/80 dark:border-orange-800/80 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="p-1.5 bg-orange-500 text-white rounded-lg">
+                        <span className="p-1.5 bg-orange-600 text-white rounded-lg">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                           </svg>
