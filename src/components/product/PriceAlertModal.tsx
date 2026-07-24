@@ -85,7 +85,7 @@ export const PriceAlertModal: React.FC<PriceAlertModalProps> = ({ product, onClo
             <p className="text-xs text-slate-500">
               Current Price:{' '}
               <span className="font-black text-slate-900 dark:text-slate-100">
-                ${product.currentPrice?.toFixed(2) || 'N/A'}
+                ${Number(product.currentPrice).toFixed(2) || 'N/A'}
               </span>
             </p>
           </div>
@@ -119,7 +119,7 @@ export const PriceAlertModal: React.FC<PriceAlertModalProps> = ({ product, onClo
               className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-amber-500 text-slate-900 dark:text-slate-100 font-black text-sm"
             />
             <p className="text-[11px] text-slate-400 mt-1">
-              Suggested: 10% below current price (${(product.currentPrice ? product.currentPrice * 0.9 : 0).toFixed(2)})
+              Suggested: 10% below current price (${(Number(product.currentPrice) ? Number(product.currentPrice) * 0.9 : 0).toFixed(2)})
             </p>
           </div>
 

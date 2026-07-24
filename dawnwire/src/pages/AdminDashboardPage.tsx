@@ -834,11 +834,11 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                     <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
                       <div className="flex justify-between items-center">
                         <span className="text-slate-500 font-bold">Extracted Price:</span>
-                        <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">${extractedPreview.currentPrice?.toFixed(2)}</span>
+                        <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">${Number(extractedPreview.currentPrice).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between items-center text-slate-400">
                         <span>List Price:</span>
-                        <span className="line-through">${extractedPreview.referencePrice?.toFixed(2)}</span>
+                        <span className="line-through">${Number(extractedPreview.referencePrice).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-slate-500 font-bold">Discount:</span>
@@ -1412,7 +1412,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                       </td>
                       <td className="p-4 font-mono text-slate-500">{p.asin}</td>
                       <td className="p-4">{p.mainCategory}</td>
-                      <td className="p-4 font-black">${p.currentPrice?.toFixed(2)}</td>
+                      <td className="p-4 font-black">${Number(p.currentPrice).toFixed(2)}</td>
                       <td className="p-4 font-bold text-amber-500">★ {p.editorScore}</td>
                       <td className="p-4 text-right space-x-2">
                         <button

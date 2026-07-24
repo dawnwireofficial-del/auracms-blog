@@ -44,8 +44,8 @@ export const TrendingDealsSection: React.FC = () => {
               title: p.title,
               brand: p.brand,
               category: p.category || p.mainCategory || 'General',
-              currentPrice: p.currentPrice || 100,
-              referencePrice: p.discountPercentage ? p.originalPrice || p.referencePrice || 0 : 0,
+              currentPrice: Number(p.currentPrice) || 100,
+              referencePrice: p.discountPercentage ? Number(p.originalPrice) || Number(p.referencePrice) || 0 : 0,
               discountPercentage: p.discountPercentage || 0,
               rating: p.rating || 4.5,
               reviewCount: p.reviewCount || 10,
@@ -168,10 +168,10 @@ export const TrendingDealsSection: React.FC = () => {
                 <div className="flex items-baseline justify-between">
                   <div>
                     <span className="text-lg font-black text-white">
-                      ${deal.currentPrice.toFixed(2)}
+                      ${Number(deal.currentPrice).toFixed(2)}
                     </span>
                     <span className="text-xs text-slate-400 line-through ml-1.5">
-                      ${deal.referencePrice.toFixed(2)}
+                      ${Number(deal.referencePrice).toFixed(2)}
                     </span>
                   </div>
                   <div className="text-[10px] text-amber-400 font-bold">

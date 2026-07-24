@@ -375,12 +375,12 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   Current Verified Amazon Price
                 </span>
                 <div className="flex items-baseline gap-3">
-                  <span className="text-3xl font-black text-slate-900 dark:text-slate-100">
-                    ${product.currentPrice?.toFixed(2)}
-                  </span>
-                  {product.referencePrice && product.referencePrice > product.currentPrice && (
-                    <span className="text-sm text-slate-400 line-through font-semibold">
-                      ${product.referencePrice.toFixed(2)}
+                    <span className="text-3xl font-black text-slate-900 dark:text-slate-100">
+                      ${Number(product.currentPrice).toFixed(2)}
+                    </span>
+                    {Number(product.referencePrice) && Number(product.currentPrice) && Number(product.referencePrice) > Number(product.currentPrice) && (
+                      <span className="text-sm text-slate-400 line-through font-semibold">
+                        ${Number(product.referencePrice).toFixed(2)}
                     </span>
                   )}
                   {product.isPrime && (
@@ -846,7 +846,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       <div className="lg:hidden fixed bottom-0 left-0 right-0 p-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-30 shadow-2xl flex items-center justify-between gap-3">
         <div>
           <span className="text-xs font-bold text-slate-500 block truncate max-w-[150px]">{product.title}</span>
-          <span className="text-base font-black text-slate-900 dark:text-slate-100">${product.currentPrice?.toFixed(2)}</span>
+            <span className="text-base font-black text-slate-900 dark:text-slate-100">${Number(product.currentPrice).toFixed(2)}</span>
         </div>
         <AffiliateCTA
           affiliateUrl={product.affiliateUrl}

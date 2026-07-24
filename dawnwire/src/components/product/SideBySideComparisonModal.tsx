@@ -162,7 +162,7 @@ export const SideBySideComparisonModal: React.FC<SideBySideComparisonProps> = ({
                 )}
               </div>
               <h3 className="text-base font-extrabold text-slate-900 dark:text-slate-100 line-clamp-2 mt-1">{productA.title}</h3>
-              <div className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-2">${productA.currentPrice?.toFixed(2)}</div>
+              <div className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-2">${Number(productA.currentPrice).toFixed(2)}</div>
             </div>
 
             <AffiliateCTA
@@ -190,7 +190,7 @@ export const SideBySideComparisonModal: React.FC<SideBySideComparisonProps> = ({
                 )}
               </div>
               <h3 className="text-base font-extrabold text-slate-900 dark:text-slate-100 line-clamp-2 mt-1">{productB.title}</h3>
-              <div className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-2">${productB.currentPrice?.toFixed(2)}</div>
+              <div className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-2">${Number(productB.currentPrice).toFixed(2)}</div>
             </div>
 
             <AffiliateCTA

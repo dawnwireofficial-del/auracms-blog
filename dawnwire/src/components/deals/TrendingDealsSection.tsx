@@ -149,10 +149,10 @@ export const TrendingDealsSection: React.FC = () => {
                 <div className="flex items-baseline justify-between">
                   <div>
                     <span className="text-lg font-black text-white">
-                      ${deal.currentPrice.toFixed(2)}
+                      ${Number(deal.currentPrice).toFixed(2)}
                     </span>
                     <span className="text-xs text-slate-400 line-through ml-1.5">
-                      ${deal.referencePrice.toFixed(2)}
+                      ${Number(deal.referencePrice).toFixed(2)}
                     </span>
                   </div>
                   <div className="text-[10px] text-amber-400 font-bold">
