@@ -225,22 +225,33 @@ export async function processBulkImport(jobId: string): Promise<BulkImportJob> {
       }
     }
   } else if (params.source === 'search' || params.source === 'category') {
-    const queries = params.queries || [];
-    const seen = new Set<string>();
-    for (const query of queries) {
-      try {
-        const results = await scrapeAmazonSearch(query, marketplace, 50);
-        for (const r of results) {
-          if (!seen.has(r.asin)) {
-            seen.add(r.asin);
-            resolvedAsins.push(r.asin);
-          }
+    if (params.asins && params.asins.length > 0) {
+      const seen = new Set<string>();
+      for (const item of params.asins) {
+        const asin = extractAsin(item);
+        if (asin && !seen.has(asin)) {
+          seen.add(asin);
+          resolvedAsins.push(asin);
         }
-      } catch {
-        continue;
       }
-      if (resolvedAsins.length >= maxProducts) break;
-      if (queries.indexOf(query) < queries.length - 1) await sleep(1500);
+    } else {
+      const queries = params.queries || [];
+      const seen = new Set<string>();
+      for (const query of queries) {
+        try {
+          const results = await scrapeAmazonSearch(query, marketplace, 50);
+          for (const r of results) {
+            if (!seen.has(r.asin)) {
+              seen.add(r.asin);
+              resolvedAsins.push(r.asin);
+            }
+          }
+        } catch {
+          continue;
+        }
+        if (resolvedAsins.length >= maxProducts) break;
+        if (queries.indexOf(query) < queries.length - 1) await sleep(1500);
+      }
     }
   }
 
