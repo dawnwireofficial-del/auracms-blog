@@ -398,17 +398,38 @@ export async function processBulkImport(jobId: string): Promise<BulkImportJob> {
 }
 
 function withTimeout<T>(promise: Promise<T> | { then: (onFulfilled: (value: T) => void, onRejected?: (reason: any) => void) => any }, ms: number, fallback: T): Promise<T> {
-  return Promise.race([
-    Promise.resolve(promise as any),
-    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
-  ]);
+  return new Promise<T>((resolve) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        resolve(fallback);
+      }
+    }, ms);
+    Promise.resolve(promise as any).then(
+      (value) => {
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          resolve(value);
+        }
+      },
+      () => {
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          resolve(fallback);
+        }
+      }
+    );
+  });
 }
 
 export async function getBulkImportJob(jobId: string): Promise<BulkImportJob | null> {
   try {
     const sb = await getSupabaseAdmin();
     const query = sb.from('bulk_import_jobs').select('*').eq('id', jobId).single();
-    const { data } = await withTimeout(query, 5000, { data: null } as any);
+    const { data } = await withTimeout(Promise.resolve(query), 3000, { data: null } as any);
     return data ? (data as BulkImportJob) : null;
   } catch {
     return null;
@@ -419,7 +440,7 @@ export async function cancelBulkImport(jobId: string): Promise<boolean> {
   try {
     const sb = await getSupabaseAdmin();
     const query = sb.from('bulk_import_jobs').update({ status: 'cancelled', updated_at: new Date().toISOString() }).eq('id', jobId);
-    await withTimeout(query, 5000, { error: null } as any);
+    await withTimeout(Promise.resolve(query), 3000, { error: null } as any);
     return true;
   } catch {
     return false;

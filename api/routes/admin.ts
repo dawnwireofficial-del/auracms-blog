@@ -710,15 +710,21 @@ router.post('/setup/product-categories', async (_req, res) => {
 
 // ====== Bulk Amazon Product Import ======
 router.post('/products/bulk-import', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  const timeout = setTimeout(() => {
+    if (!res.headersSent) res.status(504).json({ error: 'Request timeout' });
+  }, 15000);
   try {
     const { source, asins, queries, marketplace, maxProducts, updateExisting } = req.body;
     if (!source || !['csv', 'search', 'category'].includes(source)) {
+      clearTimeout(timeout);
       return res.status(400).json({ error: 'Invalid source. Use csv, search, or category.' });
     }
     if (source === 'csv' && (!asins || !Array.isArray(asins) || asins.length === 0)) {
+      clearTimeout(timeout);
       return res.status(400).json({ error: 'asins array required for csv source' });
     }
     if ((source === 'search' || source === 'category') && (!queries || !Array.isArray(queries) || queries.length === 0)) {
+      clearTimeout(timeout);
       return res.status(400).json({ error: 'queries array required for search/category source' });
     }
 
@@ -735,43 +741,63 @@ router.post('/products/bulk-import', authenticate, requireRole(['super_admin', '
       adminToken: token,
     });
 
+    clearTimeout(timeout);
     dbInstance.log('Bulk Import Started', `Source: ${source}, Total: ${job.totalItems}`, u.id, u.name);
     res.json({ success: true, job });
   } catch (e: any) {
+    clearTimeout(timeout);
     res.status(500).json({ error: e.message || 'Failed to start bulk import' });
   }
 });
 
 router.get('/products/bulk-import/:jobId', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  const timeout = setTimeout(() => {
+    if (!res.headersSent) res.status(504).json({ error: 'Request timeout' });
+  }, 4000);
   try {
     const job = await getBulkImportJob(req.params.jobId);
+    clearTimeout(timeout);
     if (!job) return res.status(404).json({ error: 'Job not found' });
     res.json(job);
   } catch (e: any) {
-    res.status(500).json({ error: e.message || 'Failed to fetch job' });
+    clearTimeout(timeout);
+    if (!res.headersSent) res.status(500).json({ error: e.message || 'Failed to fetch job' });
   }
 });
 
 router.post('/products/bulk-import/:jobId/cancel', authenticate, requireRole(['super_admin', 'admin']), async (req, res) => {
+  const timeout = setTimeout(() => {
+    if (!res.headersSent) res.status(504).json({ error: 'Request timeout' });
+  }, 4000);
   try {
     const ok = await cancelBulkImport(req.params.jobId);
+    clearTimeout(timeout);
     if (!ok) return res.status(404).json({ error: 'Job not found' });
     res.json({ success: true });
   } catch (e: any) {
-    res.status(500).json({ error: e.message || 'Failed to cancel job' });
+    clearTimeout(timeout);
+    if (!res.headersSent) res.status(500).json({ error: e.message || 'Failed to cancel job' });
   }
 });
 
 router.post('/products/search-amazon', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  const timeout = setTimeout(() => {
+    if (!res.headersSent) res.status(504).json({ error: 'Request timeout' });
+  }, 20000);
   try {
     const { query, marketplace = 'US', maxResults = 50 } = req.body;
-    if (!query) return res.status(400).json({ error: 'query required' });
+    if (!query) {
+      clearTimeout(timeout);
+      return res.status(400).json({ error: 'query required' });
+    }
     const results = await searchAmazon(query, marketplace, maxResults);
+    clearTimeout(timeout);
     if (results === null) {
       return res.status(429).json({ error: 'Amazon returned a CAPTCHA or blocked the request. Try again later.' });
     }
     res.json({ results });
   } catch (e: any) {
+    clearTimeout(timeout);
     res.status(500).json({ error: e.message || 'Search failed' });
   }
 });
