@@ -11,6 +11,35 @@ import { PriceHistoryTracker } from '../components/product/PriceHistoryTracker';
 import { ProductFaqSection } from '../components/product/ProductFaqSection';
 import { useAppStore, store } from '../lib/store';
 
+function HlsVideo({ src, poster }: { src: string; poster: string }) {
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const isHls = src.endsWith('.m3u8');
+  const proxyUrl = isHls ? `/api/public/video-proxy?url=${encodeURIComponent(src)}` : '';
+  React.useEffect(() => {
+    if (!isHls || !videoRef.current) return;
+    let hls: any = null;
+    import('hls.js').then(mod => {
+      const Hls: any = mod.default || mod;
+      if (Hls.isSupported()) {
+        hls = new Hls({ enableWorker: true, lowLatencyMode: false, backBufferLength: 90 });
+        hls.loadSource(proxyUrl || src);
+        hls.attachMedia(videoRef.current!);
+        hls.on(Hls.Events.ERROR, (_event: any, data: any) => {
+          if (data.fatal) {
+            if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
+            else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+            else hls.destroy();
+          }
+        });
+      }
+    }).catch((e) => console.error('[HlsVideo] hls.js load error:', e));
+    return () => { hls?.destroy(); };
+  }, [src, isHls, proxyUrl]);
+  return (
+    <video ref={videoRef} src={isHls ? undefined : src} controls className="w-full h-full" preload="none" poster={poster} crossOrigin="anonymous" />
+  );
+}
+
 interface ProductDetailPageProps {
   productSlug: string;
   onOpenChatbotForProduct?: (product: Product) => void;
@@ -25,31 +54,65 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const { products, wishlist } = useAppStore();
 
   const [isInternalLoading, setIsInternalLoading] = useState(true);
+  const [directProduct, setDirectProduct] = useState<Product | null>(null);
+  const [directFetchDone, setDirectFetchDone] = useState(false);
 
   useEffect(() => {
     setIsInternalLoading(true);
+    setDirectProduct(null);
+    setDirectFetchDone(false);
     const timer = setTimeout(() => {
       setIsInternalLoading(false);
     }, 400);
     return () => clearTimeout(timer);
   }, [productSlug]);
 
+  useEffect(() => {
+    if (!productSlug) return;
+    const found = products.find((p) => p.slug === productSlug);
+    if (found) {
+      setDirectProduct(found);
+      setDirectFetchDone(true);
+    } else if (!directFetchDone) {
+      fetch(`/api/public/product-reviews/slug/${productSlug}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.id) {
+            const mapped: Product = {
+              id: data.id, title: data.product_name || data.title || '', slug: data.slug || productSlug,
+              asin: data.asin || '', brand: data.brand || '', mainCategory: data.category || data.mainCategory || 'Electronics',
+              subcategory: data.subcategory || 'General', productType: 'Physical Product',
+              shortDescription: data.review_summary || data.shortDescription || '',
+              fullDescription: data.review_summary || data.fullDescription || '',
+              images: [data.product_image || ''].filter(Boolean),
+              amazonOriginalUrl: data.amazon_url || '', affiliateUrl: data.affiliate_url || '',
+              amazonMarketplace: 'US', associateTrackingId: 'dawnwire-20',
+              currentPrice: parseFloat(String(data.price || '0')) || 0,
+              referencePrice: parseFloat(String(data.original_price || '0')) || 0,
+              currency: 'USD', isAvailable: true, isDeal: !!data.is_deal, isPrime: true,
+              rating: Number(data.rating) || 0, reviewCount: Number(data.review_count) || 0,
+              mainFeatures: Array.isArray(data.key_features) ? data.key_features : [],
+              specifications: data.specs || {}, pros: Array.isArray(data.pros) ? data.pros : [],
+              cons: Array.isArray(data.cons) ? data.cons : [], bestFor: data.best_for || '',
+              editorVerdict: data.review_summary || '', editorScore: Number(data.rating) * 2 || 0,
+              similarProductIds: [], alternativeProductIds: [], relatedComparisonIds: [], relatedGuideIds: [],
+              isFeatured: true, isTrending: false, isBestSeller: false, published: data.status !== 'draft', status: data.status || 'published',
+              lastSyncedAt: '', seoTitle: data.seo_title || '', metaDescription: data.seo_description || '',
+              metaKeywords: Array.isArray(data.seo_keywords) ? data.seo_keywords : [], canonicalUrl: ''
+            };
+            setDirectProduct(mapped);
+          }
+          setDirectFetchDone(true);
+        })
+        .catch(() => setDirectFetchDone(true));
+    }
+  }, [productSlug, products, directFetchDone]);
+
   const isLoading = externalIsLoading || isInternalLoading;
 
-  const product = products.find((p) => p.slug === productSlug) || products[0];
+  const product = directProduct || products.find((p) => p.slug === productSlug) || null;
 
-  // Images setup (Ensure at least 4 fallback imported images for rich gallery)
-  const defaultFallbackImages = [
-    product?.images[0] || 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=1000&q=80',
-    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1000&q=80',
-    'https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=1000&q=80',
-    'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=1000&q=80',
-    'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1000&q=80'
-  ];
-
-  const allImportedImages = product?.images && product.images.length > 0
-    ? [...product.images, ...defaultFallbackImages.slice(product.images.length)]
-    : defaultFallbackImages;
+  const allImportedImages = product?.images && product.images.length > 0 ? product.images.filter(Boolean) : [];
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -259,12 +322,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               onClick={() => setIsLightboxOpen(true)}
             />
 
-            {/* Badges */}
-            {product.isDeal && (
+            {product.isDeal && product.discountPercentage ? (
               <span className="absolute top-4 left-4 bg-red-600 text-white font-extrabold text-[11px] px-3 py-1 rounded-xl shadow-md uppercase tracking-wider">
-                -{product.discountPercentage || 20}% AMAZON DEAL
+                -{product.discountPercentage}% AMAZON DEAL
               </span>
-            )}
+            ) : null}
 
             {/* Expand Gallery Button */}
             <button
@@ -500,6 +562,21 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         </div>
       </section>
 
+      {/* PRODUCT VIDEO (HLS FROM AMAZON IMPORT) */}
+      {product.videoUrl && (
+        <section className="max-w-7xl mx-auto px-4 mt-16">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-slate-100">Product Video</h3>
+            </div>
+            <div className="aspect-video bg-black rounded-2xl overflow-hidden">
+              <HlsVideo src={product.videoUrl} poster={product.images[0] || ''} />
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* EMBEDDED VIDEO REVIEWS & DEMONSTRATION SECTION */}
       <section className="max-w-7xl mx-auto px-4 mt-16">
         <div className="relative overflow-hidden bg-slate-900 text-white rounded-3xl p-6 sm:p-10 border border-slate-800 shadow-2xl space-y-8">
@@ -644,9 +721,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             <span>⚙️ Technical Specifications & Build Specs</span>
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {Object.entries(product.specifications || {}).map(([key, val]) => (
+            {Object.entries(product.specifications || {}).filter(([key]) => !['gallery', 'video_url', 'videoUrl', 'asin', 'source', 'details'].includes(key)).map(([key, val]) => (
               <div key={key} className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/60 dark:border-slate-700/60">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">{key}</span>
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">{key === 'listPrice' ? 'List Price' : key === 'savings' ? 'Savings' : key.replace(/_/g, ' ')}</span>
                 <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{String(val)}</span>
               </div>
             ))}

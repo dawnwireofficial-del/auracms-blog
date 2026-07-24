@@ -35,53 +35,52 @@ export const TrendingDealsSection: React.FC = () => {
         if (isMounted && data?.deals && data.deals.length > 0) {
           setDeals(data.deals.slice(0, 4));
         } else {
-          // No deals yet — fallback to top discount products
           if (isMounted && products.length > 0) {
-            const topDiscountProducts = [...products]
-              .sort((a, b) => (b.discountPercentage || 0) - (a.discountPercentage || 0))
-              .slice(0, 4)
-              .map((p, idx) => ({
-                id: p.id,
-                title: p.title,
-                brand: p.brand,
-                category: p.category || p.mainCategory || 'General',
-                currentPrice: p.currentPrice || 100,
-                referencePrice: p.originalPrice || p.referencePrice || (p.currentPrice ? p.currentPrice * 1.25 : 125),
-                discountPercentage: p.discountPercentage || 20,
-                rating: p.rating || 4.5,
-                reviewCount: p.reviewCount || 10,
-                images: p.images,
-                asin: p.asin,
-                affiliateUrl: p.affiliateUrl,
-                dealBadge: idx === 0 ? '🔥 Top Tech Deal' : idx === 1 ? '⚡ Flash Kitchen Savings' : '🏷️ Lowest Price 30 Days',
-                expiresInHours: 6 + idx * 2
-              }));
-            setDeals(topDiscountProducts);
-          }
-        }
-      })
-      .catch((err) => {
-        if (isMounted && products.length > 0) {
-          const topDiscountProducts = [...products]
-            .sort((a, b) => (b.discountPercentage || 0) - (a.discountPercentage || 0))
-            .slice(0, 4)
-            .map((p, idx) => ({
+            const candidates = [...products].filter(p => (p.discountPercentage || 0) > 0 && (p.discountPercentage || 0) <= 40);
+            const noDiscount = products.filter(p => !(p.discountPercentage || 0)).slice(0, 4 - candidates.length);
+            const sorted = candidates.length >= 4 ? candidates : [...candidates, ...noDiscount];
+            const topDiscountProducts = sorted.slice(0, 4).map((p, idx) => ({
               id: p.id,
               title: p.title,
               brand: p.brand,
               category: p.category || p.mainCategory || 'General',
               currentPrice: p.currentPrice || 100,
-              referencePrice: p.originalPrice || p.referencePrice || (p.currentPrice ? p.currentPrice * 1.25 : 125),
-              discountPercentage: p.discountPercentage || 20,
+              referencePrice: p.discountPercentage ? p.originalPrice || p.referencePrice || 0 : 0,
+              discountPercentage: p.discountPercentage || 0,
               rating: p.rating || 4.5,
               reviewCount: p.reviewCount || 10,
               images: p.images,
               asin: p.asin,
               affiliateUrl: p.affiliateUrl,
-              dealBadge: idx === 0 ? '🔥 Top Tech Deal' : idx === 1 ? '⚡ Flash Kitchen Savings' : '🏷️ Lowest Price 30 Days',
-              expiresInHours: 6 + idx * 2
+              dealBadge: p.discountPercentage ? (idx === 0 ? '🔥 Top Tech Deal' : idx === 1 ? '⚡ Flash Kitchen Savings' : '🏷️ Lowest Price 30 Days') : '',
+              expiresInHours: p.discountPercentage ? 6 + idx * 2 : 0
             }));
-          setDeals(topDiscountProducts);
+            setDeals(topDiscountProducts.filter(d => d.discountPercentage > 0));
+          }
+        }
+      })
+      .catch((err) => {
+        if (isMounted && products.length > 0) {
+          const candidates = [...products].filter(p => (p.discountPercentage || 0) > 0 && (p.discountPercentage || 0) <= 40);
+          const noDiscount = products.filter(p => !(p.discountPercentage || 0)).slice(0, 4 - candidates.length);
+          const sorted = candidates.length >= 4 ? candidates : [...candidates, ...noDiscount];
+          const topDiscountProducts = sorted.slice(0, 4).map((p, idx) => ({
+            id: p.id,
+            title: p.title,
+            brand: p.brand,
+            category: p.category || p.mainCategory || 'General',
+            currentPrice: p.currentPrice || 100,
+            referencePrice: p.discountPercentage ? p.originalPrice || p.referencePrice || 0 : 0,
+            discountPercentage: p.discountPercentage || 0,
+            rating: p.rating || 4.5,
+            reviewCount: p.reviewCount || 10,
+            images: p.images,
+            asin: p.asin,
+            affiliateUrl: p.affiliateUrl,
+            dealBadge: p.discountPercentage ? (idx === 0 ? '🔥 Top Tech Deal' : idx === 1 ? '⚡ Flash Kitchen Savings' : '🏷️ Lowest Price 30 Days') : '',
+            expiresInHours: p.discountPercentage ? 6 + idx * 2 : 0
+          }));
+          setDeals(topDiscountProducts.filter(d => d.discountPercentage > 0));
         }
       })
       .finally(() => {

@@ -296,14 +296,31 @@
           '#productDescription .ingredients, .ingredients',
           '#safety-information',
           '[data-feature-name="safety"]',
-          '#detailBullets_feature_div .a-list-item:contains("Ingredients")',
-          '#productOverview_feature_div td:contains("Ingredients") + td',
         ];
         for (const sel of selectors) {
           const el = doc.querySelector(sel);
           if (el) {
             const text = el.textContent.trim();
             if (text.length > 20 && text.length < 5000) return text.substring(0, 3000);
+          }
+        }
+        // detailBullets: find list-item whose text includes "Ingredients"
+        const detailItems = doc.querySelectorAll('#detailBullets_feature_div .a-list-item');
+        for (const item of detailItems) {
+          if (item.textContent.toLowerCase().includes('ingredients')) {
+            const text = item.textContent.trim().replace(/^[^:]*:\s*/i, '').substring(0, 3000);
+            if (text.length > 20) return text;
+          }
+        }
+        // productOverview: find td whose text includes "Ingredients", return next sibling text
+        const overviewCells = doc.querySelectorAll('#productOverview_feature_div td');
+        for (let i = 0; i < overviewCells.length; i++) {
+          if (overviewCells[i].textContent.toLowerCase().includes('ingredients')) {
+            const nextTd = overviewCells[i + 1];
+            if (nextTd) {
+              const text = nextTd.textContent.trim();
+              if (text.length > 20) return text.substring(0, 3000);
+            }
           }
         }
         // Fallback: scan all list items for "ingredients" keyword
@@ -347,10 +364,8 @@
     doc = doc || document;
     try {
       if (isAmazon()) {
-        // "Customers say" section — usually in #cm-cr-dp-review-summary or similar
         const summaryEl = doc.querySelector('#cm-cr-dp-review-summary, [data-hook="cr-insights-widget"]');
         if (summaryEl) return summaryEl.textContent.trim().substring(0, 1000);
-        // Fallback: customer reviews AI summary
         const highlights = doc.querySelectorAll('.cr-insights-widget, [class*="reviewHighlights"], [class*="cr-widget"]');
         for (const el of highlights) {
           const text = el.textContent.trim();
@@ -361,6 +376,215 @@
       }
     } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
     return '';
+  }
+
+  function extractReviewStats(doc) {
+    doc = doc || document;
+    try {
+      const stats = { total: 0, average: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } };
+      if (isAmazon()) {
+        // Total review count
+        const countEl = doc.getElementById('acrCustomerReviewText');
+        if (countEl) {
+          const m = countEl.textContent?.match(/([\d,]+)/);
+          if (m) stats.total = parseInt(m[1].replace(/,/g, ''));
+        }
+        // Average rating
+        const ratingEl = doc.getElementById('acrPopover');
+        if (ratingEl) {
+          const m = (ratingEl.getAttribute('aria-label') || '').match(/([\d.]+)/);
+          if (m) stats.average = parseFloat(m[1]);
+        }
+        // Star distribution from histogram
+        const bars = doc.querySelectorAll('#histogramTable tr, [data-hook="rating-breakdown"] a, .a-star-rating');
+        bars.forEach(bar => {
+          const text = bar.textContent || '';
+          const starM = text.match(/(\d+)\s*star/i);
+          const pctM = text.match(/(\d+)%/);
+          const countM = text.match(/([\d,]+)\s*(?:rating|customer|review)/i);
+          if (starM && pctM) {
+            const star = parseInt(starM[1]);
+            if (star >= 1 && star <= 5 && stats.total > 0) {
+              stats.distribution[star] = Math.round(stats.total * parseInt(pctM[1]) / 100);
+            }
+          }
+        });
+        // Fallback: try to get exact counts from histogram links
+        if (stats.distribution[5] === 0) {
+          doc.querySelectorAll('a[href*="filterByStar=one_star"], a[href*="filterByStar=two_star"], a[href*="filterByStar=three_star"], a[href*="filterByStar=four_star"], a[href*="filterByStar=five_star"]').forEach(a => {
+            const href = a.getAttribute('href') || '';
+            const text = a.textContent || '';
+            const starMap = { one: 1, two: 2, three: 3, four: 4, five: 5 };
+            for (const [key, val] of Object.entries(starMap)) {
+              if (href.includes(key + '_star')) {
+                const m = text.match(/([\d,]+)/);
+                if (m) stats.distribution[val] = parseInt(m[1].replace(/,/g, ''));
+              }
+            }
+          });
+        }
+      }
+      return stats;
+    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    return { total: 0, average: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } };
+  }
+
+  function extractAmazonReviews(doc) {
+    doc = doc || document;
+    const reviews = [];
+    try {
+      // Amazon loads reviews dynamically — capture what's rendered on page
+      const containers = doc.querySelectorAll('[data-hook="review"], div[data-hook="customer-review"]');
+      containers.forEach(el => {
+        const name = el.querySelector('.a-profile-name')?.textContent?.trim() || '';
+        if (!name) return;
+        const avatar = el.querySelector('.a-profile-avatar img')?.getAttribute('src') || '';
+        const ratingEl = el.querySelector('i[data-hook="review-star-rating"]');
+        let rating = 0;
+        if (ratingEl) {
+          const m = ratingEl.textContent?.match(/([\d.]+)/);
+          if (m) rating = parseFloat(m[1]);
+        }
+        const title = el.querySelector('[data-hook="review-title"]')?.textContent?.trim() || '';
+        const date = el.querySelector('[data-hook="review-date"]')?.textContent?.trim() || '';
+        let body = el.querySelector('[data-hook="review-body"] span, [data-hook="review-body"]')?.textContent?.trim() || '';
+        if (body.length > 2000) body = body.substring(0, 2000);
+        const verified = !!el.querySelector('[data-hook="avp-badge"]');
+        const images = [];
+        el.querySelectorAll('[data-hook="review-image-tile"] img, [data-hook="review-image"] img').forEach(img => {
+          const src = img.getAttribute('src') || '';
+          if (src && !src.startsWith('data:') && images.length < 5) images.push(src);
+        });
+        reviews.push({ name: name.substring(0, 100), avatar: avatar.substring(0, 500), rating, title: title.substring(0, 200), date: date.substring(0, 100), body, verified, images });
+      });
+    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    return reviews.slice(0, 20);
+  }
+
+  function extractWalmartReviews(doc) {
+    doc = doc || document;
+    const reviews = [];
+    try {
+      const containers = doc.querySelectorAll('[data-testid="review-item"], .review-item, [class*="review"] [data-testid="review"]');
+      containers.forEach(el => {
+        const name = el.querySelector('[data-testid="reviewer-name"], .reviewer-name, .review-author')?.textContent?.trim() || '';
+        if (!name) return;
+        const avatar = el.querySelector('[data-testid="reviewer-avatar"] img, .reviewer-avatar img, .review-author-image img')?.getAttribute('src') || '';
+        let rating = 0;
+        const ratingEl = el.querySelector('[data-testid="review-rating"], [class*="star-rating"], [class*="stars"]');
+        if (ratingEl) {
+          const m = (ratingEl.getAttribute('aria-label') || ratingEl.textContent || '').match(/([\d.]+)/);
+          if (m) rating = parseFloat(m[1]);
+        }
+        const date = el.querySelector('[data-testid="review-date"], .review-date, .review-time')?.textContent?.trim() || '';
+        let body = el.querySelector('[data-testid="review-body"], .review-text, .review-content')?.textContent?.trim() || '';
+        if (body.length > 2000) body = body.substring(0, 2000);
+        const verified = !!el.querySelector('[data-testid="verified-badge"], .verified-purchase, [class*="verified"]');
+        reviews.push({ name: name.substring(0, 100), avatar: avatar.substring(0, 500), rating, title: '', date: date.substring(0, 100), body, verified, images: [] });
+      });
+      // Also grab Walmart review stats
+      if (!reviews.length) {
+        const statsEl = doc.querySelector('[data-testid="rating-summary"], .rating-summary');
+        if (statsEl) {
+          const m = statsEl.textContent?.match(/([\d,]+)\s*(?:ratings|reviews)/i);
+          if (m) reviews._stats = { total: parseInt(m[1].replace(/,/g, '')) };
+        }
+      }
+    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    return reviews.slice(0, 20);
+  }
+
+  function extractBestBuyReviews(doc) {
+    doc = doc || document;
+    const reviews = [];
+    try {
+      const containers = doc.querySelectorAll('.review-item, [data-testid="review"], .c-reviews .c-review');
+      containers.forEach(el => {
+        const name = el.querySelector('.reviewer-name, [data-testid="reviewer-name"], .c-review-author')?.textContent?.trim() || '';
+        if (!name) return;
+        const avatar = el.querySelector('.reviewer-avatar img, [data-testid="reviewer-avatar"] img')?.getAttribute('src') || '';
+        let rating = 0;
+        const ratingEl = el.querySelector('.c-review-rating, [data-testid="review-rating"], [class*="rating"]');
+        if (ratingEl) {
+          const m = (ratingEl.getAttribute('aria-label') || ratingEl.textContent || '').match(/([\d.]+)/);
+          if (m) rating = parseFloat(m[1]);
+        }
+        const date = el.querySelector('.review-date, [data-testid="review-date"], .c-review-date')?.textContent?.trim() || '';
+        let body = el.querySelector('.review-text, [data-testid="review-body"], .c-review-body')?.textContent?.trim() || '';
+        if (body.length > 2000) body = body.substring(0, 2000);
+        const title = el.querySelector('.review-title, [data-testid="review-title"]')?.textContent?.trim() || '';
+        reviews.push({ name: name.substring(0, 100), avatar: avatar.substring(0, 500), rating, title: title.substring(0, 200), date: date.substring(0, 100), body, verified: false, images: [] });
+      });
+    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    return reviews.slice(0, 20);
+  }
+
+  function extractAliExpressReviews(doc) {
+    doc = doc || document;
+    const reviews = [];
+    try {
+      const containers = doc.querySelectorAll('[data-qa="feedback-item"], .feedback-item, .review-item, [class*="reviewContainer"]');
+      containers.forEach(el => {
+        const name = el.querySelector('.feedback-author, .review-author, [data-qa="feedback-author"]')?.textContent?.trim() || '';
+        if (!name) return;
+        const avatar = el.querySelector('img[src*="avatar"]')?.getAttribute('src') || '';
+        let rating = 0;
+        const ratingEl = el.querySelector('[class*="star"], [class*="rating"]');
+        if (ratingEl) {
+          const m = (ratingEl.getAttribute('aria-label') || ratingEl.textContent || '').match(/([\d.]+)/);
+          if (m) rating = parseFloat(m[1]);
+        }
+        const date = el.querySelector('.feedback-date, .review-date, [data-qa="feedback-date"]')?.textContent?.trim() || '';
+        let body = el.querySelector('.feedback-text, .review-text, [data-qa="feedback-text"]')?.textContent?.trim() || '';
+        if (body.length > 2000) body = body.substring(0, 2000);
+        reviews.push({ name: name.substring(0, 100), avatar: avatar.substring(0, 500), rating, title: '', date: date.substring(0, 100), body, verified: false, images: [] });
+      });
+    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    return reviews.slice(0, 20);
+  }
+
+  function extractEbayReviews(doc) {
+    doc = doc || document;
+    const reviews = [];
+    try {
+      const containers = doc.querySelectorAll('.review-item, [data-testid="review"], .ebay-review-card, .product-review');
+      containers.forEach(el => {
+        const name = el.querySelector('.review-author, [data-testid="review-author"], .ebay-review-author')?.textContent?.trim() || '';
+        if (!name) return;
+        const avatar = el.querySelector('img[class*="avatar"]')?.getAttribute('src') || '';
+        let rating = 0;
+        const ratingEl = el.querySelector('[class*="star"], [data-testid="review-rating"]');
+        if (ratingEl) {
+          const m = (ratingEl.getAttribute('aria-label') || ratingEl.textContent || '').match(/([\d.]+)/);
+          if (m) rating = parseFloat(m[1]);
+        }
+        const date = el.querySelector('.review-date, [data-testid="review-date"]')?.textContent?.trim() || '';
+        let body = el.querySelector('.review-text, [data-testid="review-body"], .ebay-review-text')?.textContent?.trim() || '';
+        if (body.length > 2000) body = body.substring(0, 2000);
+        reviews.push({ name: name.substring(0, 100), avatar: avatar.substring(0, 500), rating, title: '', date: date.substring(0, 100), body, verified: false, images: [] });
+      });
+    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    return reviews.slice(0, 20);
+  }
+
+  function extractReviews() {
+    const reviews = [];
+    let reviewStats = { total: 0, average: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } };
+    try {
+      if (isAmazon()) {
+        reviewStats = extractReviewStats();
+        return { reviews: extractAmazonReviews(), reviewStats };
+      }
+      if (isWalmart()) {
+        const wmReviews = extractWalmartReviews();
+        if (wmReviews._stats) { reviewStats.total = wmReviews._stats.total; delete wmReviews._stats; }
+        return { reviews: wmReviews, reviewStats };
+      }
+      if (isBestBuy()) return { reviews: extractBestBuyReviews(), reviewStats };
+      if (isAliExpress()) return { reviews: extractAliExpressReviews(), reviewStats };
+      if (isEbay()) return { reviews: extractEbayReviews(), reviewStats };
+    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    return { reviews, reviewStats };
   }
 
   function extractSearchResults() {
@@ -828,12 +1052,14 @@
     const category = extractCategory();
     const bestFor = mapCategoryToBestFor(category);
 
-    // Enhanced extractions (Amazon only)
+    // Enhanced extractions
     let ingredients = '';
     let unitSize = '';
     let unitPrice = '';
     let bsrDetail = [];
     let reviewHighlights = '';
+    let reviews = [];
+    let reviewStats = { total: 0, average: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } };
     if (isAmazon()) {
       ingredients = extractIngredients();
       const unitInfo = extractUnitInfo();
@@ -841,10 +1067,20 @@
       unitPrice = unitInfo.unitPrice || '';
       bsrDetail = extractBSRDetail();
       reviewHighlights = extractReviewHighlights();
-      // Merge review highlights into review_summary if description is short
       if ((review_summary || '').length < 200 && reviewHighlights) {
         review_summary = (review_summary ? review_summary + ' | ' : '') + 'Customer insights: ' + reviewHighlights.substring(0, 500);
       }
+    }
+    // Extract reviews for all stores
+    const reviewData = extractReviews();
+    reviews = reviewData.reviews || [];
+    reviewStats = reviewData.reviewStats || reviewStats;
+    // Merge review stats into main reviewCount
+    if (reviewStats.total > 0 && (!reviewCount || reviewCount === 0)) {
+      reviewCount = reviewStats.total;
+    }
+    if (reviewStats.average > 0 && !rating) {
+      rating = reviewStats.average;
     }
 
     let priceRange;
@@ -878,6 +1114,7 @@
       savings: discount.savings, priceRange, specs, detailBullets, stockStatus, dealBadge,
       bestSellersRank, category, bestFor, source,
       ingredients, unitSize, unitPrice, bsrDetail, reviewHighlights,
+      reviews, reviewStats,
     };
   }
 
@@ -925,6 +1162,8 @@
             ${bsrTop ? '<span class="dw-badge-variation">🏆 #' + bsrTop.rank + ' in ' + esc(bsrTop.category) + '</span>' : ''}
             ${data.ingredients ? '<span class="dw-badge-variation">🧪 Ingredients ✓</span>' : ''}
             ${data.reviewHighlights ? '<span class="dw-badge-variation">💬 Reviews ✓</span>' : ''}
+            ${data.reviewStats?.total ? '<span class="dw-badge-variation">📝 ' + data.reviewStats.total.toLocaleString() + ' reviews</span>' : ''}
+            ${data.reviews?.length ? '<span class="dw-badge-variation">👤 ' + data.reviews.length + ' loaded</span>' : ''}
             ${variationsDisplay.map(v => '<span class="dw-badge-variation">' + v + '</span>').join('')}
           </div>
         </div>
@@ -1193,12 +1432,20 @@
           reviewHighlights = extractReviewHighlights(doc);
         }
       } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
-      return { product_name, brand, product_image, price, rating, reviewCount, key_features, pros: [], cons: [], review_summary: '', amazon_url, asin, gallery: [], videoUrl, variations: [], listPrice: '', savings: '', priceRange: undefined, specs: {}, detailBullets, stockStatus, dealBadge: '', bestSellersRank, category, bestFor, source: 'amazon', ingredients, unitSize, unitPrice, bsrDetail, reviewHighlights };
+      // Reviews extraction for doc-based imports
+      let reviews = [];
+      let reviewStats = { total: 0, average: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } };
+      try {
+        const rd = extractReviews();
+        reviews = rd.reviews || [];
+        reviewStats = rd.reviewStats || reviewStats;
+      } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+      return { product_name, brand, product_image, price, rating, reviewCount, key_features, pros: [], cons: [], review_summary: '', amazon_url, asin, gallery: [], videoUrl, variations: [], listPrice: '', savings: '', priceRange: undefined, specs: {}, detailBullets, stockStatus, dealBadge: '', bestSellersRank, category, bestFor, source: 'amazon', ingredients, unitSize, unitPrice, bsrDetail, reviewHighlights, reviews, reviewStats };
     }
 
     // Generic fallback for other stores
     const get = (sel) => doc.querySelector(sel);
-    return { product_name: get('h1')?.textContent?.trim() || '', brand: '', product_image: get('img[src]')?.getAttribute('src') || '', price: get('[class*="price"]')?.textContent?.trim() || '', rating: 0, reviewCount: 0, key_features: [], pros: [], cons: [], review_summary: '', amazon_url: '', asin: '', gallery: [], videoUrl: '', variations: [], listPrice: '', savings: '', priceRange: undefined, specs: {}, detailBullets: {}, stockStatus: 'in_stock', dealBadge: '', bestSellersRank: '', category: '', bestFor: '', source: 'other', ingredients: '', unitSize: '', unitPrice: '', bsrDetail: [], reviewHighlights: '' };
+    return { product_name: get('h1')?.textContent?.trim() || '', brand: '', product_image: get('img[src]')?.getAttribute('src') || '', price: get('[class*="price"]')?.textContent?.trim() || '', rating: 0, reviewCount: 0, key_features: [], pros: [], cons: [], review_summary: '', amazon_url: '', asin: '', gallery: [], videoUrl: '', variations: [], listPrice: '', savings: '', priceRange: undefined, specs: {}, detailBullets: {}, stockStatus: 'in_stock', dealBadge: '', bestSellersRank: '', category: '', bestFor: '', source: 'other', ingredients: '', unitSize: '', unitPrice: '', bsrDetail: [], reviewHighlights: '', reviews: [], reviewStats: { total: 0, average: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } } };
   }
 
   if (isProductPage()) {

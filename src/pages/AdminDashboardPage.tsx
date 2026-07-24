@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAppStore, store } from '../lib/store';
+import ExtensionManager from '../components/ExtensionManager';
 import { ActivityFeedTab } from '../components/admin/ActivityFeedTab';
 import { AdminProfileCropModal } from '../components/admin/AdminProfileCropModal';
 import { ActivityHeatmapD3 } from '../components/admin/ActivityHeatmapD3';
@@ -23,7 +24,7 @@ export const AdminDashboardPage: React.FC = () => {
   const [loginError, setLoginError] = useState('');
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'products' | 'activity-feed' | 'link-importer' | 'scraper' | 'reviews' | 'banners' | 'analytics' | 'seo' | 'firebase' | 'profile'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'activity-feed' | 'link-importer' | 'scraper' | 'reviews' | 'banners' | 'analytics' | 'seo' | 'firebase' | 'profile' | 'extension'>('products');
 
   // Form states
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
@@ -75,8 +76,18 @@ export const AdminDashboardPage: React.FC = () => {
   const [showSitemapModal, setShowSitemapModal] = useState(false);
   const [sitemapContent, setSitemapContent] = useState('');
 
+  const [serverClickData, setServerClickData] = useState<{ totalClicks: number; topLinks: { title: string; clicks: number; url: string }[]; dailyClicks: { date: string; clicks: number }[] }>({ totalClicks: 0, topLinks: [], dailyClicks: [] });
+
   useEffect(() => {
     store.fetchProducts();
+    fetch('/api/analytics/clicks')
+      .then(r => r.json())
+      .then(data => {
+        if (data && typeof data.totalClicks === 'number') {
+          setServerClickData(data);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
@@ -106,8 +117,8 @@ export const AdminDashboardPage: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: editingProduct.title,
-          asin: editingProduct.asin || 'B000000000',
-          category: editingProduct.mainCategory || 'Electronics'
+          asin: editingProduct.asin || '',
+          category: editingProduct.mainCategory || ''
         })
       });
       const data = await res.json();
@@ -210,49 +221,48 @@ export const AdminDashboardPage: React.FC = () => {
       title: editingProduct.title || 'New Product',
       slug: slug,
       asin: editingProduct.asin || 'B000000000',
-      brand: editingProduct.brand || 'Generic',
-      mainCategory: editingProduct.mainCategory || 'Electronics',
-      subcategory: editingProduct.subcategory || 'General',
+      brand: editingProduct.brand || '',
+      mainCategory: editingProduct.mainCategory || '',
+      subcategory: editingProduct.subcategory || '',
       productType: 'Physical Product',
-      shortDescription: editingProduct.shortDescription || 'High-performance model.',
-      fullDescription: editingProduct.fullDescription || 'Full expert review and specifications for this model.',
-      images: editingProduct.images && editingProduct.images.length ? editingProduct.images : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800'],
-      amazonOriginalUrl: editingProduct.amazonOriginalUrl || `https://www.amazon.com/dp/${editingProduct.asin}`,
-      affiliateUrl: editingProduct.affiliateUrl || `https://www.amazon.com/dp/${editingProduct.asin}?tag=${associateTag}`,
+      shortDescription: editingProduct.shortDescription || '',
+      fullDescription: editingProduct.fullDescription || '',
+      images: editingProduct.images && editingProduct.images.length ? editingProduct.images.filter(Boolean) : [],
+      amazonOriginalUrl: editingProduct.amazonOriginalUrl || '',
+      affiliateUrl: editingProduct.affiliateUrl || '',
       amazonMarketplace: 'US',
       associateTrackingId: associateTag,
-      currentPrice: Number(editingProduct.currentPrice) || 99.99,
-      referencePrice: Number(editingProduct.referencePrice) || 129.99,
+      currentPrice: Number(editingProduct.currentPrice) || 0,
+      referencePrice: Number(editingProduct.referencePrice) || 0,
       currency: 'USD',
       discountPercentage: Number(editingProduct.discountPercentage) || 0,
-      isAvailable: true,
+      isAvailable: editingProduct.stockStatus !== 'out_of_stock',
       isDeal: Boolean(editingProduct.isDeal),
       isPrime: true,
-      rating: Number(editingProduct.rating) || 4.5,
-      reviewCount: Number(editingProduct.reviewCount) || 120,
-      mainFeatures: editingProduct.mainFeatures || ['Independent Benchmarking', 'Amazon Price Drops', 'Top Buyer Ratings'],
-      specifications: editingProduct.specifications || { Warranty: '1 Year' },
-      pros: editingProduct.pros || ['Great build quality', 'Excellent price-to-performance'],
-      cons: editingProduct.cons || ['Slightly higher price than basic alternatives'],
-      bestFor: editingProduct.bestFor || 'Top overall value pick',
-      editorVerdict: editingProduct.editorVerdict || 'Solid choice for buyers seeking top performance on Amazon.',
-      editorScore: Number(editingProduct.editorScore) || 9.0,
+      rating: Number(editingProduct.rating) || 0,
+      reviewCount: Number(editingProduct.reviewCount) || 0,
+      mainFeatures: Array.isArray(editingProduct.mainFeatures) ? editingProduct.mainFeatures : [],
+      specifications: editingProduct.specifications || {},
+      pros: Array.isArray(editingProduct.pros) ? editingProduct.pros : [],
+      cons: Array.isArray(editingProduct.cons) ? editingProduct.cons : [],
+      bestFor: editingProduct.bestFor || '',
+      editorVerdict: editingProduct.editorVerdict || '',
+      editorScore: Number(editingProduct.editorScore) || 0,
       similarProductIds: [],
       alternativeProductIds: [],
       relatedComparisonIds: [],
       relatedGuideIds: [],
-      isFeatured: true,
-      isTrending: true,
+      isFeatured: !!editingProduct.isFeatured,
+      isTrending: !!editingProduct.isTrending,
       isBestSeller: false,
-      published: true,
+      published: editingProduct.status !== 'draft',
+      status: editingProduct.status || 'published',
       lastSyncedAt: new Date().toISOString(),
       lastReviewedAt: new Date().toISOString(),
-      seoTitle: editingProduct.seoTitle || `${editingProduct.title} Review, Specs & Best Amazon Deals | DawnWire`,
-      metaDescription: editingProduct.metaDescription || `In-depth review and benchmark analysis for ${editingProduct.title}. Compare price drops, specs, pros, cons, and editor rating on DawnWire.`,
-      metaKeywords: editingProduct.metaKeywords && editingProduct.metaKeywords.length > 0
-        ? editingProduct.metaKeywords
-        : [editingProduct.title.toLowerCase(), `${editingProduct.title.toLowerCase()} review`, 'amazon price drops', 'dawnwire tech review'],
-      canonicalUrl: editingProduct.canonicalUrl || `https://dawnwire.com/products/${slug}`
+      seoTitle: editingProduct.seoTitle || '',
+      metaDescription: editingProduct.metaDescription || '',
+      metaKeywords: Array.isArray(editingProduct.metaKeywords) ? editingProduct.metaKeywords : [],
+      canonicalUrl: editingProduct.canonicalUrl || ''
     };
 
     store.saveProduct(fullProduct);
@@ -435,9 +445,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
     return matchesQuery && matchesCat;
   });
 
-  // Calculate total potential affiliate revenue
-  const totalClickValue = affiliateClicks.length * 120.00;
-  const estimatedCommission = totalClickValue * 0.045; // 4.5% avg Amazon commission
+  const estimatedCommission = serverClickData.totalClicks * 0.35; // $0.35 avg CPC
 
   // Save Banner / Slider Handler
   const handleSaveBanner = (e: React.FormEvent) => {
@@ -593,8 +601,8 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
             <span className="text-lg font-black text-white">{products.length} Products</span>
           </div>
           <div className="p-3 bg-blue-950/60 rounded-2xl border border-blue-800/60">
-            <span className="text-slate-400 block text-[10px] uppercase font-extrabold">Affiliate Clicks</span>
-            <span className="text-lg font-black text-amber-400">{affiliateClicks.length} Outbound</span>
+            <span className="text-slate-400 block text-[10px] uppercase font-extrabold">Affiliate Clicks (30d)</span>
+            <span className="text-lg font-black text-amber-400">{serverClickData.totalClicks} Outbound</span>
           </div>
           <div className="p-3 bg-blue-950/60 rounded-2xl border border-blue-800/60">
             <span className="text-slate-400 block text-[10px] uppercase font-extrabold">Est. Revenue</span>
@@ -617,10 +625,11 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
             { id: 'scraper', label: 'Amazon ASIN Scraper' },
             { id: 'reviews', label: `Editorial Articles (${reviews.length})` },
             { id: 'banners', label: `Banners & Sliders (${banners.length})` },
-            { id: 'analytics', label: `Affiliate Clicks (${affiliateClicks.length})` },
+            { id: 'analytics', label: `Affiliate Clicks (${serverClickData.totalClicks})` },
             { id: 'seo', label: 'SEO & Sitemap' },
             { id: 'firebase', label: 'Firebase & Backup' },
-            { id: 'profile', label: '👤 Admin Profile & Settings' }
+            { id: 'profile', label: '👤 Admin Profile & Settings' },
+            { id: 'extension', label: '🔌 Extension Settings' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -945,7 +954,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setEditingProduct({ title: '', mainCategory: 'Electronics', currentPrice: 99 })}
+                  onClick={() => setEditingProduct({ title: '', mainCategory: '', status: 'draft', published: false })}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow flex items-center gap-1.5"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1056,7 +1065,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                   <div>
                     <label className="block text-slate-500 mb-1">Main Category</label>
                     <select
-                      value={editingProduct.mainCategory || 'Electronics'}
+                      value={editingProduct.mainCategory || ''}
                       onChange={(e) => setEditingProduct({ ...editingProduct, mainCategory: e.target.value })}
                       className="w-full bg-slate-100 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 outline-none"
                     >
@@ -1390,7 +1399,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 pt-2">
+                <div className="flex items-center gap-6 pt-2">
                   <label className="flex items-center gap-2 text-xs font-bold text-orange-600">
                     <input
                       type="checkbox"
@@ -1399,6 +1408,16 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                       className="rounded text-orange-500"
                     />
                     <span>Mark as Amazon Hot Deal</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-xs font-bold text-emerald-600">
+                    <select
+                      value={editingProduct.status || (editingProduct.published ? 'published' : 'draft')}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, status: e.target.value, published: e.target.value === 'published' })}
+                      className="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold outline-none"
+                    >
+                      <option value="published">Published</option>
+                      <option value="draft">Draft</option>
+                    </select>
                   </label>
                 </div>
 
@@ -1840,24 +1859,31 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
             <TopViewedCategoriesChart categories={categories} />
 
             <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
-              <div>
-                <h2 className="text-lg font-extrabold">Real-Time Amazon Affiliate Outbound Click Analytics</h2>
-                <p className="text-xs text-slate-500">Every outbound button click is logged for conversion rate optimization.</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-extrabold">Amazon Affiliate Outbound Click Analytics</h2>
+                  <p className="text-xs text-slate-500">Aggregated click data from the last 30 days.</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-black text-amber-500">{serverClickData.totalClicks}</div>
+                  <div className="text-[10px] text-slate-400 uppercase font-bold">Total Clicks (30d)</div>
+                </div>
               </div>
 
-              {(affiliateClicks || []).length === 0 ? (
+              {(!serverClickData.topLinks || serverClickData.topLinks.length === 0) ? (
                 <div className="p-8 text-center text-xs text-slate-500 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-                  No outbound clicks logged in current session yet. Click any "Check Price on Amazon" button in the preview to test!
+                  No outbound clicks recorded yet. Clicks are tracked when users click "Check Price on Amazon" buttons.
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {affiliateClicks.map((click) => (
-                    <div key={click.id} className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl text-xs flex justify-between items-center">
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Top Clicked Links</div>
+                  {serverClickData.topLinks.map((link, i) => (
+                    <div key={i} className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl text-xs flex justify-between items-center">
                       <div>
-                        <strong className="text-blue-600 dark:text-blue-400">{click.productTitle}</strong>
-                        <span className="text-slate-400 ml-2">ASIN: {click.asin} ({click.ctaText})</span>
+                        <strong className="text-blue-600 dark:text-blue-400">{link.title}</strong>
+                        <span className="text-slate-400 ml-2">({link.clicks} clicks)</span>
                       </div>
-                      <span className="text-[10px] font-mono text-slate-400">{click.timestamp}</span>
+                      <span className="text-[10px] font-mono text-slate-400">/go/{link.url}</span>
                     </div>
                   ))}
                 </div>
@@ -2238,6 +2264,13 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
           </div>
         )}
       </div>
+
+        {/* Tab: Extension Settings */}
+        {activeTab === 'extension' && (
+          <div className="bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 shadow-sm p-6">
+            <ExtensionManager token={(localStorage.getItem('dawnwire_auth_token') || '').trim()} />
+          </div>
+        )}
 
       {/* XML Sitemap Modal */}
       {showSitemapModal && (

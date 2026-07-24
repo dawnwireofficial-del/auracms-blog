@@ -88,48 +88,60 @@ export const store = {
 
   fetchProducts: async () => {
     try {
-      const res = await fetch('/api/public/product-reviews?limit=500');
+      const token = localStorage.getItem('dawnwire_auth_token') || '';
+      const url = token ? '/api/admin/product-reviews?limit=500' : '/api/public/product-reviews?limit=500';
+      const res = await fetch(url, token ? { headers: { 'Authorization': `Bearer ${token}` } } : {});
       if (res.ok) {
         const raw = await res.json();
-        const items = Array.isArray(raw) ? raw : (raw.products || raw.items || []);
+        const items = Array.isArray(raw) ? raw : (raw.data || raw.products || raw.items || []);
         if (items.length > 0) {
           const mapped: Product[] = items.map((d: any) => ({
             id: d.id || d.asin || 'p-' + Math.random().toString(36).substring(2, 7),
             title: d.product_name || d.title || 'Product Review',
             slug: d.slug || (d.product_name || 'product').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
             asin: d.asin || '',
-            brand: d.brand || 'Generic',
-            mainCategory: d.category || d.mainCategory || 'Electronics',
-            subcategory: d.subcategory || 'General',
+            brand: d.brand || '',
+            mainCategory: d.category || d.mainCategory || '',
+            subcategory: d.subcategory || '',
             productType: 'Physical Product',
             shortDescription: d.review_summary || d.shortDescription || '',
             fullDescription: d.review_summary || d.fullDescription || '',
-            images: Array.isArray(d.images) && d.images.length ? d.images : [d.product_image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800'],
+            images: (() => {
+              const imgs: string[] = [];
+              if (d.product_image) imgs.push(d.product_image);
+              const dbGallery = d.gallery;
+              if (Array.isArray(dbGallery)) dbGallery.forEach((u: string) => { if (u && !imgs.includes(u)) imgs.push(u); });
+              const specsGallery = d.specs?.gallery;
+              if (Array.isArray(specsGallery)) specsGallery.forEach((u: string) => { if (u && !imgs.includes(u)) imgs.push(u); });
+              return imgs;
+            })(),
             amazonOriginalUrl: d.amazon_url || d.amazonOriginalUrl || '',
-            affiliateUrl: d.affiliate_url || d.affiliateUrl || `https://www.amazon.com/dp/${d.asin || ''}?tag=dawnwire-20`,
+            affiliateUrl: d.affiliate_url || d.affiliateUrl || '',
             amazonMarketplace: 'US',
             associateTrackingId: 'dawnwire-20',
-            currentPrice: parseFloat((d.price || d.currentPrice || '99.99').toString().replace(/[^0-9.]/g, '')) || 99.99,
-            referencePrice: parseFloat((d.original_price || d.referencePrice || '129.99').toString().replace(/[^0-9.]/g, '')) || 129.99,
+            currentPrice: parseFloat(String(d.price || d.currentPrice || '0').replace(/[^0-9.]/g, '')) || 0,
+            referencePrice: parseFloat(String(d.original_price || d.referencePrice || '0').replace(/[^0-9.]/g, '')) || 0,
             currency: 'USD',
             discountPercentage: Number(d.discount_percentage || d.discountPercentage) || 0,
-            isAvailable: true,
+            isAvailable: d.stock_status !== 'out_of_stock',
             isDeal: Boolean(d.is_deal || d.isDeal),
             isPrime: true,
-            rating: Number(d.rating) || 4.5,
-            reviewCount: Number(d.review_count || d.reviewCount) || 120,
+            rating: Number(d.rating) || 0,
+            reviewCount: Number(d.review_count || d.reviewCount) || 0,
             mainFeatures: Array.isArray(d.key_features) ? d.key_features : (Array.isArray(d.mainFeatures) ? d.mainFeatures : []),
             specifications: d.specs || d.specifications || {},
             pros: Array.isArray(d.pros) ? d.pros : [],
             cons: Array.isArray(d.cons) ? d.cons : [],
-            bestFor: d.best_for || d.bestFor || 'Top Pick',
+            bestFor: d.best_for || d.bestFor || '',
             editorVerdict: d.review_summary || d.editorVerdict || '',
-            editorScore: Number(d.rating ? d.rating * 2 : 9.0),
+            editorScore: Number(d.rating ? d.rating * 2 : 0),
             similarProductIds: [],
             alternativeProductIds: [],
             relatedComparisonIds: [],
             relatedGuideIds: [],
-            isFeatured: true,
+            isFeatured: !!d.is_featured,
+            published: d.status !== 'draft',
+            status: d.status || 'published',
             createdAt: d.created_at || new Date().toISOString(),
             updatedAt: d.updated_at || new Date().toISOString(),
             videoUrl: d.specs?.video_url || d.videoUrl || ''
@@ -143,20 +155,44 @@ export const store = {
     }
   },
 
+  fetchCategories: async () => {
+    try {
+      const res = await fetch('/api/public/categories');
+      if (res.ok) {
+        const raw = await res.json();
+        const items = Array.isArray(raw) ? raw : (raw.data || raw.categories || raw.items || []);
+        if (items.length > 0) {
+          globalStore.categories = items;
+          notify();
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to fetch categories for store', e);
+    }
+  },
+
   saveProduct: (product: Product) => {
     const index = globalStore.products.findIndex((p) => p.id === product.id);
-    if (index >= 0) {
+    const isUpdate = index >= 0;
+    if (isUpdate) {
       globalStore.products[index] = product;
     } else {
       globalStore.products.unshift(product);
     }
     notify();
     try {
-      fetch('/api/admin/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('dawnwire_auth_token')}` },
-        body: JSON.stringify(product)
-      }).catch(() => {});
+      const token = localStorage.getItem('dawnwire_auth_token') || '';
+      const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+      const body = JSON.stringify(product);
+      if (isUpdate && product.id && !product.id.startsWith('p-')) {
+        fetch(`/api/admin/seo/product-reviews/${product.id}`, {
+          method: 'PUT', headers, body
+        }).catch(() => {});
+      } else {
+        fetch('/api/admin/products', {
+          method: 'POST', headers, body
+        }).catch(() => {});
+      }
     } catch (e) {}
   },
 

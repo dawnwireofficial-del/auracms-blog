@@ -243,6 +243,25 @@ Complete Vike SSR migration, deploy to Vercel, and maintain the production site 
 - **`importProductReview()` updated** in `server/seo-engine.ts` — accepts and stores all new fields in `specs` (ingredients, unit_size, unit_price, best_sellers_rank_detail, review_highlights).
 - **Deployment ready**: all fixes in source; next `git push` to Vercel will deploy the corrected bundle.
 
+### Session 7 — Customer Reviews Extraction & Admin Panel Overhaul (this session)
+- **Extension Settings Tab** added to Admin Panel sidebar (`ExtensionManager.tsx`) — 3 sub-tabs: Setup Guide (step-by-step install), Settings (API URL + token display with Copy + Test Connection), Imported Products (placeholder).
+- **Customer reviews extraction** added to `content.js` — 5 store-specific extractors:
+  - `extractAmazonReviews()` — captures reviewer name, avatar image, rating, date, title, body (up to 2000 chars), verified purchase badge, review images (up to 5)
+  - `extractWalmartReviews()`, `extractBestBuyReviews()`, `extractAliExpressReviews()`, `extractEbayReviews()` — same fields per store
+  - `extractReviewStats()` — total count, average rating, star distribution (5★–1★) from histogram
+  - `extractReviews()` — unified dispatcher routes to correct store extractor
+- **`extractProductData()` and `extractProductDataFromDoc()`** — now return `reviews[]` and `reviewStats` fields
+- **Server-side storage** — `specs.reviews` (JSONB array, up to 50), `specs.review_stats`, and `review_count` DB column all populated
+- **CustomerReviews.tsx** — new component at `src/components/affiliate/CustomerReviews.tsx`:
+  - Rating summary card with distribution bars
+  - "Customers say" AI highlights section
+  - Individual review cards (avatar, name, verified badge, stars, date, title, body with expand/collapse, images gallery)
+  - "Show all N reviews" toggle
+  - Integrated into `ProductDetail.tsx` below Full Review section
+- **Admin Dashboard swap** — `AdminDashboardPage.tsx` now renders `AdminPanel` component (full sidebar) instead of the legacy inline tab UI. Users now see all features: Dashboard, Posts, Categories, Products, Brands, Banners, Deals, Homepage, Sections, Amazon Sync, Extension, Media, Clusters, etc.
+- **Content.js TS syntax fix** — removed 2 TypeScript `: any` annotations that would crash in plain JS runtime
+- **Deployed** all changes to `https://www.dawnwire.com`
+
 ### Key design decisions
 - **PA-API 5.0 only** — No scraping. Uses official Amazon Product Advertising API with proper SigV4 authentication.
 - **ASIN is primary identifier** — Extracted from affiliate URLs on initialization, stored in both `product_reviews.asin` and `amazon_sync_status.asin`.

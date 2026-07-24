@@ -513,6 +513,48 @@ router.post('/amazon-sync/trigger-cycle', authenticate, requireRole(['super_admi
   try { const m = await sync(); const result = await m.processSyncCycle(); res.json(result); } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
+// Product Reviews — list all (including drafts)
+router.get('/product-reviews', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const all = await seo.getProductReviews();
+    const limit = Math.min(parseInt(req.query.limit as string) || 500, 1000);
+    const offset = parseInt(req.query.offset as string) || 0;
+    const total = all.length;
+    const items = all.slice(offset, offset + limit);
+    res.json({ data: items, total, limit, offset });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Product Reviews — create
+router.post('/products', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const body = req.body;
+    const mapped = {
+      product_name: body.title || body.product_name || 'Product',
+      brand: body.brand || '',
+      product_image: Array.isArray(body.images) ? body.images[0] : (body.product_image || ''),
+      affiliate_url: body.affiliate_url || body.amazonOriginalUrl || body.amazon_url || '',
+      price: String(body.currentPrice || body.price || ''),
+      listPrice: String(body.referencePrice || body.listPrice || ''),
+      rating: Number(body.rating) || 0,
+      reviewCount: Number(body.review_count || body.reviewCount) || 0,
+      pros: Array.isArray(body.pros) ? body.pros : [],
+      cons: Array.isArray(body.cons) ? body.cons : [],
+      key_features: Array.isArray(body.mainFeatures) ? body.mainFeatures : (Array.isArray(body.key_features) ? body.key_features : []),
+      review_summary: body.shortDescription || body.review_summary || '',
+      asin: body.asin || '',
+      specs: body.specifications || body.specs || {},
+      status: body.status || 'published',
+    };
+    const created = await seo.createProductReview(mapped);
+    res.json(created);
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Import product from ASIN via Amazon PA-API
 router.post('/products/import-from-asin', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
   try {

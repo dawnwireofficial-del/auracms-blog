@@ -93,6 +93,19 @@ router.get('/faqs', async (_req, res) => {
   res.json(faqs.filter((f: any) => f.status === 'published'));
 });
 
+router.get('/price-history/:id', async (req, res) => {
+  try {
+    const history = await dbInstance.getAmazonPriceHistory(req.params.id, 50);
+    res.json(history.map((h: any) => ({
+      price: parseFloat(h.price) || 0,
+      date: h.created_at || h.recorded_at || new Date().toISOString(),
+      source: h.source || 'amazon-sync'
+    })));
+  } catch (e: any) {
+    res.json([]);
+  }
+});
+
 // Product reviews with entity enrichment for slug lookup
 router.get('/product-reviews/slug/:slug', async (req, res) => {
   const reviews = await seo.getPublishedProductReviews();

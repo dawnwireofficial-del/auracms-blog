@@ -17,8 +17,9 @@ export default function ProductCard({
 }: ProductCardProps) {
   const price = parseFloat(String(product.price || product.currentPrice || '0').replace(/[^0-9.]/g, ''));
   const origPrice = parseFloat(String(product.originalPrice || product.referencePrice || '0').replace(/[^0-9.]/g, ''));
-  const hasDiscount = origPrice > price && origPrice > 0;
-  const discount = product.discountPercentage || (hasDiscount ? Math.round((1 - price / origPrice) * 100) : 0);
+  const rawDiscount = origPrice > price && origPrice > 0 ? Math.round((1 - price / origPrice) * 100) : 0;
+  const discount = product.discountPercentage || (rawDiscount > 0 && rawDiscount <= 40 ? rawDiscount : 0);
+  const hasDiscount = discount > 0;
   const isOutOfStock = product.stockStatus === 'out_of_stock';
 
   const renderStars = (rating?: number) => {

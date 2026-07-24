@@ -57,7 +57,7 @@ export default function ProductList({ products, categories, brands, showFilters 
       return price >= priceRange[0] && price <= priceRange[1];
     });
     if (minRating > 0) items = items.filter(p => (p.rating || 0) >= minRating);
-    if (showDealsOnly) items = items.filter(p => (p as any).isDeal || ((p as any).discountPercentage || 0) > 0 || (parseFloat(String(p.originalPrice || '0')) > parseFloat(String(p.price || p.currentPrice || '0'))));
+    if (showDealsOnly) items = items.filter(p => (p as any).isDeal || ((p as any).discountPercentage || 0) > 0);
     if (showInStockOnly) items = items.filter(p => p.stockStatus !== 'out_of_stock');
 
     switch (sort) {

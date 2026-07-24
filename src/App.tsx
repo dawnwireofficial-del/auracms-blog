@@ -32,6 +32,11 @@ export function App() {
   const { wishlist = [], products = [], currentUser } = useAppStore();
 
   useEffect(() => {
+    store.fetchProducts();
+    store.fetchCategories();
+  }, []);
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsAiFinderOpen(false);

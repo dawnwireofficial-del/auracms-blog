@@ -6,6 +6,7 @@ import SocialShareButtons from '../SocialShareButtons';
 import PriceAlertModal from './PriceAlertModal';
 import AiVerdictCard from './AiVerdictCard';
 import MultiStoreComparison from './MultiStoreComparison';
+import CustomerReviews from './CustomerReviews';
 import ProductCard from './ProductCard';
 import ProductSpotlight from '../motion/ProductSpotlight';
 import TechGrid from '../motion/TechGrid';
@@ -23,11 +24,15 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
   const [inWishlist, setInWishlist] = useState(false);
   const [showShare, setShowShare] = useState(false);
 
-  const images = [product.productImage, ...(product.gallery || [])].filter(Boolean) as string[];
+  const specsGallery = (product as any).specs?.gallery;
+  const galleryArr = Array.isArray(specsGallery) ? specsGallery : [];
+  const rawGallery = product.gallery || [];
+  const images = [product.productImage, ...rawGallery, ...galleryArr].filter(Boolean) as string[];
   const price = parseFloat(String(product.price || product.currentPrice || '0').replace(/[^0-9.]/g, ''));
   const origPrice = parseFloat(String(product.originalPrice || product.referencePrice || '0').replace(/[^0-9.]/g, ''));
-  const hasDiscount = origPrice > price && origPrice > 0;
-  const discount = product.discountPercentage || (hasDiscount ? Math.round((1 - price / origPrice) * 100) : 0);
+  const rawDiscount = origPrice > price && origPrice > 0 ? Math.round((1 - price / origPrice) * 100) : 0;
+  const discount = product.discountPercentage || (rawDiscount > 0 && rawDiscount <= 40 ? rawDiscount : 0);
+  const hasDiscount = discount > 0;
   const features = product.features || product.keyFeatures || [];
   const specs = product.technicalSpecs || product.specs || {};
   const pros = product.pros || [];
@@ -374,6 +379,20 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
             <div className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed">{product.reviewSummary}</div>
           </div>
         )}
+
+        {/* Customer Reviews */}
+        {(() => {
+          const specs = product.specs as any;
+          const reviews = specs?.reviews;
+          const reviewStats = specs?.review_stats;
+          const reviewHighlights = specs?.review_highlights;
+          if (!reviews || reviews.length === 0) return null;
+          return (
+            <div className="mt-8">
+              <CustomerReviews reviews={reviews} reviewStats={reviewStats} reviewHighlights={reviewHighlights} />
+            </div>
+          );
+        })()}
 
         {/* Related Products */}
         {similarProducts && similarProducts.length > 0 && (

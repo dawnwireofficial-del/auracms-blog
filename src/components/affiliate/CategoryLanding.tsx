@@ -38,7 +38,7 @@ export default function CategoryLanding({ category, allProducts, allCategories, 
     return catWords.some((w: string) => bestWords.includes(w));
   }) || [];
   const featured = products.filter(p => (p as any).isFeatured);
-  const deals = products.filter(p => (p as any).isDeal || parseFloat(String(p.originalPrice || '0')) > parseFloat(String(p.price || p.currentPrice || '0')));
+  const deals = products.filter(p => (p as any).isDeal || ((p as any).discountPercentage || 0) > 0);
   const topRated = [...products].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 8);
   const trending = products.filter(p => (p as any).isTrending).length > 0 ? products.filter(p => (p as any).isTrending) : [...products].sort((a, b) => (b.pageViews || 0) - (a.pageViews || 0)).slice(0, 8);
 

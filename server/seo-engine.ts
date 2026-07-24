@@ -300,6 +300,8 @@ export async function importProductReview(data: {
   unitPrice?: string;
   bsrDetail?: Array<{ rank: number; category: string }>;
   reviewHighlights?: string;
+  reviews?: Array<{ name: string; avatar?: string; rating: number; title?: string; date?: string; body?: string; verified?: boolean; images?: string[] }>;
+  reviewStats?: { total: number; average: number; distribution: { 5: number; 4: number; 3: number; 2: number; 1: number } };
 }): Promise<any> {
   const sb = await getClient();
   let slug = slugify(data.product_name || 'product-review');
@@ -330,6 +332,8 @@ export async function importProductReview(data: {
   if (data.unitPrice) specs.unit_price = data.unitPrice;
   if (data.bsrDetail && data.bsrDetail.length > 0) specs.best_sellers_rank_detail = data.bsrDetail;
   if (data.reviewHighlights) specs.review_highlights = data.reviewHighlights;
+  if (data.reviews && data.reviews.length > 0) specs.reviews = data.reviews.slice(0, 50);
+  if (data.reviewStats) specs.review_stats = data.reviewStats;
   const review: any = {
     id: crypto.randomUUID(),
     product_name: data.product_name,
@@ -338,7 +342,8 @@ export async function importProductReview(data: {
     affiliate_url: data.affiliate_url || data.amazon_url || null,
     price: data.price || null,
     original_price: data.listPrice || null,
-    rating: data.rating || 0,
+    rating: data.rating || data.reviewStats?.average || 0,
+    review_count: data.reviewStats?.total || data.reviewCount || 0,
     pros: data.pros || [],
     cons: data.cons || [],
     key_features: data.key_features || [],

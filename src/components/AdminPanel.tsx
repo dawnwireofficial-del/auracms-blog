@@ -4,7 +4,7 @@ import {
   LayoutDashboard, BookOpen, FolderOpen, MessageSquare, Link2, 
   Settings as SettingsIcon, LogOut, Mail, List, Eye, 
   Image as ImageIcon, FileText, Search, Star, ShoppingBag, Layers, Timer,
-  Bell, RefreshCw
+  Bell, RefreshCw, Download
 } from 'lucide-react';
 
 import { Post, Category, Comment, AffiliateLink, Page, SiteSettings, User, ContactMessage, NewsletterSubscriber, ActivityLog, MediaItem } from '../types';
@@ -30,6 +30,7 @@ import AdminDrips from './admin/AdminDrips';
 import AdminContact from './admin/AdminContact';
 import AdminSettings from './admin/AdminSettings';
 import AdminLogs from './admin/AdminLogs';
+import ExtensionManager from './ExtensionManager';
 
 interface AdminPanelProps {
   token: string;
@@ -38,7 +39,7 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
-  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'posts' | 'categories' | 'comments' | 'products' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'seo' | 'ai' | 'clusters' | 'media' | 'brands' | 'banners' | 'deals' | 'homepage' | 'sections' | 'amazon-sync'>('dashboard');
+  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'posts' | 'categories' | 'comments' | 'products' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'seo' | 'ai' | 'clusters' | 'media' | 'brands' | 'banners' | 'deals' | 'homepage' | 'sections' | 'amazon-sync' | 'extension'>('dashboard');
   
   // Data States
   const [posts, setPosts] = useState<Post[]>([]);
@@ -176,6 +177,7 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
             { key: 'homepage', icon: BookOpen, label: 'Homepage' },
             { key: 'sections', icon: LayoutDashboard, label: 'Sections' },
             { key: 'amazon-sync', icon: RefreshCw, label: 'Amazon Sync' },
+            { key: 'extension', icon: Download, label: 'Extension' },
             { key: 'media', icon: ImageIcon, label: `Media (${media.length})` },
             { key: 'clusters', icon: Layers, label: 'Clusters' },
           ].map(item => (
@@ -312,6 +314,13 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
           {activeMenu === 'amazon-sync' && (
             <div id="admin-workspace-amazon-sync">
               <AmazonSyncDashboard token={token} />
+            </div>
+          )}
+
+          {/* E0b: BROWSER EXTENSION */}
+          {activeMenu === 'extension' && (
+            <div id="admin-workspace-extension">
+              <ExtensionManager token={token} />
             </div>
           )}
 
