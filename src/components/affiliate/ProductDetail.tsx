@@ -23,6 +23,15 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
   const [activeImage, setActiveImage] = useState(0);
   const [inWishlist, setInWishlist] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [brokenImages, setBrokenImages] = useState<Set<number>>(new Set());
+
+  const handleImageError = (idx: number) => {
+    setBrokenImages(prev => {
+      const next = new Set(prev);
+      next.add(idx);
+      return next;
+    });
+  };
 
   const specsGallery = (product as any).specs?.gallery;
   const galleryArr = Array.isArray(specsGallery) ? specsGallery : [];
@@ -121,7 +130,13 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
             <div className="relative aspect-square glass-panel rounded-xl overflow-hidden shadow-lg border border-brand-secondary/20 hover:border-brand-secondary/40 transition-all flex items-center justify-center bg-white/5">
               <ProductSpotlight />
               {images.length > 0 ? (
-                <img src={images[activeImage]} alt={product.productName} className="w-full h-full object-contain p-6" />
+                brokenImages.has(activeImage) ? (
+                  <div className="w-full h-full flex items-center justify-center text-slate-300 dark:text-zinc-600">
+                    <ShoppingBag className="h-20 w-20" />
+                  </div>
+                ) : (
+                  <img src={images[activeImage]} alt={product.productName} className="w-full h-full object-contain p-6" onError={() => handleImageError(activeImage)} />
+                )
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-slate-300 dark:text-zinc-600">
                   <ShoppingBag className="h-20 w-20" />
@@ -146,7 +161,13 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
               <div className="flex gap-2 mt-3 overflow-x-auto pb-2">
                 {images.map((img, i) => (
                   <button key={i} onClick={() => setActiveImage(i)} className={`shrink-0 w-16 h-16 rounded-lg border-2 overflow-hidden transition-all ${i === activeImage ? 'border-brand-secondary' : 'border-slate-200 dark:border-zinc-700 hover:border-brand-secondary/50'}`}>
-                    <img src={img} alt="" className="w-full h-full object-contain p-1" loading="lazy" />
+                    {brokenImages.has(i) ? (
+                      <div className="w-full h-full flex items-center justify-center text-slate-300 dark:text-zinc-600">
+                        <ShoppingBag className="h-6 w-6" />
+                      </div>
+                    ) : (
+                      <img src={img} alt="" className="w-full h-full object-contain p-1" loading="lazy" onError={() => handleImageError(i)} />
+                    )}
                   </button>
                 ))}
               </div>

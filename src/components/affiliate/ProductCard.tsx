@@ -81,15 +81,15 @@ export default function ProductCard({
       transition={{ duration: 0.25, ease: 'easeOut' }}
       className="group relative glass-panel rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col border border-brand-secondary/20 hover:border-brand-secondary/40"
     >
-      {/* Image */}
-      <a href={`/product/${product.slug || product.id}`} className="relative aspect-square bg-white/5 overflow-hidden">
-        {product.productImage ? (
-          <img src={product.productImage} alt={product.productName} className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-slate-300 dark:text-zinc-600">
-            <ShoppingBag className="h-12 w-12" />
-          </div>
-        )}
+       {/* Image */}
+       <a href={`/product/${product.slug || product.id}`} className="relative aspect-square bg-white/5 overflow-hidden">
+         {product.productImage ? (
+           <img src={product.productImage} alt={product.productName} className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+         ) : (
+           <div className="w-full h-full flex items-center justify-center text-slate-300 dark:text-zinc-600">
+             <ShoppingBag className="h-12 w-12" />
+           </div>
+         )}
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           {renderDealBadge()}
@@ -153,7 +153,7 @@ export default function ProductCard({
     >
       <a href={`/product/${product.slug || product.id}`} className="w-32 h-32 shrink-0 bg-white/5 rounded-lg overflow-hidden flex items-center justify-center">
         {product.productImage ? (
-          <img src={product.productImage} alt={product.productName} className="w-full h-full object-contain p-2" loading="lazy" />
+          <img src={product.productImage} alt={product.productName} className="w-full h-full object-contain p-2" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-slate-300 dark:text-zinc-600"><ShoppingBag className="h-8 w-8" /></div>
         )}

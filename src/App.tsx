@@ -37,6 +37,19 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    const handleImageError = (e: Event) => {
+      const img = e.target as HTMLImageElement;
+      if (img && img.tagName === 'IMG' && !img.dataset.fallbackApplied) {
+        img.dataset.fallbackApplied = 'true';
+        img.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f1f5f9"/><text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">Image unavailable</text></svg>');
+        img.onerror = null;
+      }
+    };
+    window.addEventListener('error', handleImageError, true);
+    return () => window.removeEventListener('error', handleImageError, true);
+  }, []);
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsAiFinderOpen(false);
