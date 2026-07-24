@@ -3,6 +3,7 @@ import { dbInstance } from '../../server/db';
 import * as seo from '../../server/seo-engine';
 import { sendNewsletterBroadcast } from '../../server/email';
 import { sendDripEmail, getDripCampaignConfig, getNextDripStep } from '../../server/drip-campaign';
+import { getSupabaseAdmin } from '../../server/lib/supabase';
 import { authenticate, requireRole } from './middleware';
 
 const router = express.Router();
@@ -649,6 +650,59 @@ router.post('/products/import-from-asin', authenticate, requireRole(['super_admi
     return res.json({ success: true, product: created });
   } catch (e: any) {
     return res.status(500).json({ error: e.message || 'Import failed' });
+  }
+});
+
+// Seed default product categories (run once)
+router.post('/setup/product-categories', async (_req, res) => {
+  try {
+    const existing = await dbInstance.getCategories();
+    const slugs = new Set(existing.map((c: any) => c.slug?.toLowerCase()));
+
+    const { randomUUID } = await import('crypto');
+    const defaultCats = [
+      { id: randomUUID(), name: 'Electronics', slug: 'electronics', description: 'TVs, headphones, laptops, smartphones, and gadgets' },
+      { id: randomUUID(), name: 'Home & Kitchen', slug: 'home-kitchen', description: 'Home improvement, kitchen gadgets, furniture, and decor' },
+      { id: randomUUID(), name: 'Beauty & Personal Care', slug: 'beauty-personal-care', description: 'Skincare, makeup, hair care, and personal grooming' },
+      { id: randomUUID(), name: 'Fitness', slug: 'fitness', description: 'Fitness apparel, equipment, and accessories' },
+      { id: randomUUID(), name: 'Baby Products', slug: 'baby-products', description: 'Baby gear, nursery essentials, and childcare products' },
+      { id: randomUUID(), name: 'Automotive', slug: 'automotive', description: 'Car parts, accessories, and automotive tools' },
+      { id: randomUUID(), name: 'Office & Productivity', slug: 'office-productivity', description: 'Office supplies, computer accessories, and productivity tools' },
+      { id: randomUUID(), name: 'Gaming', slug: 'gaming', description: 'Gaming chairs, headsets, mice, keyboards, and accessories' },
+      { id: randomUUID(), name: 'Sports & Outdoors', slug: 'sports-outdoors', description: 'Sports equipment, outdoor gear, and recreation' },
+      { id: randomUUID(), name: 'Toys & Games', slug: 'toys-games', description: 'Toys, board games, and educational play' },
+      { id: randomUUID(), name: 'AI & Software Tools', slug: 'ai-software-tools', description: 'AI hardware accessories, developer desk gadgets, smart ambient monitors, and cloud tools' },
+    ];
+
+    const created: string[] = [];
+    let sb;
+    try {
+      sb = await getSupabaseAdmin();
+    } catch {
+      sb = null;
+    }
+
+    for (const cat of defaultCats) {
+      if (!slugs.has(cat.slug)) {
+        if (sb) {
+          // Use admin client directly to avoid schema cache issues
+          const slugExists = await sb.from('categories').select('id').eq('slug', cat.slug).maybeSingle();
+          if (!slugExists.data) {
+            const { error } = await sb.from('categories').insert([
+              { id: cat.id, name: cat.name, slug: cat.slug, description: cat.description, status: 'active' }
+            ]);
+            if (error) throw error;
+          }
+        } else {
+          await dbInstance.createCategory({ ...cat, icon: 'tag', status: 'active' as const });
+        }
+        created.push(cat.name);
+      }
+    }
+
+    res.json({ success: true, created, message: created.length ? `Added: ${created.join(', ')}` : 'All categories already exist' });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message || 'Setup failed' });
   }
 });
 
