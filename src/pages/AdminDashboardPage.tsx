@@ -87,7 +87,7 @@ export const AdminDashboardPage: React.FC = () => {
 
   useEffect(() => {
     store.fetchProducts();
-    fetch('/api/analytics/clicks')
+      fetch('/api/admin/analytics/clicks')
       .then(r => r.json())
       .then(data => {
         if (data && typeof data.totalClicks === 'number') {
