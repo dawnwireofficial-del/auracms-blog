@@ -6,3 +6,6 @@ ALTER TABLE IF EXISTS bulk_import_jobs DISABLE ROW LEVEL SECURITY;
 GRANT ALL ON bulk_import_jobs TO authenticated;
 GRANT ALL ON bulk_import_jobs TO anon;
 GRANT ALL ON bulk_import_jobs TO public;
+
+-- Ensure id lookups are fast
+CREATE INDEX IF NOT EXISTS idx_bulk_import_jobs_id ON bulk_import_jobs(id);

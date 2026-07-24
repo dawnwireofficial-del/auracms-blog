@@ -72,11 +72,15 @@ function buildDirectAmazonUrl(asin: string, marketplace: string = DEFAULT_MARKET
 async function getAdminToken(params: BulkImportParams): Promise<string> {
   if (params.adminToken) return params.adminToken;
   const apiUrl = process.env.APP_URL || 'https://www.dawnwire.com';
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
   const res = await fetch(`${apiUrl}/api/auth/login`, {
     method: 'POST',
+    signal: controller.signal,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username: process.env.BULK_IMPORT_ADMIN_USER, password: process.env.BULK_IMPORT_ADMIN_PASS }),
   });
+  clearTimeout(timeout);
   if (!res.ok) throw new Error('Failed to get admin token for bulk import');
   const data = await res.json() as any;
   return data.token;
@@ -90,8 +94,11 @@ async function createCloakedLink(
 ): Promise<boolean> {
   try {
     const apiUrl = process.env.APP_URL || 'https://www.dawnwire.com';
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
     const res = await fetch(`${apiUrl}/api/admin/affiliate`, {
       method: 'POST',
+      signal: controller.signal,
       headers: {
         Authorization: `Bearer ${adminToken}`,
         'Content-Type': 'application/json',
@@ -108,6 +115,7 @@ async function createCloakedLink(
         status: 'active',
       }),
     });
+    clearTimeout(timeout);
     return res.ok;
   } catch {
     return false;
@@ -129,11 +137,8 @@ async function updateJobProgress(jobId: string, updates: Partial<BulkImportJob>)
       const dbKey = keyMap[key] || key;
       dbUpdates[dbKey] = value;
     }
-    const { error } = await sb
-      .from('bulk_import_jobs')
-      .update(dbUpdates)
-      .eq('id', jobId);
-    if (error) console.error('[BulkImport] Failed to update job progress:', error.message);
+    const query = sb.from('bulk_import_jobs').update(dbUpdates).eq('id', jobId);
+    await withTimeout(query, 5000, { error: null } as any);
   } catch (e) {
     console.error('[BulkImport] DB error updating progress:', e);
   }
@@ -142,12 +147,13 @@ async function updateJobProgress(jobId: string, updates: Partial<BulkImportJob>)
 async function findDuplicateAsin(asin: string): Promise<{ id: string; slug: string } | null> {
   try {
     const sb = await getSupabaseAdmin();
-    const { data } = await sb
+    const query = sb
       .from('product_reviews')
       .select('id, slug')
       .contains('specs', { asin })
       .limit(1)
       .maybeSingle();
+    const { data } = await withTimeout(query, 5000, { data: null } as any);
     if (data?.id) return { id: data.id, slug: data.slug };
     return null;
   } catch {
@@ -170,7 +176,7 @@ export async function startBulkImport(params: BulkImportParams): Promise<BulkImp
   }
 
   const sb = await getSupabaseAdmin();
-  const { data: job, error } = await sb
+  const insertQuery = sb
     .from('bulk_import_jobs')
     .insert({
       source: params.source,
@@ -186,7 +192,7 @@ export async function startBulkImport(params: BulkImportParams): Promise<BulkImp
     })
     .select()
     .single();
-
+  const { data: job, error } = await withTimeout(insertQuery, 10000, { data: null, error: { message: 'DB insert timeout' } } as any);
   if (error || !job) {
     throw new Error(error?.message || 'Failed to create bulk import job');
   }
@@ -202,7 +208,8 @@ export async function startBulkImport(params: BulkImportParams): Promise<BulkImp
 export async function processBulkImport(jobId: string): Promise<BulkImportJob> {
   const sb = await getSupabaseAdmin();
 
-  const { data: jobRow } = await sb.from('bulk_import_jobs').select('*').eq('id', jobId).single();
+  const jobQuery = sb.from('bulk_import_jobs').select('*').eq('id', jobId).single();
+  const { data: jobRow } = await withTimeout(jobQuery, 5000, { data: null } as any);
   if (!jobRow) throw new Error(`Job ${jobId} not found`);
 
   const params = jobRow.params as BulkImportParams;
@@ -385,14 +392,23 @@ export async function processBulkImport(jobId: string): Promise<BulkImportJob> {
     result: { errors },
   });
 
-  const { data: finalJob } = await sb.from('bulk_import_jobs').select('*').eq('id', jobId).single();
+  const finalQuery = sb.from('bulk_import_jobs').select('*').eq('id', jobId).single();
+  const { data: finalJob } = await withTimeout(finalQuery, 5000, { data: null } as any);
   return finalJob as BulkImportJob;
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ]);
 }
 
 export async function getBulkImportJob(jobId: string): Promise<BulkImportJob | null> {
   try {
     const sb = await getSupabaseAdmin();
-    const { data } = await sb.from('bulk_import_jobs').select('*').eq('id', jobId).single();
+    const query = sb.from('bulk_import_jobs').select('*').eq('id', jobId).single();
+    const { data } = await withTimeout(query, 5000, { data: null } as any);
     return data ? (data as BulkImportJob) : null;
   } catch {
     return null;
@@ -401,7 +417,9 @@ export async function getBulkImportJob(jobId: string): Promise<BulkImportJob | n
 
 export async function cancelBulkImport(jobId: string): Promise<boolean> {
   try {
-    await updateJobProgress(jobId, { status: 'cancelled' });
+    const sb = await getSupabaseAdmin();
+    const query = sb.from('bulk_import_jobs').update({ status: 'cancelled', updated_at: new Date().toISOString() }).eq('id', jobId);
+    await withTimeout(query, 5000, { error: null } as any);
     return true;
   } catch {
     return false;
