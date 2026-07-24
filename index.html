@@ -47,6 +47,44 @@
       gtag('js', new Date());
       gtag('config', 'G-QKMK9H7MFT');
     </script>
+    <!-- Global image error fallback (runs before React) -->
+    <script>
+      (function() {
+        var FALLBACK = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect width="400" height="400" fill="#f1f5f9"/><text x="200" y="200" text-anchor="middle" dy=".3em" fill="#94a3b8" font-size="16" font-family="sans-serif">Image unavailable</text></svg>');
+        function fix(img) {
+          if (!img || img.dataset.fallbackApplied) return;
+          if (img.src && img.src.indexOf('m.media-amazon.com') !== -1 && img.naturalWidth === 0) {
+            img.dataset.fallbackApplied = '1';
+            img.src = FALLBACK;
+          }
+        }
+        function walk(node) {
+          if (node.nodeType === 1 && node.tagName === 'IMG') {
+            fix(node);
+            if (node.complete && node.naturalWidth === 0) {
+              node.src = FALLBACK;
+            }
+          }
+          for (var i = 0; i < node.children.length; i++) walk(node.children[i]);
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function() { walk(document.body); });
+        } else {
+          walk(document.body);
+        }
+        var mo = new MutationObserver(function(records) {
+          for (var r = 0; r < records.length; r++) {
+            for (var n = 0; n < records[r].addedNodes.length; n++) {
+              if (records[r].addedNodes[n].nodeType === 1) walk(records[r].addedNodes[n]);
+            }
+          }
+        });
+        mo.observe(document.body, { childList: true, subtree: true });
+        window.addEventListener('error', function(e) {
+          if (e.target && e.target.tagName === 'IMG') fix(e.target);
+        }, true);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
