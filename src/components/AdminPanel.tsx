@@ -32,6 +32,7 @@ import AdminSettings from './admin/AdminSettings';
 import AdminLogs from './admin/AdminLogs';
 import ExtensionManager from './ExtensionManager';
 import AmazonBulkImporter from './AmazonBulkImporter';
+import AutoImportPanel from './admin/AutoImportPanel';
 
 interface AdminPanelProps {
   token: string;
@@ -40,7 +41,7 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
-  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'posts' | 'categories' | 'comments' | 'products' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'seo' | 'ai' | 'clusters' | 'media' | 'brands' | 'banners' | 'deals' | 'homepage' | 'sections' | 'amazon-sync' | 'extension' | 'bulk-import'>('dashboard');
+  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'posts' | 'categories' | 'comments' | 'products' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'seo' | 'ai' | 'clusters' | 'media' | 'brands' | 'banners' | 'deals' | 'homepage' | 'sections' | 'amazon-sync' | 'extension' | 'bulk-import' | 'auto-import'>('dashboard');
   
   // Data States
   const [posts, setPosts] = useState<Post[]>([]);
@@ -135,7 +136,8 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
         else setTopicClusters([]);
 
       } catch (e) {
-        console.error('Failed to load administrative records', e);
+        const { toast } = await import('../lib/toastStore');
+        toast.error('Failed to load admin data. Check connection.');
       }
     };
     fetchData();
@@ -180,6 +182,7 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
             { key: 'amazon-sync', icon: RefreshCw, label: 'Amazon Sync' },
             { key: 'extension', icon: Download, label: 'Extension' },
             { key: 'bulk-import', icon: Package, label: 'Bulk Import' },
+            { key: 'auto-import', icon: ShoppingBag, label: 'Auto Import' },
             { key: 'media', icon: ImageIcon, label: `Media (${media.length})` },
             { key: 'clusters', icon: Layers, label: 'Clusters' },
           ].map(item => (
@@ -330,6 +333,13 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
           {activeMenu === 'bulk-import' && (
             <div id="admin-workspace-bulk-import">
               <AmazonBulkImporter token={token} />
+            </div>
+          )}
+
+          {/* E0d: AUTO IMPORT */}
+          {activeMenu === 'auto-import' && (
+            <div id="admin-workspace-auto-import">
+              <AutoImportPanel token={token} />
             </div>
           )}
 

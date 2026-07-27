@@ -107,8 +107,8 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2.5 text-xs text-slate-300">
                <li><a href="/products" className="hover:text-amber-400 transition-colors">All Products (/products)</a></li>
                <li><a href="/deals" className="hover:text-amber-400 transition-colors text-orange-400 font-bold">Today's Amazon Deals</a></li>
-               <li><a href="/best" className="hover:text-amber-400 transition-colors">Best Sellers & Editors' Picks</a></li>
-               <li><a href="/trending" className="hover:text-amber-400 transition-colors">Trending Products</a></li>
+               <li><a href="/products?sort=rating" className="hover:text-amber-400 transition-colors">Best Sellers & Editors' Picks</a></li>
+               <li><a href="/deals" className="hover:text-amber-400 transition-colors">Trending Products</a></li>
                <li><a href="/compare" className="hover:text-amber-400 transition-colors">Product Comparisons</a></li>
                <li><a href="/categories" className="hover:text-amber-400 transition-colors">Category Directory</a></li>
                <li><a href="/brands" className="hover:text-amber-400 transition-colors">Featured Brands</a></li>
@@ -123,9 +123,9 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2.5 text-xs text-slate-300">
                <li><a href="/reviews" className="hover:text-amber-400 transition-colors">Expert Reviews (/reviews)</a></li>
                <li><a href="/guides" className="hover:text-amber-400 transition-colors">Buying Guides (/guides)</a></li>
-               <li><a href="/how-we-review" className="hover:text-amber-400 transition-colors">How We Review</a></li>
-               <li><a href="/editorial-policy" className="hover:text-amber-400 transition-colors">Editorial Policy</a></li>
-               <li><a href="/corrections-policy" className="hover:text-amber-400 transition-colors">Corrections Policy</a></li>
+               <li><a href="/about" className="hover:text-amber-400 transition-colors">How We Review</a></li>
+               <li><a href="/about" className="hover:text-amber-400 transition-colors">Editorial Policy</a></li>
+               <li><a href="/about" className="hover:text-amber-400 transition-colors">Corrections Policy</a></li>
                <li><a href="/about" className="hover:text-amber-400 transition-colors">About DawnWire</a></li>
                <li><a href="/contact" className="hover:text-amber-400 transition-colors">Contact Us</a></li>
              </ul>

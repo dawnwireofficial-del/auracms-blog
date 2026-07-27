@@ -908,7 +908,12 @@
       const titleEl = doc.getElementById('productTitle');
       product_name = titleEl ? titleEl.textContent.trim() : '';
 
-      const imgEl = doc.getElementById('landingImage');
+      let imgEl = doc.getElementById('landingImage');
+      if (!imgEl) imgEl = doc.querySelector('img[data-old-hires]');
+      if (!imgEl) imgEl = doc.querySelector('.a-dynamic-image');
+      if (!imgEl) imgEl = doc.querySelector('#imgTagWrapperId img[src*="images-amazon"]');
+      if (!imgEl) imgEl = doc.querySelector('#main-image img');
+      if (!imgEl) imgEl = doc.querySelector('img[src*="images-amazon"][src*="images/I"]');
       if (imgEl) {
         product_image = imgEl.getAttribute('src') || imgEl.getAttribute('data-old-hires') || '';
         if (!product_image) {
@@ -980,7 +985,7 @@
       } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
 
       const seen = new Set();
-      document.querySelectorAll('#altImages img[src*="images"], #altImages img[src*="media"]').forEach(img => {
+      document.querySelectorAll('#altImages img[src*="images"], #altImages img[src*="media"], .a-spacing-small img[src*="images"], [data-a-carousel-options] img[src*="media"], li[data-csa-c-type="thumb"] img').forEach(img => {
         let src = img.getAttribute('src') || img.getAttribute('data-old-hires') || '';
         src = src.replace(/\._[^.]*_\./g, '.');
         if (src && !seen.has(src)) { seen.add(src); gallery.push(src); }

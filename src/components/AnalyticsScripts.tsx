@@ -12,10 +12,14 @@ interface AnalyticsScriptsProps {
   };
 }
 
+function sanitizeScripts(html: string): string {
+  return html.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, '');
+}
+
 export default function AnalyticsScripts({ settings }: AnalyticsScriptsProps) {
   if (!settings) return null;
 
-  const gaId = settings.analyticsGaId || 'G-QKMK9H7MFT';
+  const gaId = settings.analyticsGaId || '';
   const gtmId = settings.analyticsGtmId || '';
   const pixelId = settings.metaPixelId || '';
   const searchConsole = settings.searchConsoleVerification || '';
@@ -52,7 +56,7 @@ export default function AnalyticsScripts({ settings }: AnalyticsScriptsProps) {
         )}
 
         {headScripts && (
-          <script>{headScripts}</script>
+          <script>{sanitizeScripts(headScripts)}</script>
         )}
       </Head>
 

@@ -10,6 +10,7 @@ import { DealsPage } from './pages/DealsPage';
 import { ComparisonPage } from './pages/ComparisonPage';
 import { ReviewsPage, BuyingGuidesPage } from './pages/EditorialPages';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import BrandsPage from './components/pages/BrandsPage';
 import { ChatbotDrawer } from './components/ai/ChatbotDrawer';
 import { AIProductFinderModal } from './components/ai/AIProductFinderModal';
 import { Product } from './types';
@@ -18,6 +19,19 @@ import { ProductCard } from './components/common/ProductCard';
 import { EmptyWishlistState } from './components/common/EmptyState';
 import { PageProgressBar } from './components/common/PageProgressBar';
 import { ToastContainer } from './components/common/ToastContainer';
+import { BackToTop } from './components/common/BackToTop';
+import ErrorBoundary from './components/ErrorBoundary';
+
+const NotFound: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => (
+  <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
+    <div className="text-center max-w-md">
+      <h1 className="text-8xl font-black bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-orange-500 mb-4">404</h1>
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Page Not Found</h2>
+      <p className="text-slate-500 dark:text-slate-400 mb-8">The page you're looking for doesn't exist or has been moved.</p>
+      <button onClick={() => onNavigate('home')} className="px-6 py-3 bg-[#246BFF] hover:bg-blue-600 text-white font-bold rounded-xl transition-all">Back to Home</button>
+    </div>
+  </div>
+);
 import { setupGlobalLinkInterceptor, triggerPageLoadProgress } from './lib/navigation';
 
 export function App() {
@@ -29,7 +43,7 @@ export function App() {
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const [chatbotContextProduct, setChatbotContextProduct] = useState<Product | undefined>(undefined);
 
-  const { wishlist = [], products = [], currentUser } = useAppStore();
+  const { wishlist = [], products = [], currentUser, recentlyViewed = [] } = useAppStore();
 
   useEffect(() => {
     store.fetchProducts();
@@ -146,17 +160,62 @@ export function App() {
 
   // Simple Router Switch
   const renderRoute = () => {
-    // Product Detail (/products/:slug)
-    if (pathname.startsWith('/products/')) {
-      const slug = pathname.replace('/products/', '');
+    // 404 fallback
+    const validPaths = [
+      '/products', '/products/', '/categories', '/categories/', '/deals', '/compare', '/reviews', '/guides', '/wishlist', '/admin', '/account', '/login', '/contact', '/buyers-guide', '/buying-guides', '/portfolio', '/service', '/search', '/trending', '/best', '/brands', '/browse', '/product', '/about', '/privacy-policy', '/terms', '/affiliate-disclosure', '/recently-viewed', '/sitemap.xml', '/robots.txt', '/llms.txt'
+    ];
+    const isKnownRoute = validPaths.some(p => pathname === p || pathname.startsWith(p + '/'));
+    if (!isKnownRoute && pathname !== '/') {
+      return <NotFound onNavigate={(route) => { window.history.pushState({}, '', route); window.dispatchEvent(new PopStateEvent('popstate')); }} />;
+    }
+
+    // Product Detail (/products/:slug or /product/:slug)
+    if (pathname.startsWith('/products/') || pathname.startsWith('/product/')) {
+      const slug = pathname.startsWith('/products/') ? pathname.replace('/products/', '') : pathname.replace('/product/', '');
       return <ProductDetailPage productSlug={slug} onOpenChatbotForProduct={openChatbotWithProduct} />;
     }
 
-    // Categories (/categories or /categories/:slug)
+    // Categories (/categories or /categories/:slug or /categories/:parentSlug/:subSlug)
     if (pathname.startsWith('/categories')) {
       const parts = pathname.split('/').filter(Boolean);
-      const catSlug = parts[1] || 'all';
+      const catSlug = parts[2] || parts[1] || 'all';
       return <ProductCatalogPage initialCategory={catSlug} />;
+    }
+
+    // Browse by category (/browse/:slug)
+    if (pathname.startsWith('/browse/')) {
+      const slug = pathname.replace('/browse/', '');
+      return <ProductCatalogPage initialCategory={slug} />;
+    }
+
+    // Buyers guide (/buyers-guide/:category or /buying-guides)
+    if (pathname.startsWith('/buyers-guide/')) {
+      const slug = pathname.replace('/buyers-guide/', '');
+      return <ProductCatalogPage initialCategory={slug} />;
+    }
+    if (pathname === '/buying-guides') {
+      return <ProductCatalogPage />;
+    }
+
+    // Recently viewed
+    if (pathname === '/recently-viewed') {
+      const viewedProducts = products.filter((p) => recentlyViewed.includes(p.id));
+      return (
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4">
+          <div className="max-w-7xl mx-auto space-y-6">
+            <h1 className="text-3xl font-black text-slate-900 dark:text-slate-100">Recently Viewed Products ({viewedProducts.length})</h1>
+            {viewedProducts.length === 0 ? (
+              <div className="text-center py-16">
+                <p className="text-slate-500 dark:text-slate-400 text-sm">No recently viewed products yet.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {viewedProducts.map((p) => <ProductCard key={p.id} product={p} />)}
+              </div>
+            )}
+          </div>
+        </div>
+      );
     }
 
     // Catalog (/products or /search)
@@ -208,6 +267,11 @@ export function App() {
           </div>
         </div>
       );
+    }
+
+    // Brands Listing
+    if (pathname === '/brands') {
+      return <BrandsPage onNavigate={(route) => { window.history.pushState({}, '', route); window.dispatchEvent(new PopStateEvent('popstate')); }} />;
     }
 
     // Admin Dashboard
@@ -331,7 +395,9 @@ export function App() {
   };
 
   return (
+    <ErrorBoundary>
     <div className="min-h-screen flex flex-col font-sans bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-orange-500 selection:text-white">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:font-bold">Skip to content</a>
       <PageProgressBar />
       <Header
         onOpenAiFinder={() => setIsAiFinderOpen(true)}
@@ -341,9 +407,9 @@ export function App() {
         }}
       />
 
-      <div className="flex-1 pb-16 md:pb-0">
+      <main id="main-content" className="flex-1 pb-16 md:pb-0">
         {renderRoute()}
-      </div>
+      </main>
 
       <Footer />
 
@@ -395,7 +461,9 @@ export function App() {
 
       {/* Global Toast Notification System */}
       <ToastContainer />
-    </div>
+      <BackToTop />
+      </div>
+    </ErrorBoundary>
   );
 }
 

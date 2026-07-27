@@ -50,6 +50,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
   };
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
   const [activeMegaCat, setActiveMegaCat] = useState(categories[0]?.id || 'cat-electronics');
+  const [categoryProducts, setCategoryProducts] = useState<any[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(
     document.documentElement.classList.contains('dark')
@@ -57,6 +58,20 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
   const [isHighContrast, setIsHighContrast] = useState(
     document.documentElement.classList.contains('high-contrast')
   );
+
+  // Fetch products for active mega menu category
+  useEffect(() => {
+    if (!activeMegaCat || !isMegaMenuOpen) return;
+    const cat = categories.find(c => c.id === activeMegaCat);
+    if (!cat) return;
+    fetch(`/api/public/product-reviews?categorySlug=${encodeURIComponent(cat.slug)}&limit=6&sort=rating`)
+      .then(r => r.json())
+      .then(data => {
+        const items = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+        setCategoryProducts(items.slice(0, 6));
+      })
+      .catch(() => setCategoryProducts([]));
+  }, [activeMegaCat, isMegaMenuOpen, categories]);
 
   // Click outside to close search live dropdown overlay
   useEffect(() => {
@@ -208,9 +223,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
             </span>
           </div>
           <div className="hidden sm:flex items-center gap-4 text-slate-300 text-[11px]">
-            <a href="/how-we-review" className="hover:text-amber-400 transition-colors">How We Review</a>
+            <a href="/about" className="hover:text-amber-400 transition-colors">How We Review</a>
             <span>•</span>
-            <a href="/editorial-policy" className="hover:text-amber-400 transition-colors">Editorial Policy</a>
+            <a href="/about" className="hover:text-amber-400 transition-colors">Editorial Policy</a>
             <span>•</span>
             <a href="/affiliate-disclosure" className="hover:text-amber-400 transition-colors">Affiliate Disclosure</a>
           </div>
@@ -397,7 +412,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
                             type="button"
                             onClick={() => {
                               setIsSearchFocused(false);
-                              navigate(`/products/${p.id}`);
+                              navigate(`/products/${p.slug}`);
                             }}
                             className="w-full text-left p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center justify-between gap-3 text-xs transition-colors group"
                           >
@@ -625,7 +640,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
 
                     {/* Subcategories Grid */}
                     <div className="grid grid-cols-2 gap-3 mb-6">
-                      {(currentMegaCategory.subcategories || []).map((sub: any) => (
+                      {categories.filter(c => c.parentId === currentMegaCategory.id && c.status !== 'inactive').map((sub) => (
                         <a
                           key={sub.id}
                           href={`/categories/${currentMegaCategory.slug}/${sub.slug}`}
@@ -640,6 +655,38 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
                         </a>
                       ))}
                     </div>
+
+                    {/* Popular Products in this category */}
+                    {categoryProducts.length > 0 && (
+                      <div className="mb-4">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 block mb-2">Popular Products</span>
+                        <div className="grid grid-cols-3 gap-2">
+                          {categoryProducts.map((p: any) => (
+                            <a
+                              key={p.id}
+                              href={`/products/${p.slug}`}
+                              className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 dark:bg-zinc-800/40 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-100 dark:border-zinc-700/50 transition-all group"
+                            >
+                              <div className="w-10 h-10 rounded-lg bg-white dark:bg-zinc-800 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200 dark:border-zinc-700">
+                                {p.product_image || p.productImage ? (
+                                  <img src={p.product_image || p.productImage} alt={p.product_name || p.productName} className="w-full h-full object-cover" />
+                                ) : (
+                                  <svg className="w-5 h-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[10px] font-semibold text-slate-700 dark:text-zinc-300 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{p.product_name || p.productName}</p>
+                                <span className="text-[9px] text-slate-400 dark:text-zinc-500">
+                                  {p.price ? `$${parseFloat(p.price).toFixed(2)}` : ''}
+                                </span>
+                              </div>
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Quick Category Deals Promo */}
                     <div className="p-3 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 rounded-xl border border-orange-200/80 dark:border-orange-800/80 flex items-center justify-between">
@@ -673,7 +720,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
               </svg>
               <span>Today's Deals</span>
             </a>
-            <a href="/best" className="py-2 text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <a href="/products?sort=rating" className="py-2 text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
               Best Products
             </a>
             <a href="/compare" className="py-2 text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
@@ -734,7 +781,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
                       type="button"
                       onClick={() => {
                         setIsMobileMenuOpen(false);
-                        navigate(`/products/${p.id}`);
+                        navigate(`/products/${p.slug}`);
                       }}
                       className="w-full text-left p-2 rounded-lg bg-white dark:bg-slate-900 flex items-center justify-between text-xs gap-2 border border-slate-200/60 dark:border-slate-800"
                     >
@@ -750,7 +797,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
           <div className="grid grid-cols-2 gap-2 text-sm font-bold">
             <a href="/products" className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100">All Products</a>
             <a href="/deals" className="p-2.5 rounded-xl bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400">Today's Deals</a>
-            <a href="/best" className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100">Best Products</a>
+            <a href="/products?sort=rating" className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100">Best Products</a>
             <a href="/compare" className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100">Comparisons</a>
             <a href="/guides" className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100">Buying Guides</a>
             <a href="/categories" className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100">Categories</a>

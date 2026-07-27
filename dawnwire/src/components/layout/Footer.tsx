@@ -71,6 +71,7 @@ export const Footer: React.FC = () => {
                       value={email}
                       disabled={isSubmitting}
                       onChange={(e) => setEmail(e.target.value)}
+                      autoComplete="email"
                       className="bg-slate-900 text-sm text-white px-3.5 py-2.5 rounded-xl border border-slate-700 outline-none focus:border-amber-400 flex-1 placeholder-slate-500 disabled:opacity-50"
                     />
                     <button

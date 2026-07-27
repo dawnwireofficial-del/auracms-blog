@@ -97,7 +97,13 @@ export default function AdminHomepage({ token }: { token: string }) {
     copy.forEach((item: any, idx2: number) => item.sortOrder = idx2);
     setItems(copy);
     for (let si = 0; si < copy.length; si++) {
-      await fetch(`/api/admin/homepage-sections/${copy[si].id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ sortOrder: si }) }).catch(() => {});
+      try {
+        const r = await fetch(`/api/admin/homepage-sections/${copy[si].id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ sortOrder: si }) });
+        if (!r.ok) throw new Error(await r.text());
+      } catch {
+        const { toast } = await import('../../lib/toastStore');
+        toast.error('Failed to save reorder. Try again.');
+      }
     }
   };
 

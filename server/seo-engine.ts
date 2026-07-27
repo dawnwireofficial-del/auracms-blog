@@ -247,9 +247,27 @@ export async function createProductReview(review: any): Promise<any> {
   return data;
 }
 
+const KNOWN_PRODUCT_REVIEW_COLUMNS = new Set([
+  'product_name', 'brand', 'product_image', 'affiliate_url', 'price', 'original_price',
+  'rating', 'review_count', 'best_for', 'category_id', 'pros', 'cons', 'key_features',
+  'specs', 'cta_text', 'review_summary', 'final_verdict', 'editor_score',
+  'slug', 'stock_status', 'deal_badge', 'coupon_code', 'coupon_expiry',
+  'click_count', 'page_views', 'asin', 'discount_percentage', 'features',
+  'technical_specs', 'shipping_info', 'editor_rating', 'is_featured', 'is_deal',
+  'price_updated_at', 'last_updated_at', 'amazon_url', 'gallery', 'variants',
+  'seo_title', 'seo_description', 'seo_keywords', 'comparison_attributes',
+  'is_trending', 'is_top_rated', 'brand_id', 'subcategory_id',
+  'status', 'created_at', 'updated_at',
+]);
+
 export async function updateProductReview(id: string, updates: any): Promise<any> {
   const sb = await getClient();
-  const payload = { ...updates, updated_at: new Date().toISOString() };
+  const payload: any = { updated_at: new Date().toISOString() };
+  for (const [key, value] of Object.entries(updates)) {
+    if (KNOWN_PRODUCT_REVIEW_COLUMNS.has(key)) {
+      payload[key] = value;
+    }
+  }
   if (payload.review_summary) {
     payload.review_summary = sanitizeReviewSummary(payload.review_summary);
   }
@@ -258,6 +276,24 @@ export async function updateProductReview(id: string, updates: any): Promise<any
   
   let { data, error } = await sb.from('product_reviews').update(payload).eq('id', id).select().single();
   if (error) {
+    // Schema cache issue — retry without potentially unknown columns
+    if (error.message?.includes('Could not find') || error.message?.includes('column')) {
+      const safePayload: any = { updated_at: new Date().toISOString() };
+      for (const key of Object.keys(payload)) {
+        if (key === 'updated_at') continue;
+        const retryResult = await sb.from('product_reviews').update({ [key]: payload[key] }).eq('id', id).select().single();
+        if (retryResult.error && (retryResult.error.message?.includes('Could not find') || retryResult.error.message?.includes('column'))) {
+          continue;
+        }
+        safePayload[key] = payload[key];
+      }
+      const retryResult = await sb.from('product_reviews').update(safePayload).eq('id', id).select().single();
+      if (retryResult.error) {
+        console.error('[Supabase Product Review Update Error (retry)]:', retryResult.error.message);
+        throw new Error(`Failed to update product review: ${retryResult.error.message}`);
+      }
+      return retryResult.data;
+    }
     console.error('[Supabase Product Review Update Error]:', error.message);
     throw new Error(`Failed to update product review: ${error.message}`);
   }
@@ -338,7 +374,7 @@ export async function importProductReview(data: {
   if (data.reviewHighlights) specs.review_highlights = data.reviewHighlights;
   if (data.reviews && data.reviews.length > 0) specs.reviews = data.reviews.slice(0, 50);
   if (data.reviewStats) specs.review_stats = data.reviewStats;
-  const review: any = {
+  const review: Record<string, any> = {
     id: crypto.randomUUID(),
     product_name: data.product_name,
     brand: data.brand || null,
@@ -358,7 +394,6 @@ export async function importProductReview(data: {
     best_for: data.best_for || null,
     category_id: data.category_id || null,
     final_verdict: data.final_verdict || null,
-    editor_score: data.editor_score || null,
     specs: Object.keys(specs).length > 0 ? specs : null,
     cta_text: 'Buy on Amazon',
     status: 'published',

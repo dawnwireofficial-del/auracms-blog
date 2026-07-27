@@ -449,13 +449,30 @@ export default function ProductReviewManager({ token, categories = [] }: { token
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase mb-1">Category</label>
-                  <select value={editing.category_id || ''} onChange={e => setEditing({ ...editing, category_id: e.target.value })} className="w-full rounded-lg border border-slate-200 dark:border-zinc-700 p-2 text-xs bg-white dark:bg-zinc-900/50 focus:outline-none br-input">
+                  <select value={editing.category_id ? (categories.find(c => c.id === editing.category_id)?.parentId || editing.category_id) : ''} onChange={e => { const pid = e.target.value; setEditing({ ...editing, category_id: pid ? (categories.filter(c => c.parentId === pid)[0]?.id || pid) : '' }); }} className="w-full rounded-lg border border-slate-200 dark:border-zinc-700 p-2 text-xs bg-white dark:bg-zinc-900/50 focus:outline-none br-input">
                     <option value="">No Category</option>
-                    {categories.map(c => (
+                    {categories.filter(c => !c.parentId).map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
                 </div>
+                {(() => {
+                  const selectedCat = categories.find(c => c.id === editing.category_id);
+                  const parentId = selectedCat?.parentId || editing.category_id;
+                  const subs = categories.filter(c => c.parentId === parentId);
+                  if (!parentId || subs.length === 0) return null;
+                  return (
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase mb-1">Subcategory</label>
+                      <select value={selectedCat?.parentId ? editing.category_id || '' : ''} onChange={e => setEditing({ ...editing, category_id: e.target.value })} className="w-full rounded-lg border border-slate-200 dark:border-zinc-700 p-2 text-xs bg-white dark:bg-zinc-900/50 focus:outline-none br-input">
+                        <option value="">All {categories.find(c => c.id === parentId)?.name || ''}</option>
+                        {subs.map(c => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                })()}
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase mb-1">Deal Badge</label>
                   <input type="text" value={editing.deal_badge || ''} onChange={e => setEditing({ ...editing, deal_badge: e.target.value })} placeholder="15% OFF" className="w-full rounded-lg border border-slate-200 dark:border-zinc-700 p-2 text-xs bg-white dark:bg-zinc-900/50 focus:outline-none br-input" />

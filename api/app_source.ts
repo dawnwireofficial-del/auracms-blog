@@ -128,7 +128,7 @@ app.use((_req, res, next) => {
     "img-src 'self' data: blob: https: *",
     "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
     "frame-src 'self' https://www.googletagmanager.com https://www.youtube.com https://connect.facebook.net",
-    "connect-src 'self' https://api.cohere.com https://www.google-analytics.com https://analytics.google.com https://m.media-amazon.com https://images-na.ssl-images-amazon.com",
+    "connect-src 'self' https://api.cohere.com https://www.google-analytics.com https://analytics.google.com https://m.media-amazon.com https://images-na.ssl-images-amazon.com https://api.imgbb.com",
     "media-src 'self' https: blob:",
   ].join('; '));
   next();
@@ -137,6 +137,7 @@ app.use((_req, res, next) => {
 // Scheduled post publisher — checks every 60s
 let lastSchedulerRun = 0;
 let lastAmazonSyncRun = 0;
+let lastAutoImportRun = 0;
 app.use(async (_req, res, next) => {
   const now = Date.now();
   if (now - lastSchedulerRun > 60_000) {
@@ -158,6 +159,46 @@ app.use(async (_req, res, next) => {
         console.log(`[Amazon Sync] Synced ${result.succeeded}/${result.processed} products`);
       }
     } catch (e) { console.error(e) }
+  }
+  // Auto-import from Amazon every 24 hours (86400000 ms)
+  if (now - lastAutoImportRun > 86_400_000) {
+    lastAutoImportRun = now;
+    try {
+      const { searchAmazon, scrapeAmazonSearch } = await import('../server/amazon-search-scraper');
+      const { getProductReviews, importProductReview } = await import('../server/seo-engine');
+      const { dbInstance } = await import('../server/db');
+      const cats = await dbInstance.getCategories();
+      const productCats = cats.filter((c: any) =>
+        c.status === 'active' &&
+        !['business', 'lifestyle', 'seo-marketing', 'technology'].includes(c.slug?.toLowerCase())
+      );
+      const existing = await getProductReviews();
+      let totalImported = 0;
+      for (const cat of productCats) {
+        try {
+          const results = await scrapeAmazonSearch(cat.name, 'US', 50);
+          for (const r of results) {
+            const exists = existing.find((x: any) => x.specs?.asin === r.asin);
+            if (exists) continue;
+            try {
+              await importProductReview({
+                product_name: r.title.substring(0, 200),
+                product_image: r.image,
+                price: r.price ? String(r.price) : undefined,
+                asin: r.asin,
+                amazon_url: r.url,
+                source: 'amazon',
+                best_for: cat.slug,
+                category_id: cat.id,
+                specs: { asin: r.asin, source: 'amazon' },
+              });
+              totalImported++;
+            } catch {}
+          }
+        } catch {}
+      }
+      if (totalImported > 0) console.log(`[Auto-Import] Imported ${totalImported} products from ${productCats.length} categories`);
+    } catch (e) { console.error('[Auto-Import] Error:', e) }
   }
   next();
 });
@@ -257,11 +298,21 @@ app.get('/sitemap.xml', async (_req, res) => {
       `<url><loc>${baseUrl}/products</loc><priority>0.9</priority></url>`,
       `<url><loc>${baseUrl}/categories</loc><priority>0.8</priority></url>`,
       `<url><loc>${baseUrl}/deals</loc><priority>0.8</priority></url>`,
+      `<url><loc>${baseUrl}/search</loc><priority>0.5</priority></url>`,
+      `<url><loc>${baseUrl}/brands</loc><priority>0.6</priority></url>`,
+      `<url><loc>${baseUrl}/reviews</loc><priority>0.6</priority></url>`,
+      `<url><loc>${baseUrl}/guides</loc><priority>0.6</priority></url>`,
+      `<url><loc>${baseUrl}/about</loc><priority>0.3</priority></url>`,
+      `<url><loc>${baseUrl}/contact</loc><priority>0.3</priority></url>`,
+      `<url><loc>${baseUrl}/privacy-policy</loc><priority>0.2</priority></url>`,
+      `<url><loc>${baseUrl}/terms</loc><priority>0.2</priority></url>`,
+      `<url><loc>${baseUrl}/affiliate-disclosure</loc><priority>0.2</priority></url>`,
+      `<url><loc>${baseUrl}/buyers-guide</loc><priority>0.7</priority></url>`,
       `<url><loc>${baseUrl}/buying-guides</loc><priority>0.7</priority></url>`,
       // Affiliate product review detail pages (canonical /products/ route)
       ...reviews.map((r: any) => `<url><loc>${baseUrl}/products/${r.slug || r.id}</loc><lastmod>${fmtDate(r.updated_at)}</lastmod><priority>0.9</priority></url>`),
-      // Affiliate category browse pages
-      ...cats.map((c: any) => `<url><loc>${baseUrl}/browse/${c.slug}</loc><priority>0.8</priority></url>`),
+      // Affiliate category browse pages (use /categories/ route which works)
+      ...cats.map((c: any) => `<url><loc>${baseUrl}/categories/${c.slug}</loc><priority>0.8</priority></url>`),
       // Buying guide pages
       ...cats.map((c: any) => `<url><loc>${baseUrl}/buyers-guide/${c.slug}</loc><priority>0.6</priority></url>`),
     ];
@@ -437,7 +488,7 @@ app.get('/api/llm/content', async (_req, res) => {
         pros: r.pros, cons: r.cons, keyFeatures: r.key_features, productImage: r.product_image,
         slug: r.slug, affiliateUrl: r.affiliate_url,
         entities: entities.map(e => ({ name: e.name, sameAs: e.sameAs, type: e.type })),
-        citation: r.product_name ? formatCitation(`${r.product_name} Review`, r.created_at, siteName, `review/${r.slug || r.id}`) : undefined,
+        citation: r.product_name ? formatCitation(`${r.product_name} Review`, r.created_at, siteName, `products/${r.slug || r.id}`) : undefined,
       };
     });
     const llmFaqs = (faqs as any[]).filter((f: any) => f.status === 'published').map((f: any) => ({

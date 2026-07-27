@@ -50,9 +50,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight font-display leading-[1.1]">
-              Smart Shopping <br className="hidden sm:inline" />
+              Amazon Product Reviews <br className="hidden sm:inline" />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-orange-400 to-amber-200 animate-pulse">
-                Driven by AI & Real Lab Data.
+                &amp; AI-Powered Buying Guides.
               </span>
             </h1>
 

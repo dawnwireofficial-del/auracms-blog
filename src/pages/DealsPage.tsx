@@ -1,14 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ProductCard } from '../components/common/ProductCard';
 import { DisclosureBanner } from '../components/common/DisclosureBanner';
 import { TrendingDealsSection } from '../components/deals/TrendingDealsSection';
 import { useAppStore } from '../lib/store';
+import { Product } from '../types';
 
 export const DealsPage: React.FC = () => {
-  const { products, deals } = useAppStore();
+  const { products } = useAppStore();
+  const [dealProducts, setDealProducts] = useState<Product[]>([]);
   const [minDiscount, setMinDiscount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  const dealProducts = products.filter((p) => p.isDeal && (p.discountPercentage || 0) >= minDiscount);
+  useEffect(() => {
+    setLoading(true);
+    fetch('/api/public/deals')
+      .then(r => r.json())
+      .then((data: any) => {
+        const items = Array.isArray(data) ? data : (data.data || data.deals || []);
+        const productIds = items.map((d: any) => d.productId || d.product_id).filter(Boolean);
+        if (productIds.length > 0) {
+          const matched = products.filter(p => productIds.includes(p.id));
+          setDealProducts(matched.length > 0 ? matched : products.filter(p => p.isDeal));
+        } else {
+          setDealProducts(products.filter(p => p.isDeal));
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        setDealProducts(products.filter(p => p.isDeal));
+        setLoading(false);
+      });
+  }, [products]);
+
+  const filtered = dealProducts.filter((p) => (p.discountPercentage || 0) >= minDiscount);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
@@ -62,7 +86,7 @@ export const DealsPage: React.FC = () => {
 
         {/* Deals Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {dealProducts.map((prod) => (
+          {filtered.map((prod) => (
             <ProductCard key={prod.id} product={prod} />
           ))}
         </div>

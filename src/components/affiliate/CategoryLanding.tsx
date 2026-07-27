@@ -269,7 +269,7 @@ export default function CategoryLanding({ category, allProducts, allCategories, 
                 {(banner.heading || banner.description) && (
                   <div className="absolute inset-0 flex items-center bg-gradient-to-r from-black/50 to-transparent">
                     <div className="Container px-4">
-                      {banner.heading && <h1 className="text-3xl lg:text-4xl font-bold text-white max-w-xl">{banner.heading}</h1>}
+                       {banner.heading && <h2 className="text-3xl lg:text-4xl font-bold text-white max-w-xl">{banner.heading}</h2>}
                       {banner.description && <p className="text-sm text-white/80 mt-2 max-w-md">{banner.description}</p>}
                       {banner.ctaText && <span className="inline-block mt-4 bg-[#0c5adb] text-white text-sm font-bold px-6 py-2.5 rounded-lg hover:bg-[#0a4db8] transition-colors">{banner.ctaText} →</span>}
                     </div>
@@ -282,7 +282,7 @@ export default function CategoryLanding({ category, allProducts, allCategories, 
                 {(banner.heading || banner.description) && (
                   <div className="absolute inset-0 flex items-center bg-gradient-to-r from-black/50 to-transparent">
                     <div className="px-4">
-                      {banner.heading && <h1 className="text-xl font-bold text-white max-w-xs">{banner.heading}</h1>}
+                       {banner.heading && <h2 className="text-xl font-bold text-white max-w-xs">{banner.heading}</h2>}
                       {banner.ctaText && <span className="inline-block mt-2 bg-[#0c5adb] text-white text-xs font-bold px-4 py-2 rounded-lg">{banner.ctaText} →</span>}
                     </div>
                   </div>

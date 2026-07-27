@@ -6,7 +6,8 @@ import { sendDripEmail, getDripCampaignConfig, getNextDripStep } from '../../ser
 import { getSupabaseAdmin } from '../../server/lib/supabase';
 import { authenticate, requireRole } from './middleware';
 import { startBulkImport, processBulkImport, getBulkImportJob, cancelBulkImport } from '../../server/bulk-importer';
-import { searchAmazon } from '../../server/amazon-search-scraper';
+import { searchAmazon, scrapeAmazonSearch } from '../../server/amazon-search-scraper';
+import { importProductReview, getProductReviews } from '../../server/seo-engine';
 
 const router = express.Router();
 
@@ -285,7 +286,7 @@ router.post('/media', authenticate, requireRole(['super_admin', 'admin', 'editor
   res.json(await dbInstance.uploadMedia({ fileName, url, mimeType: mimeType || 'image/png', size: size || 1024, altText: altText || '' }));
 });
 
-const IMGBB_KEY = '467debc656646bc3b9b530339ca31161';
+const IMGBB_KEY = process.env.IMGBB_API_KEY || '';
 router.post('/upload-image', authenticate, requireRole(['super_admin', 'admin', 'editor', 'author']), async (req, res) => {
   try {
     const { base64, fileName } = req.body;
@@ -708,7 +709,43 @@ router.post('/setup/product-categories', async (_req, res) => {
   }
 });
 
-// ====== Bulk Amazon Product Import ======
+// Fix missing columns in product_reviews table
+router.post('/products/repair-schema', authenticate, requireRole(['super_admin', 'admin']), async (req, res) => {
+  try {
+    const supabaseRef = process.env.SUPABASE_PROJECT_REF || '';
+    const supabaseToken = process.env.SUPABASE_ACCESS_TOKEN || '';
+    const sql = `
+      ALTER TABLE public.product_reviews ADD COLUMN IF NOT EXISTS editor_score INTEGER DEFAULT 0;
+      ALTER TABLE public.product_reviews ADD COLUMN IF NOT EXISTS final_verdict TEXT;
+      ALTER TABLE public.product_reviews ADD COLUMN IF NOT EXISTS best_for TEXT;
+      ALTER TABLE public.product_reviews ADD COLUMN IF NOT EXISTS cta_text TEXT DEFAULT 'Buy on Amazon';
+      ALTER TABLE public.product_reviews ADD COLUMN IF NOT EXISTS key_features JSONB DEFAULT '[]';
+      ALTER TABLE public.product_reviews ADD COLUMN IF NOT EXISTS review_count INTEGER DEFAULT 0;
+      ALTER TABLE public.product_reviews ADD COLUMN IF NOT EXISTS pros JSONB DEFAULT '[]';
+      ALTER TABLE public.product_reviews ADD COLUMN IF NOT EXISTS cons JSONB DEFAULT '[]';
+    `;
+    if (supabaseRef && supabaseToken) {
+      const r = await fetch(`https://api.supabase.com/v1/projects/${supabaseRef}/database/query`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${supabaseToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: sql })
+      });
+      if (!r.ok) throw new Error((await r.text()).substring(0, 200));
+      // Notify PostgREST to reload schema cache
+      await fetch(`https://api.supabase.com/v1/projects/${supabaseRef}/database/query`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${supabaseToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: 'NOTIFY pgrst, $$reload schema$$' })
+      });
+      res.json({ success: true, message: 'Schema repair completed. Columns added if missing.' });
+    } else {
+      res.status(400).json({ error: 'SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_REF env vars required. Set them in Vercel or run supabase/migrations/012_add_editor_score.sql in Supabase SQL Editor manually.' });
+    }
+  } catch (e: any) {
+    res.status(500).json({ error: e.message || 'Schema repair failed' });
+  }
+});
+
 router.post('/products/bulk-import', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
   const timeout = setTimeout(() => {
     if (!res.headersSent) res.status(504).json({ error: 'Request timeout' });
@@ -778,6 +815,96 @@ router.post('/products/bulk-import/:jobId/cancel', authenticate, requireRole(['s
     clearTimeout(timeout);
     if (!res.headersSent) res.status(500).json({ error: e.message || 'Failed to cancel job' });
   }
+});
+
+// Auto-import products from Amazon for all product categories
+let autoImportJob: any = null;
+router.post('/products/auto-import-all-categories', authenticate, requireRole(['super_admin', 'admin']), async (req, res) => {
+  const timeout = setTimeout(() => {
+    if (!res.headersSent) res.status(504).json({ error: 'Request timeout' });
+  }, 300000);
+  try {
+    if (autoImportJob && autoImportJob.status === 'running') {
+      clearTimeout(timeout);
+      return res.status(409).json({ error: 'Auto-import already running', job: autoImportJob });
+    }
+
+    const { marketplace = 'US', maxPerCategory = 100 } = req.body;
+    const categories = await dbInstance.getCategories();
+    const productCats = categories.filter((c: any) =>
+      c.status === 'active' &&
+      !['business', 'lifestyle', 'seo-marketing', 'technology'].includes(c.slug?.toLowerCase())
+    );
+
+    autoImportJob = {
+      status: 'running',
+      startedAt: new Date().toISOString(),
+      totalCategories: productCats.length,
+      results: [] as any[],
+    };
+
+    const totalImported: string[] = [];
+    for (const cat of productCats) {
+      const catResult: any = { name: cat.name, slug: cat.slug, searched: 0, found: 0, imported: 0, failed: 0, skipped: 0, error: null };
+      try {
+        const results = await scrapeAmazonSearch(cat.name, marketplace, maxPerCategory);
+        catResult.searched = 1;
+        catResult.found = results.length;
+        const allExisting = await getProductReviews();
+        for (const r of results) {
+          try {
+            const exists = allExisting.find((x: any) =>
+              x.specs?.asin === r.asin || x.amazon_url?.includes(r.asin) || x.slug?.includes(r.asin)
+            );
+            if (exists) {
+              catResult.skipped++;
+              continue;
+            }
+            const imported = await importProductReview({
+              product_name: r.title.substring(0, 200),
+              product_image: r.image,
+              price: r.price ? String(r.price) : undefined,
+              asin: r.asin,
+              amazon_url: r.url,
+              source: 'amazon',
+              best_for: cat.slug,
+              category_id: cat.id,
+              specs: { asin: r.asin, source: 'amazon' },
+            });
+            if (imported) {
+              catResult.imported++;
+              totalImported.push(r.title);
+            } else {
+              catResult.failed++;
+            }
+          } catch (e: any) {
+            catResult.failed++;
+          }
+        }
+      } catch (e: any) {
+        catResult.error = e.message;
+      }
+      autoImportJob.results.push(catResult);
+    }
+
+    autoImportJob.status = 'completed';
+    autoImportJob.completedAt = new Date().toISOString();
+    autoImportJob.totalImported = totalImported.length;
+
+    const u = (req as any).user;
+    dbInstance.log('Auto-Import Completed', `Categories: ${productCats.length}, Imported: ${totalImported.length}`, u.id, u.name);
+
+    clearTimeout(timeout);
+    res.json({ success: true, job: autoImportJob });
+  } catch (e: any) {
+    clearTimeout(timeout);
+    if (autoImportJob) autoImportJob.status = 'failed';
+    res.status(500).json({ error: e.message || 'Auto-import failed' });
+  }
+});
+
+router.get('/products/auto-import-all-categories/status', authenticate, requireRole(['super_admin', 'admin']), async (_req, res) => {
+  res.json({ job: autoImportJob || { status: 'idle', lastRun: null } });
 });
 
 router.post('/products/search-amazon', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {

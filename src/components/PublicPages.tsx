@@ -71,7 +71,7 @@ function SimpleMarkdown({ content }: { content: string }) {
           code: ({ children }) => <code className="font-mono text-sm bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-[#246BFF]">{children}</code>,
           hr: () => <hr className="my-8 border-slate-200 dark:border-zinc-700" />,
           a: ({ href, children }) => <a href={href} className="text-[#246BFF] hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>,
-          h1: ({ children }) => <h1 className="font-display text-3xl font-bold text-slate-800 dark:text-white mt-8 mb-4 tracking-tight">{children}</h1>,
+          h1: ({ children }) => <h2 className="font-display text-3xl font-bold text-slate-800 dark:text-white mt-8 mb-4 tracking-tight">{children}</h2>,
           img: ({ src, alt }) => src ? (
             <div className="my-8 rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-900">
               <ImageZoom src={src} alt={alt || ''} className="w-full object-contain" width={800} height={450} loading="lazy" />

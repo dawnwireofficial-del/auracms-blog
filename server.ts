@@ -16,6 +16,30 @@ app.use((req, res, next) => {
   if (req.path.startsWith('/api/') || /\.[a-z0-9]{2,12}$/i.test(req.path)) {
     return next();
   }
+
+  const validPatterns = [
+    /^\/$/, /^\/products\/?$/, /^\/products\/[^\/]+$/,
+    /^\/categories\/?$/, /^\/categories\/[^\/]+$/,
+    /^\/deals\/?$/, /^\/compare\/?$/, /^\/compare\/[^\/]+$/,
+    /^\/reviews\/?$/, /^\/guides\/?$/, /^\/wishlist\/?$/,
+    /^\/admin\/?$/, /^\/admin\/.*$/,
+    /^\/account\/?$/, /^\/login\/?$/,
+    /^\/post\/[^\/]+$/, /^\/page\/[^\/]+$/,
+    /^\/contact\/?$/, /^\/buyers-guide\/[^\/]+$/,
+    /^\/review\/[^\/]+$/, /^\/portfolio\/?$/,
+    /^\/portfolio\/[^\/]+$/, /^\/service\/?$/,
+    /^\/service\/[^\/]+$/, /^\/search\/?$/, /^\/trending\/?$/,
+    /^\/best\/?$/, /^\/brands\/?$/, /^\/about\/?$/,
+    /^\/privacy-policy\/?$/, /^\/terms\/?$/,
+    /^\/affiliate-disclosure\/?$/, /^\/sitemap\.xml$/,
+    /^\/robots\.txt$/, /^\/llms\.txt$/,
+  ];
+
+  const isValid = validPatterns.some(p => p.test(req.path));
+  if (!isValid) {
+    return res.status(404).sendFile(path.join(distPath, '404.html'));
+  }
+
   const indexPath = path.join(distPath, 'index.html');
   if (fs.existsSync(indexPath)) {
     return res.sendFile(indexPath);

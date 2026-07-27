@@ -87,18 +87,23 @@ export const AdminDashboardPage: React.FC = () => {
 
   useEffect(() => {
     store.fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    if (!isAdminLoggedIn) return;
     const token = localStorage.getItem('dawnwire_auth_token');
+    if (!token) return;
     fetch('/api/admin/analytics/clicks', {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then(r => r.json())
+      .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data && typeof data.totalClicks === 'number') {
           setServerClickData(data);
         }
       })
       .catch(() => {});
-  }, []);
+  }, [isAdminLoggedIn]);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();

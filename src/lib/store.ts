@@ -21,6 +21,7 @@ export interface AppStoreState {
   isLoading: boolean;
 }
 
+let _fetchRequestId = 0;
 let globalStore: AppStoreState = {
   products: [],
   categories: [],
@@ -87,6 +88,7 @@ export const store = {
   },
 
   fetchProducts: async () => {
+    const requestId = ++_fetchRequestId;
     try {
       const token = localStorage.getItem('dawnwire_auth_token') || '';
       const mapper = (d: any): Product => ({
@@ -139,7 +141,8 @@ export const store = {
         published: d.status !== 'draft',
         status: d.status || 'published',
         lastSyncedAt: d.last_synced_at || '',
-        videoUrl: d.specs?.video_url || d.videoUrl || ''
+        videoUrl: d.specs?.video_url || d.videoUrl || '',
+        categoryId: d.category_id || d.categoryId || ''
       });
 
       const tryFetch = async (url: string, headers?: Record<string, string>): Promise<Product[] | null> => {
@@ -154,7 +157,7 @@ export const store = {
       let mapped: Product[] | null = null;
       if (token) mapped = await tryFetch('/api/admin/product-reviews?limit=500', { 'Authorization': `Bearer ${token}` });
       if (!mapped) mapped = await tryFetch('/api/public/product-reviews?limit=500');
-      if (mapped && mapped.length > 0) {
+      if (mapped && mapped.length > 0 && requestId === _fetchRequestId) {
         globalStore.products = mapped;
         notify();
       }
@@ -174,14 +177,16 @@ export const store = {
           notify();
         }
       }
-    } catch (e) {
-      console.warn('Failed to fetch categories for store', e);
+    } catch {
+      const { toast } = await import('./toastStore');
+      toast.error('Failed to load categories');
     }
   },
 
-  saveProduct: (product: Product) => {
+  saveProduct: async (product: Product) => {
     const index = globalStore.products.findIndex((p) => p.id === product.id);
     const isUpdate = index >= 0;
+    const previous = isUpdate ? { ...globalStore.products[index] } : null;
     if (isUpdate) {
       globalStore.products[index] = product;
     } else {
@@ -192,21 +197,48 @@ export const store = {
       const token = localStorage.getItem('dawnwire_auth_token') || '';
       const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
       const body = JSON.stringify(product);
+      let res;
       if (isUpdate && product.id && !product.id.startsWith('p-')) {
-        fetch(`/api/admin/seo/product-reviews/${product.id}`, {
+        res = await fetch(`/api/admin/seo/product-reviews/${product.id}`, {
           method: 'PUT', headers, body
-        }).catch(() => {});
+        });
       } else {
-        fetch('/api/admin/products', {
+        res = await fetch('/api/admin/products', {
           method: 'POST', headers, body
-        }).catch(() => {});
+        });
       }
-    } catch (e) {}
+      if (!res.ok) {
+        if (previous !== null) {
+          globalStore.products[index] = previous;
+        } else {
+          globalStore.products = globalStore.products.filter((p) => p.id !== product.id);
+        }
+        notify();
+      }
+    } catch (e) {
+      if (previous !== null) {
+        globalStore.products[index] = previous;
+      } else {
+        globalStore.products = globalStore.products.filter((p) => p.id !== product.id);
+      }
+      notify();
+    }
   },
 
-  deleteProduct: (id: string) => {
-    globalStore.products = globalStore.products.filter((p) => p.id !== id);
-    notify();
+  deleteProduct: async (id: string) => {
+    const token = localStorage.getItem('dawnwire_auth_token') || '';
+    try {
+      const res = await fetch(`/api/admin/seo/product-reviews/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        globalStore.products = globalStore.products.filter((p) => p.id !== id);
+        notify();
+      }
+    } catch (e) {
+      console.warn('Failed to delete product on server', e);
+    }
   },
 
   saveCategory: (category: Category) => {
@@ -317,13 +349,37 @@ export const store = {
   logout: async () => {
     try {
       globalStore.currentUser = null;
+      globalStore.products = [];
+      globalStore.categories = [];
+      globalStore.brands = [];
+      globalStore.deals = [];
+      globalStore.wishlist = [];
+      globalStore.recentlyViewed = [];
+      globalStore.affiliateClicks = [];
       localStorage.removeItem('dawnwire_admin_profile');
       localStorage.removeItem('dawnwire_admin_session');
       localStorage.removeItem('dawnwire_auth_token');
+      localStorage.removeItem('dawnwire_wishlist');
+      localStorage.removeItem('dawnwire_recently_viewed');
       notify();
     } catch (e) {}
   }
 };
+
+export function getCategoryTree(categories: Category[]) {
+  const map = new Map<string, Category & { children: Category[] }>();
+  const roots: (Category & { children: Category[] })[] = [];
+  categories.forEach(c => map.set(c.id, { ...c, children: [] }));
+  categories.forEach(c => {
+    const node = map.get(c.id);
+    if (c.parentId && map.has(c.parentId)) {
+      map.get(c.parentId)!.children.push(node!);
+    } else if (!c.parentId) {
+      roots.push(node!);
+    }
+  });
+  return roots;
+}
 
 export function useAppStore() {
   const [state, setState] = useState(store.get());

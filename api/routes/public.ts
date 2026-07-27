@@ -256,8 +256,8 @@ router.get('/categories/:slug', async (req, res) => {
     subcategories: subcategories.filter((s: any) => s.parentId === cat.id && s.status === 'active'),
     products: reviews.filter((r: any) => {
       if (r.status !== 'published') return false;
-      if (r.categoryId === cat.id) return true;
-      const bf = (r.best_for || '').toLowerCase();
+      if ((r.category_id || r.categoryId) === cat.id) return true;
+      const bf = (r.best_for || r.bestFor || '').toLowerCase();
       const cn = (cat.name || '').toLowerCase();
       const pn = (r.product_name || '').toLowerCase();
       if (!bf) {
@@ -297,12 +297,29 @@ router.get(['/product-reviews', '/products'], async (req, res) => {
     const entities = findEntities(entityText);
     return { ...r, _entities: entities.map((e: any) => ({ name: e.name, sameAs: e.sameAs, type: e.type })) };
   });
-  // Category filter
+  // Helper: access property with fallback for snake_case DB data
+  const val = (r: any, key: string) => r[key] || r[key.replace(/[A-Z]/g, c => '_' + c.toLowerCase())];
+  // Category filter (by UUID or exact bestFor)
   const category = req.query.category as string;
-  if (category) items = items.filter((r: any) => r.categoryId === category || r.bestFor === category);
+  if (category) items = items.filter((r: any) => val(r, 'categoryId') === category || val(r, 'bestFor') === category);
+  // Category filter by slug with subcategory cascade
+  const categorySlug = req.query.categorySlug as string;
+  if (categorySlug) {
+    const allCats = await dbInstance.getCategories();
+    const matched = allCats.find((c: any) => c.slug === categorySlug && c.status === 'active');
+    if (matched) {
+      const ids = new Set<string>();
+      const collect = (parentId: string) => {
+        ids.add(parentId);
+        allCats.filter((c: any) => c.parentId === parentId && c.status === 'active').forEach((c: any) => collect(c.id));
+      };
+      collect(matched.id);
+      items = items.filter((r: any) => val(r, 'categoryId') && ids.has(val(r, 'categoryId')));
+    }
+  }
   // Brand filter
   const brand = req.query.brand as string;
-  if (brand) items = items.filter((r: any) => r.brandId === brand || r.brand === brand);
+  if (brand) items = items.filter((r: any) => val(r, 'brandId') === brand || r.brand === brand);
   // Price range
   const minPrice = parseFloat(req.query.minPrice as string);
   const maxPrice = parseFloat(req.query.maxPrice as string);
@@ -313,19 +330,19 @@ router.get(['/product-reviews', '/products'], async (req, res) => {
   if (!isNaN(minRating)) items = items.filter((r: any) => r.rating >= minRating);
   // Discount filter
   const minDiscount = parseInt(req.query.minDiscount as string);
-  if (!isNaN(minDiscount)) items = items.filter((r: any) => (r.discountPercentage || 0) >= minDiscount);
+  if (!isNaN(minDiscount)) items = items.filter((r: any) => (val(r, 'discountPercentage') || 0) >= minDiscount);
   // Featured, deal, trending filters
-  if (req.query.featured === 'true') items = items.filter((r: any) => r.isFeatured);
-  if (req.query.isDeal === 'true') items = items.filter((r: any) => r.isDeal);
-  if (req.query.isTrending === 'true') items = items.filter((r: any) => r.isTrending);
-  if (req.query.isTopRated === 'true') items = items.filter((r: any) => r.isTopRated);
+  if (req.query.featured === 'true') items = items.filter((r: any) => val(r, 'isFeatured'));
+  if (req.query.isDeal === 'true') items = items.filter((r: any) => val(r, 'isDeal'));
+  if (req.query.isTrending === 'true') items = items.filter((r: any) => val(r, 'isTrending'));
+  if (req.query.isTopRated === 'true') items = items.filter((r: any) => val(r, 'isTopRated'));
   // Availability
-  if (req.query.inStock === 'true') items = items.filter((r: any) => r.stockStatus !== 'out_of_stock');
+  if (req.query.inStock === 'true') items = items.filter((r: any) => val(r, 'stockStatus') !== 'out_of_stock');
   // Prime eligibility
-  if (req.query.primeEligible === 'true') items = items.filter((r: any) => r.primeEligible);
+  if (req.query.primeEligible === 'true') items = items.filter((r: any) => val(r, 'primeEligible'));
   // BestFor filter
   const bestFor = req.query.bestFor as string;
-  if (bestFor) items = items.filter((r: any) => r.bestFor === bestFor);
+  if (bestFor) items = items.filter((r: any) => val(r, 'bestFor') === bestFor);
   // Search query
   const search = (req.query.search as string || '').toLowerCase();
   if (search) items = items.filter((r: any) =>
@@ -338,9 +355,9 @@ router.get(['/product-reviews', '/products'], async (req, res) => {
   if (sort === 'price_asc') items.sort((a: any, b: any) => parseFloat(a.price || '0') - parseFloat(b.price || '0'));
   else if (sort === 'price_desc') items.sort((a: any, b: any) => parseFloat(b.price || '0') - parseFloat(a.price || '0'));
   else if (sort === 'rating') items.sort((a: any, b: any) => (b.rating || 0) - (a.rating || 0));
-  else if (sort === 'popularity') items.sort((a: any, b: any) => (b.pageViews || 0) - (a.pageViews || 0));
-  else if (sort === 'discount') items.sort((a: any, b: any) => (b.discountPercentage || 0) - (a.discountPercentage || 0));
-  else if (sort === 'newest') items.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  else if (sort === 'popularity') items.sort((a: any, b: any) => (val(b, 'pageViews') || 0) - (val(a, 'pageViews') || 0));
+  else if (sort === 'discount') items.sort((a: any, b: any) => (val(b, 'discountPercentage') || 0) - (val(a, 'discountPercentage') || 0));
+  else if (sort === 'newest') items.sort((a: any, b: any) => new Date(val(b, 'createdAt') || '').getTime() - new Date(val(a, 'createdAt') || '').getTime());
   else items.sort((a: any, b: any) => (b.rating || 0) - (a.rating || 0)); // default: best rated
   // Pagination
   const limit = parseInt(req.query.limit as string) || 0;

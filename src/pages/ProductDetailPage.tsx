@@ -73,6 +73,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     if (found) {
       setDirectProduct(found);
       setDirectFetchDone(true);
+      store.addRecentlyViewed(found.id);
     } else if (!directFetchDone) {
       fetch(`/api/public/product-reviews/slug/${productSlug}`)
         .then(r => r.json())
@@ -80,7 +81,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           if (data && data.id) {
             const mapped: Product = {
               id: data.id, title: data.product_name || data.title || '', slug: data.slug || productSlug,
-              asin: data.asin || '', brand: data.brand || '', mainCategory: data.category || data.mainCategory || 'Electronics',
+              categoryId: data.category_id || data.categoryId || '', asin: data.asin || '', brand: data.brand || '', mainCategory: data.category || data.mainCategory || 'Electronics',
               subcategory: data.subcategory || 'General', productType: 'Physical Product',
               shortDescription: data.review_summary || data.shortDescription || '',
               fullDescription: data.review_summary || data.fullDescription || '',
@@ -101,6 +102,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               metaKeywords: Array.isArray(data.seo_keywords) ? data.seo_keywords : [], canonicalUrl: ''
             };
             setDirectProduct(mapped);
+            store.addRecentlyViewed(mapped.id);
           }
           setDirectFetchDone(true);
         })

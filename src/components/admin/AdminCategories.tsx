@@ -21,12 +21,16 @@ export default function AdminCategories({ token, categories, onRefresh }: AdminC
   const [catName, setCatName] = useState('');
   const [catSlug, setCatSlug] = useState('');
   const [catDesc, setCatDesc] = useState('');
+  const [catParentId, setCatParentId] = useState('');
+
+  const parentMap = new Map(categories.map(c => [c.id, c]));
 
   const handleSaveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!catName || !catSlug) return;
 
-    const payload = { name: catName, slug: catSlug, description: catDesc, status: 'active' };
+    const payload: Record<string, any> = { name: catName, slug: catSlug, description: catDesc, status: 'active' };
+    if (catParentId) payload.parentId = catParentId;
     const url = editingCategory ? `/api/admin/categories/${editingCategory.id}` : '/api/admin/categories';
     const method = editingCategory ? 'PUT' : 'POST';
 
@@ -48,10 +52,12 @@ export default function AdminCategories({ token, categories, onRefresh }: AdminC
         onRefresh();
       } else {
         const d = await res.json();
-        alert(d.error || 'Failed to save category.');
+        const { toast } = await import('../../lib/toastStore');
+        toast.error(d.error || 'Failed to save category.');
       }
     } catch (e) {
-      alert('Network failure.');
+      const { toast } = await import('../../lib/toastStore');
+      toast.error('Network failure while saving category.');
     }
   };
 
@@ -64,7 +70,8 @@ export default function AdminCategories({ token, categories, onRefresh }: AdminC
       });
       if (res.ok) onRefresh();
     } catch (e) {
-      alert('Error occurred.');
+      const { toast } = await import('../../lib/toastStore');
+      toast.error('Network failure while deleting category.');
     }
   };
 
@@ -110,6 +117,23 @@ export default function AdminCategories({ token, categories, onRefresh }: AdminC
               className="w-full rounded-xl border border-slate-200 dark:border-zinc-700 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#246BFF] br-input"
             />
           </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider mb-2">Parent Category</label>
+            <select
+              value={catParentId}
+              onChange={(e) => setCatParentId(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 dark:border-zinc-700 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#246BFF] br-input bg-white dark:bg-zinc-900/50"
+            >
+              <option value="">None (Top-level)</option>
+              {categories
+                .filter((c) => editingCategory ? c.id !== editingCategory.id : true)
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}{c.parentId ? ` (${parentMap.get(c.parentId)?.name || ''})` : ''}
+                  </option>
+                ))}
+            </select>
+          </div>
 
           <div className="flex gap-2">
             {editingCategory && (
@@ -120,6 +144,7 @@ export default function AdminCategories({ token, categories, onRefresh }: AdminC
                   setCatName('');
                   setCatSlug('');
                   setCatDesc('');
+                  setCatParentId('');
                 }}
                 className="flex-1 bg-slate-100 text-slate-600 dark:text-zinc-300 text-xs font-semibold py-2.5 rounded-xl br-btn transition-all"
               >
@@ -142,6 +167,7 @@ export default function AdminCategories({ token, categories, onRefresh }: AdminC
             <tr className="bg-slate-50 dark:bg-zinc-900 text-slate-400 dark:text-zinc-500 text-[10px] font-bold uppercase border-b border-slate-100 dark:border-zinc-700/50">
               <th className="p-4 pl-6">Name</th>
               <th className="p-4">Slug</th>
+              <th className="p-4">Parent</th>
               <th className="p-4">Description</th>
               <th className="p-4 pr-6 text-right">Actions</th>
             </tr>
@@ -151,6 +177,7 @@ export default function AdminCategories({ token, categories, onRefresh }: AdminC
               <tr key={cat.id} className="hover:bg-slate-50 dark:bg-zinc-900/50">
                 <td className="p-4 pl-6 font-bold text-slate-800 dark:text-zinc-100">{cat.name}</td>
                 <td className="p-4 font-mono text-slate-500 dark:text-zinc-400">{cat.slug}</td>
+                <td className="p-4 text-slate-500 dark:text-zinc-400 text-xs">{cat.parentId ? (parentMap.get(cat.parentId)?.name || '—') : '—'}</td>
                 <td className="p-4 text-slate-500 dark:text-zinc-400 line-clamp-1 max-w-xs">{cat.description || '-'}</td>
                 <td className="p-4 pr-6 text-right">
                   <div className="flex items-center justify-end gap-1">
@@ -160,6 +187,7 @@ export default function AdminCategories({ token, categories, onRefresh }: AdminC
                         setCatName(cat.name);
                         setCatSlug(cat.slug);
                         setCatDesc(cat.description || '');
+                        setCatParentId(cat.parentId || '');
                       }}
                       className="p-1.5 hover:bg-slate-100 rounded text-slate-600 dark:text-zinc-300 hover:text-slate-900 br-btn"
                     >

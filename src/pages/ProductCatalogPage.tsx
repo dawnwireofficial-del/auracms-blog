@@ -20,13 +20,20 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
 }) => {
   const { products, categories } = useAppStore();
 
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  // Resolve initialCategory slug to category ID
+  const resolvedInitial = initialCategory && initialCategory !== 'all'
+    ? categories.find(c => c.slug === initialCategory)?.id || 'all'
+    : 'all';
+
+  const [selectedCategory, setSelectedCategory] = useState(resolvedInitial);
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [onlyDeals, setOnlyDeals] = useState(false);
   const [onlyPrime, setOnlyPrime] = useState(false);
   const [minRating, setMinRating] = useState(0);
   const [sortBy, setSortBy] = useState<'score' | 'price_asc' | 'price_desc' | 'rating'>('score');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [page, setPage] = useState(0);
+  const perPage = 24;
 
   // Comparison selection state
   const [selectedCompareIds, setSelectedCompareIds] = useState<string[]>([]);
@@ -46,9 +53,12 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
   };
 
   useEffect(() => {
-    setSelectedCategory(initialCategory);
+    const newCat = initialCategory && initialCategory !== 'all'
+      ? categories.find(c => c.slug === initialCategory)?.id || 'all'
+      : 'all';
+    setSelectedCategory(newCat);
     setSearchQuery(initialQuery);
-  }, [initialCategory, initialQuery]);
+  }, [initialCategory, initialQuery, categories]);
 
   useEffect(() => {
     if (selectedCompareIds.length === 2) {
@@ -74,9 +84,19 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
     return <ProductCatalogSkeleton />;
   }
 
+  // Collect all descendant category IDs for cascade filtering
+  const getCategoryIds = (catId: string): string[] => {
+    const ids = [catId];
+    categories.filter(c => c.parentId === catId).forEach(child => {
+      ids.push(...getCategoryIds(child.id));
+    });
+    return ids;
+  };
+  const selectedCategoryIds = selectedCategory !== 'all' ? getCategoryIds(selectedCategory) : null;
+
   // Filter Logic
   let filtered = products.filter((p) => {
-    if (selectedCategory !== 'all' && !p.mainCategory.toLowerCase().includes(selectedCategory.toLowerCase())) {
+    if (selectedCategoryIds && (!p.categoryId || !selectedCategoryIds.includes(p.categoryId))) {
       return false;
     }
     if (searchQuery.trim() && !p.title.toLowerCase().includes(searchQuery.toLowerCase()) && !p.brand.toLowerCase().includes(searchQuery.toLowerCase())) {
@@ -96,6 +116,12 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
     return b.editorScore - a.editorScore; // default score
   });
 
+  // Pagination
+  const totalPages = Math.ceil(filtered.length / perPage);
+  const paginated = filtered.slice(page * perPage, (page + 1) * perPage);
+  const goToPage = (p: number) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  useEffect(() => { setPage(0); }, [selectedCategory, searchQuery, onlyDeals, onlyPrime, minRating, sortBy]);
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
       <DisclosureBanner />
@@ -104,7 +130,7 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
       <div className="bg-[#0A1F44] text-white py-12 px-4 border-b border-blue-900">
         <div className="max-w-7xl mx-auto space-y-2">
           <h1 className="text-3xl sm:text-4xl font-extrabold font-display">
-            {selectedCategory === 'all' ? 'All Products & Amazon Discovery' : `${selectedCategory} Products`}
+            {selectedCategory === 'all' ? 'All Products & Amazon Discovery' : `${categories.find(c => c.id === selectedCategory)?.name || ''} Products`}
           </h1>
           <p className="text-sm text-slate-300 max-w-2xl">
             Browse independently bench-marked products, verified Amazon buyer ratings, and current price drops.
@@ -141,8 +167,13 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
                 className="w-full bg-slate-100 dark:bg-slate-800 px-3.5 py-2 rounded-xl text-xs text-slate-900 dark:text-slate-100 outline-none border border-slate-200 dark:border-slate-700 cursor-pointer font-bold"
               >
                 <option value="all">All Categories</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.slug}>{c.name}</option>
+                {categories.filter(c => !c.parentId).map((c) => (
+                  <optgroup key={c.id} label={c.name}>
+                    <option value={c.id}>{c.name}</option>
+                    {categories.filter(child => child.parentId === c.id).map(child => (
+                      <option key={child.id} value={child.id}>— {child.name}</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>
@@ -191,7 +222,7 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
           {/* Controls Bar */}
           <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
             <span className="text-xs font-bold text-slate-500">
-              Showing <strong>{filtered.length}</strong> Products
+              Showing <strong>{paginated.length}</strong> of <strong>{filtered.length}</strong> Products
             </span>
 
             <div className="flex items-center gap-4">
@@ -231,10 +262,10 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
           </div>
 
           {/* Grid / List Display */}
-          {filtered.length === 0 ? (
+          {paginated.length === 0 ? (
             <NoResultsEmptyState
               query={searchQuery}
-              category={selectedCategory}
+              category={selectedCategory !== 'all' ? (categories.find(c => c.id === selectedCategory)?.name || selectedCategory) : undefined}
               onReset={() => {
                 setSelectedCategory('all');
                 setSearchQuery('');
@@ -250,7 +281,7 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
             />
           ) : viewMode === 'grid' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filtered.map((product) => (
+              {paginated.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
@@ -262,7 +293,7 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
             </div>
           ) : (
             <div className="space-y-4">
-              {filtered.map((product) => (
+              {paginated.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
@@ -275,6 +306,42 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
           )}
         </div>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-1 pt-4 pb-2">
+          <button
+            onClick={() => goToPage(page - 1)}
+            disabled={page === 0}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            ← Prev
+          </button>
+          {Array.from({ length: Math.min(totalPages, 10) }, (_, i) => {
+            const startPage = Math.max(0, Math.min(page - 4, totalPages - 10));
+            const p = startPage + i;
+            if (p >= totalPages) return null;
+            return (
+              <button
+                key={p}
+                onClick={() => goToPage(p)}
+                className={`w-8 h-8 rounded-xl text-xs font-bold transition-colors ${
+                  p === page ? 'bg-[#246BFF] text-white shadow' : 'border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                {p + 1}
+              </button>
+            );
+          })}
+          <button
+            onClick={() => goToPage(page + 1)}
+            disabled={page >= totalPages - 1}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            Next →
+          </button>
+        </div>
+      )}
 
       {/* Side-by-Side Split-Screen Comparison Modal */}
       {isCompareModalOpen && selectedCompareIds.length === 2 && (() => {
