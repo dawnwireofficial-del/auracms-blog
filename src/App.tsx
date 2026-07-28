@@ -48,6 +48,7 @@ export function App() {
   useEffect(() => {
     store.fetchProducts();
     store.fetchCategories();
+    store.fetchBanners();
   }, []);
 
   useEffect(() => {

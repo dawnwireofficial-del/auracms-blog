@@ -13,7 +13,6 @@ interface HomepageSection {
 
 export default function DynamicHomepageSections({ onNavigate }: { onNavigate: (route: string, param?: string) => void }) {
   const [sections, setSections] = useState<HomepageSection[]>([]);
-  const [heroSlides, setHeroSlides] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
@@ -21,9 +20,6 @@ export default function DynamicHomepageSections({ onNavigate }: { onNavigate: (r
   useEffect(() => {
     fetch('/api/public/homepage').then(r => r.json()).then(res => {
       if (res?.sections) setSections(res.sections.filter((s: any) => s.isActive).sort((a: any, b: any) => a.sortOrder - b.sortOrder));
-    }).catch(() => {});
-    fetch('/api/public/homepage-hero').then(r => r.json()).then(res => {
-      if (Array.isArray(res)) setHeroSlides(res.filter((s: any) => s.isActive).sort((a: any, b: any) => a.sortOrder - b.sortOrder));
     }).catch(() => {});
     fetch('/api/public/product-reviews?limit=20').then(r => r.json()).then(res => {
       setProducts(Array.isArray(res.data) ? res.data : Array.isArray(res) ? res : []);

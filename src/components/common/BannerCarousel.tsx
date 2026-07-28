@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CategoryBanner } from '../../types';
+import { proxyImageUrl } from '../../utils/safeRender';
 
 interface BannerCarouselProps {
   banners: CategoryBanner[];
@@ -50,8 +51,10 @@ export const BannerCarousel: React.FC<BannerCarouselProps> = ({
             <picture>
               <source media="(max-width: 640px)" srcSet={current.mobileImage || current.desktopImage} />
               <img
-                src={current.desktopImage}
+                src={proxyImageUrl(current.desktopImage)}
                 alt={current.title}
+                referrerPolicy="no-referrer"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 className="w-full h-full object-cover object-center"
               />
             </picture>

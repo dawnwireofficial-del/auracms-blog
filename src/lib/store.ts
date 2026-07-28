@@ -251,19 +251,108 @@ export const store = {
     notify();
   },
 
-  saveBanner: (banner: CategoryBanner) => {
-    const index = globalStore.banners.findIndex((b) => b.id === banner.id);
-    if (index >= 0) {
-      globalStore.banners[index] = banner;
+  fetchBanners: async () => {
+    try {
+      const res = await fetch('/api/public/homepage-hero');
+      if (res.ok) {
+        const data = await res.json();
+        const items = Array.isArray(data) ? data : (data.data || []);
+        if (items.length > 0) {
+          globalStore.banners = items.map((s: any) => ({
+            id: s.id || 'hs-' + Date.now(),
+            categoryId: '',
+            desktopImage: s.desktop_image || s.desktopImage || '',
+            mobileImage: s.mobile_image || s.mobileImage || '',
+            title: s.heading || s.title || '',
+            heading: s.heading || '',
+            subtitle: s.subtitle || '',
+            description: s.description || '',
+            badgeText: s.badge_text || s.badgeText || '',
+            ctaText: s.cta_text || s.ctaText || '',
+            targetUrl: s.cta_link || s.targetUrl || '',
+            ctaLink: s.cta_link || s.ctaLink || '',
+            altText: s.alt_text || s.altText || '',
+            affiliateUrl: s.affiliate_url || s.affiliateUrl || '',
+            sortOrder: s.sort_order ?? s.sortOrder ?? 0,
+            order: s.sort_order ?? s.sortOrder ?? 0,
+            isEnabled: s.is_active ?? s.isActive ?? true,
+            isActive: s.is_active ?? s.isActive ?? true,
+            overlayStrength: s.overlay_strength ?? s.overlayStrength ?? 50,
+          }));
+          notify();
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to fetch homepage banners', e);
+    }
+  },
+
+  saveBanner: async (banner: CategoryBanner) => {
+    const token = localStorage.getItem('dawnwire_auth_token') || '';
+    const isUpdate = globalStore.banners.some((b) => b.id === banner.id);
+
+    // Optimistic local update
+    if (isUpdate) {
+      globalStore.banners = globalStore.banners.map((b) => b.id === banner.id ? banner : b);
     } else {
       globalStore.banners.push(banner);
     }
     notify();
+
+    try {
+      const body = {
+        heading: banner.title || banner.heading || '',
+        description: banner.description || '',
+        ctaText: banner.ctaText || '',
+        ctaLink: banner.targetUrl || banner.ctaLink || '',
+        desktopImage: banner.desktopImage || '',
+        mobileImage: banner.mobileImage || banner.desktopImage || '',
+        altText: banner.altText || banner.title || '',
+        sortOrder: banner.order ?? banner.sortOrder ?? 0,
+        isActive: banner.isEnabled ?? banner.isActive ?? true,
+      };
+
+      let res;
+      if (isUpdate) {
+        res = await fetch(`/api/admin/homepage-hero/${banner.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(body),
+        });
+      } else {
+        res = await fetch('/api/admin/homepage-hero', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(body),
+        });
+      }
+
+      if (res.ok) {
+        const saved = await res.json();
+        if (saved && saved.id) {
+          globalStore.banners = globalStore.banners.map((b) =>
+            b.id === banner.id ? { ...banner, id: saved.id } : b
+          );
+          notify();
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to save banner to server', e);
+    }
   },
 
-  deleteBanner: (id: string) => {
+  deleteBanner: async (id: string) => {
+    const token = localStorage.getItem('dawnwire_auth_token') || '';
     globalStore.banners = globalStore.banners.filter((b) => b.id !== id);
     notify();
+    try {
+      await fetch(`/api/admin/homepage-hero/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+    } catch (e) {
+      console.warn('Failed to delete banner on server', e);
+    }
   },
 
   logAffiliateClick: (click: Omit<AffiliateClickLog, 'id' | 'timestamp'>) => {

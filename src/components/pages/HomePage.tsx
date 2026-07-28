@@ -4,11 +4,13 @@ import { ArrowRight, Mail, TrendingUp, Activity, BookOpen, ShoppingBag, Lightbul
 import { Post, Category, SiteSettings } from '../../types';
 import ScrollReveal, { StaggerContainer, StaggerItem, HoverScale } from '../ScrollReveal';
 import DynamicHomepageSections from '../affiliate/DynamicHomepageSections';
+import { BannerCarousel } from '../common/BannerCarousel';
 import ParticleNetwork from '../motion/ParticleNetwork';
 import CategoryConstellation from '../motion/CategoryConstellation';
 import TrendWave from '../motion/TrendWave';
 import { Suspense, lazy } from 'react';
 import MascotAnimation from '../MascotAnimation';
+import { useAppStore } from '../../lib/store';
 const ParticleCanvas = lazy(() => import('../ParticleCanvas'));
 
 interface HomePageProps {
@@ -23,6 +25,7 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
   const [products, setProducts] = useState<any[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [showAllProducts, setShowAllProducts] = useState(false);
+  const { banners } = useAppStore();
 
   const allPublished = posts.filter(p => p.status === 'published');
   const topProducts = [...products].sort((a, b) => (b.rating || 0) - (a.rating || 0));
@@ -706,6 +709,13 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
             </div>
           </div>
         </ScrollReveal>
+      )}
+
+      {/* ============ HOMEPAGE BANNER CAROUSEL ============ */}
+      {banners.length > 0 && (
+        <div className="Container px-4 py-6">
+          <BannerCarousel banners={banners} />
+        </div>
       )}
 
       {/* ============ DYNAMIC HOMEPAGE SECTIONS ============ */}

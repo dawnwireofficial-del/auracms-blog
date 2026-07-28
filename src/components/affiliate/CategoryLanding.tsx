@@ -6,6 +6,7 @@ import DealCard from './DealCard';
 import Breadcrumbs from '../Breadcrumbs';
 import CategoryOrb from '../CategoryOrb';
 import CategoryPresetCanvas from '../motion/CategoryPresetCanvas';
+import { proxyImageUrl } from '../../utils/safeRender';
 
 interface CategoryLandingProps {
   category: Category & { banners?: CategoryBanner[]; sections?: CategorySection[]; subcategories?: Category[]; products?: ProductReview[] };
@@ -265,7 +266,7 @@ export default function CategoryLanding({ category, allProducts, allCategories, 
             <div key={banner.id} className={`relative w-full transition-opacity duration-500 ${i === activeSlide ? 'block' : 'hidden'}`}>
               {/* Desktop */}
               <a href={banner.ctaLink || '#'} target="_blank" rel="noopener noreferrer" className="hidden md:block">
-                <img src={banner.desktopImage} alt={banner.altText || category.name} className="w-full h-[300px] lg:h-[400px] object-cover" />
+                <img src={proxyImageUrl(banner.desktopImage)} alt={banner.altText || category.name} referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-full h-[300px] lg:h-[400px] object-cover" />
                 {(banner.heading || banner.description) && (
                   <div className="absolute inset-0 flex items-center bg-gradient-to-r from-black/50 to-transparent">
                     <div className="Container px-4">
@@ -278,7 +279,7 @@ export default function CategoryLanding({ category, allProducts, allCategories, 
               </a>
               {/* Mobile */}
               <a href={banner.ctaLink || '#'} target="_blank" rel="noopener noreferrer" className="md:hidden">
-                <img src={banner.mobileImage || banner.desktopImage} alt={banner.altText || category.name} className="w-full h-[200px] object-cover" />
+                <img src={proxyImageUrl(banner.mobileImage || banner.desktopImage)} alt={banner.altText || category.name} referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-full h-[200px] object-cover" />
                 {(banner.heading || banner.description) && (
                   <div className="absolute inset-0 flex items-center bg-gradient-to-r from-black/50 to-transparent">
                     <div className="px-4">
