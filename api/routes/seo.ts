@@ -414,8 +414,11 @@ router.get('/product-reviews', authenticate, async (req, res) => {
 router.post('/product-reviews', authenticate, async (req, res) => res.json(await seo.createProductReview(req.body)));
 router.post('/product-reviews/import', authenticate, async (req, res) => {
   try {
-    const created = await seo.importProductReview(req.body);
-    res.json(created);
+    const result = await Promise.race([
+      seo.importProductReview(req.body),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Import timed out after 60s')), 60000))
+    ]);
+    res.json(result);
   } catch (e: any) {
     res.status(500).json({ error: e.message });
   }

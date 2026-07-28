@@ -924,10 +924,10 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                     <div>
                       <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block mb-1">Extracted Technical Specs</span>
                       <div className="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-2xl border border-slate-200 dark:border-slate-700 text-[11px]">
-                        {Object.entries(extractedPreview.specifications || {}).map(([key, val]) => (
+                          {Object.entries(extractedPreview.specifications || {}).filter(([, v]) => typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean').map(([key, val]) => (
                           <div key={key}>
                             <span className="text-slate-400 font-medium">{key}:</span>{' '}
-                            <strong className="text-slate-800 dark:text-slate-200">{val}</strong>
+                            <strong className="text-slate-800 dark:text-slate-200">{String(val)}</strong>
                           </div>
                         ))}
                       </div>

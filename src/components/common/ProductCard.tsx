@@ -5,6 +5,7 @@ import { ProductSparkline } from '../product/ProductSparkline';
 import { PriceAlertModal } from '../product/PriceAlertModal';
 import { useAppStore, store } from '../../lib/store';
 import { toast } from '../../lib/toastStore';
+import { sanitizeHtml } from '../../lib/sanitize';
 
 interface ProductCardProps {
   product: Product;
@@ -64,11 +65,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   if (viewMode === 'list') {
     return (
-      <div className="group relative flex flex-col md:flex-row bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
+      <div className="group relative flex flex-col md:flex-row bg-white dark:bg-dw-card rounded-[18px] border border-dw-border-soft/50 hover:border-dw-border shadow-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 overflow-hidden">
         {/* Image Container */}
-        <div className="relative w-full md:w-64 h-52 md:h-auto shrink-0 bg-slate-50 dark:bg-slate-900/50 p-4 flex items-center justify-center overflow-hidden">
+        <div className="relative w-full md:w-64 h-52 md:h-auto shrink-0 bg-slate-50 dark:bg-dw-section p-4 flex items-center justify-center overflow-hidden">
           <img
-            src={product.images?.[0] || 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f1f5f9"/><text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">No image</text></svg>')}
+            src={product.images?.[0] || product.productImage || 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f1f5f9"/><text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">No image</text></svg>')}
             alt={product.title}
             className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
@@ -116,32 +117,32 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div className="flex-1 p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between gap-2 mb-1.5">
-              <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
-                {product.brand} • {product.subcategory}
+              <span className="text-xs font-bold text-primary uppercase tracking-wider">
+                {product.brand}
               </span>
               {product.bestFor && (
-                <span className="text-[11px] font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-2.5 py-0.5 rounded-full border border-blue-200/60 dark:border-blue-800/60">
+                <span className="text-[11px] font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full border border-primary/30">
                   {product.bestFor}
                 </span>
               )}
             </div>
 
             <a href={`/products/${product.slug}`} className="block">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
+              <h3 className="text-lg font-bold text-dw-text group-hover:text-primary transition-colors line-clamp-2">
                 {product.title}
               </h3>
             </a>
 
-            <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 line-clamp-2">
-              {product.shortDescription}
+            <p className="text-sm text-dw-text-muted mt-2 line-clamp-2">
+              {sanitizeHtml(product.shortDescription)}
             </p>
 
             {/* Features list */}
             {product.mainFeatures?.length > 0 && (
-              <ul className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+              <ul className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-1.5 text-xs text-dw-text-muted">
                 {product.mainFeatures.slice(0, 2).map((feat, idx) => (
                   <li key={idx} className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                     <span className="truncate">{feat}</span>
                   </li>
                 ))}
@@ -150,27 +151,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </div>
 
           {/* Bottom Price & CTA */}
-          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700/60 flex flex-wrap items-center justify-between gap-3">
+          <div className="mt-4 pt-3 border-t border-dw-border-soft/30 flex flex-wrap items-center justify-between gap-3">
             <div>
-              {(product.currentPrice || product.price) ? (
-                <div className="flex items-baseline gap-2">
-                  <span className="text-xl font-black text-slate-900 dark:text-slate-100">
-                    ${Number(product.currentPrice || product.price || 0).toFixed(2)}
-                  </span>
-                  {product.referencePrice && Number(product.referencePrice) > Number(product.currentPrice || 0) && (
-                    <span className="text-xs text-slate-400 line-through">
-                      ${Number(product.referencePrice).toFixed(2)}
-                    </span>
-                  )}
-                  {product.isPrime && (
-                    <span className="text-[10px] font-extrabold text-sky-600 dark:text-sky-400 italic bg-sky-50 dark:bg-sky-950 px-1.5 py-0.5 rounded">
-                      Prime
-                    </span>
-                  )}
-                </div>
-              ) : (
-                <span className="text-sm font-semibold text-slate-500 italic">Check Price on Amazon</span>
-              )}
+              {(() => {
+                const cp = Number(product.currentPrice || product.price || 0);
+                const rp = Number(product.referencePrice || 0);
+                const vc = !isNaN(cp) && cp > 0;
+                const vr = !isNaN(rp) && rp > 0;
+                if (!vc) return <span className="text-sm font-semibold text-dw-text-muted italic">Check Price on Amazon</span>;
+                return <div className="flex items-baseline gap-2">
+                  <span className="text-xl font-black text-amazon-orange">${cp.toFixed(2)}</span>
+                  {vr && rp > cp && <span className="text-xs text-dw-text-muted line-through">${rp.toFixed(2)}</span>}
+                  {product.isPrime && <span className="text-[10px] font-extrabold text-cyan italic bg-cyan/10 px-1.5 py-0.5 rounded">Prime</span>}
+                </div>;
+              })()}
               <div className="flex items-center gap-1 mt-0.5">
                 <div className="flex text-amber-400 text-xs">
                   {'★'.repeat(Math.round(product.rating || 4.5))}
@@ -267,7 +261,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       {/* Image */}
       <a href={`/products/${product.slug}`} className="relative h-56 bg-slate-50 dark:bg-slate-900/40 p-6 flex items-center justify-center overflow-hidden">
         <img
-          src={product.images?.[0] || 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f1f5f9"/><text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">No image</text></svg>')}
+          src={product.images?.[0] || product.productImage || 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f1f5f9"/><text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">No image</text></svg>')}
           alt={product.title}
           className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
           loading="lazy"

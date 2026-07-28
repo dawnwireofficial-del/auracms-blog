@@ -48,6 +48,7 @@ export default function MegaMenu({ categories, onClose, onNavigate }: MegaMenuPr
   return (
     <AnimatePresence>
       <motion.div
+        key="mega-menu"
         ref={menuRef}
         onMouseLeave={handleMouseLeave}
         initial={{ opacity: 0, y: -10, filter: 'blur(10px)' }}

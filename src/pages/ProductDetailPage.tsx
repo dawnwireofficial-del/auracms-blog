@@ -10,6 +10,8 @@ import { ProductSentimentCard } from '../components/product/ProductSentimentCard
 import { PriceHistoryTracker } from '../components/product/PriceHistoryTracker';
 import { ProductFaqSection } from '../components/product/ProductFaqSection';
 import { useAppStore, store } from '../lib/store';
+import { sanitizeHtml } from '../lib/sanitize';
+import { safeText, safeSpecValue, isValidImageUrl } from '../utils/safeRender';
 
 function HlsVideo({ src, poster }: { src: string; poster: string }) {
   const videoRef = React.useRef<HTMLVideoElement>(null);
@@ -85,8 +87,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               subcategory: data.subcategory || 'General', productType: 'Physical Product',
               shortDescription: data.review_summary || data.shortDescription || '',
               fullDescription: data.review_summary || data.fullDescription || '',
+              videoUrl: data.specs?.video_url || data.videoUrl || '',
               images: [data.product_image || ''].filter(Boolean),
-              amazonOriginalUrl: data.amazon_url || '', affiliateUrl: data.affiliate_url || '',
+               amazonOriginalUrl: data.amazon_url || '', affiliateUrl: data.affiliate_url || '',
               amazonMarketplace: 'US', associateTrackingId: 'dawnwire-20',
               currentPrice: parseFloat(String(data.price || '0')) || 0,
               referencePrice: parseFloat(String(data.original_price || '0')) || 0,
@@ -322,6 +325,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               alt={`${product.title} angle ${selectedImageIndex + 1}`}
               className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105 cursor-zoom-in"
               onClick={() => setIsLightboxOpen(true)}
+              onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23f1f5f9%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2210%22 fill=%22%2394a3b8%22>Image</text></svg>'; }}
             />
 
             {product.isDeal && product.discountPercentage ? (
@@ -360,7 +364,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                       : 'border-slate-200 dark:border-slate-800 opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-contain" />
+                  <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
                   <span className="absolute bottom-1 right-1 bg-slate-900/80 text-white text-[9px] px-1 rounded font-bold">
                     #{idx + 1}
                   </span>
@@ -439,11 +443,15 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   Current Verified Amazon Price
                 </span>
                 <div className="flex items-baseline gap-3">
-                    <span className="text-3xl font-black text-slate-900 dark:text-slate-100">
+                  {product.currentPrice && !isNaN(Number(product.currentPrice)) ? (
+                    <span className="text-3xl font-black text-amazon-orange">
                       ${Number(product.currentPrice).toFixed(2)}
                     </span>
-                    {Number(product.referencePrice) && Number(product.currentPrice) && Number(product.referencePrice) > Number(product.currentPrice) && (
-                      <span className="text-sm text-slate-400 line-through font-semibold">
+                  ) : (
+                    <span className="text-base font-bold text-dw-text-muted">Check latest price on Amazon</span>
+                  )}
+                    {product.referencePrice && Number(product.referencePrice) > 0 && Number(product.currentPrice) > 0 && Number(product.referencePrice) > Number(product.currentPrice) && (
+                      <span className="text-sm text-dw-text-muted line-through font-semibold">
                         ${Number(product.referencePrice).toFixed(2)}
                     </span>
                   )}
@@ -485,7 +493,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
           {/* Short Description */}
           <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
-            {product.fullDescription || product.shortDescription}
+            {sanitizeHtml(product.fullDescription || product.shortDescription)}
           </p>
 
           {/* Key Features Bullet Points */}
@@ -670,7 +678,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     >
                       {/* Video Thumbnail */}
                       <div className="relative w-24 h-16 rounded-xl bg-slate-950 overflow-hidden shrink-0 border border-slate-700 flex items-center justify-center">
-                        <img src={vid.thumbnailUrl || allImportedImages[0]} alt="" className="w-full h-full object-cover opacity-80" />
+                        <img src={vid.thumbnailUrl || allImportedImages[0]} alt="" className="w-full h-full object-cover opacity-80" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                           <svg className="w-6 h-6 text-amber-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                         </div>
@@ -723,12 +731,16 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             <span>⚙️ Technical Specifications & Build Specs</span>
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {Object.entries(product.specifications || {}).filter(([key]) => !['gallery', 'video_url', 'videoUrl', 'asin', 'source', 'details'].includes(key)).map(([key, val]) => (
-              <div key={key} className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/60 dark:border-slate-700/60">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">{key === 'listPrice' ? 'List Price' : key === 'savings' ? 'Savings' : key.replace(/_/g, ' ')}</span>
-                <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{String(val)}</span>
-              </div>
-            ))}
+            {Object.entries(product.specifications || {}).filter(([k, v]) => !['gallery', 'video_url', 'videoUrl', 'asin', 'source', 'details', 'reviews', 'review_stats', 'review_highlights', 'best_sellers_rank_detail', 'variations', 'ingredients'].includes(k) && (typeof v === 'string' || typeof v === 'number')).map(([key, val]) => {
+              const { display, isLong } = safeSpecValue(val);
+              if (!display) return null;
+              return (
+                <div key={key} className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/60 dark:border-slate-700/60">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block break-words">{key === 'listPrice' ? 'List Price' : key === 'savings' ? 'Savings' : key.replace(/_/g, ' ')}</span>
+                  <span className="text-sm font-bold text-slate-900 dark:text-slate-100 break-words">{isLong ? display.substring(0, 80) + '…' : display}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -913,7 +925,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                       : 'border-slate-800 opacity-50 hover:opacity-100'
                   }`}
                 >
-                  <img src={img} alt="" className="w-full h-full object-contain" />
+                  <img src={img} alt="" className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
                 </button>
               ))}
             </div>
@@ -925,7 +937,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       <div className="lg:hidden fixed bottom-0 left-0 right-0 p-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-30 shadow-2xl flex items-center justify-between gap-3">
         <div>
           <span className="text-xs font-bold text-slate-500 block truncate max-w-[150px]">{product.title}</span>
-            <span className="text-base font-black text-slate-900 dark:text-slate-100">${Number(product.currentPrice).toFixed(2)}</span>
+            <span className="text-base font-black text-amazon-orange">${product.currentPrice && !isNaN(Number(product.currentPrice)) ? Number(product.currentPrice).toFixed(2) : 'Check Amazon'}</span>
         </div>
         <AffiliateCTA
           affiliateUrl={product.affiliateUrl}

@@ -3,6 +3,7 @@ import { ExternalLink, Globe, Calendar, Tag } from 'lucide-react';
 import { PortfolioProject } from '../types';
 import SeoHelmet from './SeoHelmet';
 import Breadcrumbs from './Breadcrumbs';
+import { sanitizeHtml } from '../lib/sanitize';
 
 interface PublicPortfolioProps {
   slug: string;
@@ -77,7 +78,7 @@ export default function PublicPortfolio({ slug, onNavigate }: PublicPortfolioPro
             {p.shortDescription && (
               <div>
                 <h2 className="font-display font-bold text-lg text-slate-900 dark:text-white mb-2">About This Project</h2>
-                <p className="text-slate-800 dark:text-zinc-300 leading-relaxed text-sm">{p.shortDescription}</p>
+                <p className="text-slate-800 dark:text-zinc-300 leading-relaxed text-sm">{sanitizeHtml(p.shortDescription)}</p>
               </div>
             )}
 

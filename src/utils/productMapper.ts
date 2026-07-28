@@ -28,6 +28,7 @@ export function normalizeProduct(raw: any): ProductReview {
     productName: String(raw.product_name || raw.productName || raw.title || 'Untitled Product'),
     brand: raw.brand ? String(raw.brand) : undefined,
     productImage: raw.product_image || raw.productImage || raw.featured_image || raw.featuredImage || '',
+    images: raw.images || (raw.product_image ? [raw.product_image] : []) || (raw.productImage ? [raw.productImage] : []) || (raw.featured_image ? [raw.featured_image] : []) || [],
     affiliateUrl: raw.affiliate_url || raw.affiliateUrl || '',
     price: raw.price ? String(raw.price) : undefined,
     originalPrice: raw.original_price || raw.originalPrice ? String(raw.original_price || raw.originalPrice) : undefined,

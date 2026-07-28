@@ -225,17 +225,21 @@ export function extractAsin(url: string): string {
 /**
  * Scrape public HTML page of an Amazon product URL
  */
-async function scrapeAmazonHtml(asin: string): Promise<Partial<ExtractedProductData> | null> {
+export async function scrapeAmazonHtml(asin: string): Promise<Partial<ExtractedProductData> | null> {
   const targetUrl = `https://www.amazon.com/dp/${asin}`;
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
     const res = await fetch(targetUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.101',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
         'Cache-Control': 'no-cache'
-      }
+      },
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     if (!res.ok) return null;
     const html = await res.text();
@@ -392,7 +396,7 @@ export async function extractAmazonProductData(urlOrAsin: string, associateTag: 
       ? Math.round((1 - known.currentPrice / known.referencePrice) * 100)
       : 0;
 
-    const knownVideo = known.videoUrl || `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(known.brand + ' ' + known.title + ' review')}`;
+    const knownVideo = known.videoUrl || '';
     return {
       asin,
       title: known.title || `Amazon Product (${asin})`,
@@ -416,7 +420,7 @@ export async function extractAmazonProductData(urlOrAsin: string, associateTag: 
       specifications: { video_url: knownVideo, ...(known.specifications || { 'Warranty': '1 Year' }) },
       affiliateUrl,
       amazonOriginalUrl,
-      isPrime: true,
+      isPrime: scraped?.isPrime || false,
       isDeal: discount > 0,
       rating: known.rating || 4.7,
       reviewCount: known.reviewCount || 2400,
@@ -461,7 +465,7 @@ export async function extractAmazonProductData(urlOrAsin: string, associateTag: 
     }
   }
 
-  const finalVideoUrl = scraped?.videoUrl || `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(finalBrand + ' ' + finalTitle + ' review')}`;
+  const finalVideoUrl = scraped?.videoUrl || '';
   const baseSpecs = aiData?.specifications || { 'ASIN': asin, 'Warranty': '1 Year Manufacturer Warranty' };
 
   return {
@@ -490,8 +494,8 @@ export async function extractAmazonProductData(urlOrAsin: string, associateTag: 
     isPrime: true,
     isDeal: discount > 0,
     rating: scraped?.rating || 4.6,
-    reviewCount: 1250,
-    videoUrl: finalVideoUrl,
-    source: scraped ? 'web_scraper' : aiData ? 'ai_synthesis' : 'dictionary'
+      reviewCount: scraped?.rating ? (scraped as any).reviewCount || 0 : 0,
+      videoUrl: finalVideoUrl || undefined,
+      source: scraped ? 'web_scraper' : aiData ? 'ai_synthesis' : 'dictionary'
   };
 }

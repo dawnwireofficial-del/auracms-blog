@@ -90,11 +90,11 @@ export default function Header({
   }, [searchQuery]);
 
   const headerClass = scrolled || !isHome
-    ? 'bg-white/95 dark:bg-[#041424]/95 backdrop-blur-md shadow-sm border-b border-gray-100 dark:border-zinc-800'
+    ? 'bg-dw-header/95 backdrop-blur-md shadow-sm border-b border-dw-border/30'
     : 'bg-transparent';
 
   const textClass = scrolled || !isHome
-    ? 'text-gray-600 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800'
+    ? 'text-dw-text-muted hover:text-dw-text hover:bg-white/5'
     : 'text-white/90 hover:text-white hover:bg-white/10';
 
   const logoFilter = scrolled || !isHome ? '' : 'brightness(0) invert(1)';
@@ -146,7 +146,7 @@ export default function Header({
           {/* Search bar - desktop (Futuristic AI Search) */}
           <div ref={searchRef} className="hidden md:flex flex-1 max-w-3xl relative">
             <SearchPulse state={searchQuery.length > 0 ? 'typing' : 'idle'} className="w-full">
-            <form onSubmit={handleSearch} className="relative flex w-full h-12 bg-white/80 dark:bg-[#070b19]/80 backdrop-blur-md rounded-full border border-brand-secondary/30 items-center pl-2 pr-1 shadow-inner">
+            <form onSubmit={handleSearch} className="relative flex w-full h-12 bg-dw-card/90 backdrop-blur-md rounded-full border border-dw-border-soft items-center pl-2 pr-1 shadow-inner">
               
               <div className="flex-shrink-0 px-2">
                 <NeuralOrb size="compact" state={searchQuery.length > 2 ? 'processing' : 'idle'} />
@@ -155,7 +155,7 @@ export default function Header({
               <select
                 value={selectedCategory}
                 onChange={e => setSelectedCategory(e.target.value)}
-                className="text-xs bg-transparent border-r border-brand-secondary/20 dark:border-brand-secondary/10 px-2 py-1 text-slate-600 dark:text-zinc-300 focus:outline-none cursor-pointer appearance-none font-medium max-w-[100px] truncate"
+                className="text-xs bg-transparent border-r border-dw-border-soft/50 px-2 py-1 text-dw-text-muted focus:outline-none cursor-pointer appearance-none font-medium max-w-[100px] truncate"
               >
                 <option value="">All Categories</option>
                 {topLevelCats.slice(0, 10).map((c: any) => (
@@ -168,12 +168,12 @@ export default function Header({
                 onChange={e => setSearchQuery(e.target.value)}
                 onFocus={() => searchSuggestions.length > 0 && setShowSearchSuggestions(true)}
                 placeholder="Ask AI or search products, brands..."
-                className="flex-1 text-sm bg-transparent px-4 py-2 text-slate-800 dark:text-gray-100 placeholder:text-slate-400 focus:outline-none"
+                className="flex-1 text-sm bg-transparent px-4 py-2 text-dw-text placeholder:text-dw-text-muted focus:outline-none"
               />
-              <button type="button" className="p-2 text-brand-accent hover:text-brand-secondary transition-colors mr-1" title="Natural Language Search">
+              <button type="button" className="p-2 text-cyan hover:text-primary transition-colors mr-1" title="Natural Language Search">
                 <Sparkles className="h-4 w-4" />
               </button>
-              <button type="submit" className="bg-gradient-to-r from-brand-secondary to-brand-accent hover:opacity-90 text-white h-10 w-10 flex items-center justify-center rounded-full transition-all shadow-[0_0_15px_rgba(0,210,255,0.4)]">
+              <button type="submit" className="bg-primary hover:bg-primary2 text-white h-10 w-10 flex items-center justify-center rounded-full transition-all shadow-[0_0_15px_rgba(8,102,255,0.4)]">
                 <Search className="h-4 w-4" />
               </button>
             </form>
@@ -181,19 +181,19 @@ export default function Header({
 
             {/* Search suggestions dropdown */}
             {showSearchSuggestions && searchSuggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl shadow-2xl overflow-hidden z-50">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-dw-card border border-dw-border-soft rounded-xl shadow-2xl overflow-hidden z-50">
                 <div className="p-2 max-h-80 overflow-y-auto">
                   {searchSuggestions.map(item => (
-                    <button key={item.id} onClick={() => handleSuggestionClick(item)} className="flex items-center gap-3 w-full p-2 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-lg transition-colors text-left">
-                      {item.image && <img src={item.image} alt="" className="w-10 h-10 object-contain rounded-lg bg-slate-50 dark:bg-zinc-800" />}
+                    <button key={item.id} onClick={() => handleSuggestionClick(item)} className="flex items-center gap-3 w-full p-2 hover:bg-white/5 rounded-lg transition-colors text-left">
+                      {item.image && <img src={item.image} alt="" className="w-10 h-10 object-contain rounded-lg bg-dw-section" />}
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-slate-700 dark:text-zinc-200 truncate">{item.name}</p>
-                        {item.price && <p className="text-[11px] text-brand-secondary font-bold">${parseFloat(item.price).toFixed(2)}</p>}
+                        <p className="text-xs font-semibold text-dw-text truncate">{item.name}</p>
+                        {item.price && <p className="text-[11px] text-primary font-bold">${parseFloat(item.price).toFixed(2)}</p>}
                       </div>
                     </button>
                   ))}
                 </div>
-                <button onClick={handleSearch} className="w-full p-2 text-[11px] font-semibold text-brand-secondary hover:bg-slate-50 dark:hover:bg-zinc-800 border-t border-slate-100 dark:border-zinc-700">
+                <button onClick={handleSearch} className="w-full p-2 text-[11px] font-semibold text-primary hover:bg-white/5 border-t border-dw-border-soft/50">
                   See all results for "{searchQuery}" →
                 </button>
               </div>
@@ -239,8 +239,8 @@ export default function Header({
             ) : (
               <button onClick={onOpenLogin} className={`text-[10px] font-bold tracking-wider px-4 py-2 rounded-lg transition-all ${
                 scrolled || !isHome
-                  ? 'bg-[#021533] text-white hover:bg-[#041424]'
-                  : 'bg-white/20 backdrop-blur-md text-white hover:bg-white/30 border border-white/30'
+                  ? 'text-dw-text-muted hover:text-dw-text hover:bg-white/5'
+                  : 'bg-white/10 backdrop-blur-md text-white hover:bg-white/20'
               }`}>
                 Sign In
               </button>
@@ -263,7 +263,7 @@ export default function Header({
         </div>
 
         {/* Bottom bar: category navigation + deals links - desktop */}
-        <div className="hidden lg:flex items-center border-t border-slate-100 dark:border-zinc-800 py-1 gap-1">
+        <div className="hidden lg:flex items-center border-t border-dw-border-soft/30 py-1 gap-1">
           {/* Shop by Category */}
           <div className="relative nav-dropdown-trigger" onMouseEnter={() => setMegaMenuOpen(true)} onMouseLeave={() => setMegaMenuOpen(false)}>
             <button className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${textClass}`}>

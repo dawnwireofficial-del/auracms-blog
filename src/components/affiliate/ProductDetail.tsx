@@ -11,6 +11,8 @@ import ProductCard from './ProductCard';
 import ProductSpotlight from '../motion/ProductSpotlight';
 import TechGrid from '../motion/TechGrid';
 import DiscoveryTrail from '../motion/DiscoveryTrail';
+import { safeText } from '../../utils/safeRender';
+import { sanitizeHtml } from '../../lib/sanitize';
 
 interface ProductDetailProps {
   product: ProductReview & { asin?: string; gallery?: string[]; editorRating?: number; features?: string[]; technicalSpecs?: Record<string, string>; isFeatured?: boolean; isDeal?: boolean; discountPercentage?: number; reviewCount?: number; shippingInfo?: string; pros?: string[]; cons?: string[]; amazonUrl?: string; priceUpdatedAt?: string };
@@ -323,10 +325,10 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
             <div className="relative z-10">
               <h2 className="text-sm font-bold text-slate-800 dark:text-zinc-100 mb-4">Technical Specifications</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {Object.entries(specs).map(([key, val]) => (
+                {Object.entries(specs).filter(([, v]) => typeof v === 'string' || typeof v === 'number').map(([key, val]) => (
                   <div key={key} className="flex items-center justify-between py-2 px-3 bg-slate-50 dark:bg-zinc-900 rounded-lg">
                     <span className="text-[11px] font-medium text-slate-500 dark:text-zinc-400 capitalize">{key.replace(/_/g, ' ')}</span>
-                    <span className="text-xs font-semibold text-slate-700 dark:text-zinc-200">{val}</span>
+                    <span className="text-xs font-semibold text-slate-700 dark:text-zinc-200">{safeText(String(val))}</span>
                   </div>
                 ))}
               </div>
@@ -397,7 +399,7 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
         {product.reviewSummary && (
           <div className="mt-6">
             <h2 className="text-sm font-bold text-slate-800 dark:text-zinc-100 mb-3">Full Review</h2>
-            <div className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed">{product.reviewSummary}</div>
+            <div className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed">{sanitizeHtml(product.reviewSummary)}</div>
           </div>
         )}
 

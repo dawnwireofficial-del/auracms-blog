@@ -12,6 +12,8 @@ interface ErrorBoundaryState {
 }
 
 export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  private retryTimer: ReturnType<typeof setTimeout> | null = null;
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null, retryCount: 0 };
@@ -21,7 +23,6 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
   }
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('[ErrorBoundary]', error, errorInfo);
-    // Track error in analytics
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', 'exception', {
         description: error.message,
@@ -29,7 +30,19 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
       });
     }
   }
+  componentDidUpdate(_prevProps: ErrorBoundaryProps, prevState: ErrorBoundaryState) {
+    if (!prevState.hasError && this.state.hasError && this.state.retryCount < 3) {
+      this.retryTimer = setTimeout(() => this.handleRetry(), 500);
+    }
+  }
+  componentWillUnmount() {
+    if (this.retryTimer) clearTimeout(this.retryTimer);
+  }
   handleRetry = () => {
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = null;
+    }
     this.setState(prev => ({ hasError: false, error: null, retryCount: prev.retryCount + 1 }));
   };
   render() {

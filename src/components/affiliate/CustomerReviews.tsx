@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Star, ChevronDown, ChevronUp, ThumbsUp, ShieldCheck, Image as ImageIcon } from 'lucide-react';
+import { sanitizeHtml } from '../../lib/sanitize';
 
 interface Review {
   name: string;
@@ -69,7 +70,7 @@ export default function CustomerReviews({ reviews, reviewStats, reviewHighlights
             <ThumbsUp className="h-4 w-4 text-blue-500" />
             <span className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase">Customers say</span>
           </div>
-          <p className="text-sm text-slate-600 dark:text-zinc-300 leading-relaxed">{reviewHighlights}</p>
+          <p className="text-sm text-slate-600 dark:text-zinc-300 leading-relaxed">{sanitizeHtml(reviewHighlights)}</p>
         </div>
       )}
 
@@ -135,7 +136,7 @@ export default function CustomerReviews({ reviews, reviewStats, reviewHighlights
                   )}
                   <div className="mt-1">
                     <p className={`text-xs text-slate-600 dark:text-zinc-300 leading-relaxed ${!isExpanded && isLong ? 'line-clamp-3' : ''}`}>
-                      {review.body}
+                      {sanitizeHtml(review.body)}
                     </p>
                     {isLong && (
                       <button
@@ -151,7 +152,7 @@ export default function CustomerReviews({ reviews, reviewStats, reviewHighlights
                     <div className="flex gap-2 mt-2">
                       {review.images.map((img, i) => (
                         <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="w-14 h-14 rounded-lg border border-slate-200 dark:border-zinc-700 overflow-hidden hover:opacity-80 transition-opacity">
-                          <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
+                          <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
                         </a>
                       ))}
                     </div>

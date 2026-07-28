@@ -1,6 +1,7 @@
 import { dbInstance, useSupabase } from './db';
 import { getSupabase, getSupabaseAdmin } from './lib/supabase';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { normalizeImportedProduct } from './normalize-import';
 
 let seoClient: SupabaseClient | null = null;
 
@@ -329,6 +330,8 @@ export async function importProductReview(data: {
   detailBullets?: Record<string, string>;
   stockStatus?: string;
   dealBadge?: string;
+  couponCode?: string;
+  couponExpiry?: string;
   asin?: string;
   source?: string;
   ingredients?: string;
@@ -344,8 +347,11 @@ export async function importProductReview(data: {
   editor_score?: number;
 }): Promise<any> {
   const sb = await getClient();
-  let slug = slugify(data.product_name || 'product-review');
-  // Slug dedup: check if slug exists, append counter if taken
+
+  // Normalize all incoming data
+  const norm = normalizeImportedProduct({ ...data, title: data.product_name });
+
+  let slug = slugify(norm.product_name || 'product-review');
   const existingSlugs = await sb.from('product_reviews').select('slug');
   if (existingSlugs.data) {
     const used = new Set(existingSlugs.data.map((r: any) => r.slug).filter(Boolean));
@@ -355,45 +361,63 @@ export async function importProductReview(data: {
       slug = `${slug}-${counter}`;
     }
   }
-  const gallery = data.gallery && data.gallery.length > 0 ? data.gallery.slice(0, 8) : [];
+
   const specs: any = {
-    asin: data.asin || '',
-    source: data.source || (data.amazon_url?.includes('amazon.') ? 'amazon' : 'other'),
+    asin: norm.asin || '',
+    source: norm.source || (data.amazon_url?.includes('amazon.') ? 'amazon' : 'other'),
   };
-  if (gallery.length > 0) specs.gallery = gallery;
-  if (data.variations && data.variations.length > 0) specs.variations = data.variations;
+  if (norm.gallery.length > 0) specs.gallery = norm.gallery;
+  if (norm.variations.length > 0) specs.variations = norm.variations;
+  if (norm.ingredients) specs.ingredients = norm.ingredients;
+  if (norm.unitSize) specs.unit_size = norm.unitSize;
+  if (norm.unitPrice) specs.unit_price = norm.unitPrice;
+  if (norm.bsrDetail.length > 0) specs.best_sellers_rank_detail = norm.bsrDetail;
+  if (norm.reviewHighlights) specs.review_highlights = norm.reviewHighlights;
+  if (norm.reviews.length > 0) specs.reviews = norm.reviews;
+  if (norm.reviewStats) specs.review_stats = norm.reviewStats;
+  if (norm.videoUrl) specs.video_url = norm.videoUrl;
+  if (data.specs && typeof data.specs === 'object') specs.details = data.specs;
+  if (data.detailBullets && typeof data.detailBullets === 'object') specs.detail_bullets = data.detailBullets;
   if (data.listPrice) specs.listPrice = data.listPrice;
   if (data.savings) specs.savings = data.savings;
   if (data.priceRange) specs.priceRange = data.priceRange;
-  if (data.specs && Object.keys(data.specs).length > 0) specs.details = data.specs;
-  if (data.videoUrl) specs.video_url = data.videoUrl;
-  if (data.ingredients) specs.ingredients = data.ingredients;
-  if (data.unitSize) specs.unit_size = data.unitSize;
-  if (data.unitPrice) specs.unit_price = data.unitPrice;
-  if (data.bsrDetail && data.bsrDetail.length > 0) specs.best_sellers_rank_detail = data.bsrDetail;
-  if (data.reviewHighlights) specs.review_highlights = data.reviewHighlights;
-  if (data.reviews && data.reviews.length > 0) specs.reviews = data.reviews.slice(0, 50);
-  if (data.reviewStats) specs.review_stats = data.reviewStats;
+
+  const bestFor = norm.best_for;
+  const categoryId = data.category_id || null;
+  const resolvedCategoryId = categoryId || (bestFor ? await resolveCategoryIdByName(bestFor) : null);
+
+  let reviewSummary = norm.review_summary || null;
+  // Append variation summary AFTER sanitization is already done by normalizer
+  if (norm.variations.length > 0) {
+    const varSummary = norm.variations.map(v => `${v.name}: ${v.selectedValue}`).filter(Boolean);
+    if (varSummary.length > 0) {
+      reviewSummary = [reviewSummary, ...varSummary].filter(Boolean).join(' | ');
+    }
+  }
+
   const review: Record<string, any> = {
     id: crypto.randomUUID(),
-    product_name: data.product_name,
-    brand: data.brand || null,
-    product_image: data.product_image || null,
+    product_name: norm.product_name,
+    brand: norm.brand,
+    product_image: typeof data.product_image === 'string' ? data.product_image.trim() : null,
     affiliate_url: data.affiliate_url || data.amazon_url || null,
-    price: data.price || null,
-    original_price: data.listPrice || null,
-    rating: data.rating || data.reviewStats?.average || 0,
-    review_count: data.reviewStats?.total || data.reviewCount || 0,
-    pros: data.pros || [],
-    cons: data.cons || [],
-    key_features: data.key_features || [],
-    review_summary: sanitizeReviewSummary(data.review_summary),
+    price: norm.price,
+    original_price: norm.original_price,
+    rating: norm.rating,
+    review_count: norm.review_count,
+    pros: norm.pros,
+    cons: norm.cons,
+    key_features: norm.key_features,
+    review_summary: reviewSummary ? sanitizeReviewSummary(reviewSummary) : null,
     slug,
-    stock_status: data.stockStatus || 'in_stock',
-    deal_badge: data.dealBadge || null,
-    best_for: data.best_for || null,
-    category_id: data.category_id || null,
-    final_verdict: data.final_verdict || null,
+    stock_status: norm.stock_status,
+    deal_badge: norm.deal_badge,
+    best_for: bestFor,
+    category_id: resolvedCategoryId,
+    final_verdict: norm.final_verdict || null,
+    editor_score: norm.editor_score,
+    coupon_code: norm.coupon_code || norm.deal_badge,
+    coupon_expiry: norm.coupon_expiry,
     specs: Object.keys(specs).length > 0 ? specs : null,
     cta_text: 'Buy on Amazon',
     status: 'published',
@@ -407,20 +431,7 @@ export async function importProductReview(data: {
   } else if (rawUrl && rawUrl.includes('amazon') && !rawUrl.includes('dawnwire-20')) {
     review.affiliate_url = rawUrl.replace(/tag=[^&]+/, 'tag=dawnwire-20');
   }
-  // store individual variation prices in key_features summary
-  if (data.variations && data.variations.length > 0) {
-    const varSummary = [];
-    data.variations.forEach(dim => {
-      const selected = dim.options.find(o => o.value === dim.selectedValue);
-      if (selected && selected.price) varSummary.push(`${dim.name}: ${selected.value} - ${selected.price}`);
-      else varSummary.push(`${dim.name}: ${dim.selectedValue}`);
-    });
-    if (data.priceRange) varSummary.push(`Price range: ${data.priceRange.low} - ${data.priceRange.high}`);
-    if (data.savings) varSummary.push(`Discount: ${data.savings}`);
-    if (varSummary.length > 0) {
-      review.review_summary = [review.review_summary, ...varSummary].filter(Boolean).join(' | ');
-    }
-  }
+
   let { data: created, error } = await sb.from('product_reviews').insert(review).select().single();
   if (error) {
     console.warn('[Supabase Import Product Review Error, running sanitized fallback]:', error.message);
@@ -431,6 +442,10 @@ export async function importProductReview(data: {
     delete fallbackPayload.stock_status;
     delete fallbackPayload.key_features;
     delete fallbackPayload.review_summary;
+    delete fallbackPayload.gallery;
+    delete fallbackPayload.editor_score;
+    delete fallbackPayload.coupon_code;
+    delete fallbackPayload.coupon_expiry;
     const res = await sb.from('product_reviews').insert(fallbackPayload).select().single();
     if (res.error) throw new Error(res.error.message);
     created = res.data;
@@ -812,4 +827,14 @@ export async function getContentFreshness(): Promise<any[]> {
       };
     })
     .sort((a: any, b: any) => a.ageDays - b.ageDays);
+}
+
+async function resolveCategoryIdByName(bestFor: string): Promise<string | null> {
+  try {
+    const sb = await getClient();
+    const { data } = await sb.from('categories').select('id').ilike('name', bestFor).limit(1).maybeSingle();
+    return data?.id || null;
+  } catch {
+    return null;
+  }
 }

@@ -2,9 +2,63 @@
 
 @variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --color-primary: #0866FF;
+  --color-primary2: #199BFF;
+  --color-primary3: #2CECFD;
+  --color-cyan: #2CECFD;
+  --color-cyan-soft: #89E5FF;
+  --color-brand-secondary: #0866FF;
+  --color-brand-accent: #2CECFD;
+  --color-amazon-orange: #FF9900;
+  --color-deal-red: #FF334F;
+  --color-dw-success: #16E6A1;
+  --color-dw-page: #020617;
+  --color-dw-header: #06142F;
+  --color-dw-section: #091A3A;
+  --color-dw-card: #10213E;
+  --color-dw-card-hover: #142B51;
+  --color-dw-border: #1D4F91;
+  --color-dw-border-soft: #233B61;
+  --color-dw-text: #F7FAFF;
+  --color-dw-text-muted: #9DB0CE;
+}
+
+.primary-btn {
+  @apply bg-gradient-to-r from-primary to-cyan text-white font-semibold rounded-[14px] px-6 py-3 transition-all duration-300 cursor-pointer inline-flex items-center justify-center gap-2;
+  box-shadow: 0 4px 20px rgba(8, 102, 255, 0.25);
+}
+.primary-btn:hover {
+  box-shadow: 0 6px 30px rgba(8, 102, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.amazon-btn {
+  @apply bg-amazon-orange text-[#07101F] font-bold rounded-[14px] px-6 py-3 transition-all duration-300 cursor-pointer inline-flex items-center justify-center gap-2;
+}
+.amazon-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.ghost-btn {
+  @apply bg-[#102B5B] border border-cyan text-white font-semibold rounded-[14px] px-6 py-3 transition-all duration-300 cursor-pointer inline-flex items-center justify-center gap-2;
+}
+.ghost-btn:hover {
+  background: rgba(44, 236, 253, 0.1);
+  box-shadow: 0 0 20px rgba(44, 236, 253, 0.15);
+}
+
+.dw-gradient-text {
+  background: linear-gradient(90deg, #147FFB, #2CECFD);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200;
+    @apply bg-slate-50 text-slate-900 dark:bg-dw-page dark:text-dw-text transition-colors duration-200;
   }
 
   /* High Contrast Accessibility Mode Overrides */

@@ -9,6 +9,8 @@ import { useReducedMotion } from './useReducedMotion';
 import ImageZoom from './ImageZoom';
 import SocialShareButtons from './SocialShareButtons';
 import CrossSellCarousel from './CrossSellCarousel';
+import { safeText } from '../utils/safeRender';
+import { sanitizeHtml } from '../lib/sanitize';
 
 function HlsVideo({ src, poster }: { src: string; poster: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -779,7 +781,7 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
                       <span>✨ Formula & Key Active Ingredients</span>
                     </h3>
                     <p className="text-xs text-slate-700 dark:text-zinc-300 leading-relaxed font-mono bg-slate-50 dark:bg-zinc-900/60 p-4 rounded-xl border border-slate-100 dark:border-zinc-800">
-                      {specs.details?.['Full Ingredients'] || specs.details?.['Ingredients'] || specs.details?.['Key Active Ingredients']}
+                      {safeText(specs.details?.['Full Ingredients'] || specs.details?.['Ingredients'] || specs.details?.['Key Active Ingredients'])}
                     </p>
                   </div>
                 )}
@@ -792,7 +794,7 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
                         <span>⚠️ Safety Information</span>
                       </h3>
                       <p className="text-xs text-amber-900/90 dark:text-amber-200/90 leading-relaxed">
-                        {specs.details?.['Safety Information'] || specs.details?.['Safety']}
+                        {safeText(specs.details?.['Safety Information'] || specs.details?.['Safety'])}
                       </p>
                     </div>
                   )}
@@ -802,7 +804,7 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
                         <span>📋 Application Directions</span>
                       </h3>
                       <p className="text-xs text-blue-900/90 dark:text-blue-200/90 leading-relaxed">
-                        {specs.details?.['Directions']}
+                        {safeText(specs.details?.['Directions'])}
                       </p>
                     </div>
                   )}

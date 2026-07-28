@@ -59,25 +59,16 @@ Return JSON matching:
     // Fall back to intelligent synthesis
   }
 
-  // Deterministic Smart Fallback Synthesis
-  const brandName = brand || (title.split(' ')[0] || 'Top Brand');
-  const cat = category || 'Electronics';
+  // AI generation failed or unavailable — return empty defaults
+  const cat = category || 'General';
 
   return {
-    shortDescription: `${title} combines premium engineering with exceptional real-world usability in the ${cat} category.`,
-    bestFor: `Best Overall ${cat} Choice`,
-    editorVerdict: `The ${title} stands out as an outstanding buy for shoppers wanting peak performance and durability. Tested and verified for top user satisfaction on Amazon.`,
-    editorScore: 9.3,
-    pros: [
-      `Superior build quality & ergonomic design by ${brandName}`,
-      `High-efficiency performance tuned for ${cat} enthusiasts`,
-      `Rapid Amazon US shipping with 100% verified customer ratings`,
-      `Outstanding battery life and durable construction`
-    ],
-    cons: [
-      'Premium price point compared to entry-level alternatives',
-      'May include features beyond basic daily user needs'
-    ]
+    shortDescription: '',
+    bestFor: `Top ${cat} Pick`,
+    editorVerdict: '',
+    editorScore: 0,
+    pros: [],
+    cons: []
   };
 }
 
@@ -120,25 +111,10 @@ Return JSON matching:
     // Fall back to intelligent synthesis
   }
 
-  // Deterministic High-CTR SEO Synthesis
-  const currentYear = new Date().getFullYear();
-  const cleanTitle = title.replace(/\(.*?\)/g, '').trim();
-  const brandName = brand || cleanTitle.split(' ')[0];
-
-  const seoTitle = `${cleanTitle} Review: Is It Worth It? (${currentYear})`;
-  const metaDescription = `In-depth review and benchmark analysis for ${cleanTitle}. Compare specs, Amazon price drops, pros, cons, and editor rating on DawnWire.`;
-  const metaKeywords = [
-    cleanTitle.toLowerCase(),
-    `${cleanTitle.toLowerCase()} review`,
-    `${brandName.toLowerCase()} ${category.toLowerCase()}`,
-    'amazon price drops',
-    'dawnwire tech review',
-    `${currentYear} buying guide`
-  ];
-
+  // AI SEO generation failed — return basic metadata
   return {
-    seoTitle: seoTitle.substring(0, 65),
-    metaDescription: metaDescription.substring(0, 160),
-    metaKeywords
+    seoTitle: title.substring(0, 65),
+    metaDescription: `Shop ${title} on DawnWire. Read the full review, compare prices, and check the latest deals.`,
+    metaKeywords: [title.toLowerCase(), 'dawnwire review']
   };
 }

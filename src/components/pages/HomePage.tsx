@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ArrowRight, Mail, TrendingUp, Activity, BookOpen, ShoppingBag, Lightbulb, Monitor, Star, Check, Sparkles, ArrowUpRight, Search, Eye, Heart, Zap, Info, ChevronRight, Tag, Users, Clock, LayoutGrid, Award, BarChart3, Globe, Shield, MessageCircle, ChevronLeft, Quote, Play, Headphones, Truck } from 'lucide-react';
+import { ArrowRight, Mail, TrendingUp, Activity, BookOpen, ShoppingBag, Lightbulb, Monitor, Star, Check, Sparkles, ArrowUpRight, Search, Eye, Heart, Zap, Info, ChevronRight, Tag, Users, Clock, LayoutGrid, Award, BarChart3, Globe, Shield, MessageCircle, ChevronLeft, Quote, Play, Headphones, Truck, Bot } from 'lucide-react';
 import { Post, Category, SiteSettings } from '../../types';
 import ScrollReveal, { StaggerContainer, StaggerItem, HoverScale } from '../ScrollReveal';
 import DynamicHomepageSections from '../affiliate/DynamicHomepageSections';
@@ -91,9 +91,8 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
                 </div>
 
                 <h1 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-white leading-tight tracking-tight">
-                  Product Reviews &amp;<br />
-                  Growth Content —<br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary2 to-primary3">Tested. Reviewed. Verified.</span>
+                  Amazon Product Reviews<br />
+                  &amp; <span className="dw-gradient-text">AI-Powered Buying Guides</span>
                 </h1>
 
                 <p className="text-base md:text-lg text-blue-200/70 leading-relaxed max-w-lg">
@@ -102,20 +101,20 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
 
                 <div className="flex flex-wrap gap-3">
                   <motion.button
-                    onClick={() => onNavigate('articles')}
-                    className="primary-btn inline-flex items-center gap-2 px-8 py-4 text-sm cursor-pointer"
+                    onClick={() => onNavigate('products')}
+                    className="primary-btn px-8 py-4 text-sm"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    Browse Reviews <ArrowRight className="w-4 h-4" />
+                    AI Product Finder <Sparkles className="w-4 h-4" />
                   </motion.button>
                   <motion.button
-                    onClick={() => onNavigate('services')}
-                    className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold text-sm px-8 py-4 rounded-full border border-white/20 hover:border-white/40 backdrop-blur-sm transition-all cursor-pointer"
+                    onClick={() => onNavigate('search')}
+                    className="ghost-btn px-8 py-4 text-sm"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    Our Services <ChevronRight className="w-4 h-4" />
+                    Ask AI Assistant <MessageCircle className="w-4 h-4" />
                   </motion.button>
                 </div>
 

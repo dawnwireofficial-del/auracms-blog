@@ -78,6 +78,9 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
     return () => clearTimeout(timer);
   }, [selectedCategory, searchQuery, initialCategory, initialQuery]);
 
+  // Reset page when filters change (must be before early return)
+  useEffect(() => { setPage(0); }, [selectedCategory, searchQuery, onlyDeals, onlyPrime, minRating, sortBy]);
+
   const isLoading = externalIsLoading || isInternalLoading;
 
   if (isLoading) {
@@ -120,7 +123,6 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
   const totalPages = Math.ceil(filtered.length / perPage);
   const paginated = filtered.slice(page * perPage, (page + 1) * perPage);
   const goToPage = (p: number) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); };
-  useEffect(() => { setPage(0); }, [selectedCategory, searchQuery, onlyDeals, onlyPrime, minRating, sortBy]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">

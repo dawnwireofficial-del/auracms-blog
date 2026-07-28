@@ -29,7 +29,7 @@
     "hls.js": "^1.6.16",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.546.0",
-    "motion": "^12.23.24",
+    "motion": "^12.42.2",
     "pg": "^8.22.0",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",

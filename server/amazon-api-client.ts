@@ -129,6 +129,8 @@ async function signedRequest(
 
   const url = `https://${host}${path}`;
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
   const response = await fetch(url, {
     method: 'POST',
     headers: {
@@ -139,7 +141,9 @@ async function signedRequest(
       'Authorization': authorizationHeader,
     },
     body,
+    signal: controller.signal,
   });
+  clearTimeout(timeoutId);
 
   if (!response.ok) {
     const errorBody = await response.text().catch(() => '');

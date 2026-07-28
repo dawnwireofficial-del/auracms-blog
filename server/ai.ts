@@ -15,7 +15,7 @@ export async function cohereChat(promptText: string, system?: string): Promise<s
   chatHistory.push({ role: 'USER', message: promptText });
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 50000);
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
   let res: Response;
   try {
     res = await fetch(COHERE_API, {

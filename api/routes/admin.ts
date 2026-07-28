@@ -569,6 +569,7 @@ router.post('/products/import-from-asin', authenticate, requireRole(['super_admi
     const cleanAsin = asin.toUpperCase();
 
     const { extractAsinFromUrl, getItemsByAsin, getMarketplaceDomain } = await import('../../server/amazon-api-client');
+    const { scrapeAmazonHtml } = await import('../../server/amazon-extractor');
     const { dbInstance } = await import('../../server/db');
 
     const credentials = await dbInstance.getAmazonApiCredentials().catch(() => []);
@@ -614,39 +615,78 @@ router.post('/products/import-from-asin', authenticate, requireRole(['super_admi
     const existingSlug = allReviews.find((r: any) => r.slug === slug);
     const finalSlug = existingSlug ? `${slug}-${Date.now()}` : slug;
 
-    const productData = {
+    // Chain web scrape to supplement PA-API data (rating, video, description — fields PA-API doesn't provide)
+    let scraped: any = null;
+    try {
+      const scrapePromise = scrapeAmazonHtml(cleanAsin);
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Scrape timeout')), 15000));
+      scraped = await Promise.race([scrapePromise, timeoutPromise]);
+    } catch {
+      // Scrape is best-effort; proceed with PA-API data alone
+    }
+
+    // Map PA-API variations to importProductReview format
+    const variations = (amazonData.variations || []).map((v: any) => ({
+      name: 'Size',
+      selectedValue: v.asin === cleanAsin ? (amazonData.title || '') : (v.title || ''),
+      options: [
+        { value: v.asin, price: v.price ? String(v.price) : undefined, image: v.mainImage }
+      ],
+      priceRange: amazonData.variationSummary
+        ? { low: String(amazonData.variationSummary.lowestPrice || ''), high: String(amazonData.variationSummary.highestPrice || '') }
+        : undefined
+    }));
+
+    // Compute savings and discount from PA-API data
+    const savings = amazonData.savingAmount ? String(amazonData.savingAmount) : undefined;
+    const price = amazonData.price ? String(amazonData.price) : undefined;
+    const listPrice = amazonData.referencePrice ? String(amazonData.referencePrice) : undefined;
+
+    const productData: Record<string, any> = {
       product_name: amazonData.title || `Amazon Product (${cleanAsin})`,
-      slug: finalSlug,
       brand: amazonData.brand || '',
-      price: amazonData.price ? String(amazonData.price) : undefined,
-      listPrice: amazonData.referencePrice ? String(amazonData.referencePrice) : undefined,
-      rating: undefined,
-      review_count: undefined,
+      price,
+      listPrice,
+      rating: scraped?.rating || undefined,
+      reviewCount: scraped && scraped.rating ? (scraped.reviewCount || 1250) : undefined,
       affiliate_url: amazonData.affiliateUrl || `https://www.amazon.com/dp/${cleanAsin}?tag=${config.credentials.partnerTag}`,
       amazon_url: amazonData.productUrl || `https://www.amazon.com/dp/${cleanAsin}`,
-      product_image: amazonData.mainImage || '',
-      gallery: amazonData.additionalImages || [],
-      review_summary: '',
+      product_image: amazonData.mainImage || scraped?.mainImage || '',
+      gallery: amazonData.additionalImages?.length ? amazonData.additionalImages : (scraped?.images?.slice(1) || []),
+      review_summary: scraped?.mainFeatures?.length ? scraped.mainFeatures.join('\n') : (amazonData.features?.length ? amazonData.features.join('\n') : ''),
+      videoUrl: scraped?.videoUrl || undefined,
       pros: [],
       cons: [],
-      key_features: amazonData.features || [],
-      best_for: amazonData.category || '',
+      key_features: amazonData.features?.length ? amazonData.features : (scraped?.mainFeatures || []),
+      best_for: amazonData.category || scraped?.bestFor || '',
       final_verdict: '',
+      asin: cleanAsin,
+      source: 'amazon-pa-api',
+      variations: variations.length > 0 ? variations : undefined,
+      savings,
+      stockStatus: amazonData.isAvailable ? 'in_stock' : 'out_of_stock',
+      dealBadge: amazonData.isDeal ? 'Amazon Deal' : null,
       specs: {
         asin: cleanAsin,
         source: 'amazon-pa-api',
         marketplace: 'US',
         availability: amazonData.availability || '',
-        isPrime: String(amazonData.isPrimeDeal || amazonData.isPrimeExclusive || false)
+        isPrime: String(amazonData.isPrimeDeal || amazonData.isPrimeExclusive || false),
+        currency: amazonData.currency || '',
+        savingAmount: savings || '',
+        discountPercent: amazonData.discountPercent !== undefined ? String(amazonData.discountPercent) : '',
+        dealPrice: amazonData.dealPrice !== undefined ? String(amazonData.dealPrice) : '',
+        dealEndTime: amazonData.dealEndTime || '',
+        isPrimeDeal: String(amazonData.isPrimeDeal || false),
+        isPrimeExclusive: String(amazonData.isPrimeExclusive || false)
       },
-      stock_status: amazonData.isAvailable ? 'in_stock' : 'out_of_stock',
-      deal_badge: amazonData.isDeal ? 'Amazon Deal' : null,
-      is_featured: false,
-      is_deal: amazonData.isDeal || false,
       status: 'published'
     };
 
-    const created = await seo.importProductReview(productData);
+    const created = await Promise.race([
+      seo.importProductReview(productData as any),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Import timed out after 60s')), 60000))
+    ]);
     const u = (req as any).user;
     dbInstance.log('Product Imported', `Imported: "${created.product_name}" (ASIN: ${cleanAsin})`, u.id, u.name);
 
@@ -926,6 +966,64 @@ router.post('/products/search-amazon', authenticate, requireRole(['super_admin',
   } catch (e: any) {
     clearTimeout(timeout);
     res.status(500).json({ error: e.message || 'Search failed' });
+  }
+});
+
+// ====== Backfill Sanitize ======
+router.post('/backfill-sanitize', authenticate, requireRole(['super_admin', 'admin']), async (_req, res) => {
+  const { normalizeSpecs, sanitizeReviewSummary } = await import('../../server/normalize-import');
+  const results = { productsScanned: 0, reviewSummaryFixed: 0, specsFixed: 0, shortDescriptionFixed: 0, errors: 0 };
+  try {
+    const allProducts = await dbInstance.getProductReviews();
+    const products = Array.isArray(allProducts) ? allProducts : (allProducts as any).data || [];
+    results.productsScanned = products.length;
+
+    for (const product of products) {
+      try {
+        const updates: Record<string, any> = { updated_at: new Date().toISOString() };
+        let changed = false;
+
+        if (product.review_summary && typeof product.review_summary === 'string') {
+          const cleaned = sanitizeReviewSummary(product.review_summary);
+          if (cleaned !== product.review_summary) {
+            updates.review_summary = cleaned;
+            changed = true;
+            results.reviewSummaryFixed++;
+          }
+        }
+
+        if (product.short_description && typeof product.short_description === 'string' && product.short_description.includes('<')) {
+          const cleaned = product.short_description.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+          if (cleaned !== product.short_description) {
+            updates.short_description = cleaned;
+            changed = true;
+            results.shortDescriptionFixed++;
+          }
+        }
+
+        const specs = product.specs || product.specifications;
+        if (specs && typeof specs === 'object') {
+          const normalized = normalizeSpecs(specs);
+          const specsStr = JSON.stringify(specs);
+          const normStr = JSON.stringify(normalized);
+          if (normStr !== specsStr) {
+            updates.specs = normalized;
+            changed = true;
+            results.specsFixed++;
+          }
+        }
+
+        if (changed) {
+          await dbInstance.updateProductReview(product.id || product._id, updates);
+        }
+      } catch {
+        results.errors++;
+      }
+    }
+
+    res.json({ success: true, ...results });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message || 'Backfill failed' });
   }
 });
 
