@@ -973,6 +973,7 @@ export class SupabaseDatabase {
       desktop_image: input.desktopImage, mobile_image: input.mobileImage,
       heading: input.heading, description: input.description, cta_text: input.ctaText,
       cta_link: input.ctaLink, alt_text: input.altText, sort_order: input.sortOrder || 0, is_active: input.isActive ?? true,
+      image_only: input.imageOnly ?? false,
     }).select().single();
     if (error) throw new Error(error.message);
     return mapRow<HomepageHeroSlide>(data)!;
@@ -989,6 +990,7 @@ export class SupabaseDatabase {
     if (updates.altText !== undefined) payload.alt_text = updates.altText;
     if (updates.sortOrder !== undefined) payload.sort_order = updates.sortOrder;
     if (updates.isActive !== undefined) payload.is_active = updates.isActive;
+    if (updates.imageOnly !== undefined) payload.image_only = updates.imageOnly;
     const { data, error } = await sb.from('homepage_hero_slides').update(payload).eq('id', id).select().single();
     if (error) return null;
     return mapRow<HomepageHeroSlide>(data);

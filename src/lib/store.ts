@@ -278,6 +278,7 @@ export const store = {
             isEnabled: s.is_active ?? s.isActive ?? true,
             isActive: s.is_active ?? s.isActive ?? true,
             overlayStrength: s.overlay_strength ?? s.overlayStrength ?? 50,
+            imageOnly: s.image_only ?? s.imageOnly ?? false,
           }));
           notify();
         }
@@ -310,6 +311,7 @@ export const store = {
         altText: banner.altText || banner.title || '',
         sortOrder: banner.order ?? banner.sortOrder ?? 0,
         isActive: banner.isEnabled ?? banner.isActive ?? true,
+        imageOnly: banner.imageOnly ?? false,
       };
 
       let res;

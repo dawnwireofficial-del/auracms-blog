@@ -8,6 +8,9 @@ interface BannerCarouselProps {
   autoPlayInterval?: number;
 }
 
+const DEFAULT_ALT = 'Curated Amazon products, comparisons and buying guidance by DawnWire';
+const DEFAULT_ARIA = 'Explore Amazon product picks on DawnWire';
+
 export const BannerCarousel: React.FC<BannerCarouselProps> = ({
   banners,
   autoPlayInterval = 5000,
@@ -35,6 +38,111 @@ export const BannerCarousel: React.FC<BannerCarouselProps> = ({
     setCurrentIndex((prev) => (prev - 1 + activeBanners.length) % activeBanners.length);
   };
 
+  if (current.imageOnly) {
+    const bannerUrl = current.targetUrl || current.ctaLink || current.affiliateUrl || '/products';
+    const altText = current.altText || DEFAULT_ALT;
+    const ariaLabel = current.altText || DEFAULT_ARIA;
+    const isFirst = currentIndex === 0;
+
+    return (
+      <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800 group">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={current.id}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.02 }}
+            transition={{ duration: 0.5 }}
+          >
+            <a
+              href={bannerUrl}
+              aria-label={ariaLabel}
+              className="banner-image-only block w-full overflow-hidden"
+              style={{
+                aspectRatio: '3 / 1',
+                minHeight: '280px',
+                maxHeight: '420px',
+              }}
+            >
+              <picture>
+                <source
+                  media="(max-width: 640px)"
+                  srcSet={current.mobileImage || current.desktopImage}
+                />
+                <img
+                  src={proxyImageUrl(current.desktopImage)}
+                  alt={altText}
+                  referrerPolicy="no-referrer"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  loading={isFirst ? 'eager' : 'lazy'}
+                  fetchPriority={isFirst ? 'high' : 'auto'}
+                  className="block w-full h-full object-cover object-center"
+                  style={{
+                    objectPosition: 'left center',
+                  }}
+                />
+              </picture>
+            </a>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Slider Nav Arrows for image-only banners */}
+        {activeBanners.length > 1 && (
+          <>
+            <button
+              onClick={handlePrev}
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-slate-950/60 hover:bg-slate-900 border border-slate-700 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              aria-label="Previous Slide"
+            >
+              ❮
+            </button>
+            <button
+              onClick={handleNext}
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-slate-950/60 hover:bg-slate-900 border border-slate-700 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              aria-label="Next Slide"
+            >
+              ❯
+            </button>
+
+            {/* Dots Indicator */}
+            <div className="absolute bottom-4 right-6 z-20 flex items-center gap-2">
+              {activeBanners.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentIndex(idx)}
+                  className={`h-2 rounded-full transition-all ${
+                    currentIndex === idx ? 'w-6 bg-orange-400' : 'w-2 bg-white/40 hover:bg-white/70'
+                  }`}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
+        <style>{`
+          @media (max-width: 768px) {
+            .banner-image-only {
+              min-height: 210px !important;
+            }
+            .banner-image-only img {
+              object-position: left center !important;
+            }
+          }
+          @media (max-width: 640px) {
+            .banner-image-only {
+              min-height: 150px !important;
+            }
+          }
+          @supports not (aspect-ratio: 3/1) {
+            .banner-image-only {
+              height: auto;
+            }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   return (
     <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800 bg-slate-900 group">
       <AnimatePresence mode="wait">
@@ -52,7 +160,7 @@ export const BannerCarousel: React.FC<BannerCarouselProps> = ({
               <source media="(max-width: 640px)" srcSet={current.mobileImage || current.desktopImage} />
               <img
                 src={proxyImageUrl(current.desktopImage)}
-                alt={current.title}
+                alt={current.title || DEFAULT_ALT}
                 referrerPolicy="no-referrer"
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 className="w-full h-full object-cover object-center"

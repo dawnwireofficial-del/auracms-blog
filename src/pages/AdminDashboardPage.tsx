@@ -10,16 +10,77 @@ import { TopViewedCategoriesChart } from '../components/admin/TopViewedCategorie
 import { OpenGraphAuditTool } from '../components/admin/OpenGraphAuditTool';
 import { Product, CategoryBanner, EditorialReview, BuyingGuide } from '../types';
 
+function BannerUploadBtn({ onUrl }: { onUrl: (url: string) => void }) {
+  const [uploading, setUploading] = React.useState(false);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      await new Promise(resolve => { reader.onload = resolve; });
+      const base64 = (reader.result as string).split(',')[1];
+      const token = localStorage.getItem('dawnwire_auth_token');
+      const r = await fetch('/api/admin/upload-image', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ base64, fileName: file.name }),
+      });
+      const data = await r.json();
+      if (data.url) onUrl(data.url);
+    } catch (e) { console.error('Upload failed', e); }
+    setUploading(false);
+    if (inputRef.current) inputRef.current.value = '';
+  };
+  return (
+    <>
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+      <button type="button" onClick={() => inputRef.current?.click()} disabled={uploading} className="text-[10px] font-bold text-blue-600 hover:text-blue-700 shrink-0 px-3 py-2.5 rounded-xl border border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all flex items-center gap-1.5">
+        {uploading ? <span className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /> : <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>}
+        {uploading ? 'Uploading…' : 'Upload Image'}
+      </button>
+    </>
+  );
+}
+
 export const AdminDashboardPage: React.FC = () => {
   const { products, categories, banners, reviews, buyingGuides, syncLogs, affiliateClicks, seoOpportunities, currentUser } = useAppStore();
 
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(() => {
-    return !!(currentUser && (currentUser.role === 'super_admin' || currentUser.role === 'admin'));
+    if (currentUser && (currentUser.role === 'super_admin' || currentUser.role === 'admin')) return true;
+    return !!localStorage.getItem('dawnwire_auth_token');
   });
+  const [sessionLoading, setSessionLoading] = useState(() => !!localStorage.getItem('dawnwire_auth_token') && !currentUser);
 
   useEffect(() => {
-    setIsAdminLoggedIn(!!(currentUser && (currentUser.role === 'super_admin' || currentUser.role === 'admin')));
+    if (currentUser) {
+      setIsAdminLoggedIn(currentUser.role === 'super_admin' || currentUser.role === 'admin');
+      setSessionLoading(false);
+    } else {
+      const token = localStorage.getItem('dawnwire_auth_token');
+      if (!token) {
+        setIsAdminLoggedIn(false);
+        setSessionLoading(false);
+      }
+    }
   }, [currentUser]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('dawnwire_auth_token');
+    if (!token || currentUser) {
+      setSessionLoading(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      const latest = store.get().currentUser;
+      if (!latest || (latest.role !== 'super_admin' && latest.role !== 'admin')) {
+        setIsAdminLoggedIn(false);
+      }
+      setSessionLoading(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
   const [adminEmailInput, setAdminEmailInput] = useState('');
   const [adminPasscode, setAdminPasscode] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -465,22 +526,25 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
   // Save Banner / Slider Handler
   const handleSaveBanner = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingBanner || !editingBanner.title) return;
+    if (!editingBanner || (!editingBanner.title && !editingBanner.imageOnly)) return;
+    if (editingBanner.imageOnly && !editingBanner.desktopImage) return;
     const bannerToSave: CategoryBanner = {
       id: editingBanner.id || 'b-' + Date.now(),
       categoryId: editingBanner.categoryId || 'cat-electronics',
       desktopImage: editingBanner.desktopImage || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1600&q=80',
       mobileImage: editingBanner.mobileImage || editingBanner.desktopImage || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80',
-      title: editingBanner.title,
+      title: editingBanner.title || '',
       subtitle: editingBanner.subtitle || '',
       description: editingBanner.description || '',
-      badgeText: editingBanner.badgeText || 'SPECIAL PROMO',
-      ctaText: editingBanner.ctaText || 'Explore Deals',
-      targetUrl: editingBanner.targetUrl || '/categories',
+      badgeText: editingBanner.badgeText || '',
+      ctaText: editingBanner.ctaText || '',
+      targetUrl: editingBanner.targetUrl || '/products',
+      altText: editingBanner.altText || '',
       affiliateUrl: editingBanner.affiliateUrl || '',
       textAlignment: editingBanner.textAlignment || 'left',
-      overlayStrength: editingBanner.overlayStrength ?? 45,
+      overlayStrength: editingBanner.imageOnly ? 0 : (editingBanner.overlayStrength ?? 45),
       isEnabled: editingBanner.isEnabled !== false,
+      imageOnly: editingBanner.imageOnly ?? false,
       order: editingBanner.order || (banners.length + 1),
       impressions: editingBanner.impressions || 0,
       clicks: editingBanner.clicks || 0,
@@ -520,6 +584,18 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
     const currentImages = editingProduct.images.filter((_, idx) => idx !== indexToRemove);
     setEditingProduct({ ...editingProduct, images: currentImages });
   };
+
+  // 0. SESSION LOADING SPINNER
+  if (sessionLoading) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center p-4">
+        <div className="text-center space-y-4">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-slate-400 font-semibold">Restoring session…</p>
+        </div>
+      </div>
+    );
+  }
 
   // 1. UNAUTHENTICATED GATE
   if (!isAdminLoggedIn) {
@@ -1635,11 +1711,13 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                     description: '',
                     badgeText: '🔥 HOT AMAZON DEAL',
                     ctaText: 'Explore Deals',
-                    targetUrl: '/categories/electronics',
+                    targetUrl: '/products',
                     desktopImage: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1600&q=80',
                     mobileImage: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80',
+                    altText: 'Curated Amazon products, comparisons and buying guidance by DawnWire',
                     isEnabled: true,
                     overlayStrength: 45,
+                    imageOnly: false,
                     order: banners.length + 1
                   });
                   setIsBannerFormOpen(true);
@@ -1672,116 +1750,216 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-bold">
-                  <div>
-                    <label className="block text-slate-500 mb-1">Banner Title / Headline *</label>
+                {/* Display Mode Selector */}
+                <div className="flex items-center gap-4 text-xs font-bold">
+                  <label className="block text-slate-500">Display Mode:</label>
+                  <label className="flex items-center gap-2 cursor-pointer">
                     <input
-                      type="text"
-                      required
-                      placeholder="e.g. Next-Gen Noise Cancellation Audio"
-                      value={editingBanner?.title || ''}
-                      onChange={(e) => setEditingBanner({ ...editingBanner, title: e.target.value })}
-                      className="w-full bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 outline-none"
+                      type="radio"
+                      name="bannerDisplayMode"
+                      checked={!editingBanner?.imageOnly}
+                      onChange={() => setEditingBanner({ ...editingBanner, imageOnly: false, overlayStrength: 45 })}
+                      className="text-blue-600"
                     />
-                  </div>
-
-                  <div>
-                    <label className="block text-slate-500 mb-1">Badge Text (e.g. 🔥 PRIME EXCLUSIVE)</label>
+                    <span className="text-slate-700 dark:text-slate-300">Standard Content</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
                     <input
-                      type="text"
-                      placeholder="e.g. 25% OFF LIMITED TIME"
-                      value={editingBanner?.badgeText || ''}
-                      onChange={(e) => setEditingBanner({ ...editingBanner, badgeText: e.target.value })}
-                      className="w-full bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 outline-none text-orange-500 font-black uppercase"
+                      type="radio"
+                      name="bannerDisplayMode"
+                      checked={editingBanner?.imageOnly === true}
+                      onChange={() => setEditingBanner({ ...editingBanner, imageOnly: true, overlayStrength: 0 })}
+                      className="text-blue-600"
                     />
-                  </div>
-
-                  <div>
-                    <label className="block text-slate-500 mb-1">CTA Button Text</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Shop Amazon Deals"
-                      value={editingBanner?.ctaText || ''}
-                      onChange={(e) => setEditingBanner({ ...editingBanner, ctaText: e.target.value })}
-                      className="w-full bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-slate-500 mb-1">Target Page URL / Affiliate Link</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. /categories/electronics or https://amazon.com/dp/..."
-                      value={editingBanner?.targetUrl || ''}
-                      onChange={(e) => setEditingBanner({ ...editingBanner, targetUrl: e.target.value })}
-                      className="w-full bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 outline-none font-mono text-[11px]"
-                    />
-                  </div>
+                    <span className="text-slate-700 dark:text-slate-300">Image Only</span>
+                  </label>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Subtitle / Description</label>
-                  <textarea
-                    rows={2}
-                    placeholder="Short description highlighting the promotion or lab benchmark..."
-                    value={editingBanner?.description || ''}
-                    onChange={(e) => setEditingBanner({ ...editingBanner, description: e.target.value })}
-                    className="w-full bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs outline-none"
-                  />
-                </div>
-
-                {/* Banner Image URL & Quick Presets */}
-                <div className="space-y-2">
-                  <label className="block text-xs font-bold text-slate-500">Desktop Background Image URL *</label>
-                  <input
-                    type="url"
-                    required
-                    placeholder="https://images.unsplash.com/..."
-                    value={editingBanner?.desktopImage || ''}
-                    onChange={(e) => setEditingBanner({ ...editingBanner, desktopImage: e.target.value, mobileImage: e.target.value })}
-                    className="w-full bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs outline-none font-mono"
-                  />
-
-                  {/* Preset Banner Images */}
-                  <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
-                    <span className="font-bold text-slate-400">Quick Banner Presets:</span>
-                    {[
-                      { label: '🎧 Audio Hero', url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1600&q=80' },
-                      { label: '🤖 Smart Home', url: 'https://images.unsplash.com/photo-1558317374-067fb5f30001?auto=format&fit=crop&w=1600&q=80' },
-                      { label: '💻 Workstations', url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1600&q=80' },
-                      { label: '🎮 Gaming Gear', url: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1600&q=80' }
-                    ].map((preset) => (
-                      <button
-                        key={preset.label}
-                        type="button"
-                        onClick={() => setEditingBanner({ ...editingBanner, desktopImage: preset.url, mobileImage: preset.url })}
-                        className="bg-slate-200 dark:bg-slate-700 hover:bg-blue-600 hover:text-white px-2 py-1 rounded-lg font-medium transition-colors"
-                      >
-                        {preset.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Live Banner Preview */}
-                  {editingBanner?.desktopImage && (
-                    <div className="relative h-44 rounded-2xl overflow-hidden border border-slate-300 dark:border-slate-700 mt-2 flex items-center p-6 text-white bg-slate-900 shadow-inner">
-                      <img src={editingBanner.desktopImage} alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-slate-950/60" />
-                      <div className="relative z-10 space-y-1 max-w-md">
-                        {editingBanner.badgeText && (
-                          <span className="inline-block px-2 py-0.5 rounded bg-orange-500 text-slate-950 font-black text-[9px] uppercase">
-                            {editingBanner.badgeText}
-                          </span>
-                        )}
-                        <h4 className="text-lg font-black">{editingBanner.title || 'Sample Title'}</h4>
-                        <p className="text-xs text-slate-200 line-clamp-1">{editingBanner.description || 'Sample description...'}</p>
-                        <span className="inline-block px-3 py-1 bg-blue-600 rounded-lg text-[10px] font-extrabold mt-1">
-                          {editingBanner.ctaText || 'Shop Deals'}
-                        </span>
+                {editingBanner?.imageOnly ? (
+                  /* Image Only Mode Fields */
+                  <>
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-slate-500">Desktop Image URL *</label>
+                      <div className="flex gap-2 items-start">
+                        <input
+                          type="url"
+                          required
+                          placeholder="https://example.com/banner-3x1.jpg"
+                          value={editingBanner?.desktopImage || ''}
+                          onChange={(e) => setEditingBanner({ ...editingBanner, desktopImage: e.target.value, mobileImage: e.target.value })}
+                          className="flex-1 bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs outline-none font-mono"
+                        />
+                        <BannerUploadBtn
+                          onUrl={(url) => setEditingBanner({ ...editingBanner, desktopImage: url, mobileImage: url })}
+                        />
                       </div>
                     </div>
-                  )}
-                </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500">Mobile Image URL (optional)</label>
+                      <input
+                        type="url"
+                        placeholder="Leave blank to use desktop image"
+                        value={editingBanner?.mobileImage || ''}
+                        onChange={(e) => setEditingBanner({ ...editingBanner, mobileImage: e.target.value })}
+                        className="w-full bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs outline-none font-mono"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500">Click Destination URL</label>
+                      <input
+                        type="text"
+                        placeholder="/products"
+                        value={editingBanner?.targetUrl || '/products'}
+                        onChange={(e) => setEditingBanner({ ...editingBanner, targetUrl: e.target.value })}
+                        className="w-full bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs outline-none font-mono"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500">Alt Text</label>
+                      <input
+                        type="text"
+                        placeholder="Curated Amazon products, comparisons and buying guidance by DawnWire"
+                        value={editingBanner?.altText || ''}
+                        onChange={(e) => setEditingBanner({ ...editingBanner, altText: e.target.value })}
+                        className="w-full bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs outline-none"
+                      />
+                    </div>
+
+                    {/* Live Image-Only Preview with 3:1 aspect ratio */}
+                    {editingBanner?.desktopImage && (
+                      <div className="rounded-2xl overflow-hidden border border-slate-300 dark:border-slate-700 bg-slate-900" style={{ aspectRatio: '3 / 1', maxHeight: '200px' }}>
+                        <img
+                          src={editingBanner.desktopImage}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                          style={{ objectPosition: 'left center' }}
+                        />
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* Standard Content Mode Fields */
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-bold">
+                      <div>
+                        <label className="block text-slate-500 mb-1">Banner Title / Headline *</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Next-Gen Noise Cancellation Audio"
+                          value={editingBanner?.title || ''}
+                          onChange={(e) => setEditingBanner({ ...editingBanner, title: e.target.value })}
+                          className="w-full bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-500 mb-1">Badge Text (e.g. 🔥 PRIME EXCLUSIVE)</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 25% OFF LIMITED TIME"
+                          value={editingBanner?.badgeText || ''}
+                          onChange={(e) => setEditingBanner({ ...editingBanner, badgeText: e.target.value })}
+                          className="w-full bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 outline-none text-orange-500 font-black uppercase"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-500 mb-1">CTA Button Text</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Shop Amazon Deals"
+                          value={editingBanner?.ctaText || ''}
+                          onChange={(e) => setEditingBanner({ ...editingBanner, ctaText: e.target.value })}
+                          className="w-full bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-500 mb-1">Target Page URL / Affiliate Link</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. /categories/electronics or https://amazon.com/dp/..."
+                          value={editingBanner?.targetUrl || ''}
+                          onChange={(e) => setEditingBanner({ ...editingBanner, targetUrl: e.target.value })}
+                          className="w-full bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 outline-none font-mono text-[11px]"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Subtitle / Description</label>
+                      <textarea
+                        rows={2}
+                        placeholder="Short description highlighting the promotion or lab benchmark..."
+                        value={editingBanner?.description || ''}
+                        onChange={(e) => setEditingBanner({ ...editingBanner, description: e.target.value })}
+                        className="w-full bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs outline-none"
+                      />
+                    </div>
+
+                    {/* Banner Image URL & Quick Presets */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-slate-500">Desktop Background Image URL *</label>
+                      <div className="flex gap-2 items-start">
+                        <input
+                          type="url"
+                          required
+                          placeholder="https://images.unsplash.com/..."
+                          value={editingBanner?.desktopImage || ''}
+                          onChange={(e) => setEditingBanner({ ...editingBanner, desktopImage: e.target.value, mobileImage: e.target.value })}
+                          className="flex-1 bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs outline-none font-mono"
+                        />
+                        <BannerUploadBtn
+                          onUrl={(url) => setEditingBanner({ ...editingBanner, desktopImage: url, mobileImage: url })}
+                        />
+                      </div>
+
+                      {/* Preset Banner Images */}
+                      <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
+                        <span className="font-bold text-slate-400">Quick Banner Presets:</span>
+                        {[
+                          { label: '🎧 Audio Hero', url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1600&q=80' },
+                          { label: '🤖 Smart Home', url: 'https://images.unsplash.com/photo-1558317374-067fb5f30001?auto=format&fit=crop&w=1600&q=80' },
+                          { label: '💻 Workstations', url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1600&q=80' },
+                          { label: '🎮 Gaming Gear', url: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1600&q=80' }
+                        ].map((preset) => (
+                          <button
+                            key={preset.label}
+                            type="button"
+                            onClick={() => setEditingBanner({ ...editingBanner, desktopImage: preset.url, mobileImage: preset.url })}
+                            className="bg-slate-200 dark:bg-slate-700 hover:bg-blue-600 hover:text-white px-2 py-1 rounded-lg font-medium transition-colors"
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Live Standard Preview */}
+                      {editingBanner?.desktopImage && (
+                        <div className="relative h-44 rounded-2xl overflow-hidden border border-slate-300 dark:border-slate-700 mt-2 flex items-center p-6 text-white bg-slate-900 shadow-inner">
+                          <img src={editingBanner.desktopImage} alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-slate-950/60" />
+                          <div className="relative z-10 space-y-1 max-w-md">
+                            {editingBanner.badgeText && (
+                              <span className="inline-block px-2 py-0.5 rounded bg-orange-500 text-slate-950 font-black text-[9px] uppercase">
+                                {editingBanner.badgeText}
+                              </span>
+                            )}
+                            <h4 className="text-lg font-black">{editingBanner.title || 'Sample Title'}</h4>
+                            <p className="text-xs text-slate-200 line-clamp-1">{editingBanner.description || 'Sample description...'}</p>
+                            <span className="inline-block px-3 py-1 bg-blue-600 rounded-lg text-[10px] font-extrabold mt-1">
+                              {editingBanner.ctaText || 'Shop Deals'}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
 
                 <div className="flex items-center justify-between pt-2">
                   <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">

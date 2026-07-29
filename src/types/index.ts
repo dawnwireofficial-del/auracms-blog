@@ -271,6 +271,7 @@ export interface CategoryBanner {
   isEnabled?: boolean;
   isActive?: boolean;
   isArchived?: boolean;
+  imageOnly?: boolean;
   impressions?: number;
   clicks?: number;
 }
@@ -627,6 +628,7 @@ export interface HomepageHeroSlide {
   altText?: string;
   sortOrder: number;
   isActive: boolean;
+  imageOnly?: boolean;
 }
 
 export interface WishlistItem {
