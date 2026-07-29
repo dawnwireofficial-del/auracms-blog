@@ -10,6 +10,7 @@ import CategoryConstellation from '../motion/CategoryConstellation';
 import TrendWave from '../motion/TrendWave';
 import { Suspense, lazy } from 'react';
 import MascotAnimation from '../MascotAnimation';
+import { proxyImageUrl } from '../../utils/safeRender';
 import { useAppStore } from '../../lib/store';
 const ParticleCanvas = lazy(() => import('../ParticleCanvas'));
 
@@ -163,7 +164,7 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
                           </div>
                           <div className="aspect-square w-full max-w-[120px] mx-auto sm:mx-0 bg-white/5 rounded-lg overflow-hidden mb-2 border border-white/10">
                             {topPick.productImage ? (
-                              <img src={topPick.productImage} alt={topPick.productName} className="w-full h-full object-contain" />
+                              <img src={proxyImageUrl(topPick.productImage)} alt={topPick.productName} referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-full h-full object-contain" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-white/20"><ShoppingBag className="w-8 h-8" /></div>
                             )}
@@ -326,7 +327,7 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
                     <StaggerItem key={post.id}>
                       <article onClick={() => onNavigate('post', post.slug)} className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:shadow-gray-100 hover:-translate-y-1 transition-all duration-300 cursor-pointer">
                         <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-                          <img src={post.featuredImage || fallbackImg} alt={post.title} width={400} height={250} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                          <img src={proxyImageUrl(post.featuredImage || fallbackImg)} alt={post.title} width={400} height={250} referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                           {badge && (
                             <span className={`absolute top-3 left-3 text-white text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm ${
                               badge === 'TRENDING' ? 'bg-gradient-to-r from-amber-400 to-amber-500' : 'bg-gradient-to-r from-primary to-primary2'
@@ -354,7 +355,7 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
                         <div className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:shadow-blue-100/30 hover:-translate-y-1 transition-all duration-300 flex flex-col">
                           <div className="relative h-[180px] flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
                             {product.product_image ? (
-                              <img src={product.product_image} alt={product.product_name} className="max-h-full max-w-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                              <img src={proxyImageUrl(product.product_image)} alt={product.product_name} referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="max-h-full max-w-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                             ) : (
                               <ShoppingBag className="w-10 h-10 text-gray-200" />
                             )}
@@ -414,7 +415,7 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
                       <StaggerItem key={post.id}>
                         <article onClick={() => onNavigate('post', post.slug)} className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:shadow-gray-100 hover:-translate-y-1 transition-all duration-300 cursor-pointer">
                           <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-                            <img src={post.featuredImage || fallbackImg} alt={post.title} width={400} height={250} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                            <img src={proxyImageUrl(post.featuredImage || fallbackImg)} alt={post.title} width={400} height={250} referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                             {badge && (
                               <span className={`absolute top-3 left-3 text-white text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm ${
                                 badge === 'TRENDING' ? 'bg-gradient-to-r from-amber-400 to-amber-500' : 'bg-gradient-to-r from-primary to-primary2'
@@ -481,7 +482,7 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
                           <div className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:shadow-blue-100/30 hover:-translate-y-1 transition-all duration-300 flex flex-col">
                             <div className="relative h-[200px] flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
                               {product.product_image ? (
-                                <img src={product.product_image} alt={product.product_name} className="max-h-full max-w-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                                <img src={proxyImageUrl(product.product_image)} alt={product.product_name} referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="max-h-full max-w-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                               ) : (
                                 <ShoppingBag className="w-10 h-10 text-gray-200" />
                               )}
@@ -545,7 +546,7 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
               <ScrollReveal variant="fadeRight">
                 <div className="relative mb-6">
                   <div className="absolute -bottom-4 -left-4 w-full h-full rounded-2xl bg-primary/5 border border-primary/10" />
-                  <img src="/Office.png" alt="DawnWire office" className="relative w-full h-auto rounded-2xl shadow-xl shadow-gray-200/60 object-cover" loading="lazy" />
+                  <img src={proxyImageUrl('/Office.png')} alt="DawnWire office" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="relative w-full h-auto rounded-2xl shadow-xl shadow-gray-200/60 object-cover" loading="lazy" />
                 </div>
 
                 {/* Stats counter box — IT Tech style floating counter */}
@@ -666,7 +667,7 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
                   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
                     <div className="relative h-[160px] flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-t-2xl overflow-hidden">
                       {product.product_image ? (
-                        <img src={product.product_image} alt={product.product_name} className="max-h-full max-w-full object-contain p-3 group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                        <img src={proxyImageUrl(product.product_image)} alt={product.product_name} referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="max-h-full max-w-full object-contain p-3 group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                       ) : (
                         <ShoppingBag className="w-8 h-8 text-gray-200" />
                       )}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ExternalLink, Store } from 'lucide-react';
+import { proxyImageUrl } from '../../utils/safeRender';
 
 interface StorePrice {
   storeName: string;
@@ -43,7 +44,7 @@ export default function MultiStoreComparison({ amazonPrice, amazonUrl, stores }:
           >
             <div className="flex items-center gap-3">
               {store.logo ? (
-                <img src={store.logo} alt={store.storeName} className="h-6 w-auto object-contain rounded" />
+                <img src={proxyImageUrl(store.logo)} alt={store.storeName} className="h-6 w-auto object-contain rounded" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
               ) : (
                 <div className="bg-slate-100 dark:bg-zinc-800 p-1.5 rounded text-slate-400">
                   <Store className="h-4 w-4" />

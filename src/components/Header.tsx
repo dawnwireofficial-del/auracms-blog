@@ -7,6 +7,7 @@ import MegaMenu from './affiliate/MegaMenu';
 import AiIndicator from './AiIndicator';
 import SearchPulse from './motion/SearchPulse';
 import NeuralOrb from './motion/NeuralOrb';
+import { proxyImageUrl } from '../utils/safeRender';
 
 interface HeaderProps {
   scrolled: boolean;
@@ -135,9 +136,11 @@ export default function Header({
           {/* Logo */}
           <div onClick={() => { onNavigate('home'); setMobileMenuOpen(false); }} className="flex items-center gap-3 cursor-pointer shrink-0">
             <img
-              src="/logo-transparent.png"
+              src={proxyImageUrl('/logo-transparent.png')}
               alt={settings?.siteName || 'DawnWire'}
               width={140} height={36}
+              referrerPolicy="no-referrer"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               className="h-8 lg:h-9 w-auto object-contain"
               style={{ filter: logoFilter }}
             />
@@ -185,7 +188,7 @@ export default function Header({
                 <div className="p-2 max-h-80 overflow-y-auto">
                   {searchSuggestions.map(item => (
                     <button key={item.id} onClick={() => handleSuggestionClick(item)} className="flex items-center gap-3 w-full p-2 hover:bg-white/5 rounded-lg transition-colors text-left">
-                      {item.image && <img src={item.image} alt="" className="w-10 h-10 object-contain rounded-lg bg-dw-section" />}
+                      {item.image && <img src={proxyImageUrl(item.image)} alt="" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-10 h-10 object-contain rounded-lg bg-dw-section" />}
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-dw-text truncate">{item.name}</p>
                         {item.price && <p className="text-[11px] text-primary font-bold">${parseFloat(item.price).toFixed(2)}</p>}
@@ -234,7 +237,7 @@ export default function Header({
                     Console
                   </button>
                 )}
-                <img src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100'} alt="" referrerPolicy="no-referrer" width={30} height={30} className="h-7 w-7 rounded-full object-cover border-2 border-gray-200 dark:border-zinc-600" />
+                <img src={proxyImageUrl(currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100')} alt="" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} width={30} height={30} className="h-7 w-7 rounded-full object-cover border-2 border-gray-200 dark:border-zinc-600" />
               </div>
             ) : (
               <button onClick={onOpenLogin} className={`text-[10px] font-bold tracking-wider px-4 py-2 rounded-lg transition-all ${

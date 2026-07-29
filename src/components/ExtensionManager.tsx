@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Download, Settings, Package, Copy, Check, ExternalLink, Smartphone, Globe, Key, Wifi, Play, AlertCircle } from 'lucide-react';
+import { Download, Settings, Package, Copy, Check, ExternalLink, Smartphone, Globe, Key, Wifi, Play, AlertCircle, Search, Star, ExternalLink as LinkIcon } from 'lucide-react';
 
 interface Props {
   token: string;
@@ -28,7 +28,128 @@ export default function ExtensionManager({ token }: Props) {
         setTestResult('success');
       } else {
         setTestResult('error');
-      }
+}
+
+function ImportedProductsTab({ token }: { token: string }) {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    setLoading(true);
+    fetch('/api/admin/product-reviews?limit=200', {
+      headers: { Authorization: 'Bearer ' + token }
+    })
+      .then(r => r.json())
+      .then(data => {
+        const list = Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : [];
+        setProducts(list);
+      })
+      .catch(() => setProducts([]))
+      .finally(() => setLoading(false));
+  }, [token]);
+
+  const filtered = search
+    ? products.filter(p =>
+        (p.product_name || '').toLowerCase().includes(search.toLowerCase()) ||
+        (p.slug || '').toLowerCase().includes(search.toLowerCase()) ||
+        (p.asin || '').toLowerCase().includes(search.toLowerCase())
+      )
+    : products;
+
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 shadow-sm p-8 flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-[#246BFF] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 shadow-sm p-5 space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by name, slug or ASIN..."
+            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 text-xs bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-200 focus:ring-2 focus:ring-[#246BFF]/30 focus:border-[#246BFF] outline-none"
+          />
+        </div>
+        <span className="text-xs text-slate-400 dark:text-zinc-500 font-mono">{filtered.length} products</span>
+      </div>
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-center gap-3 py-12 text-center">
+          <Package className="h-10 w-10 text-slate-300 dark:text-zinc-600" />
+          <p className="text-xs text-slate-400 dark:text-zinc-500">
+            {search ? 'No products match your search.' : 'No products imported yet. Use the browser extension to import products.'}
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-zinc-700 text-slate-500 dark:text-zinc-400 font-bold uppercase tracking-wider">
+                <th className="text-left py-2.5 px-3">Product</th>
+                <th className="text-left py-2.5 px-3">Brand</th>
+                <th className="text-left py-2.5 px-3">Price</th>
+                <th className="text-left py-2.5 px-3">Rating</th>
+                <th className="text-left py-2.5 px-3">Status</th>
+                <th className="text-left py-2.5 px-3">ASIN</th>
+                <th className="text-right py-2.5 px-3">Link</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(p => (
+                <tr key={p.id} className="border-b border-slate-100 dark:border-zinc-700/50 hover:bg-slate-50 dark:hover:bg-zinc-700/30 transition-colors">
+                  <td className="py-2.5 px-3">
+                    <div className="flex items-center gap-2.5">
+                      {p.product_image ? (
+                        <img src={p.product_image} alt="" className="w-8 h-8 rounded-lg object-cover bg-slate-100 dark:bg-zinc-800" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-slate-400">📦</div>
+                      )}
+                      <span className="font-semibold text-slate-700 dark:text-zinc-200 truncate max-w-[200px]">{p.product_name || p.title || 'Unknown'}</span>
+                    </div>
+                  </td>
+                  <td className="py-2.5 px-3 text-slate-500 dark:text-zinc-400">{p.brand || '—'}</td>
+                  <td className="py-2.5 px-3 font-mono font-bold text-slate-700 dark:text-zinc-200">{p.price || '—'}</td>
+                  <td className="py-2.5 px-3">
+                    {p.rating ? (
+                      <span className="flex items-center gap-1 text-amber-500">
+                        <Star className="h-3 w-3 fill-amber-400" /> {Number(p.rating).toFixed(1)}
+                      </span>
+                    ) : '—'}
+                  </td>
+                  <td className="py-2.5 px-3">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      p.status === 'published' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
+                      p.status === 'draft' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' :
+                      'bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400'
+                    }`}>{p.status || 'draft'}</span>
+                  </td>
+                  <td className="py-2.5 px-3 font-mono text-slate-400 dark:text-zinc-500">{p.asin || p.specs?.asin || '—'}</td>
+                  <td className="py-2.5 px-3 text-right">
+                    <a
+                      href={`/products/${p.slug || p.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[#246BFF] hover:underline font-semibold"
+                    >
+                      <LinkIcon className="h-3 w-3" />
+                      View
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
     } catch {
       setTestResult('error');
     }
@@ -261,23 +382,7 @@ export default function ExtensionManager({ token }: Props) {
       )}
 
       {activeTab === 'products' && (
-        <div className="bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 shadow-sm p-8">
-          <div className="flex flex-col items-center gap-3 text-center">
-            <Package className="h-10 w-10 text-slate-300 dark:text-zinc-600" />
-            <h3 className="text-sm font-bold text-slate-600 dark:text-zinc-300">Extension-imported products appear here</h3>
-            <p className="text-xs text-slate-400 dark:text-zinc-500 max-w-md">
-              Once you import products using the browser extension, they will appear in this list with their import status, ASIN, and source retailer.
-            </p>
-            <a
-              href="#"
-              onClick={(e) => { e.preventDefault(); setActiveTab('setup'); }}
-              className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#246BFF] hover:underline"
-            >
-              <Play className="h-3 w-3" />
-              View Setup Guide
-            </a>
-          </div>
-        </div>
+        <ImportedProductsTab token={token} />
       )}
     </div>
   );

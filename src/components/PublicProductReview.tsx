@@ -10,6 +10,7 @@ import ImageZoom from './ImageZoom';
 import SocialShareButtons from './SocialShareButtons';
 import CrossSellCarousel from './CrossSellCarousel';
 import { safeText } from '../utils/safeRender';
+import { proxyImageUrl } from '../utils/safeRender';
 import { sanitizeHtml } from '../lib/sanitize';
 
 function HlsVideo({ src, poster }: { src: string; poster: string }) {
@@ -92,7 +93,7 @@ function ImageLightbox({ images, index, onClose }: { images: string[]; index: nu
         </>
       )}
       <div className="relative max-w-[90vw] max-h-[90vh]" onClick={e => e.stopPropagation()}>
-        <img src={images[idx]} alt="" className="max-w-full max-h-[90vh] object-contain rounded-lg" />
+        <img src={proxyImageUrl(images[idx])} alt="" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="max-w-full max-h-[90vh] object-contain rounded-lg" />
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1 rounded-full">{idx + 1} / {images.length}</div>
       </div>
     </div>
@@ -163,7 +164,7 @@ function RecentlyViewed({ onNavigate }: { onNavigate: (route: string, param?: st
         {items.map((item: any, i: number) => (
           <button key={i} onClick={() => onNavigate('review', item.slug || item.id)} className="shrink-0 w-28 group text-left">
             <div className="aspect-square rounded-xl overflow-hidden bg-slate-100 dark:bg-zinc-950/30 border border-slate-200 dark:border-zinc-700/50 mb-2">
-              {item.image && <img src={item.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />}
+              {item.image && <img src={proxyImageUrl(item.image)} alt="" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />}
             </div>
             <p className="text-[10px] font-bold text-slate-800 dark:text-zinc-100 truncate">{item.name}</p>
             {item.price && <p className="text-[9px] text-slate-500 dark:text-zinc-400">{item.price}</p>}
@@ -569,7 +570,7 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
                       aria-selected={i === activeImageIdx}
                       className={`shrink-0 w-14 h-14 rounded-lg border-2 overflow-hidden transition-all ${i === activeImageIdx ? 'border-[#246BFF]' : 'border-transparent opacity-60 hover:opacity-100'}`}
                     >
-                      <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      <img src={proxyImageUrl(img)} alt="" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-full h-full object-cover" loading="lazy" />
                     </button>
                   ))}
                 </div>
@@ -1106,7 +1107,7 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
       >
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            {review.product_image && <img src={review.product_image} alt="" className="w-10 h-10 rounded-lg object-cover bg-slate-100 shrink-0" loading="lazy" />}
+            {review.product_image && <img src={proxyImageUrl(review.product_image)} alt="" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-10 h-10 rounded-lg object-cover bg-slate-100 shrink-0" loading="lazy" />}
             <div className="min-w-0">
               <p className="text-sm font-bold text-slate-800 dark:text-zinc-100 truncate">{review.product_name}</p>
               <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-zinc-400">

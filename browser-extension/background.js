@@ -99,6 +99,7 @@ async function handleImport(data) {
         headers,
         body: JSON.stringify({
           title: data.product_name?.substring(0, 100) || 'Product',
+          destinationUrl: data.amazon_url,
           affiliate_url: data.amazon_url,
           short_slug: slug,
           button_text: 'Buy Now',

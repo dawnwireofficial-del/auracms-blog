@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Clock, Flame, Tag, Zap } from 'lucide-react';
 import { ProductReview } from '../../types';
 import DealEnergyStream from '../motion/DealEnergyStream';
+import { proxyImageUrl } from '../../utils/safeRender';
 
 interface DealCardProps {
   product: ProductReview & { deal?: { salePrice: number; regularPrice: number; discountPercentage: number; endDate: string; dealType: string } };
@@ -58,7 +59,7 @@ export default function DealCard({ product }: DealCardProps) {
       {/* Image */}
       <div className="aspect-square bg-white/5 flex items-center justify-center relative overflow-hidden">
         {product.productImage ? (
-          <img src={product.productImage} alt={product.productName} className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+          <img src={proxyImageUrl(product.productImage)} alt={product.productName} className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" loading="lazy" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-slate-300 dark:text-zinc-600"><Flame className="h-10 w-10" /></div>
         )}

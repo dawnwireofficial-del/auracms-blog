@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Star, ChevronDown, ChevronUp, ThumbsUp, ShieldCheck, Image as ImageIcon } from 'lucide-react';
 import { sanitizeHtml } from '../../lib/sanitize';
+import { proxyImageUrl } from '../../utils/safeRender';
 
 interface Review {
   name: string;
@@ -112,7 +113,7 @@ export default function CustomerReviews({ reviews, reviewStats, reviewHighlights
               <div className="flex items-start gap-3">
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#246BFF] to-purple-500 flex items-center justify-center text-white text-xs font-bold shrink-0 overflow-hidden">
                   {review.avatar ? (
-                    <img src={review.avatar} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    <img src={proxyImageUrl(review.avatar)} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   ) : (
                     (review.name || '?')[0].toUpperCase()
                   )}
@@ -152,7 +153,7 @@ export default function CustomerReviews({ reviews, reviewStats, reviewHighlights
                     <div className="flex gap-2 mt-2">
                       {review.images.map((img, i) => (
                         <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="w-14 h-14 rounded-lg border border-slate-200 dark:border-zinc-700 overflow-hidden hover:opacity-80 transition-opacity">
-                          <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                          <img src={proxyImageUrl(img)} alt="" className="w-full h-full object-cover" loading="lazy" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
                         </a>
                       ))}
                     </div>

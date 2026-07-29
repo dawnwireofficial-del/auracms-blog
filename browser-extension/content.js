@@ -27,7 +27,7 @@
               const updRes = await fetch(baseUrl + '/api/admin/seo/product-reviews/' + dupData.id, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiToken },
-                body: JSON.stringify({ ...data, status: 'published' })
+                body: JSON.stringify({ price: data.price || null, original_price: data.listPrice || null, rating: data.rating || 0, stock_status: data.stockStatus || 'in_stock', deal_badge: data.dealBadge || null, status: 'published', review_summary: data.review_summary || null, key_features: data.key_features || [], pros: data.pros || [], cons: data.cons || [], best_for: data.bestFor || null, specs: data.specs || null })
               });
               const updResult = await updRes.json();
               if (updRes.ok) {
@@ -57,10 +57,10 @@
             body: JSON.stringify({ title: (data.product_name || '').substring(0, 100), affiliate_url: data.amazon_url, short_slug: slug, button_text: 'Buy Now', status: 'active', no_follow: true, sponsored: true, open_in_new_tab: true })
           });
           if (affRes.ok) { const affData = await affRes.json(); affiliateLink = '/go/' + (affData.short_slug || affData.slug || slug); }
-        } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+        } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
       }
-      if (id && data.asin) { try { await fetch(baseUrl + '/api/admin/seo/product-reviews/fetch-video/' + id, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiToken } }); } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); } }
-      if (id) { try { await fetch(baseUrl + '/api/admin/seo/product-reviews/generate-article/' + id, { method: 'POST', headers: { 'Authorization': 'Bearer ' + apiToken } }); } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); } }
+      if (id && data.asin) { try { await fetch(baseUrl + '/api/admin/seo/product-reviews/fetch-video/' + id, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiToken } }); } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ } }
+      if (id) { try { await fetch(baseUrl + '/api/admin/seo/product-reviews/generate-article/' + id, { method: 'POST', headers: { 'Authorization': 'Bearer ' + apiToken } }); } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ } }
       return { success: true, review: result, id, affiliateLink, generatedArticle: true };
     } catch (e) { return { success: false, error: e.message }; }
   }
@@ -70,12 +70,12 @@
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
         return await chrome.storage.sync.get(['apiUrl', 'apiToken']);
       }
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     try {
       const apiUrl = localStorage.getItem('dw_api_url') || '';
       const apiToken = localStorage.getItem('dw_api_token') || '';
       if (apiToken) return { apiUrl, apiToken };
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return { apiUrl: '', apiToken: '' };
   }
 
@@ -142,7 +142,7 @@
           if (state.includes('sold out') || state.includes('coming soon')) return 'out_of_stock';
         }
       }
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return 'in_stock';
   }
 
@@ -159,7 +159,7 @@
       }
       const el = doc.querySelector('[class*="bestSeller"]');
       if (el) return el.textContent.trim().substring(0, 200);
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return '';
   }
 
@@ -183,7 +183,7 @@
         const cats = Array.from(crumbs).map(el => el.textContent.trim()).filter(Boolean);
         if (cats.length > 0) return cats[cats.length - 1];
       }
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return '';
   }
 
@@ -259,7 +259,7 @@
         const el = doc.querySelector('[data-testid="price-badge"], .price-badge');
         if (el) return el.textContent.trim().substring(0, 30);
       }
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return '';
   }
 
@@ -282,7 +282,7 @@
           if (upMatch) return { unitPrice: upMatch[0].trim(), unitSize: t.replace(upMatch[0], '').replace(/[\/\\]/g, '/').trim() };
         }
       }
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return {};
   }
 
@@ -336,7 +336,7 @@
           }
         }
       }
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return '';
   }
 
@@ -356,7 +356,7 @@
         }
         return rankings;
       }
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return [];
   }
 
@@ -374,7 +374,7 @@
           }
         }
       }
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return '';
   }
 
@@ -425,7 +425,7 @@
         }
       }
       return stats;
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return { total: 0, average: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } };
   }
 
@@ -457,7 +457,7 @@
         });
         reviews.push({ name: name.substring(0, 100), avatar: avatar.substring(0, 500), rating, title: title.substring(0, 200), date: date.substring(0, 100), body, verified, images });
       });
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return reviews.slice(0, 20);
   }
 
@@ -490,7 +490,7 @@
           if (m) reviews._stats = { total: parseInt(m[1].replace(/,/g, '')) };
         }
       }
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return reviews.slice(0, 20);
   }
 
@@ -515,7 +515,7 @@
         const title = el.querySelector('.review-title, [data-testid="review-title"]')?.textContent?.trim() || '';
         reviews.push({ name: name.substring(0, 100), avatar: avatar.substring(0, 500), rating, title: title.substring(0, 200), date: date.substring(0, 100), body, verified: false, images: [] });
       });
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return reviews.slice(0, 20);
   }
 
@@ -539,7 +539,7 @@
         if (body.length > 2000) body = body.substring(0, 2000);
         reviews.push({ name: name.substring(0, 100), avatar: avatar.substring(0, 500), rating, title: '', date: date.substring(0, 100), body, verified: false, images: [] });
       });
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return reviews.slice(0, 20);
   }
 
@@ -563,7 +563,7 @@
         if (body.length > 2000) body = body.substring(0, 2000);
         reviews.push({ name: name.substring(0, 100), avatar: avatar.substring(0, 500), rating, title: '', date: date.substring(0, 100), body, verified: false, images: [] });
       });
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return reviews.slice(0, 20);
   }
 
@@ -583,7 +583,7 @@
       if (isBestBuy()) return { reviews: extractBestBuyReviews(), reviewStats };
       if (isAliExpress()) return { reviews: extractAliExpressReviews(), reviewStats };
       if (isEbay()) return { reviews: extractEbayReviews(), reviewStats };
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return { reviews, reviewStats };
   }
 
@@ -639,7 +639,7 @@
           results.push({ title, asin: '', url: href.startsWith('http') ? href : 'https://www.bestbuy.com' + href, image: img, price, rating: 0 });
         });
       }
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return results;
   }
 
@@ -661,7 +661,7 @@
           }
         });
       }
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return results.slice(0, 30);
   }
 
@@ -681,7 +681,7 @@
           }
         });
       }
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return results.slice(0, 30);
   }
 
@@ -730,7 +730,7 @@
           }
         });
       }
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return variations;
   }
 
@@ -744,7 +744,7 @@
         const fraction = (p['a-price-fraction'] || '').replace(/^0+/, '');
         if (whole) return symbol + whole + (fraction ? '.' + fraction : '');
       }
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return '';
   }
 
@@ -813,7 +813,7 @@
           if (label && value && label !== value) details[label] = value;
         });
       }
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return details;
   }
 
@@ -890,7 +890,7 @@
         // Priority 7: Try to fetch Amazon media API via background script (ASIN needed)
         // This is handled server-side by /api/admin/seo/product-reviews/fetch-video/:id
       }
-    } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return '';
   }
 
@@ -917,7 +917,7 @@
       if (imgEl) {
         product_image = imgEl.getAttribute('src') || imgEl.getAttribute('data-old-hires') || '';
         if (!product_image) {
-          try { const d = JSON.parse(imgEl.getAttribute('data-a-dynamic-image') || '{}'); product_image = Object.keys(d)[0] || ''; } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+          try { const d = JSON.parse(imgEl.getAttribute('data-a-dynamic-image') || '{}'); product_image = Object.keys(d)[0] || ''; } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
         }
       }
 
@@ -930,7 +930,7 @@
           const offscreen = doc.querySelector('.a-price.a-text-price .a-offscreen');
           if (offscreen) price = offscreen.textContent.trim();
         }
-      } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+      } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
 
       try {
         ['acrPopover', 'averageCustomerReviews', 'acrCustomerReviewText'].forEach(id => {
@@ -942,7 +942,7 @@
             if (countMatch) reviewCount = parseInt(countMatch[1].replace(/,/g, ''));
           }
         });
-      } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+      } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
 
       const bylineDoc = doc.getElementById('bylineInfo');
       if (bylineDoc) {
@@ -950,7 +950,7 @@
           let t = bylineDoc.textContent.trim();
           const m = t.match(/(?:Brand:\s*|Visit the\s+)(.+?)(?:\s+Store)?$/i);
           brand = m ? m[1].trim() : t.replace(/^Brand:\s*/i, '');
-        } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+        } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
       }
 
       const bulletItems = doc.querySelectorAll('#feature-bullets .a-list-item');
@@ -982,7 +982,7 @@
           const aplus = document.querySelector('#aplus p, #aplus .a-section p, [data-feature-name="aplus"] p');
           if (aplus) review_summary = aplus.textContent.trim().substring(0, 3000);
         }
-      } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+      } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
 
       const seen = new Set();
       document.querySelectorAll('#altImages img[src*="images"], #altImages img[src*="media"], .a-spacing-small img[src*="images"], [data-a-carousel-options] img[src*="media"], li[data-csa-c-type="thumb"] img').forEach(img => {
@@ -1007,11 +1007,11 @@
           const match = ratingEl.textContent.match(/([\d.]+)\s*out\s*of\s*5/i);
           if (match) rating = parseFloat(match[1]);
         }
-      } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+      } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
       try {
         const brandEl = document.querySelector('[data-testid="brand"], .prod-brand, a[data-testid="brand-link"]');
         if (brandEl) brand = brandEl.textContent.trim();
-      } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+      } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
       asin = window.location.pathname.match(/\/ip\/([A-Z0-9]+)/)?.[1] || '';
       amazon_url = window.location.href.split('?')[0];
       key_features = Array.from(document.querySelectorAll('[data-testid="key-features"] li, .key-features li, .specs-list li')).map(el => el.textContent.trim()).filter(Boolean);
@@ -1030,7 +1030,7 @@
           const match = ratingEl.textContent.match(/([\d.]+)\s*out\s*of\s*5/i);
           if (match) rating = parseFloat(match[1]);
         }
-      } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+      } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
       const sku = document.querySelector('[data-sku-id], input[name="skuId"]')?.getAttribute('data-sku-id') || document.querySelector('[data-sku-id]')?.getAttribute('data-sku-id') || '';
       asin = sku;
       amazon_url = window.location.href.split('?')[0];
@@ -1275,7 +1275,7 @@
             if (result?.success) success++;
             else failed++;
           } else { failed++; }
-        } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); failed++; }
+        } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ failed++; }
       }
       if (progressFill) progressFill.style.width = '100%';
       if (progressText) progressText.textContent = `Done: ${success} imported, ${failed} failed`;
@@ -1333,7 +1333,7 @@
             await sendMessage({ type: 'IMPORT_PRODUCT', data });
             success++;
           }
-        } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+        } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
       }
       showToast(`✅ Imported ${success}/${products.length} products from store`, success > 0 ? 'success' : 'error');
       if (btn) { btn.textContent = 'Import Store (' + products.length + ')'; btn.disabled = false; }
@@ -1388,7 +1388,7 @@
             await sendMessage({ type: 'IMPORT_PRODUCT', data });
             success++;
           }
-        } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+        } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
       }
       showToast(`✅ Imported ${success}/${products.length} from wishlist`, success > 0 ? 'success' : 'error');
       if (btn) { btn.textContent = 'Import Wishlist (' + products.length + ')'; btn.disabled = false; }
@@ -1413,7 +1413,7 @@
           const value = row.querySelector('td, span:not(.a-text-bold)')?.textContent?.trim();
           if (label && value) detailBullets[label] = value;
         });
-      } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+      } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
 
       const stockStatus = extractStockStatus(doc);
       const bestSellersRank = extractBestSellersRank(doc);
@@ -1436,7 +1436,7 @@
           bsrDetail = extractBSRDetail(doc);
           reviewHighlights = extractReviewHighlights(doc);
         }
-      } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+      } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
       // Reviews extraction for doc-based imports
       let reviews = [];
       let reviewStats = { total: 0, average: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } };
@@ -1444,7 +1444,7 @@
         const rd = extractReviews();
         reviews = rd.reviews || [];
         reviewStats = rd.reviewStats || reviewStats;
-      } catch (e) { console.error('[DawnWire]', e); showToast('Error: ' + (e.message || 'Unknown'), 'error'); }
+      } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
       return { product_name, brand, product_image, price, rating, reviewCount, key_features, pros: [], cons: [], review_summary: '', amazon_url, asin, gallery: [], videoUrl, variations: [], listPrice: '', savings: '', priceRange: undefined, specs: {}, detailBullets, stockStatus, dealBadge: '', bestSellersRank, category, bestFor, source: 'amazon', ingredients, unitSize, unitPrice, bsrDetail, reviewHighlights, reviews, reviewStats };
     }
 

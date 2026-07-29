@@ -9,6 +9,7 @@
   ],
   "host_permissions": [
     "https://dawnwire.com/*",
+    "https://www.dawnwire.com/*",
     "https://www.amazon.com/*",
     "https://www.amazon.co.uk/*",
     "https://www.amazon.ca/*",
@@ -52,6 +53,8 @@
   "content_scripts": [
     {
       "matches": [
+        "https://dawnwire.com/*",
+        "https://www.dawnwire.com/*",
         "https://www.amazon.com/*",
         "https://www.amazon.co.uk/*",
         "https://www.amazon.ca/*",

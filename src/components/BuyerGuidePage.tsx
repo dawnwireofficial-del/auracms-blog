@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Head } from 'vike-react/Head';
 import { Star, ShoppingBag, ArrowRight, Filter, ChevronDown } from 'lucide-react';
 import SeoHelmet from './SeoHelmet';
+import { proxyImageUrl } from '../utils/safeRender';
 
 interface BuyerGuideProduct {
   id: string;
@@ -123,7 +124,7 @@ export default function BuyerGuidePage({ category, onNavigate }: BuyerGuidePageP
               >
                 {p.product_image && (
                   <div className="h-44 bg-slate-50 dark:bg-zinc-900 p-6 border-b border-slate-100 dark:border-zinc-700/50">
-                    <img src={p.product_image} alt={p.product_name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                    <img src={proxyImageUrl(p.product_image)} alt={p.product_name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" loading="lazy" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   </div>
                 )}
                 <div className="p-4 space-y-3">

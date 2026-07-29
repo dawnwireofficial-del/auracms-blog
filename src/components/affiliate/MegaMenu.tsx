@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, ChevronRight, TrendingUp, DollarSign, Star, Award } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { proxyImageUrl } from '../../utils/safeRender';
 
 interface MegaCategory {
   id: string;
@@ -176,7 +177,7 @@ export default function MegaMenu({ categories, onClose, onNavigate }: MegaMenuPr
                     className="block relative rounded-lg overflow-hidden aspect-[4/3] bg-slate-100 dark:bg-zinc-800 group w-full text-left border border-brand-secondary/10"
                   >
                     {cat.image ? (
-                      <img src={cat.image} alt={cat.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                      <img src={proxyImageUrl(cat.image)} alt={cat.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                     ) : (
                       <div className="absolute inset-0 bg-gradient-to-tr from-brand-secondary/20 to-brand-accent/20 group-hover:scale-110 transition-transform duration-700" />
                     )}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Star, TrendingUp, Zap, ShoppingBag, Award, Sparkles } from 'lucide-react';
+import { proxyImageUrl } from '../../utils/safeRender';
 
 interface HomepageSection {
   id: string;
@@ -63,7 +64,7 @@ export default function DynamicHomepageSections({ onNavigate }: { onNavigate: (r
                 {products.slice(0, section.settings?.limit || 10).map((p: any) => (
                   <div key={p.id || p.slug} onClick={() => onNavigate('product', p.slug)} className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col h-full">
                     <div className="aspect-square rounded-xl overflow-hidden bg-gray-50 mb-4 relative flex items-center justify-center p-2">
-                      {p.image_url ? <img src={p.image_url} alt={p.product_name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500" /> : <div className="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">No img</div>}
+                      {p.image_url ? <img src={proxyImageUrl(p.image_url)} alt={p.product_name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} /> : <div className="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">No img</div>}
                       {p.original_price && (
                         <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">
                           SALE
@@ -118,7 +119,7 @@ export default function DynamicHomepageSections({ onNavigate }: { onNavigate: (r
               <div className="flex flex-wrap justify-center gap-6">
                 {brands.map((b: any) => (
                   <div key={b.id} className="flex flex-col items-center gap-1.5">
-                    {b.logo_url ? <img src={b.logo_url} alt={b.name} className="h-10 w-auto grayscale hover:grayscale-0 transition-all" /> : <div className="h-10 w-20 rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-[9px] text-slate-400 font-bold uppercase">{b.name?.substring(0, 10)}</div>}
+                    {b.logo_url ? <img src={proxyImageUrl(b.logo_url)} alt={b.name} className="h-10 w-auto grayscale hover:grayscale-0 transition-all" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} /> : <div className="h-10 w-20 rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-[9px] text-slate-400 font-bold uppercase">{b.name?.substring(0, 10)}</div>}
                     <span className="text-[10px] text-slate-500 dark:text-zinc-400">{b.name}</span>
                   </div>
                 ))}

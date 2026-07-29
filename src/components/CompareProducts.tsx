@@ -3,6 +3,7 @@ import { Star, ShoppingBag, CheckCircle, XCircle, ChevronLeft, ChevronRight, Eye
 import { motion, AnimatePresence } from 'motion/react';
 import { useReducedMotion } from './useReducedMotion';
 import ComparisonScanner from './motion/ComparisonScanner';
+import { proxyImageUrl } from '../utils/safeRender';
 
 interface CompareProduct {
   id: string;
@@ -90,7 +91,7 @@ function CompareTable({ products, highlightId, onNavigate }: CompareProductsProp
               >
                 {p.product_image && (
                   <div className="w-16 h-16 rounded-xl bg-slate-50 dark:bg-slate-900/30 p-2 border border-slate-200 dark:border-zinc-700/60">
-                    <img src={p.product_image} alt={p.product_name} width={64} height={64} className="w-full h-full object-contain" loading="lazy" decoding="async" />
+                    <img src={proxyImageUrl(p.product_image)} alt={p.product_name} width={64} height={64} className="w-full h-full object-contain" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   </div>
                 )}
                 <div className="min-w-0">

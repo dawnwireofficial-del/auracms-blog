@@ -9,6 +9,7 @@ import { SeoHealthProgressChart } from '../components/admin/SeoHealthProgressCha
 import { TopViewedCategoriesChart } from '../components/admin/TopViewedCategoriesChart';
 import { OpenGraphAuditTool } from '../components/admin/OpenGraphAuditTool';
 import { Product, CategoryBanner, EditorialReview, BuyingGuide } from '../types';
+import { proxyImageUrl } from '../utils/safeRender';
 
 function BannerUploadBtn({ onUrl }: { onUrl: (url: string) => void }) {
   const [uploading, setUploading] = React.useState(false);
@@ -920,8 +921,10 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                   <div className="space-y-4">
                     <div className="aspect-square rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 flex items-center justify-center">
                       <img
-                        src={extractedPreview.images?.[0] || (extractedPreview as any).mainImage || (extractedPreview as any).imageUrl || (extractedPreview as any).productImage || ''}
+                        src={proxyImageUrl(extractedPreview.images?.[0] || (extractedPreview as any).mainImage || (extractedPreview as any).imageUrl || (extractedPreview as any).productImage || '')}
                         alt={extractedPreview.title}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         className="max-h-full object-contain"
                       />
                     </div>
@@ -1278,7 +1281,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                     {editingProduct.images && editingProduct.images.length > 0 ? (
                       editingProduct.images.map((imgUrl, i) => (
                         <div key={i} className="relative group w-16 h-16 rounded-xl overflow-hidden border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-1">
-                          <img src={imgUrl} alt={`Gallery ${i}`} className="w-full h-full object-contain" />
+                          <img src={proxyImageUrl(imgUrl)} alt={`Gallery ${i}`} referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-full h-full object-contain" />
                           <button
                             type="button"
                             onClick={() => handleRemoveProductGalleryImage(i)}
@@ -1548,7 +1551,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                   {filteredProducts.map((p) => (
                     <tr key={p.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
                       <td className="p-4 font-bold flex items-center gap-3">
-                        <img src={p.images?.[0] || (p as any).mainImage || (p as any).imageUrl || (p as any).productImage || ''} alt="" className="w-10 h-10 object-contain rounded-lg bg-slate-100 dark:bg-slate-800 p-1" />
+                        <img src={proxyImageUrl(p.images?.[0] || (p as any).mainImage || (p as any).imageUrl || (p as any).productImage || '')} alt="" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-10 h-10 object-contain rounded-lg bg-slate-100 dark:bg-slate-800 p-1" />
                         <div>
                           <div className="text-slate-900 dark:text-slate-100 line-clamp-1">{p.title}</div>
                           <div className="text-[10px] text-slate-400">{p.brand} {p.isDeal && <span className="text-orange-500 font-black ml-1">[HOT DEAL]</span>}</div>
@@ -1832,8 +1835,10 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                     {editingBanner?.desktopImage && (
                       <div className="rounded-2xl overflow-hidden border border-slate-300 dark:border-slate-700 bg-slate-900" style={{ aspectRatio: '3 / 1', maxHeight: '200px' }}>
                         <img
-                          src={editingBanner.desktopImage}
+                          src={proxyImageUrl(editingBanner.desktopImage)}
                           alt="Preview"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                           className="w-full h-full object-cover"
                           style={{ objectPosition: 'left center' }}
                         />
@@ -1941,7 +1946,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                       {/* Live Standard Preview */}
                       {editingBanner?.desktopImage && (
                         <div className="relative h-44 rounded-2xl overflow-hidden border border-slate-300 dark:border-slate-700 mt-2 flex items-center p-6 text-white bg-slate-900 shadow-inner">
-                          <img src={editingBanner.desktopImage} alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
+                          <img src={proxyImageUrl(editingBanner.desktopImage)} alt="Preview" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="absolute inset-0 w-full h-full object-cover" />
                           <div className="absolute inset-0 bg-slate-950/60" />
                           <div className="relative z-10 space-y-1 max-w-md">
                             {editingBanner.badgeText && (
@@ -1996,7 +2001,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
               {banners.map((b) => (
                 <div key={b.id} className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 shadow-sm flex flex-col justify-between">
                   <div className="relative h-32 bg-slate-900 overflow-hidden p-4 flex flex-col justify-end text-white">
-                    <img src={b.desktopImage} alt={b.title} className="absolute inset-0 w-full h-full object-cover opacity-60" />
+                    <img src={proxyImageUrl(b.desktopImage)} alt={b.title} referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="absolute inset-0 w-full h-full object-cover opacity-60" />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent" />
                     <div className="relative z-10 space-y-1">
                       {b.badgeText && (
@@ -2308,7 +2313,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
               {/* Profile Avatar Card */}
               <div className="p-6 bg-slate-50 dark:bg-slate-800/60 rounded-3xl border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center gap-6">
                 <div className="relative group w-24 h-24 rounded-full overflow-hidden border-4 border-blue-600 shadow-xl bg-slate-200 shrink-0">
-                  <img src={adminPhoto} alt={adminName} className="w-full h-full object-cover" />
+                  <img src={proxyImageUrl(adminPhoto)} alt={adminName} referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={() => setIsCropModalOpen(true)}
@@ -2351,7 +2356,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                         onClick={() => setAdminPhoto(imgUrl)}
                         className="w-8 h-8 rounded-full overflow-hidden border-2 border-slate-300 hover:border-blue-600 transition-all"
                       >
-                        <img src={imgUrl} alt={`Preset ${i}`} className="w-full h-full object-cover" />
+                        <img src={proxyImageUrl(imgUrl)} alt={`Preset ${i}`} referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-full h-full object-cover" />
                       </button>
                     ))}
                   </div>

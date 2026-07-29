@@ -11,7 +11,7 @@ import { PriceHistoryTracker } from '../components/product/PriceHistoryTracker';
 import { ProductFaqSection } from '../components/product/ProductFaqSection';
 import { useAppStore, store } from '../lib/store';
 import { sanitizeHtml } from '../lib/sanitize';
-import { safeText, safeSpecValue, isValidImageUrl } from '../utils/safeRender';
+import { safeText, safeSpecValue, isValidImageUrl, proxyImageUrl } from '../utils/safeRender';
 
 function HlsVideo({ src, poster }: { src: string; poster: string }) {
   const videoRef = React.useRef<HTMLVideoElement>(null);
@@ -292,7 +292,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         <div className="lg:col-span-5 space-y-4">
           <div className="relative group bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center h-96 overflow-hidden">
             <img
-              src={allImportedImages[selectedImageIndex]}
+              src={proxyImageUrl(allImportedImages[selectedImageIndex])}
               alt={`${product.title} angle ${selectedImageIndex + 1}`}
               className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105 cursor-zoom-in"
               onClick={() => setIsLightboxOpen(true)}
@@ -336,7 +336,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                       : 'border-slate-200 dark:border-slate-800 opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                  <img src={proxyImageUrl(img)} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-contain" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
                   <span className="absolute bottom-1 right-1 bg-slate-900/80 text-white text-[9px] px-1 rounded font-bold">
                     #{idx + 1}
                   </span>
@@ -526,7 +526,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               className="group relative bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 shadow-sm cursor-pointer overflow-hidden flex flex-col items-center justify-center h-48"
             >
               <img
-                src={img}
+                src={proxyImageUrl(img)}
                 alt={`${product.title} Imported Shot #${idx + 1}`}
                 className="max-h-full max-w-full object-contain group-hover:scale-105 transition-all duration-300"
                 referrerPolicy="no-referrer"
@@ -653,7 +653,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     >
                       {/* Video Thumbnail */}
                       <div className="relative w-24 h-16 rounded-xl bg-slate-950 overflow-hidden shrink-0 border border-slate-700 flex items-center justify-center">
-                        <img src={vid.thumbnailUrl || allImportedImages[0]} alt="" className="w-full h-full object-cover opacity-80" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                        <img src={proxyImageUrl(vid.thumbnailUrl || allImportedImages[0])} alt="" className="w-full h-full object-cover opacity-80" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                           <svg className="w-6 h-6 text-amber-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                         </div>
@@ -871,7 +871,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     rotate: lightboxRotation,
                   }}
                   transition={{ duration: 0.25 }}
-                  src={allImportedImages[selectedImageIndex]}
+                  src={proxyImageUrl(allImportedImages[selectedImageIndex])}
                   alt={`${product.title} angle ${selectedImageIndex + 1}`}
                   className="max-h-[70vh] max-w-full object-contain drop-shadow-2xl transition-transform duration-200"
                   referrerPolicy="no-referrer"
@@ -903,7 +903,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                       : 'border-slate-800 opacity-50 hover:opacity-100'
                   }`}
                 >
-                  <img src={img} alt="" className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                  <img src={proxyImageUrl(img)} alt="" className="w-full h-full object-contain" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
                 </button>
               ))}
             </div>

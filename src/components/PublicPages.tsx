@@ -29,6 +29,7 @@ import Footer from './Footer';
 import { MotionProvider } from './motion/MotionProvider';
 import { normalizeProducts } from '../utils/productMapper';
 
+import { proxyImageUrl } from '../utils/safeRender';
 import HomePage from './pages/HomePage';
 import PortfolioPage from './pages/PortfolioPage';
 import AboutPage from './pages/AboutPage';
@@ -1027,7 +1028,7 @@ export default function PublicPages({
                 }).map((p: any) => (
                   <button key={p.id} onClick={() => onNavigate('product', p.slug)} className="bg-white dark:bg-zinc-800/50 rounded-xl border border-slate-100 dark:border-zinc-700/50 p-3 hover:shadow-md transition-shadow text-left">
                     <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-900 mb-2">
-                      {p.productImage ? <img src={p.productImage} alt={p.productName} className="w-full h-full object-contain p-2" /> : <div className="w-full h-full flex items-center justify-center text-slate-300 text-xs">No img</div>}
+                      {p.productImage ? <img src={proxyImageUrl(p.productImage)} alt={p.productName} referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-full h-full object-contain p-2" /> : <div className="w-full h-full flex items-center justify-center text-slate-300 text-xs">No img</div>}
                     </div>
                     <p className="text-xs font-semibold text-slate-700 dark:text-zinc-200 line-clamp-2">{p.productName}</p>
                     <p className="text-xs font-bold text-[#0c5adb] mt-1">${p.price}</p>
@@ -1231,7 +1232,7 @@ export default function PublicPages({
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {(categories || []).filter((c: any) => !c.parentId && c.status === 'active').map((cat: any) => (
                   <button key={cat.id} onClick={() => onNavigate('category', cat.slug)} className="flex flex-col items-center p-6 bg-white dark:bg-zinc-800/50 rounded-xl border border-slate-100 dark:border-zinc-700/50 hover:shadow-lg hover:border-[#0c5adb]/30 transition-all group">
-                    {cat.image && <img src={cat.image} alt={cat.name} className="w-16 h-16 object-contain mb-3 group-hover:scale-110 transition-transform" />}
+                    {cat.image && <img src={proxyImageUrl(cat.image)} alt={cat.name} referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-16 h-16 object-contain mb-3 group-hover:scale-110 transition-transform" />}
                     <span className="text-sm font-semibold text-slate-700 dark:text-zinc-200">{cat.name}</span>
                     <span className="text-[10px] text-slate-400 dark:text-zinc-500 mt-1">{(allProducts || []).filter((p: any) => {
                       if (p.categoryId === cat.id) return true;

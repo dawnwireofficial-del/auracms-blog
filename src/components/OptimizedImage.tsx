@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { proxyImageUrl } from '../utils/safeRender';
 
 interface OptimizedImageProps {
   src: string;
@@ -59,7 +60,8 @@ export default function OptimizedImage({
   }
 
   const imgProps: React.ImgHTMLAttributes<HTMLImageElement> = {
-    src: shouldLazy && !intersected ? undefined : finalSrc,
+    src: shouldLazy && !intersected ? undefined : proxyImageUrl(finalSrc),
+    referrerPolicy: 'no-referrer' as any,
     alt,
     className: `${className} transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`,
     loading: priority ? 'eager' : shouldLazy ? 'lazy' : loading,
