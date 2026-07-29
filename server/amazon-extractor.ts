@@ -1,5 +1,55 @@
 import fetch from 'node-fetch';
 import { cohereChat } from './ai';
+import { getItemsByAsin, getMarketplaceDomain, AmazonApiConfig, AmazonProductData } from './amazon-api-client';
+
+function getPaApiConfig(): AmazonApiConfig | null {
+  const accessKey = process.env.AMAZON_ACCESS_KEY || process.env.AWS_ACCESS_KEY || '';
+  const secretKey = process.env.AMAZON_SECRET_KEY || process.env.AWS_SECRET_KEY || '';
+  const partnerTag = process.env.AMAZON_PARTNER_TAG || '';
+  if (!accessKey || !secretKey || !partnerTag) return null;
+  return {
+    credentials: { accessKey, secretKey, partnerTag, marketplace: 'US' },
+    region: 'us-east-1',
+    endpoint: 'webservices.amazon.com',
+  };
+}
+
+function mapPaApiData(pa: AmazonProductData, asin: string): Partial<ExtractedProductData> {
+  const images = [pa.mainImage || '', ...(pa.additionalImages || [])].filter(Boolean) as string[];
+  const discount = pa.discountPercent || (pa.referencePrice && pa.price && pa.referencePrice > pa.price
+    ? Math.round((1 - pa.price / pa.referencePrice) * 100) : 0);
+  const features = pa.features || [];
+  return {
+    asin,
+    title: pa.title || `Amazon Product (${asin})`,
+    brand: pa.brand || 'Generic',
+    mainCategory: pa.category || 'Electronics',
+    subcategory: 'General',
+    currentPrice: pa.price || 99.99,
+    referencePrice: pa.referencePrice || (pa.price ? Math.round(pa.price * 1.2) : 129.99),
+    discountPercentage: discount,
+    images,
+    mainImage: images[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800',
+    additionalImages: images.slice(1),
+    bestFor: 'Top Recommended Pick',
+    shortDescription: '',
+    fullDescription: '',
+    editorVerdict: '',
+    editorScore: 0,
+    pros: [],
+    cons: [],
+    mainFeatures: features,
+    specifications: { ASIN: asin },
+    affiliateUrl: pa.affiliateUrl || `https://www.amazon.com/dp/${asin}?tag=dawnwire-20`,
+    amazonOriginalUrl: pa.productUrl || `https://www.amazon.com/dp/${asin}`,
+    isPrime: pa.isPrimeDeal || pa.isPrimeExclusive || false,
+    isDeal: pa.isDeal || discount > 0,
+    rating: 0,
+    reviewCount: 0,
+    videoUrl: undefined,
+    source: 'pa_api',
+  };
+}
 
 export interface ExtractedProductData {
   asin: string;
@@ -389,8 +439,33 @@ export async function extractAmazonProductData(urlOrAsin: string, associateTag: 
   const amazonOriginalUrl = `https://www.amazon.com/dp/${asin}`;
   const affiliateUrl = `https://www.amazon.com/dp/${asin}?tag=${associateTag}`;
 
-  // 1. Check Known Curated Dictionary First (instant high-accuracy match)
+  // Tier 1: PA-API (official, reliable, structured data)
+  const paConfig = getPaApiConfig();
+  if (paConfig) {
+    try {
+      console.log(`[extractAmazonProductData] Trying PA-API for ${asin}...`);
+      const paResults = await getItemsByAsin(paConfig, [asin]);
+      if (paResults && paResults.length > 0 && paResults[0].title) {
+        console.log(`[extractAmazonProductData] PA-API success: "${paResults[0].title}"`);
+        const mapped = mapPaApiData(paResults[0], asin);
+        return {
+          ...mapped,
+          affiliateUrl,
+          amazonOriginalUrl,
+          source: 'pa_api',
+        } as ExtractedProductData;
+      }
+      console.warn(`[extractAmazonProductData] PA-API returned no data for ${asin}`);
+    } catch (err) {
+      console.warn(`[extractAmazonProductData] PA-API error for ${asin}:`, err instanceof Error ? err.message : err);
+    }
+  } else {
+    console.log('[extractAmazonProductData] PA-API not configured (set AMAZON_ACCESS_KEY, AMAZON_SECRET_KEY, AMAZON_PARTNER_TAG)');
+  }
+
+  // Tier 2: Known Curated Dictionary
   if (KNOWN_PRODUCTS[asin]) {
+    console.log(`[extractAmazonProductData] Found ${asin} in KNOWN_PRODUCTS dictionary`);
     const known = KNOWN_PRODUCTS[asin];
     const discount = known.currentPrice && known.referencePrice && known.referencePrice > known.currentPrice
       ? Math.round((1 - known.currentPrice / known.referencePrice) * 100)
@@ -429,15 +504,28 @@ export async function extractAmazonProductData(urlOrAsin: string, associateTag: 
     };
   }
 
-  // 2. Try Public Web Scraper
+  // Tier 3: Public Web Scraper (fetch + regex)
+  console.log(`[extractAmazonProductData] Trying web scraper for ${asin}...`);
   const scraped = await scrapeAmazonHtml(asin);
-
-  // 3. Try AI Synthesis (Cohere) to fill missing fields or generate complete metadata
-  let aiData: Partial<ExtractedProductData> | null = null;
-  if (!scraped || !scraped.title || scraped.title.includes('Amazon Product')) {
-    aiData = await synthesizeWithAi(asin, scraped?.title, scraped?.brand);
+  if (scraped) {
+    console.log(`[extractAmazonProductData] Web scraper returned title: "${scraped.title}"`);
+  } else {
+    console.warn(`[extractAmazonProductData] Web scraper returned null for ${asin}`);
   }
 
+  // Tier 4: AI Synthesis (Cohere)
+  let aiData: Partial<ExtractedProductData> | null = null;
+  if (!scraped || !scraped.title || scraped.title.includes('Amazon Product')) {
+    console.log(`[extractAmazonProductData] Trying AI synthesis for ${asin}...`);
+    aiData = await synthesizeWithAi(asin, scraped?.title, scraped?.brand);
+    if (aiData) {
+      console.log(`[extractAmazonProductData] AI synthesis returned title: "${aiData.title}"`);
+    } else {
+      console.warn(`[extractAmazonProductData] AI synthesis returned null for ${asin}`);
+    }
+  }
+
+  // Tier 5: Hardcoded defaults
   const finalTitle = scraped?.title && !scraped.title.includes('Amazon Product')
     ? scraped.title
     : aiData?.title || `Amazon Product (${asin})`;
@@ -468,6 +556,11 @@ export async function extractAmazonProductData(urlOrAsin: string, associateTag: 
   const finalVideoUrl = scraped?.videoUrl || '';
   const baseSpecs = aiData?.specifications || { 'ASIN': asin, 'Warranty': '1 Year Manufacturer Warranty' };
 
+  const source: ExtractedProductData['source'] = scraped ? 'web_scraper' : aiData ? 'ai_synthesis' : 'dictionary';
+  if (source === 'dictionary') {
+    console.warn(`[extractAmazonProductData] All tiers failed — using hardcoded defaults for ${asin}`);
+  }
+
   return {
     asin,
     title: finalTitle,
@@ -494,8 +587,8 @@ export async function extractAmazonProductData(urlOrAsin: string, associateTag: 
     isPrime: true,
     isDeal: discount > 0,
     rating: scraped?.rating || 4.6,
-      reviewCount: scraped?.rating ? (scraped as any).reviewCount || 0 : 0,
-      videoUrl: finalVideoUrl || undefined,
-      source: scraped ? 'web_scraper' : aiData ? 'ai_synthesis' : 'dictionary'
+    reviewCount: scraped?.rating ? (scraped as any).reviewCount || 0 : 0,
+    videoUrl: finalVideoUrl || undefined,
+    source,
   };
 }

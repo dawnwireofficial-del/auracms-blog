@@ -122,12 +122,23 @@ async function main() {
     process.exit(1);
   }
 
+  const paAccessKey = process.env.AMAZON_ACCESS_KEY || process.env.AWS_ACCESS_KEY || '';
+  const paSecretKey = process.env.AMAZON_SECRET_KEY || process.env.AWS_SECRET_KEY || '';
+  const paPartnerTag = process.env.AMAZON_PARTNER_TAG || '';
+  const hasPaApi = !!(paAccessKey && paSecretKey && paPartnerTag);
+
   if (dryRun) {
     console.log(`\nDRY RUN — ${asins.length} ASINs ready:`);
     for (const a of asins) console.log(`  ${a}`);
+    console.log(`  PA-API: ${hasPaApi ? 'configured ✓' : 'NOT configured (set AMAZON_ACCESS_KEY, AMAZON_SECRET_KEY, AMAZON_PARTNER_TAG)'}`);
     console.log(`  ImgBB upload: ${!!IMGBB_KEY}`);
     console.log(`  API: ${API_URL}`);
     return;
+  }
+
+  if (!hasPaApi) {
+    console.warn('\n⚠ PA-API not configured. Data will fall through to web scraper → AI → defaults.');
+    console.warn('  Set AMAZON_ACCESS_KEY, AMAZON_SECRET_KEY, and AMAZON_PARTNER_TAG env vars for real data.\n');
   }
 
   if (!API_TOKEN) {
