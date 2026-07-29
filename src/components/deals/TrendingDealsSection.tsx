@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { AffiliateCTA } from '../common/AffiliateCTA';
 import { useAppStore } from '../../lib/store';
+import { sanitizeHtml } from '../../lib/sanitize';
+import { proxyImageUrl } from '../../utils/safeRender';
 
 interface TrendingDeal {
   id: string;
@@ -33,19 +35,20 @@ export const TrendingDealsSection: React.FC = () => {
       })
       .then((data) => {
         if (isMounted && data?.deals && data.deals.length > 0) {
-          setDeals(data.deals.slice(0, 4));
+          setDeals(data.deals.filter((d: any) => (d.discountPercentage && d.discountPercentage > 0 && !isNaN(d.discountPercentage)) || d.dealBadge).slice(0, 4));
         } else {
           if (isMounted && products.length > 0) {
             const candidates = [...products].filter(p => (p.discountPercentage || 0) > 0 && (p.discountPercentage || 0) <= 40);
             const noDiscount = products.filter(p => !(p.discountPercentage || 0)).slice(0, 4 - candidates.length);
             const sorted = candidates.length >= 4 ? candidates : [...candidates, ...noDiscount];
+            const toPrice = (v: any) => { if (v == null) return 0; return parseFloat(String(v).replace(/[^0-9.]/g, '')) || 0; };
             const topDiscountProducts = sorted.slice(0, 4).map((p, idx) => ({
               id: p.id,
               title: p.title,
               brand: p.brand,
               category: p.category || p.mainCategory || 'General',
-              currentPrice: Number(p.currentPrice) || 100,
-              referencePrice: p.discountPercentage ? Number(p.originalPrice) || Number(p.referencePrice) || 0 : 0,
+              currentPrice: toPrice(p.currentPrice) || 100,
+              referencePrice: p.discountPercentage ? toPrice(p.originalPrice) || toPrice(p.referencePrice) || 0 : 0,
               discountPercentage: p.discountPercentage || 0,
               rating: p.rating || 4.5,
               reviewCount: p.reviewCount || 10,
@@ -59,8 +62,9 @@ export const TrendingDealsSection: React.FC = () => {
           }
         }
       })
-      .catch((err) => {
+      .catch((_err) => {
         if (isMounted && products.length > 0) {
+          const toPrice = (v: any) => { if (v == null) return 0; return parseFloat(String(v).replace(/[^0-9.]/g, '')) || 0; };
           const candidates = [...products].filter(p => (p.discountPercentage || 0) > 0 && (p.discountPercentage || 0) <= 40);
           const noDiscount = products.filter(p => !(p.discountPercentage || 0)).slice(0, 4 - candidates.length);
           const sorted = candidates.length >= 4 ? candidates : [...candidates, ...noDiscount];
@@ -69,8 +73,8 @@ export const TrendingDealsSection: React.FC = () => {
             title: p.title,
             brand: p.brand,
             category: p.category || p.mainCategory || 'General',
-            currentPrice: p.currentPrice || 100,
-            referencePrice: p.discountPercentage ? p.originalPrice || p.referencePrice || 0 : 0,
+            currentPrice: toPrice(p.currentPrice) || 100,
+            referencePrice: p.discountPercentage ? toPrice(p.originalPrice) || toPrice(p.referencePrice) || 0 : 0,
             discountPercentage: p.discountPercentage || 0,
             rating: p.rating || 4.5,
             reviewCount: p.reviewCount || 10,
@@ -140,22 +144,29 @@ export const TrendingDealsSection: React.FC = () => {
                 {/* Image & Badges */}
                 <div className="relative h-44 bg-white/5 rounded-xl p-3 flex items-center justify-center overflow-hidden mb-3">
                   <img
-                    src={deal.images[0]}
+                    src={proxyImageUrl(deal.images[0])}
                     alt={deal.title}
+                    referrerPolicy="no-referrer"
                     className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23f1f5f9%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2210%22 fill=%22%2394a3b8%22>Image</text></svg>'; }}
                   />
-                  <span className="absolute top-2 left-2 bg-red-600 text-white font-extrabold text-[10px] px-2 py-0.5 rounded shadow">
-                    -{deal.discountPercentage}% OFF
-                  </span>
-                  <span className="absolute bottom-2 right-2 bg-slate-950/80 text-amber-400 font-extrabold text-[10px] px-2 py-0.5 rounded backdrop-blur-sm">
-                    Ends in {deal.expiresInHours}h
-                  </span>
+                  {deal.discountPercentage > 0 && !isNaN(deal.discountPercentage) && (
+                    <span className="absolute top-2 left-2 bg-red-600 text-white font-extrabold text-[10px] px-2 py-0.5 rounded shadow">
+                      -{deal.discountPercentage}% OFF
+                    </span>
+                  )}
+                  {deal.expiresInHours > 0 && (
+                    <span className="absolute bottom-2 right-2 bg-slate-950/80 text-amber-400 font-extrabold text-[10px] px-2 py-0.5 rounded backdrop-blur-sm">
+                      Ends in {deal.expiresInHours}h
+                    </span>
+                  )}
                 </div>
 
-                {/* Badge Tag */}
-                <span className="text-[10px] font-extrabold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-500/30 inline-block mb-1">
-                  {deal.dealBadge}
-                </span>
+                {deal.dealBadge && deal.dealBadge.trim() && (
+                  <span className="text-[10px] font-extrabold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-500/30 inline-block mb-1">
+                    {sanitizeHtml(deal.dealBadge)}
+                  </span>
+                )}
 
                 {/* Title */}
                 <h3 className="text-xs font-bold text-slate-100 line-clamp-2 leading-snug group-hover:text-amber-300 transition-colors">
@@ -174,9 +185,11 @@ export const TrendingDealsSection: React.FC = () => {
                       ${Number(deal.referencePrice).toFixed(2)}
                     </span>
                   </div>
-                  <div className="text-[10px] text-amber-400 font-bold">
-                    ★ {deal.rating}
-                  </div>
+                  {Number(deal.rating) > 0 && (
+                    <div className="text-[10px] text-amber-400 font-bold">
+                      ★ {Number(deal.rating).toFixed(1)}
+                    </div>
+                  )}
                 </div>
 
                 <AffiliateCTA

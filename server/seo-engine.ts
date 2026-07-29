@@ -416,7 +416,7 @@ export async function importProductReview(data: {
     category_id: resolvedCategoryId,
     final_verdict: norm.final_verdict || null,
     editor_score: norm.editor_score,
-    coupon_code: norm.coupon_code || norm.deal_badge,
+    coupon_code: norm.coupon_code,
     coupon_expiry: norm.coupon_expiry,
     specs: Object.keys(specs).length > 0 ? specs : null,
     cta_text: 'Buy on Amazon',

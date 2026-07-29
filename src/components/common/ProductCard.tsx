@@ -6,6 +6,7 @@ import { PriceAlertModal } from '../product/PriceAlertModal';
 import { useAppStore, store } from '../../lib/store';
 import { toast } from '../../lib/toastStore';
 import { sanitizeHtml } from '../../lib/sanitize';
+import { proxyImageUrl } from '../../utils/safeRender';
 
 interface ProductCardProps {
   product: Product;
@@ -69,10 +70,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Image Container */}
         <div className="relative w-full md:w-64 h-52 md:h-auto shrink-0 bg-slate-50 dark:bg-dw-section p-4 flex items-center justify-center overflow-hidden">
           <img
-            src={product.images?.[0] || product.productImage || 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f1f5f9"/><text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">No image</text></svg>')}
+            src={proxyImageUrl(product.images?.[0] || product.productImage) || 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f1f5f9"/><text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">No image</text></svg>')}
             alt={product.title}
+            referrerPolicy="no-referrer"
             className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
+            onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f1f5f9"/><text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">No image</text></svg>'); }}
           />
           {product.isDeal && (
             <span className="absolute top-3 left-3 bg-red-600 text-white font-extrabold text-xs px-2.5 py-1 rounded-lg shadow-md">
@@ -261,10 +264,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       {/* Image */}
       <a href={`/products/${product.slug}`} className="relative h-56 bg-slate-50 dark:bg-slate-900/40 p-6 flex items-center justify-center overflow-hidden">
         <img
-          src={product.images?.[0] || product.productImage || 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f1f5f9"/><text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">No image</text></svg>')}
+          src={proxyImageUrl(product.images?.[0] || product.productImage) || 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f1f5f9"/><text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">No image</text></svg>')}
           alt={product.title}
+          referrerPolicy="no-referrer"
           className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
+          onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f1f5f9"/><text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">No image</text></svg>'); }}
         />
       </a>
 

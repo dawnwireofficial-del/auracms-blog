@@ -420,7 +420,7 @@ export async function extractAmazonProductData(urlOrAsin: string, associateTag: 
       specifications: { video_url: knownVideo, ...(known.specifications || { 'Warranty': '1 Year' }) },
       affiliateUrl,
       amazonOriginalUrl,
-      isPrime: scraped?.isPrime || false,
+      isPrime: known.isPrime || false,
       isDeal: discount > 0,
       rating: known.rating || 4.7,
       reviewCount: known.reviewCount || 2400,

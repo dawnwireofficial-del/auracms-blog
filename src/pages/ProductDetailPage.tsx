@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Product, ProductVideo } from '../types';
+import { Product } from '../types';
 import { AffiliateCTA } from '../components/common/AffiliateCTA';
 import { DisclosureBanner } from '../components/common/DisclosureBanner';
 import { ProductCard } from '../components/common/ProductCard';
@@ -150,39 +150,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isLightboxOpen, allImportedImages.length]);
 
-  // Video reviews setup
-  const defaultVideos: ProductVideo[] = [
-    {
-      id: 'v1',
-      title: `${product?.title || 'Product'} - Full 30-Day In-Depth Review & Lab Test`,
-      youtubeId: 'p25P-M1m36c',
-      author: 'Tech Benchmark Lab',
-      duration: '14:20',
-      type: 'review',
-      thumbnailUrl: allImportedImages[0]
-    },
-    {
-      id: 'v2',
-      title: `Unboxing & Setup Guide: ${product?.title || 'Product'}`,
-      youtubeId: 'y28L_9I9xsc',
-      author: 'Unbox & Setup Tech',
-      duration: '08:45',
-      type: 'unboxing',
-      thumbnailUrl: allImportedImages[1] || allImportedImages[0]
-    },
-    {
-      id: 'v3',
-      title: `Real-World Stress Test & Ergonomics Comparison`,
-      youtubeId: 'dQw4w9WgXcQ',
-      author: 'Consumer Tech Insights',
-      duration: '11:10',
-      type: 'benchmark',
-      thumbnailUrl: allImportedImages[2] || allImportedImages[0]
-    }
-  ];
-
-  const productVideos = (product?.videos && product.videos.length > 0) ? product.videos : defaultVideos;
-  const [activeVideo, setActiveVideo] = useState<ProductVideo>(productVideos[0]);
+  const productVideos = (product?.videos && product.videos.length > 0) ? product.videos : [];
+  const [activeVideo, setActiveVideo] = useState(productVideos[0]);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState<'overview' | 'gallery' | 'videos' | 'specs'>('overview');
@@ -266,7 +235,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       <div className="max-w-7xl mx-auto px-4 mb-6">
         <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 text-xs font-bold overflow-x-auto">
           <button
-            onClick={() => setActiveTab('overview')}
+            onClick={() => { setActiveTab('overview'); document.getElementById('section-overview')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
             className={`px-4 py-2 rounded-xl transition-all ${
               activeTab === 'overview'
                 ? 'bg-[#0A1F44] text-white shadow-md'
@@ -276,7 +245,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             Overview & Pricing
           </button>
           <button
-            onClick={() => setActiveTab('gallery')}
+            onClick={() => { setActiveTab('gallery'); document.getElementById('section-gallery')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
             className={`px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
               activeTab === 'gallery'
                 ? 'bg-[#0A1F44] text-white shadow-md'
@@ -288,8 +257,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               {allImportedImages.length}
             </span>
           </button>
+          {productVideos.length > 0 && (
           <button
-            onClick={() => setActiveTab('videos')}
+            onClick={() => { setActiveTab('videos'); document.getElementById('section-video')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
             className={`px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
               activeTab === 'videos'
                 ? 'bg-[#0A1F44] text-white shadow-md'
@@ -302,8 +272,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               {productVideos.length}
             </span>
           </button>
+          )}
           <button
-            onClick={() => setActiveTab('specs')}
+            onClick={() => { setActiveTab('specs'); document.getElementById('section-specs')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
             className={`px-4 py-2 rounded-xl transition-all ${
               activeTab === 'specs'
                 ? 'bg-[#0A1F44] text-white shadow-md'
@@ -316,7 +287,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       </div>
 
       {/* Main Grid: Overview Tab View */}
-      <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div id="section-overview" className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Col: Interactive Image Gallery with Zoom & Lightbox Trigger */}
         <div className="lg:col-span-5 space-y-4">
           <div className="relative group bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center h-96 overflow-hidden">
@@ -325,7 +296,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               alt={`${product.title} angle ${selectedImageIndex + 1}`}
               className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105 cursor-zoom-in"
               onClick={() => setIsLightboxOpen(true)}
-              onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23f1f5f9%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2210%22 fill=%22%2394a3b8%22>Image</text></svg>'; }}
+              referrerPolicy="no-referrer"
+              onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#1e293b"/><text x="100" y="90" text-anchor="middle" fill="#94a3b8" font-size="32" font-family="sans-serif">🖼️</text><text x="100" y="120" text-anchor="middle" fill="#64748b" font-size="12" font-family="sans-serif" font-weight="bold">Image unavailable</text></svg>'); }}
             />
 
             {product.isDeal && product.discountPercentage ? (
@@ -516,7 +488,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       </div>
 
       {/* ALL IMPORTED IMAGES FULL GALLERY SECTION */}
-      <section className="max-w-7xl mx-auto px-4 mt-16 space-y-6">
+      <section id="section-gallery" className="max-w-7xl mx-auto px-4 mt-16 space-y-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-extrabold uppercase mb-1">
@@ -557,6 +529,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 src={img}
                 alt={`${product.title} Imported Shot #${idx + 1}`}
                 className="max-h-full max-w-full object-contain group-hover:scale-105 transition-all duration-300"
+                referrerPolicy="no-referrer"
+                onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
               />
               <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <span className="bg-white/90 text-slate-950 font-black text-xs px-3 py-1.5 rounded-xl shadow-lg flex items-center gap-1">
@@ -574,7 +548,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
       {/* PRODUCT VIDEO (HLS FROM AMAZON IMPORT) */}
       {product.videoUrl && (
-        <section className="max-w-7xl mx-auto px-4 mt-16">
+        <section id="section-video" className="max-w-7xl mx-auto px-4 mt-16">
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
@@ -588,6 +562,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       )}
 
       {/* EMBEDDED VIDEO REVIEWS & DEMONSTRATION SECTION */}
+      {productVideos.length > 0 && (
       <section className="max-w-7xl mx-auto px-4 mt-16">
         <div className="relative overflow-hidden bg-slate-900 text-white rounded-3xl p-6 sm:p-10 border border-slate-800 shadow-2xl space-y-8">
           {/* Gravity particle ambient background */}
@@ -609,7 +584,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
             <div className="flex items-center gap-2 text-xs font-bold bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700">
               <span className="text-amber-400">★ {product.editorScore}</span>
-              <span className="text-slate-400">| {productVideos.length} Video Reviews Available</span>
+              {productVideos.length > 0 && <span className="text-slate-400">| {productVideos.length} Video Reviews Available</span>}
             </div>
           </div>
 
@@ -707,6 +682,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           </div>
         </div>
       </section>
+      )}
 
       {/* AI SENTIMENT VISUALIZATION & GRAPHICAL SUMMARY */}
       <section className="max-w-7xl mx-auto px-4 mt-16">
@@ -724,7 +700,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       </section>
 
       {/* Specifications & Pros/Cons Section */}
-      <section className="max-w-7xl mx-auto px-4 mt-16 grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <section id="section-specs" className="max-w-7xl mx-auto px-4 mt-16 grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left: Specifications */}
         <div className="lg:col-span-7 bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
           <h3 className="text-xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -898,6 +874,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   src={allImportedImages[selectedImageIndex]}
                   alt={`${product.title} angle ${selectedImageIndex + 1}`}
                   className="max-h-[70vh] max-w-full object-contain drop-shadow-2xl transition-transform duration-200"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#1e293b"/><text x="100" y="90" text-anchor="middle" fill="#94a3b8" font-size="32">🖼️</text><text x="100" y="120" text-anchor="middle" fill="#64748b" font-size="12" font-weight="bold">Image unavailable</text></svg>'); }}
                 />
               </div>
 

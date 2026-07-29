@@ -2,6 +2,7 @@ import { Star, Heart, ShoppingBag, AlertCircle, Shield } from 'lucide-react';
 import { motion } from 'motion/react';
 import { ProductReview } from '../../types';
 import { useMotion } from '../motion/MotionProvider';
+import { proxyImageUrl } from '../../utils/safeRender';
 
 interface ProductCardProps {
   product: ProductReview & { isFeatured?: boolean; isDeal?: boolean; discountPercentage?: number };
@@ -86,7 +87,7 @@ export default function ProductCard({
        {/* Image */}
        <a href={`/product/${product.slug || product.id}`} className="relative aspect-square bg-dw-section overflow-hidden">
          {product.productImage ? (
-           <img src={product.productImage} alt={product.productName} className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            <img src={proxyImageUrl(product.productImage)} alt={product.productName} className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
          ) : (
            <div className="w-full h-full flex items-center justify-center text-dw-text-muted">
              <ShoppingBag className="h-12 w-12" />
@@ -159,7 +160,7 @@ export default function ProductCard({
     >
       <a href={`/product/${product.slug || product.id}`} className="w-32 h-32 shrink-0 bg-dw-section rounded-lg overflow-hidden flex items-center justify-center">
         {product.productImage ? (
-          <img src={product.productImage} alt={product.productName} className="w-full h-full object-contain p-2" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          <img src={proxyImageUrl(product.productImage)} alt={product.productName} className="w-full h-full object-contain p-2" referrerPolicy="no-referrer" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-dw-text-muted"><ShoppingBag className="h-8 w-8" /></div>
         )}

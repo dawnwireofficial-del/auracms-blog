@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { X, ZoomIn } from 'lucide-react';
+import { proxyImageUrl } from '../utils/safeRender';
 
 interface ImageZoomProps {
   src: string;
@@ -13,6 +14,7 @@ interface ImageZoomProps {
 }
 
 export default function ImageZoom({ src, alt, className = '', containerClassName = '', aspectRatio, width, height, loading = 'lazy' }: ImageZoomProps) {
+  const proxiedSrc = proxyImageUrl(src);
   const [isOpen, setIsOpen] = useState(false);
   const [zoomStyle, setZoomStyle] = useState<React.CSSProperties>({});
   const imgRef = useRef<HTMLImageElement>(null);
@@ -37,15 +39,17 @@ export default function ImageZoom({ src, alt, className = '', containerClassName
       >
         <img
           ref={imgRef}
-          src={src}
+          src={proxiedSrc}
           alt={alt}
           loading={loading}
           width={width}
           height={height}
+          referrerPolicy="no-referrer"
           className={`transition-transform duration-150 ease-out select-none ${isHovering ? 'scale-[2.2]' : 'scale-100'} ${className}`}
           style={{ ...(isHovering ? zoomStyle : {}), ...(aspectRatio ? { aspectRatio } : {}) }}
           draggable={false}
           decoding="async"
+          onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect width="400" height="400" fill="#f1f5f9"/><text x="200" y="205" text-anchor="middle" fill="#94a3b8" font-size="16" font-family="sans-serif">Image unavailable</text></svg>'); }}
         />
         <div className="absolute top-2 right-2 bg-black/50 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
           <ZoomIn className="w-4 h-4" />
@@ -64,11 +68,13 @@ export default function ImageZoom({ src, alt, className = '', containerClassName
             <X className="w-6 h-6" />
           </button>
           <img
-            src={src}
+            src={proxiedSrc}
             alt={alt}
             className="max-w-full max-h-full object-contain rounded-lg shadow-2xl cursor-zoom-out"
             onClick={(e) => e.stopPropagation()}
+            referrerPolicy="no-referrer"
             loading="eager"
+            onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect width="400" height="400" fill="#f1f5f9"/><text x="200" y="205" text-anchor="middle" fill="#94a3b8" font-size="16" font-family="sans-serif">Image unavailable</text></svg>'); }}
           />
         </div>
       )}

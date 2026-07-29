@@ -2,12 +2,47 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Eye, X, Image as ImageIcon } from 'lucide-react';
 import { Category } from '../../types';
 
+function UploadBtn({ token, onUrl }: { token: string; onUrl: (url: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      await new Promise(resolve => { reader.onload = resolve; });
+      const base64 = (reader.result as string).split(',')[1];
+      const r = await fetch('/api/admin/upload-image', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ base64, fileName: file.name }),
+      });
+      const data = await r.json();
+      if (data.url) onUrl(data.url);
+    } catch (e) { console.error('Upload failed', e); }
+    setUploading(false);
+    if (inputRef.current) inputRef.current.value = '';
+  };
+  return (
+    <>
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+      <button type="button" onClick={() => inputRef.current?.click()} disabled={uploading} className="text-[10px] font-bold text-[#0c5adb] hover:text-blue-700 shrink-0 px-2 py-1 rounded border border-[#0c5adb]/30 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all flex items-center gap-1">
+        {uploading ? <span className="w-3 h-3 border-2 border-[#0c5adb] border-t-transparent rounded-full animate-spin" /> : '+'}
+        {uploading ? 'Uploading…' : 'Upload'}
+      </button>
+    </>
+  );
+}
+
 export default function AdminBanners({ token, categories }: { token: string; categories: Category[] }) {
   const [selectedCat, setSelectedCat] = useState('');
   const [banners, setBanners] = useState<any[]>([]);
   const [edit, setEdit] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
   const [preview, setPreview] = useState<any>(null);
+  const desktopRef = React.useRef<HTMLInputElement>(null);
+  const mobileRef = React.useRef<HTMLInputElement>(null);
 
   const load = async () => {
     if (!selectedCat) return;
@@ -61,8 +96,20 @@ export default function AdminBanners({ token, categories }: { token: string; cat
       {showForm && (
         <form onSubmit={save} className="p-4 bg-white dark:bg-zinc-800/50 rounded-xl border border-slate-200 dark:border-zinc-700 space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-[10px] font-bold text-slate-500 block mb-1">Desktop Image URL</label><input name="desktopImage" defaultValue={edit?.desktopImage} required className="w-full text-xs border border-slate-200 dark:border-zinc-700 rounded-lg px-3 py-2 bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100 focus:outline-none" /></div>
-            <div><label className="text-[10px] font-bold text-slate-500 block mb-1">Mobile Image URL</label><input name="mobileImage" defaultValue={edit?.mobileImage} className="w-full text-xs border border-slate-200 dark:border-zinc-700 rounded-lg px-3 py-2 bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100" /></div>
+            <div>
+              <label className="text-[10px] font-bold text-slate-500 block mb-1">Desktop Image URL</label>
+              <div className="flex gap-2 items-start">
+                <input ref={desktopRef} name="desktopImage" defaultValue={edit?.desktopImage} required className="flex-1 text-xs border border-slate-200 dark:border-zinc-700 rounded-lg px-3 py-2 bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100 focus:outline-none" />
+                <UploadBtn token={token} onUrl={(url) => { if (desktopRef.current) desktopRef.current.value = url; }} />
+              </div>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-slate-500 block mb-1">Mobile Image URL</label>
+              <div className="flex gap-2 items-start">
+                <input ref={mobileRef} name="mobileImage" defaultValue={edit?.mobileImage} className="flex-1 text-xs border border-slate-200 dark:border-zinc-700 rounded-lg px-3 py-2 bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100 focus:outline-none" />
+                <UploadBtn token={token} onUrl={(url) => { if (mobileRef.current) mobileRef.current.value = url; }} />
+              </div>
+            </div>
             <div><label className="text-[10px] font-bold text-slate-500 block mb-1">Heading</label><input name="heading" defaultValue={edit?.heading} className="w-full text-xs border border-slate-200 dark:border-zinc-700 rounded-lg px-3 py-2 bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100" /></div>
             <div><label className="text-[10px] font-bold text-slate-500 block mb-1">Sort Order</label><input name="sortOrder" type="number" defaultValue={edit?.sortOrder || 0} className="w-full text-xs border border-slate-200 dark:border-zinc-700 rounded-lg px-3 py-2 bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100" /></div>
           </div>

@@ -7,7 +7,7 @@ import { getSupabaseAdmin } from '../../server/lib/supabase';
 import { authenticate, requireRole } from './middleware';
 import { startBulkImport, processBulkImport, getBulkImportJob, cancelBulkImport } from '../../server/bulk-importer';
 import { searchAmazon, scrapeAmazonSearch } from '../../server/amazon-search-scraper';
-import { importProductReview, getProductReviews } from '../../server/seo-engine';
+import { importProductReview, getProductReviews, updateProductReview } from '../../server/seo-engine';
 
 const router = express.Router();
 
@@ -974,7 +974,7 @@ router.post('/backfill-sanitize', authenticate, requireRole(['super_admin', 'adm
   const { normalizeSpecs, sanitizeReviewSummary } = await import('../../server/normalize-import');
   const results = { productsScanned: 0, reviewSummaryFixed: 0, specsFixed: 0, shortDescriptionFixed: 0, errors: 0 };
   try {
-    const allProducts = await dbInstance.getProductReviews();
+    const allProducts = await getProductReviews();
     const products = Array.isArray(allProducts) ? allProducts : (allProducts as any).data || [];
     results.productsScanned = products.length;
 
@@ -1014,7 +1014,7 @@ router.post('/backfill-sanitize', authenticate, requireRole(['super_admin', 'adm
         }
 
         if (changed) {
-          await dbInstance.updateProductReview(product.id || product._id, updates);
+          await updateProductReview(product.id || product._id, updates);
         }
       } catch {
         results.errors++;

@@ -29,6 +29,8 @@ export const ProductSentimentCard: React.FC<ProductSentimentCardProps> = ({ prod
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const hasRealReviews = Array.isArray((product.specifications as any)?.reviews) && (product.specifications as any).reviews.length > 0;
+
   const fetchSentimentData = async (forceRefresh = false) => {
     const cacheKey = `dawnwire_sentiment_${product.id}`;
     if (!forceRefresh) {
@@ -44,6 +46,10 @@ export const ProductSentimentCard: React.FC<ProductSentimentCardProps> = ({ prod
 
     setIsRefreshing(true);
     try {
+      const specs = (product as any).specifications || {};
+      const reviewsText = hasRealReviews
+        ? specs.reviews.slice(0, 20).map((r: any) => `"${(r.title || '')} ${(r.body || '').substring(0, 500)}"`).join('\n')
+        : '';
       const res = await fetch('/api/ai/sentiment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -55,6 +61,7 @@ export const ProductSentimentCard: React.FC<ProductSentimentCardProps> = ({ prod
           editorScore: product.editorScore,
           pros: product.pros,
           cons: product.cons,
+          reviewsText: reviewsText || undefined,
         }),
       });
       if (res.ok) {
@@ -73,8 +80,30 @@ export const ProductSentimentCard: React.FC<ProductSentimentCardProps> = ({ prod
   };
 
   useEffect(() => {
+    if (!hasRealReviews) {
+      setIsLoading(false);
+      return;
+    }
     fetchSentimentData(false);
   }, [product.id]);
+
+  if (!hasRealReviews) {
+    return (
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-md font-bold text-xs">📊 Gemini NLP</div>
+          <div>
+            <h3 className="text-lg font-black text-slate-900 dark:text-slate-100">AI Customer Sentiment Summary</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Synthesized from customer reviews via Gemini 3.6 Flash</p>
+          </div>
+        </div>
+        <div className="p-6 text-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">No customer reviews imported yet</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Use the DawnWire browser extension to import customer reviews and unlock AI-powered sentiment analysis.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

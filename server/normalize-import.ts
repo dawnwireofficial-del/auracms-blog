@@ -61,6 +61,16 @@ export function normalizeCount(value: unknown): number | null {
   return Number.isFinite(n) && n >= 0 ? Math.round(n) : null;
 }
 
+export function sanitizeDealBadge(value: unknown): string | null {
+  if (!value) return null;
+  const s = String(value)
+    .replace(/\.\w+/g, '')
+    .replace(/[.#]\w[\w-]*([^{]*\{[^}]*\})?/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return s.length > 100 ? s.substring(0, 100) : s || null;
+}
+
 export function normalizeStringArray(value: unknown): string[] {
   if (Array.isArray(value)) return value.filter(v => typeof v === 'string').map(v => v.trim()).filter(Boolean);
   if (typeof value === 'string') {
@@ -295,7 +305,7 @@ export function normalizeImportedProduct(raw: any): NormalizedProduct {
     best_for: raw.best_for || raw.bestFor || null,
     slug: raw.slug || undefined,
     stock_status: raw.stockStatus || raw.stock_status || 'in_stock',
-    deal_badge: raw.dealBadge || raw.deal_badge || null,
+    deal_badge: sanitizeDealBadge(raw.dealBadge || raw.deal_badge),
     status: raw.status || 'draft',
     editor_score: typeof raw.editor_score === 'number' ? raw.editor_score : (typeof raw.editorScore === 'number' ? raw.editorScore : 0),
     coupon_code: raw.couponCode || raw.coupon_code || null,

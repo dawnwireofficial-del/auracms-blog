@@ -217,6 +217,34 @@ router.get('/video-proxy', async (req, res) => {
   }
 });
 
+// Server-side image proxy for Amazon CDN (avoids hotlinking blocks)
+const ALLOWED_IMAGE_DOMAINS = ['m.media-amazon.com', 'images-na.ssl-images-amazon.com', 'images.unsplash.com'];
+router.get('/image-proxy', async (req, res) => {
+  const url = req.query.url as string;
+  if (!url) return res.status(400).json({ error: 'url required' });
+  try {
+    const parsed = new URL(url);
+    if (!ALLOWED_IMAGE_DOMAINS.includes(parsed.hostname)) {
+      return res.status(403).json({ error: 'Domain not allowed' });
+    }
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+      },
+    });
+    if (!response.ok) return res.status(response.status).json({ error: 'Failed to fetch image' });
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    const buffer = Buffer.from(await response.arrayBuffer());
+    res.set('Content-Type', contentType);
+    res.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+    res.set('Access-Control-Allow-Origin', '*');
+    res.send(buffer);
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 router.get('/topic-clusters', async (_req, res) => {
   const clusters = await dbInstance.getTopicClusters();
   res.json(clusters.filter((c: any) => c.status === 'active'));

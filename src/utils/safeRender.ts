@@ -45,6 +45,21 @@ export function safeSpecValue(value: unknown): { display: string; isLong: boolea
   return { display: '', isLong: false };
 }
 
+const AMAZON_CDN_DOMAINS = ['m.media-amazon.com', 'images-na.ssl-images-amazon.com'];
+
+export function proxyImageUrl(url: unknown): string {
+  if (typeof url !== 'string' || !url) return '';
+  try {
+    const u = new URL(url);
+    if (AMAZON_CDN_DOMAINS.includes(u.hostname)) {
+      return '/api/public/image-proxy?url=' + encodeURIComponent(url);
+    }
+    return url;
+  } catch {
+    return url;
+  }
+}
+
 export function isValidImageUrl(url: unknown): url is string {
   if (typeof url !== 'string') return false;
   try {

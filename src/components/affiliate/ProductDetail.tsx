@@ -11,7 +11,7 @@ import ProductCard from './ProductCard';
 import ProductSpotlight from '../motion/ProductSpotlight';
 import TechGrid from '../motion/TechGrid';
 import DiscoveryTrail from '../motion/DiscoveryTrail';
-import { safeText } from '../../utils/safeRender';
+import { safeText, proxyImageUrl } from '../../utils/safeRender';
 import { sanitizeHtml } from '../../lib/sanitize';
 
 interface ProductDetailProps {
@@ -137,7 +137,7 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
                     <ShoppingBag className="h-20 w-20" />
                   </div>
                 ) : (
-                  <img src={images[activeImage]} alt={product.productName} className="w-full h-full object-contain p-6" onError={() => handleImageError(activeImage)} />
+                  <img src={proxyImageUrl(images[activeImage])} alt={product.productName} referrerPolicy="no-referrer" className="w-full h-full object-contain p-6" onError={() => handleImageError(activeImage)} />
                 )
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-slate-300 dark:text-zinc-600">
@@ -168,7 +168,7 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
                         <ShoppingBag className="h-6 w-6" />
                       </div>
                     ) : (
-                      <img src={img} alt="" className="w-full h-full object-contain p-1" loading="lazy" onError={() => handleImageError(i)} />
+                      <img src={proxyImageUrl(img)} alt="" referrerPolicy="no-referrer" className="w-full h-full object-contain p-1" loading="lazy" onError={() => handleImageError(i)} />
                     )}
                   </button>
                 ))}
@@ -409,10 +409,17 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
           const reviews = specs?.reviews;
           const reviewStats = specs?.review_stats;
           const reviewHighlights = specs?.review_highlights;
-          if (!reviews || reviews.length === 0) return null;
+          if (reviews && reviews.length > 0) {
+            return (
+              <div className="mt-8">
+                <CustomerReviews reviews={reviews} reviewStats={reviewStats} reviewHighlights={reviewHighlights} />
+              </div>
+            );
+          }
           return (
-            <div className="mt-8">
-              <CustomerReviews reviews={reviews} reviewStats={reviewStats} reviewHighlights={reviewHighlights} />
+            <div className="mt-8 p-6 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl text-center">
+              <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">No customer reviews imported yet</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Use the DawnWire browser extension to import Amazon customer reviews.</p>
             </div>
           );
         })()}
