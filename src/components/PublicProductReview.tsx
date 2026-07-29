@@ -308,7 +308,7 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
   if (review.product_image && !gallery.includes(review.product_image)) {
     gallery.unshift(review.product_image);
   }
-  gallery = Array.from(new Set(gallery));
+  gallery = Array.from(new Set(gallery)).slice(0, 8);
 
   const rawVideoUrl: string = specs.video_url || review.videoUrl || review.video_url || specs.videoUrl || '';
   const videoUrl: string = rawVideoUrl || (review.product_name ? `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent((review.brand || '') + ' ' + review.product_name + ' review')}` : '');

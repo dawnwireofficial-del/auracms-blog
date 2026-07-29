@@ -297,7 +297,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105 cursor-zoom-in"
               onClick={() => setIsLightboxOpen(true)}
               referrerPolicy="no-referrer"
-              onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#1e293b"/><text x="100" y="90" text-anchor="middle" fill="#94a3b8" font-size="32" font-family="sans-serif">🖼️</text><text x="100" y="120" text-anchor="middle" fill="#64748b" font-size="12" font-family="sans-serif" font-weight="bold">Image unavailable</text></svg>'); }}
+              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
             />
 
             {product.isDeal && product.discountPercentage ? (
