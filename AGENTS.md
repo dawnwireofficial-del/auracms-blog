@@ -262,6 +262,15 @@ Complete Vike SSR migration, deploy to Vercel, and maintain the production site 
 - **Content.js TS syntax fix** — removed 2 TypeScript `: any` annotations that would crash in plain JS runtime
 - **Deployed** all changes to `https://www.dawnwire.com`
 
+### Session 8 — Image Fixes, imgbb Storage, Bulk Optimization, Headless Scraper (this session)
+- **Proxy fix deployed**: image proxy restored with streaming + retry + 10s timeout; `proxyImageUrl()` routes Amazon CDN through `/api/public/image-proxy`. Committed `9c4e37d` and pushed.
+- **Gallery bug fixed**: `ProductDetailPage.tsx` line 91 now merges `data.specs?.gallery` into images array (was only using `product_image`). Store mapper was already correct.
+- **36 unprotected img tags fixed** across 25 files: `proxyImageUrl()`, `referrerPolicy="no-referrer"`, `onError` fallback added to AdminBanners, AdminHomepage, AdminPanel, AdminProfileCropModal, AIProductFinderModal, AmazonBulkImporter, AmazonSyncDashboard, BrandsPage, CategoryOrb, ChatbotDrawer, CustomerAccountPage, DealsPage, ExtensionManager, Header, OpenGraphAuditTool, PortfolioPage, PriceAlertModal, ProductReviewManager, PublicPortfolio, PublicProductsPage, SeoDashboard, SeoHealthProgressChart, ShoppingAssistant, SideBySideComparisonModal, WishlistPage.
+- **ImgBB permanent storage on import**: `uploadToImgBB()` helper added to `server/seo-engine.ts` — downloads Amazon CDN images, uploads to imgbb, stores permanent URL. `importProductReview()` accepts `uploadImages: boolean` flag. Enabled in `bulk-importer.ts` bulk imports with `uploadImages: true`.
+- **Slug dedup optimization**: `importProductReview()` and `createProductReview()` accept optional `slugSet` parameter. `bulk-importer.ts` pre-fetches all existing slugs once before the loop (instead of one DB query per import).
+- **Headless Amazon scraper**: `scripts/headless-amazon-scraper.ts` — standalone Playwright script for VPS/cron. Accepts `--asins`, `--urls`, `--file`. Full DOM extraction (name, brand, price, gallery, specs, features, deals, coupons). Supports imgbb upload, batch processing (5/batch), dry-run mode.
+- **All changes committed** in `f590850` and pushed to Vercel for deployment.
+
 ### Key design decisions
 - **PA-API 5.0 only** — No scraping. Uses official Amazon Product Advertising API with proper SigV4 authentication.
 - **ASIN is primary identifier** — Extracted from affiliate URLs on initialization, stored in both `product_reviews.asin` and `amazon_sync_status.asin`.
