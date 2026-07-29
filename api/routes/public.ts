@@ -1,4 +1,5 @@
 import express from 'express';
+import { Readable } from 'stream';
 import { dbInstance } from '../../server/db';
 import * as seo from '../../server/seo-engine';
 import { findEntities } from '../../server/entities';
@@ -227,18 +228,26 @@ router.get('/image-proxy', async (req, res) => {
     if (!ALLOWED_IMAGE_DOMAINS.includes(parsed.hostname)) {
       return res.status(403).json({ error: 'Domain not allowed' });
     }
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
-        'Referrer-Policy': 'no-referrer',
-      },
-    });
-    clearTimeout(timeout);
-    if (!response.ok) return res.status(response.status).json({ error: 'Failed to fetch image' });
+    let response = null;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      try {
+        response = await fetch(url, {
+          signal: controller.signal,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+          },
+        });
+        clearTimeout(timeout);
+        if (response.ok) break;
+      } catch (e) {
+        clearTimeout(timeout);
+        if (attempt === 1) return res.status(504).end();
+      }
+    }
+    if (!response || !response.ok) return res.status(502).end();
     const contentType = response.headers.get('content-type') || 'image/jpeg';
     res.set('Content-Type', contentType);
     res.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
