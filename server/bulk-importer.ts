@@ -281,6 +281,13 @@ export async function processBulkImport(jobId: string): Promise<BulkImportJob> {
 
   await updateJobProgress(jobId, { totalItems: resolvedAsins.length });
 
+  // Pre-fetch all existing slugs once for O(1) dedup across all imports
+  let slugSet: Set<string> | null = null;
+  try {
+    const slugRes = await sb.from('product_reviews').select('slug');
+    if (slugRes.data) slugSet = new Set(slugRes.data.map((r: any) => r.slug).filter(Boolean));
+  } catch { /* fallback: per-import slug fetch */ }
+
   let succeeded = 0;
   let failed = 0;
   let skipped = 0;
@@ -377,7 +384,7 @@ export async function processBulkImport(jobId: string): Promise<BulkImportJob> {
             mapped.specs.video_url = productData.videoUrl;
           }
 
-          const created = await importProductReview(mapped);
+          const created = await importProductReview({ ...mapped, uploadImages: true, slugSet });
 
           if (adminToken) {
             await createCloakedLink(created.slug, created.product_name, directUrl, adminToken).catch(() => {});

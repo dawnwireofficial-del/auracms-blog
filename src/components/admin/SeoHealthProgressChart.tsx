@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Product } from '../../types';
+import { proxyImageUrl } from '../../utils/safeRender';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 interface SeoHealthProgressChartProps {
@@ -214,9 +215,11 @@ export const SeoHealthProgressChart: React.FC<SeoHealthProgressChartProps> = ({
             >
               <div className="flex items-center gap-3 min-w-0">
                 <img
-                  src={product.images[0]}
+                  src={proxyImageUrl(product.images[0])}
                   alt=""
                   className="w-10 h-10 object-contain rounded-lg bg-white dark:bg-slate-900 p-1 border shrink-0"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
                 <div className="min-w-0">
                   <div className="font-extrabold text-slate-900 dark:text-slate-100 truncate">

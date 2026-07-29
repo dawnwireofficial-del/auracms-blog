@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { proxyImageUrl } from '../utils/safeRender';
 import { RefreshCw, Play, Pause, Settings, AlertTriangle, CheckCircle, XCircle, Clock, TrendingUp, TrendingDown, DollarSign, Package, Search, Filter, ChevronDown, ExternalLink, BarChart3, Activity } from 'lucide-react';
 
 interface SyncStats {
@@ -322,7 +323,7 @@ export default function AmazonSyncDashboard({ token }: Props) {
                 </td>
                 <td className="p-3">
                   <div className="flex items-center gap-2">
-                    {p.mainImage && <img src={p.mainImage} alt="" className="h-8 w-8 rounded object-cover shrink-0" />}
+                    {p.mainImage && <img src={proxyImageUrl(p.mainImage)} alt="" referrerPolicy="no-referrer" className="h-8 w-8 rounded object-cover shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
                     <div>
                       <p className="font-medium text-slate-700 dark:text-zinc-200 truncate max-w-[200px]">{p.productName || p.productTitle || '—'}</p>
                       <p className="text-[10px] text-slate-400 font-mono">{p.asin}</p>

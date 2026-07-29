@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { proxyImageUrl } from '../utils/safeRender';
 import {
   Upload, Search, Package, X, Check, AlertCircle, Loader2,
   Trash2, Download, Play, Square, FileText, Globe, Tag, ExternalLink
@@ -466,7 +467,7 @@ export default function AmazonBulkImporter({ token }: Props) {
                       {searchResults.map(r => (
                         <tr key={r.asin} className={`border-t border-slate-100 dark:border-zinc-700/50 hover:bg-slate-50/50 dark:hover:bg-zinc-700/20 ${r.selected ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
                           <td className="p-3"><input type="checkbox" checked={r.selected} onChange={() => toggleSearchSelect(r.asin)} disabled={importing} /></td>
-                          <td className="p-3"><img src={r.image} alt="" className="h-10 w-10 object-cover rounded-lg" /></td>
+                          <td className="p-3"><img src={proxyImageUrl(r.image)} alt="" referrerPolicy="no-referrer" className="h-10 w-10 object-cover rounded-lg" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} /></td>
                           <td className="p-3 font-medium text-slate-700 dark:text-zinc-300 max-w-xs truncate">{r.title}</td>
                           <td className="p-3 font-mono text-slate-500 dark:text-zinc-400">{r.asin}</td>
                           <td className="p-3 text-slate-600 dark:text-zinc-400">{r.price ? `$${r.price.toFixed(2)}` : 'N/A'}</td>
@@ -560,7 +561,7 @@ export default function AmazonBulkImporter({ token }: Props) {
                       {categoryResults.map(r => (
                         <tr key={r.asin} className={`border-t border-slate-100 dark:border-zinc-700/50 hover:bg-slate-50/50 dark:hover:bg-zinc-700/20 ${r.selected ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
                           <td className="p-3"><input type="checkbox" checked={r.selected} onChange={() => toggleCategorySelect(r.asin)} disabled={importing} /></td>
-                          <td className="p-3"><img src={r.image} alt="" className="h-10 w-10 object-cover rounded-lg" /></td>
+                          <td className="p-3"><img src={proxyImageUrl(r.image)} alt="" referrerPolicy="no-referrer" className="h-10 w-10 object-cover rounded-lg" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} /></td>
                           <td className="p-3 font-medium text-slate-700 dark:text-zinc-300 max-w-xs truncate">{r.title}</td>
                           <td className="p-3 font-mono text-slate-500 dark:text-zinc-400">{r.asin}</td>
                           <td className="p-3 text-slate-600 dark:text-zinc-400">{r.price ? `$${r.price.toFixed(2)}` : 'N/A'}</td>

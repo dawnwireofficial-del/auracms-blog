@@ -3,6 +3,7 @@ import { ExternalLink, Globe, Calendar, Tag } from 'lucide-react';
 import { PortfolioProject } from '../types';
 import SeoHelmet from './SeoHelmet';
 import Breadcrumbs from './Breadcrumbs';
+import { proxyImageUrl } from '../utils/safeRender';
 import { sanitizeHtml } from '../lib/sanitize';
 
 interface PublicPortfolioProps {
@@ -51,7 +52,7 @@ export default function PublicPortfolio({ slug, onNavigate }: PublicPortfolioPro
           {/* Header image */}
           {p.image && (
             <div className="h-64 md:h-80 overflow-hidden bg-zinc-100 dark:bg-zinc-900">
-              <img src={p.image} alt={p.title} className="w-full h-full object-cover" />
+              <img src={proxyImageUrl(p.image)} alt={p.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             </div>
           )}
 

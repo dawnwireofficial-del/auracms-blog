@@ -224,17 +224,15 @@ export function sanitizeReviewSummary(text: string | null | undefined): string |
   return clean || null;
 }
 
-export async function createProductReview(review: any): Promise<any> {
+export async function createProductReview(review: any, slugSet?: Set<string> | null): Promise<any> {
   const sb = await getClient();
   let slug = review.slug || slugify(review.product_name || 'product-review');
-  const existingSlugs = await sb.from('product_reviews').select('slug');
-  if (existingSlugs.data) {
-    const used = new Set(existingSlugs.data.map((r: any) => r.slug).filter(Boolean));
-    if (used.has(slug)) {
-      let counter = 1;
-      while (used.has(`${slug}-${counter}`)) counter++;
-      slug = `${slug}-${counter}`;
-    }
+  const used = slugSet || (await sb.from('product_reviews').select('slug')).data?.map((r: any) => r.slug).filter(Boolean) || [];
+  const usedSet = new Set(used);
+  if (usedSet.has(slug)) {
+    let counter = 1;
+    while (usedSet.has(`${slug}-${counter}`)) counter++;
+    slug = `${slug}-${counter}`;
   }
   const reviewToInsert = { id: review.id || crypto.randomUUID(), ...review, slug, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
   if (reviewToInsert.review_summary) {
@@ -307,6 +305,34 @@ export async function deleteProductReview(id: string): Promise<boolean> {
   return !error;
 }
 
+export async function uploadToImgBB(imageUrl: string): Promise<string | null> {
+  try {
+    const key = process.env.IMGBB_API_KEY;
+    if (!key) return null;
+    const resp = await fetch(imageUrl, {
+      signal: AbortSignal.timeout(10000),
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; DawnWire/1.0)' },
+    });
+    if (!resp.ok) return null;
+    const buf = Buffer.from(await resp.arrayBuffer());
+    const b64 = buf.toString('base64');
+    const body = new URLSearchParams({ image: b64 });
+    const imgbb = await fetch(`https://api.imgbb.com/1/upload?key=${key}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+      signal: AbortSignal.timeout(15000),
+    });
+    const data: any = await imgbb.json();
+    if (!data.success) return null;
+    return data.data.url;
+  } catch {
+    return null;
+  }
+}
+
+const AMAZON_CDN_RE = /^https?:\/\/(m\.media-amazon\.com|images-na\.ssl-images-amazon\.com)/i;
+
 export async function importProductReview(data: {
   product_name: string;
   brand?: string;
@@ -345,6 +371,8 @@ export async function importProductReview(data: {
   category_id?: string;
   final_verdict?: string;
   editor_score?: number;
+  uploadImages?: boolean;
+  slugSet?: Set<string> | null;
 }): Promise<any> {
   const sb = await getClient();
 
@@ -352,13 +380,31 @@ export async function importProductReview(data: {
   const norm = normalizeImportedProduct({ ...data, title: data.product_name });
 
   let slug = slugify(norm.product_name || 'product-review');
-  const existingSlugs = await sb.from('product_reviews').select('slug');
-  if (existingSlugs.data) {
-    const used = new Set(existingSlugs.data.map((r: any) => r.slug).filter(Boolean));
-    if (used.has(slug)) {
-      let counter = 1;
-      while (used.has(`${slug}-${counter}`)) counter++;
-      slug = `${slug}-${counter}`;
+  const used = data.slugSet || (await sb.from('product_reviews').select('slug')).data?.map((r: any) => r.slug).filter(Boolean) || [];
+  const usedSet = new Set(used);
+  if (usedSet.has(slug)) {
+    let counter = 1;
+    while (usedSet.has(`${slug}-${counter}`)) counter++;
+    slug = `${slug}-${counter}`;
+  }
+
+  // Upload images to imgbb for permanent storage
+  let productImage = typeof data.product_image === 'string' ? data.product_image.trim() : null;
+  let galleryImages: string[] = norm.gallery.length > 0 ? [...norm.gallery] : [];
+  if (data.uploadImages) {
+    if (productImage && AMAZON_CDN_RE.test(productImage)) {
+      const imgbbUrl = await uploadToImgBB(productImage);
+      if (imgbbUrl) productImage = imgbbUrl;
+    }
+    if (galleryImages.length > 0) {
+      const uploaded = await Promise.all(galleryImages.map(async (u) => {
+        if (AMAZON_CDN_RE.test(u)) {
+          const imgbbUrl = await uploadToImgBB(u);
+          return imgbbUrl || u;
+        }
+        return u;
+      }));
+      galleryImages = uploaded;
     }
   }
 
@@ -366,7 +412,7 @@ export async function importProductReview(data: {
     asin: norm.asin || '',
     source: norm.source || (data.amazon_url?.includes('amazon.') ? 'amazon' : 'other'),
   };
-  if (norm.gallery.length > 0) specs.gallery = norm.gallery;
+  if (galleryImages.length > 0) specs.gallery = galleryImages;
   if (norm.variations.length > 0) specs.variations = norm.variations;
   if (norm.ingredients) specs.ingredients = norm.ingredients;
   if (norm.unitSize) specs.unit_size = norm.unitSize;
@@ -399,7 +445,7 @@ export async function importProductReview(data: {
     id: crypto.randomUUID(),
     product_name: norm.product_name,
     brand: norm.brand,
-    product_image: typeof data.product_image === 'string' ? data.product_image.trim() : null,
+    product_image: productImage,
     affiliate_url: data.affiliate_url || data.amazon_url || null,
     price: norm.price,
     original_price: norm.original_price,

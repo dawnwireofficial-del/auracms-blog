@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit3, Trash2, Search, Star, ShoppingBag, ExternalLink, Copy, Check, RefreshCw, X, Save, Eye, Sparkles, FileText } from 'lucide-react';
+import { proxyImageUrl } from '../utils/safeRender';
 
 interface ProductReviewItem {
   id: string;
@@ -312,7 +313,7 @@ export default function ProductReviewManager({ token, categories = [] }: { token
                     <div className="flex items-center gap-3">
                       {r.product_image ? (
                         <div className="w-10 h-10 rounded-lg bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 overflow-hidden shrink-0">
-                          <img src={r.product_image} alt={r.product_name} className="w-full h-full object-contain" />
+                          <img src={proxyImageUrl(r.product_image)} alt={r.product_name} className="w-full h-full object-contain" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                         </div>
                       ) : (
                         <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-zinc-700 flex items-center justify-center text-slate-400 shrink-0">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, MoveUp, MoveDown, Eye, X, GripVertical, Upload } from 'lucide-react';
+import { proxyImageUrl } from '../../utils/safeRender';
 
 function UploadBtn({ token, onUrl }: { token: string; onUrl: (url: string) => void }) {
   const [uploading, setUploading] = useState(false);
@@ -207,7 +208,7 @@ export default function AdminHomepage({ token }: { token: string }) {
             {heroSlides.map((slide, i) => (
               <div key={slide.id} className="flex items-center gap-3 p-3 bg-white dark:bg-zinc-800/50 rounded-xl border border-slate-100 dark:border-zinc-700/50">
                 <div className="w-20 h-12 rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-900 shrink-0">
-                  {slide.desktopImage ? <img src={slide.desktopImage} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-slate-300 text-[10px]">No img</div>}
+                  {slide.desktopImage ? <img src={proxyImageUrl(slide.desktopImage)} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} /> : <div className="w-full h-full flex items-center justify-center text-slate-300 text-[10px]">No img</div>}
                 </div>
                 <div className="flex-1">
                   <p className="text-xs font-semibold text-slate-700 dark:text-zinc-200">{slide.heading || 'No heading'}</p>

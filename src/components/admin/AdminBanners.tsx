@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Eye, X, Image as ImageIcon } from 'lucide-react';
 import { Category } from '../../types';
+import { proxyImageUrl } from '../../utils/safeRender';
 
 function UploadBtn({ token, onUrl }: { token: string; onUrl: (url: string) => void }) {
   const [uploading, setUploading] = useState(false);
@@ -136,7 +137,7 @@ export default function AdminBanners({ token, categories }: { token: string; cat
           {banners.map(b => (
             <div key={b.id} className="flex items-center gap-4 p-3 bg-white dark:bg-zinc-800/50 rounded-xl border border-slate-100 dark:border-zinc-700/50">
               <div className="w-24 h-16 rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-900 shrink-0">
-                {b.desktopImage ? <img src={b.desktopImage} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-slate-300"><ImageIcon className="h-6 w-6" /></div>}
+                {b.desktopImage ? <img src={proxyImageUrl(b.desktopImage)} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} /> : <div className="w-full h-full flex items-center justify-center text-slate-300"><ImageIcon className="h-6 w-6" /></div>}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-slate-700 dark:text-zinc-200 truncate">{b.heading || 'No heading'}</p>
@@ -163,9 +164,9 @@ export default function AdminBanners({ token, categories }: { token: string; cat
             </div>
             <div className="p-4">
               <p className="text-[10px] font-bold text-slate-500 mb-2">Desktop:</p>
-              {preview.desktopImage ? <img src={preview.desktopImage} alt="" className="w-full rounded-lg border border-slate-200" /> : <div className="h-32 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 text-xs">No desktop image</div>}
+              {preview.desktopImage ? <img src={proxyImageUrl(preview.desktopImage)} alt="" referrerPolicy="no-referrer" className="w-full rounded-lg border border-slate-200" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} /> : <div className="h-32 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 text-xs">No desktop image</div>}
               <p className="text-[10px] font-bold text-slate-500 mt-3 mb-2">Mobile:</p>
-              {preview.mobileImage ? <img src={preview.mobileImage} alt="" className="w-48 rounded-lg border border-slate-200" /> : <div className="h-32 w-48 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 text-xs">No mobile image</div>}
+              {preview.mobileImage ? <img src={proxyImageUrl(preview.mobileImage)} alt="" referrerPolicy="no-referrer" className="w-48 rounded-lg border border-slate-200" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} /> : <div className="h-32 w-48 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 text-xs">No mobile image</div>}
             </div>
           </div>
         </div>

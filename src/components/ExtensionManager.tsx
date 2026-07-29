@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Download, Settings, Package, Copy, Check, ExternalLink, Smartphone, Globe, Key, Wifi, Play, AlertCircle, Search, Star, ExternalLink as LinkIcon } from 'lucide-react';
+import { proxyImageUrl } from '../utils/safeRender';
 
 interface Props {
   token: string;
@@ -106,7 +107,7 @@ function ImportedProductsTab({ token }: { token: string }) {
                   <td className="py-2.5 px-3">
                     <div className="flex items-center gap-2.5">
                       {p.product_image ? (
-                        <img src={p.product_image} alt="" className="w-8 h-8 rounded-lg object-cover bg-slate-100 dark:bg-zinc-800" />
+                        <img src={proxyImageUrl(p.product_image)} alt="" referrerPolicy="no-referrer" className="w-8 h-8 rounded-lg object-cover bg-slate-100 dark:bg-zinc-800" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                       ) : (
                         <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-slate-400">📦</div>
                       )}

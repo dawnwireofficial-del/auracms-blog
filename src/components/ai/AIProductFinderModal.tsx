@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAppStore } from '../../lib/store';
 import { Product } from '../../types';
 import { AffiliateCTA } from '../common/AffiliateCTA';
+import { proxyImageUrl } from '../../utils/safeRender';
 
 interface AIProductFinderModalProps {
   isOpen: boolean;
@@ -250,9 +251,11 @@ export const AIProductFinderModal: React.FC<AIProductFinderModalProps> = ({ isOp
                       #{idx + 1}
                     </span>
                     <img
-                      src={prod.images[0]}
+                      src={proxyImageUrl(prod.images[0])}
                       alt={prod.title}
                       className="w-20 h-20 object-contain rounded-xl bg-white dark:bg-slate-900 p-2 shrink-0"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
                     <div className="flex-1 text-left min-w-0">
                       <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase">{prod.brand} • {prod.bestFor}</span>

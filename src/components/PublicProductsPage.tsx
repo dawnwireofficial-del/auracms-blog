@@ -3,6 +3,7 @@ import { Star, ShoppingBag, Search, Eye, Scale, CheckSquare, Square, Share2, Fil
 import { motion, AnimatePresence } from 'motion/react';
 import SeoHelmet from './SeoHelmet';
 import { CompareTable, CompareDrawer } from './CompareProducts';
+import { proxyImageUrl } from '../utils/safeRender';
 import { normalizeProducts } from '../utils/productMapper';
 
 interface PublicProductsPageProps {
@@ -462,7 +463,7 @@ export default function PublicProductsPage({ onNavigate }: PublicProductsPagePro
                     className="aspect-square bg-slate-50 dark:bg-slate-900/30 relative overflow-hidden cursor-pointer"
                   >
                     {review.productImage ? (
-                      <img src={review.productImage} alt={review.productName} className="w-full h-full object-contain p-6 group-hover:scale-110 transition-transform duration-500" loading="lazy" />
+                      <img src={proxyImageUrl(review.productImage)} alt={review.productName} className="w-full h-full object-contain p-6 group-hover:scale-110 transition-transform duration-500" loading="lazy" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-500 dark:text-zinc-400 text-xs">No image</div>
                     )}

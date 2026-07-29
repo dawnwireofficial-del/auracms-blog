@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { proxyImageUrl } from '../../utils/safeRender';
 
 interface AdminProfileCropModalProps {
   currentPhotoUrl?: string;
@@ -183,8 +184,10 @@ export const AdminProfileCropModal: React.FC<AdminProfileCropModalProps> = ({
             >
               <img
                 ref={imgRef}
-                src={selectedImage}
+                src={proxyImageUrl(selectedImage)}
                 alt="Crop preview"
+                referrerPolicy="no-referrer"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 style={{
                   transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom}) rotate(${rotation}deg)`,
                   transition: isDragging ? 'none' : 'transform 0.1s ease-out',

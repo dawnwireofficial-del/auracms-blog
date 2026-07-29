@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product } from '../../types';
 import { toast } from '../../lib/toastStore';
+import { proxyImageUrl } from '../../utils/safeRender';
 
 interface PriceAlertModalProps {
   product: Product;
@@ -74,9 +75,11 @@ export const PriceAlertModal: React.FC<PriceAlertModalProps> = ({ product, onClo
 
         <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex items-center gap-3">
           <img
-            src={product.images[0]}
+            src={proxyImageUrl(product.images[0])}
             alt=""
             className="w-12 h-12 object-contain bg-white dark:bg-slate-900 p-1 rounded-xl"
+            referrerPolicy="no-referrer"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
           <div className="flex-1 min-w-0">
             <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Product } from '../../types';
+import { proxyImageUrl } from '../../utils/safeRender';
 
 interface OpenGraphAuditToolProps {
   products?: Product[];
@@ -260,7 +261,7 @@ ${JSON.stringify(
                         ogImage === img ? 'border-blue-600 ring-2 ring-blue-500/30' : 'border-slate-200 dark:border-slate-700'
                       }`}
                     >
-                      <img src={img} alt="" className="w-full h-full object-contain" />
+                      <img src={proxyImageUrl(img)} alt="" referrerPolicy="no-referrer" className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                     </button>
                   ))}
                 </div>
@@ -321,7 +322,7 @@ ${JSON.stringify(
             </span>
             <div className="bg-black text-white rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
               <div className="relative aspect-[1.91/1] bg-slate-900 overflow-hidden border-b border-slate-800 flex items-center justify-center p-4">
-                <img src={ogImage} alt="" className="max-h-full max-w-full object-contain" />
+                <img src={proxyImageUrl(ogImage)} alt="" referrerPolicy="no-referrer" className="max-h-full max-w-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 <span className="absolute bottom-2 left-2 bg-black/80 backdrop-blur-md text-[10px] font-mono px-2 py-0.5 rounded text-slate-300">
                   dawnwire.com
                 </span>
@@ -350,7 +351,7 @@ ${JSON.stringify(
                 </div>
               </div>
               <div className="aspect-[1.91/1] bg-slate-100 dark:bg-slate-900 flex items-center justify-center p-4">
-                <img src={ogImage} alt="" className="max-h-full max-w-full object-contain" />
+                <img src={proxyImageUrl(ogImage)} alt="" referrerPolicy="no-referrer" className="max-h-full max-w-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
               </div>
               <div className="p-3 bg-slate-50 dark:bg-slate-900/80 space-y-1 border-t border-slate-200/60 dark:border-slate-800">
                 <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider font-mono">

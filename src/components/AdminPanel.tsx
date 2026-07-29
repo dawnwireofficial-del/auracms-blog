@@ -216,10 +216,11 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
         <div className="p-3 border-t border-white/10 bg-[#1E293B]/80">
           <div className="flex items-center gap-2.5 px-1">
             <img
-              src={user.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100'}
+              src={proxyImageUrl(user.avatar) || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100'}
               alt={user.name}
               referrerPolicy="no-referrer"
               className="h-7 w-7 rounded-full border border-slate-600 object-cover shrink-0"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-white truncate leading-tight">{user.name}</p>

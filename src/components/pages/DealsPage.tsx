@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Tag, ExternalLink, Copy, Check, Clock, ShoppingBag, Sparkles, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import ScrollReveal from '../ScrollReveal';
+import { proxyImageUrl } from '../../utils/safeRender';
 
 export default function DealsPage({ onNavigate }: { onNavigate: (r: string, p?: string) => void }) {
   const [deals, setDeals] = useState<any[]>([]);
@@ -92,7 +93,7 @@ export default function DealsPage({ onNavigate }: { onNavigate: (r: string, p?: 
                   </div>
                   
                   {deal.product_image ? (
-                    <img src={deal.product_image} alt={deal.product_name} className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-500" />
+                    <img src={proxyImageUrl(deal.product_image)} alt={deal.product_name} referrerPolicy="no-referrer" className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-500" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   ) : (
                     <ShoppingBag className="w-16 h-16 text-slate-300 dark:text-zinc-700" />
                   )}

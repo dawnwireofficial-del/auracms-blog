@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Product } from '../../types';
 import { AffiliateCTA } from '../common/AffiliateCTA';
+import { proxyImageUrl } from '../../utils/safeRender';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 interface SideBySideComparisonProps {
@@ -153,7 +154,7 @@ export const SideBySideComparisonModal: React.FC<SideBySideComparisonProps> = ({
           {/* Product A */}
           <div className="p-6 bg-slate-50 dark:bg-slate-800/40 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-4">
             <div className="h-44 flex items-center justify-center p-3 bg-white dark:bg-slate-900 rounded-2xl shadow-inner">
-              <img src={productA.images[0]} alt={productA.title} className="max-h-full max-w-full object-contain" />
+              <img src={proxyImageUrl(productA.images[0])} alt={productA.title} className="max-h-full max-w-full object-contain" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             </div>
             <div>
               <div className="flex items-center justify-between">
@@ -181,7 +182,7 @@ export const SideBySideComparisonModal: React.FC<SideBySideComparisonProps> = ({
           {/* Product B */}
           <div className="p-6 bg-slate-50 dark:bg-slate-800/40 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-4">
             <div className="h-44 flex items-center justify-center p-3 bg-white dark:bg-slate-900 rounded-2xl shadow-inner">
-              <img src={productB.images[0]} alt={productB.title} className="max-h-full max-w-full object-contain" />
+              <img src={proxyImageUrl(productB.images[0])} alt={productB.title} className="max-h-full max-w-full object-contain" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             </div>
             <div>
               <div className="flex items-center justify-between">

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useReducedMotion } from './useReducedMotion';
+import { proxyImageUrl } from '../utils/safeRender';
 
 interface CategoryOrbProps {
   label: string;
@@ -42,7 +43,7 @@ export default function CategoryOrb({
         />
         
         {iconUrl ? (
-          <img src={iconUrl} alt={label} className="w-10 h-10 object-contain z-10 drop-shadow-lg" loading="lazy" />
+          <img src={proxyImageUrl(iconUrl)} alt={label} referrerPolicy="no-referrer" className="w-10 h-10 object-contain z-10 drop-shadow-lg" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
         ) : (
           <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-secondary to-brand-accent z-10" />
         )}

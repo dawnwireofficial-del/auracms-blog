@@ -3,6 +3,7 @@ import { ArrowRight, Star, Check, ExternalLink, TrendingUp, Award, Briefcase, Co
 import SeoHelmet from '../SeoHelmet';
 import ScrollReveal from '../ScrollReveal';
 import { StaggerContainer, StaggerItem, HoverScale } from '../ScrollReveal';
+import { proxyImageUrl } from '../../utils/safeRender';
 
 interface PortfolioPageProps {
   onNavigate: (route: string, param?: string) => void;
@@ -142,7 +143,7 @@ export default function PortfolioPage({ onNavigate }: PortfolioPageProps) {
               </div>
               <div className="relative">
                 <div className="absolute -bottom-4 -right-4 w-full h-full rounded-2xl bg-[#246BFF]/5 border border-[#246BFF]/10" />
-                <img src="/portfolio/hero-visual.png" alt="DawnWire portfolio showcase" className="relative w-full h-auto rounded-2xl shadow-2xl shadow-gray-200/60" loading="lazy" />
+                <img src="/portfolio/hero-visual.png" alt="DawnWire portfolio showcase" className="relative w-full h-auto rounded-2xl shadow-2xl shadow-gray-200/60" loading="lazy" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
               </div>
             </div>
           </div>
@@ -180,7 +181,7 @@ export default function PortfolioPage({ onNavigate }: PortfolioPageProps) {
                     <HoverScale>
                       <div className={`group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl ${project.shadowColor} hover:-translate-y-1 transition-all duration-300 overflow-hidden ${idx % 2 === 1 ? 'md:flex md:flex-row-reverse' : 'md:flex'}`}>
                         <div className="md:w-1/2 relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 min-h-[280px]">
-                          <img src={project.image} alt={project.title} className="w-full h-full absolute inset-0 object-contain p-4 group-hover:scale-105 transition-transform duration-700" loading="lazy" />
+                          <img src={project.image} alt={project.title} className="w-full h-full absolute inset-0 object-contain p-4 group-hover:scale-105 transition-transform duration-700" loading="lazy" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                         </div>
                         <div className="md:w-1/2 p-8 md:p-10 flex flex-col justify-center">
                           <span className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full inline self-start mb-3 ${project.badgeColor}`}>{project.category}</span>
@@ -229,7 +230,7 @@ export default function PortfolioPage({ onNavigate }: PortfolioPageProps) {
                 <div key={i} className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-blue-100/20 hover:-translate-y-1 transition-all duration-300 p-6 md:p-8">
                   <div className="flex items-center gap-[18px] mb-6">
                     <div className="w-16 h-16 rounded-[18px] bg-[#eef5ff] flex items-center justify-center shrink-0">
-                      <img src={svc.img} alt={svc.title} className="w-10 h-10 object-contain block" loading="lazy" />
+                      <img src={svc.img} alt={svc.title} className="w-10 h-10 object-contain block" loading="lazy" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                     </div>
                     <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white">{svc.title}</h3>
                   </div>
@@ -366,7 +367,7 @@ export default function PortfolioPage({ onNavigate }: PortfolioPageProps) {
                   <p className="text-sm text-gray-600 leading-relaxed mb-6 italic">&ldquo;{t.text}&rdquo;</p>
                   <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
                     {t.avatar_url ? (
-                      <img src={t.avatar_url} alt={t.name} className="w-10 h-10 rounded-full object-cover shrink-0" />
+                      <img src={proxyImageUrl(t.avatar_url)} alt={t.name} className="w-10 h-10 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#246BFF] to-blue-400 flex items-center justify-center text-white font-bold text-sm shrink-0">
                         {(t.name || '?').charAt(0)}

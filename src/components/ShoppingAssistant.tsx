@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Send, ChevronDown, Sparkles, ShoppingBag, Star, ThumbsUp, ThumbsDown, RefreshCw, ExternalLink, BarChart3, Copy, Check, Trash2 } from 'lucide-react';
 import AiIndicator from './AiIndicator';
 import NeuralOrb from './motion/NeuralOrb';
+import { proxyImageUrl } from '../utils/safeRender';
 
 interface ProductCard {
   id: string;
@@ -248,11 +249,11 @@ export default function ShoppingAssistant({ pageContext }: Props) {
 
   const ProductCardComp = ({ product }: { product: ProductCard }) => {
     const p = normalizeProduct(product);
-    const img = p.productImage || 'https://placehold.co/200x200/e2e8f0/94a3b8?text=No+Image';
+    const img = proxyImageUrl(p.productImage) || 'https://placehold.co/200x200/e2e8f0/94a3b8?text=No+Image';
     return (
       <div className="bg-white dark:bg-zinc-800 rounded-xl border border-slate-200 dark:border-zinc-700 overflow-hidden shrink-0 w-[240px] snap-start">
         <div className="h-32 bg-slate-50 dark:bg-zinc-900 flex items-center justify-center p-2">
-          <img src={img} alt={p.productName} className="max-h-full max-w-full object-contain" loading="lazy" />
+          <img src={img} alt={p.productName} className="max-h-full max-w-full object-contain" loading="lazy" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
         </div>
         <div className="p-3 space-y-1.5">
           <div className="flex items-center gap-1">{renderStars(p.rating)}</div>

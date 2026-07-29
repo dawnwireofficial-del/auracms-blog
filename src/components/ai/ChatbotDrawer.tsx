@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { HeroChatbotIllustration } from '../common/SvgIcons';
 import { Product, ChatMessage } from '../../types';
 import { AffiliateCTA } from '../common/AffiliateCTA';
+import { proxyImageUrl } from '../../utils/safeRender';
 import { store } from '../../lib/store';
 import { toast } from '../../lib/toastStore';
 
@@ -165,9 +166,11 @@ export const ChatbotDrawer: React.FC<ChatbotDrawerProps> = ({
                       className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-md flex gap-3 items-center"
                     >
                       <img
-                        src={prod.images[0]}
+                        src={proxyImageUrl(prod.images[0])}
                         alt={prod.title}
                         className="w-16 h-16 object-contain rounded-lg bg-slate-50 dark:bg-slate-900 p-1 shrink-0"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       />
                       <div className="flex-1 min-w-0">
                         <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase">{prod.brand}</span>

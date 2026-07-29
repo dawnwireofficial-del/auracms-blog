@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Heart, Trash2, ExternalLink, ShoppingBag, AlertCircle, Star, Scale } from 'lucide-react';
 import { motion } from 'motion/react';
 import { fetchWishlist, mergeGuestWishlist, getLocalWishlistIds, setLocalWishlistIds } from '../../utils/wishlist';
+import { proxyImageUrl } from '../../utils/safeRender';
 import { normalizeProduct } from '../../utils/productMapper';
 
 export default function WishlistPage({ onNavigate, user }: { onNavigate: (r: string, p?: string) => void, user: any }) {
@@ -149,7 +150,7 @@ export default function WishlistPage({ onNavigate, user }: { onNavigate: (r: str
                     className="relative aspect-[4/3] bg-slate-50 dark:bg-zinc-950 p-6 flex items-center justify-center overflow-hidden cursor-pointer"
                   >
                     {image ? (
-                      <img src={image} alt={name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                      <img src={proxyImageUrl(image)} alt={name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" loading="lazy" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                     ) : (
                       <ShoppingBag className="w-16 h-16 text-slate-300 dark:text-zinc-700" />
                     )}
