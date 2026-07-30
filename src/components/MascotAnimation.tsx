@@ -147,10 +147,6 @@ export default function MascotAnimation({ className = '' }: { className?: string
             0%,100% { transform: scaleY(.92) scaleX(.96); opacity: .92; }
             50% { transform: scaleY(1.08) scaleX(1.03); opacity: 1; }
           }
-          @keyframes botHalo {
-            0%,100% { opacity: .20; transform: scale(.92); }
-            50% { opacity: .48; transform: scale(1.08); }
-          }
           @keyframes botSparkle {
             0%,100% { opacity: .25; transform: scale(.7); }
             50% { opacity: 1; transform: scale(1.25); }
@@ -167,7 +163,6 @@ export default function MascotAnimation({ className = '' }: { className?: string
           .bot-chest-glow { animation: botChestPulse 2.8s ease-in-out infinite; }
           .bot-d-mark { transform-box: fill-box; transform-origin: center; animation: botDPulse 2.8s ease-in-out infinite; }
           .bot-thruster-core { transform-box: fill-box; transform-origin: 50% 0%; animation: botThruster 1.15s ease-in-out infinite; }
-          .bot-thruster-halo { animation: botHalo 1.15s ease-in-out infinite; }
           .bot-spark1 { animation: botSparkle 2.2s ease-in-out infinite; }
           .bot-spark2 { animation: botSparkle 2.8s ease-in-out .8s infinite; }
           .bot-spark3 { animation: botSparkle 2.4s ease-in-out 1.4s infinite; }
@@ -263,7 +258,6 @@ export default function MascotAnimation({ className = '' }: { className?: string
           </g>
 
           <g filter={`url(#${uid}-softGlow)`}>
-            <ellipse className="bot-thruster-halo" cx="512" cy="1102" rx="65" ry="31" fill="#40e5ff" opacity=".25"/>
             <path d="M446 1072 C460 1051 564 1051 578 1072 C589 1089 571 1114 551 1128 C534 1140 490 1140 473 1128 C453 1114 435 1089 446 1072Z" fill={`url(#${uid}-blueMetal)`} stroke="#51eaff" strokeWidth="3"/>
             <path className="bot-thruster-core" d="M468 1110 C483 1093 541 1093 556 1110 C571 1128 557 1168 540 1191 C530 1204 494 1204 484 1191 C467 1168 453 1128 468 1110Z" fill={`url(#${uid}-thruster)`} stroke="#7af6ff" strokeWidth="3"/>
             <path d="M486 1118 C496 1108 528 1108 538 1118 C546 1128 536 1161 526 1175 C520 1183 504 1183 498 1175 C488 1161 478 1128 486 1118Z" fill="#e8ffff" opacity=".48"/>
