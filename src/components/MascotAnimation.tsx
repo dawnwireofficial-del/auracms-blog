@@ -12,7 +12,7 @@ export default function MascotAnimation({ className = '' }: { className?: string
         className="w-full h-auto"
       >
         <title id={`${uid}-title`}>Animated Dawnwire D Bot</title>
-        <desc id={`${uid}-desc`}>A glossy blue and white floating robot mascot with cat-like ears, glowing blinking eyes, animated arms, body, chest D emblem, and thruster.</desc>
+        <desc id={`${uid}-desc`}>A glossy blue and white floating robot mascot with cat-like ears, glowing blinking eyes, animated arms, body, ears, chest D emblem, and thruster.</desc>
 
         <defs>
           <linearGradient id={`${uid}-shell`} x1="0" y1="0" x2="1" y2="1">
