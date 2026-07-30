@@ -130,6 +130,8 @@ export default function DawnWireHero({ onOpenAiFinder, onOpenChatbot }: DawnWire
             alt=""
             width="900"
             height="630"
+            loading="lazy"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
 
           {/* Robot platform below bot */}
@@ -139,6 +141,8 @@ export default function DawnWireHero({ onOpenAiFinder, onOpenChatbot }: DawnWire
             alt=""
             width="560"
             height="217"
+            loading="lazy"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
 
           {/* Mascot — center focal object */}
@@ -147,7 +151,7 @@ export default function DawnWireHero({ onOpenAiFinder, onOpenChatbot }: DawnWire
           {/* 6 floating glass cards */}
           {heroCards.map((card) => (
             <div className={`dw-card ${card.cls}`} key={card.key}>
-              <img src={card.src} alt={card.alt} width="280" height="auto" />
+              <img src={card.src} alt={card.alt} width="280" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             </div>
           ))}
         </div>

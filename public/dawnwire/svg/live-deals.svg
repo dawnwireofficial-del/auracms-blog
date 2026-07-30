@@ -7,7 +7,7 @@
     <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>
   <style>
-    .pulse{animation:pulse 2.4s ease-in-out infinite;transform-origin:center}.tag{animation:tag 3.2s ease-in-out infinite;transform-origin:266px 122px}.shine{animation:shine 4.4s linear infinite}@keyframes pulse{0%,100%{opacity:.65;transform:scale(.86)}50%{opacity:1;transform:scale(1.18)}}@keyframes tag{0%,100%{transform:rotate(-3deg) translateY(0)}50%{transform:rotate(3deg) translateY(-4px)}}@keyframes shine{0%{transform:translateX(-150px)}100%{transform:translateX(390px)}}@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+    .pulse{animation:pulse 2.4s ease-in-out infinite;transform-origin:center}.cart{animation:cartBounce 3.2s ease-in-out infinite;transform-origin:262px 120px}.shine{animation:shine 4.4s linear infinite}@keyframes pulse{0%,100%{opacity:.65;transform:scale(.86)}50%{opacity:1;transform:scale(1.18)}}@keyframes cartBounce{0%,100%{transform:rotate(-3deg) translateY(0)}50%{transform:rotate(3deg) translateY(-4px)}}@keyframes shine{0%{transform:translateX(-150px)}100%{transform:translateX(390px)}}@media(prefers-reduced-motion:reduce){*{animation:none!important}}
   </style>
   <g filter="url(#shadow)">
     <rect x="9" y="9" width="302" height="160" rx="30" fill="url(#glass)" stroke="#FFFFFF" stroke-opacity=".92" stroke-width="2"/>
@@ -17,7 +17,7 @@
   <text x="54" y="40" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="700" fill="#41577F">Live Amazon Deals</text>
   <text x="31" y="94" font-family="Inter,Arial,sans-serif" font-size="38" font-weight="800" fill="#12316A">127+</text>
   <text x="31" y="121" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="600" fill="#6E7FA2">Deals Available</text>
-  <g class="tag">
+  <g class="cart">
     <rect x="233" y="91" width="58" height="58" rx="18" fill="url(#iconBg)" stroke="#FFFFFF"/>
     <path d="M248 107h28l4 16H244z" fill="none" stroke="#5B4BFF" stroke-width="2.5" stroke-linejoin="round"/>
     <path d="M250 107l2-5h20l2 5" fill="none" stroke="#5B4BFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
