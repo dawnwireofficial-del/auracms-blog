@@ -73,6 +73,18 @@ export default function MascotAnimation({ className = '' }: { className?: string
             <stop offset="0.5" stopColor="#c9ffff" stopOpacity="0.92"/>
             <stop offset="1" stopColor="#00d9ff" stopOpacity="0"/>
           </linearGradient>
+          <linearGradient id={`${uid}-amazonGrad`} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#ff9900"/>
+            <stop offset="1" stopColor="#ff6600"/>
+          </linearGradient>
+          <linearGradient id={`${uid}-graphGrad`} x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0" stopColor="#00d4ff" stopOpacity="0"/>
+            <stop offset="1" stopColor="#00d4ff" stopOpacity="0.7"/>
+          </linearGradient>
+          <linearGradient id={`${uid}-cartGrad`} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#48c6ef"/>
+            <stop offset="1" stopColor="#6f86d6"/>
+          </linearGradient>
           <filter id={`${uid}-shadow`} x="-40%" y="-40%" width="180%" height="180%">
             <feGaussianBlur stdDeviation="18"/>
           </filter>
@@ -95,6 +107,10 @@ export default function MascotAnimation({ className = '' }: { className?: string
           </filter>
           <filter id={`${uid}-smallGlow`} x="-100%" y="-100%" width="300%" height="300%">
             <feGaussianBlur stdDeviation="4" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id={`${uid}-orangeGlow`} x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur stdDeviation="6" result="b"/>
             <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
           </filter>
           <clipPath id={`${uid}-visorClip`}>
@@ -151,6 +167,76 @@ export default function MascotAnimation({ className = '' }: { className?: string
             0%,100% { opacity: .25; transform: scale(.7); }
             50% { opacity: 1; transform: scale(1.25); }
           }
+          @keyframes botFloat1 {
+            0%,100% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+          }
+          @keyframes botFloat2 {
+            0%,100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+          }
+          @keyframes botFloat3 {
+            0%,100% { transform: translateY(0px); }
+            50% { transform: translateY(-14px); }
+          }
+          @keyframes botFloat4 {
+            0%,100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+          }
+          @keyframes botBar1 {
+            0%,100% { transform: scaleY(0.6); }
+            50% { transform: scaleY(1); }
+          }
+          @keyframes botBar2 {
+            0%,100% { transform: scaleY(0.4); }
+            50% { transform: scaleY(0.85); }
+          }
+          @keyframes botBar3 {
+            0%,100% { transform: scaleY(0.7); }
+            50% { transform: scaleY(1); }
+          }
+          @keyframes botBar4 {
+            0%,100% { transform: scaleY(0.3); }
+            50% { transform: scaleY(0.75); }
+          }
+          @keyframes botCartBounce {
+            0%,100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-8px) rotate(-5deg); }
+            50% { transform: translateY(0) rotate(0deg); }
+            75% { transform: translateY(-5px) rotate(3deg); }
+          }
+          @keyframes botBadgePulse {
+            0%,100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,153,0,0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px 10px rgba(255,153,0,0.2); }
+          }
+          @keyframes botTrendUp {
+            0%,100% { transform: translateY(0) scaleY(1); }
+            50% { transform: translateY(-6px) scaleY(1.1); }
+          }
+          @keyframes botStarPop {
+            0%,100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+          }
+          @keyframes botStarPop2 {
+            0%,100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.15); opacity: 0.85; }
+          }
+          @keyframes botPriceFloat {
+            0%,100% { transform: translateX(0) rotate(0deg); }
+            50% { transform: translateX(-6px) rotate(-2deg); }
+          }
+          @keyframes botGlowDot {
+            0%,100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 0.8; transform: scale(1.3); }
+          }
+          @keyframes botLineDraw {
+            0% { stroke-dashoffset: 400; }
+            100% { stroke-dashoffset: 0; }
+          }
+          @keyframes botLinePulse {
+            0%,100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+          }
           .bot-float { transform-origin: 512px 720px; animation: botFloat 4.8s ease-in-out infinite; }
           .bot-body { transform-origin: 512px 820px; animation: botBreathe 4.8s ease-in-out infinite; }
           .bot-left-arm { transform-box: fill-box; transform-origin: 86% 16%; animation: botLeftArm 3.9s ease-in-out infinite; }
@@ -166,6 +252,28 @@ export default function MascotAnimation({ className = '' }: { className?: string
           .bot-spark1 { animation: botSparkle 2.2s ease-in-out infinite; }
           .bot-spark2 { animation: botSparkle 2.8s ease-in-out .8s infinite; }
           .bot-spark3 { animation: botSparkle 2.4s ease-in-out 1.4s infinite; }
+          .amz-float-1 { animation: botFloat1 4.2s ease-in-out infinite; }
+          .amz-float-2 { animation: botFloat2 3.8s ease-in-out infinite; }
+          .amz-float-3 { animation: botFloat3 5s ease-in-out infinite; }
+          .amz-float-4 { animation: botFloat4 4.5s ease-in-out infinite; }
+          .amz-float-5 { animation: botFloat1 5.2s ease-in-out infinite .5s; }
+          .amz-bar-1 { transform-box: fill-box; transform-origin: center bottom; animation: botBar1 2.4s ease-in-out infinite; }
+          .amz-bar-2 { transform-box: fill-box; transform-origin: center bottom; animation: botBar2 2.8s ease-in-out infinite; }
+          .amz-bar-3 { transform-box: fill-box; transform-origin: center bottom; animation: botBar3 2.2s ease-in-out infinite; }
+          .amz-bar-4 { transform-box: fill-box; transform-origin: center bottom; animation: botBar4 3s ease-in-out infinite; }
+          .amz-cart { animation: botCartBounce 4s ease-in-out infinite; }
+          .amz-badge { animation: botBadgePulse 3s ease-in-out infinite; transform-origin: center; }
+          .amz-trend { animation: botTrendUp 2.6s ease-in-out infinite; }
+          .amz-star-1 { animation: botStarPop 2s ease-in-out infinite; }
+          .amz-star-2 { animation: botStarPop2 2.2s ease-in-out infinite .3s; }
+          .amz-star-3 { animation: botStarPop 2.4s ease-in-out infinite .6s; }
+          .amz-star-4 { animation: botStarPop2 2.1s ease-in-out infinite .9s; }
+          .amz-star-5 { animation: botStarPop 2.3s ease-in-out infinite 1.2s; }
+          .amz-price { animation: botPriceFloat 3.6s ease-in-out infinite; }
+          .amz-dot-1 { animation: botGlowDot 3s ease-in-out infinite; }
+          .amz-dot-2 { animation: botGlowDot 2.6s ease-in-out infinite .8s; }
+          .amz-dot-3 { animation: botGlowDot 3.4s ease-in-out infinite 1.5s; }
+          .amz-line-pulse { animation: botLinePulse 2.2s ease-in-out infinite; }
           @media (prefers-reduced-motion: reduce) {
             * { animation: none !important; }
           }
@@ -184,6 +292,108 @@ export default function MascotAnimation({ className = '' }: { className?: string
             <path d="M715 350 C725 308 720 262 705 244 C692 229 674 246 650 266 C621 291 601 315 588 337 C604 353 622 373 645 385 C677 403 705 390 715 350Z" fill={`url(#${uid}-earInner)`} opacity=".94"/>
             <path d="M733 244 C744 281 742 330 731 361" fill="none" stroke="#b2c8ff" strokeWidth="8" strokeLinecap="round" opacity=".54"/>
             <path d="M705 235 C673 249 626 290 594 331" fill="none" stroke="#8cf7ff" strokeWidth="5" strokeLinecap="round" opacity=".65"/>
+          </g>
+
+          {/* AMAZON GRAPH - left side */}
+          <g className="amz-float-1">
+            <g transform="translate(95, 560)">
+              <rect className="amz-bar-1" x="0" y="30" width="18" height="90" rx="4" fill={`url(#${uid}-graphGrad)`} stroke="#00d4ff" strokeWidth="1.5"/>
+              <rect className="amz-bar-2" x="26" y="50" width="18" height="70" rx="4" fill={`url(#${uid}-graphGrad)`} stroke="#00d4ff" strokeWidth="1.5"/>
+              <rect className="amz-bar-3" x="52" y="15" width="18" height="105" rx="4" fill={`url(#${uid}-graphGrad)`} stroke="#00d4ff" strokeWidth="1.5"/>
+              <rect className="amz-bar-4" x="78" y="40" width="18" height="80" rx="4" fill={`url(#${uid}-graphGrad)`} stroke="#00d4ff" strokeWidth="1.5"/>
+              <path d="M6 120 L35 120 L61 120 L87 120" stroke="#1a5276" strokeWidth="1" fill="none"/>
+              <text x="9" y="142" fill="#00d4ff" fontSize="14" fontFamily="Arial" fontWeight="bold" opacity="0.8">Sales</text>
+              <text x="45" y="142" fill="#4cecff" fontSize="11" fontFamily="Arial" opacity="0.6">↑ 127%</text>
+              <path className="amz-line-pulse" d="M0 0 L22 -25 L44 -10 L66 -32 L88 -18" fill="none" stroke="#00ff88" strokeWidth="2" strokeDasharray="4 4" opacity="0.6"/>
+            </g>
+          </g>
+
+          {/* SHOPPING CART - bottom left */}
+          <g className="amz-cart">
+            <g transform="translate(130, 980)">
+              <rect x="0" y="8" width="50" height="38" rx="6" fill={`url(#${uid}-cartGrad)`} stroke="#8eeeff" strokeWidth="2" opacity="0.9"/>
+              <path d="M-2 8 L7 8 L18 42 L42 42 L52 8" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="16" cy="52" r="5" fill="none" stroke="#ffffff" strokeWidth="2.5"/>
+              <circle cx="38" cy="52" r="5" fill="none" stroke="#ffffff" strokeWidth="2.5"/>
+              <path d="M6 2 C15 -6 30 -6 40 2" fill="none" stroke="#ff9900" strokeWidth="3" strokeLinecap="round"/>
+              <text x="7" y="32" fill="#ffffff" fontSize="10" fontFamily="Arial" fontWeight="bold">AMAZON</text>
+            </g>
+          </g>
+
+          {/* BEST SELLER BADGE - top right */}
+          <g className="amz-badge">
+            <g transform="translate(760, 260)">
+              <rect x="0" y="0" width="170" height="52" rx="26" fill={`url(#${uid}-amazonGrad)`} opacity="0.92" filter={`url(#${uid}-orangeGlow)`}/>
+              <rect x="3" y="3" width="164" height="46" rx="23" fill="none" stroke="#ffffff" strokeWidth="1.5" opacity="0.5"/>
+              <text x="24" y="22" fill="#ffffff" fontSize="11" fontFamily="Arial" fontWeight="bold" opacity="0.9">★ BEST SELLER</text>
+              <text x="28" y="40" fill="#fff5e6" fontSize="10" fontFamily="Arial" opacity="0.85">#1 in Electronics</text>
+              <circle cx="12" cy="26" r="8" fill="#ffffff" opacity="0.25"/>
+              <text x="8" y="30" fill="#ff9900" fontSize="11" fontFamily="Arial" fontWeight="bold">#1</text>
+            </g>
+          </g>
+
+          {/* STAR RATING - right side */}
+          <g className="amz-float-2">
+            <g transform="translate(790, 560)">
+              <g className="amz-star-1"><path d="M15 0 L19 11 L30 11 L21 18 L24 29 L15 22 L6 29 L9 18 L0 11 L11 11 Z" fill="#ff9900" stroke="#e68a00" strokeWidth="0.8"/></g>
+              <g className="amz-star-2" transform="translate(38, 0)"><path d="M15 0 L19 11 L30 11 L21 18 L24 29 L15 22 L6 29 L9 18 L0 11 L11 11 Z" fill="#ff9900" stroke="#e68a00" strokeWidth="0.8"/></g>
+              <g className="amz-star-3" transform="translate(76, 0)"><path d="M15 0 L19 11 L30 11 L21 18 L24 29 L15 22 L6 29 L9 18 L0 11 L11 11 Z" fill="#ff9900" stroke="#e68a00" strokeWidth="0.8"/></g>
+              <g className="amz-star-4" transform="translate(114, 0)"><path d="M15 0 L19 11 L30 11 L21 18 L24 29 L15 22 L6 29 L9 18 L0 11 L11 11 Z" fill="#ff9900" stroke="#e68a00" strokeWidth="0.8"/></g>
+              <g className="amz-star-5" transform="translate(152, 0)"><path d="M15 0 L19 11 L30 11 L21 18 L24 29 L15 22 L6 29 L9 18 L0 11 L11 11 Z" fill="#ff9900" stroke="#e68a00" strokeWidth="0.8"/></g>
+              <text x="12" y="48" fill="#ffbb33" fontSize="13" fontFamily="Arial" fontWeight="bold">4.9 ★ (2,847 reviews)</text>
+            </g>
+          </g>
+
+          {/* TRENDING UP / SEARCH - right side lower */}
+          <g className="amz-trend">
+            <g transform="translate(820, 780)">
+              <circle cx="55" cy="35" r="48" fill="#0a3dcf" opacity="0.2" filter={`url(#${uid}-softGlow)`}/>
+              <path d="M10 50 L30 30 L45 38 L65 15 L80 22 L100 5" fill="none" stroke="#00ff88" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" opacity="0.9"/>
+              <polygon points="95,0 100,8 90,5" fill="#00ff88" opacity="0.9"/>
+              <circle cx="80" cy="55" r="16" fill="none" stroke="#4cecff" strokeWidth="3" opacity="0.7"/>
+              <path d="M91 66 L100 75" stroke="#4cecff" strokeWidth="3" strokeLinecap="round" opacity="0.7"/>
+              <text x="5" y="80" fill="#4cecff" fontSize="11" fontFamily="Arial" opacity="0.7">Boost</text>
+            </g>
+          </g>
+
+          {/* PRICE TAG / DISCOUNT - bottom right */}
+          <g className="amz-price">
+            <g transform="translate(740, 1000)">
+              <rect x="0" y="0" width="130" height="44" rx="22" fill="#ff6b6b" opacity="0.85" filter={`url(#${uid}-orangeGlow)`}/>
+              <text x="16" y="20" fill="#ffffff" fontSize="12" fontFamily="Arial" fontWeight="bold">🔥 45% OFF</text>
+              <text x="18" y="36" fill="#ffe0e0" fontSize="11" fontFamily="Arial">Limited Time Deal</text>
+              <path d="M115 10 L125 18 L115 26" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.7"/>
+            </g>
+          </g>
+
+          {/* GLOWING DOTS around the scene */}
+          <circle className="amz-dot-1" cx="150" cy="450" r="5" fill="#00ff88" filter={`url(#${uid}-smallGlow)`}/>
+          <circle className="amz-dot-2" cx="850" cy="480" r="4" fill="#00d4ff" filter={`url(#${uid}-smallGlow)`}/>
+          <circle className="amz-dot-3" cx="880" cy="380" r="3.5" fill="#ff9900" filter={`url(#${uid}-orangeGlow)`}/>
+
+          {/* small floating badge: Amazon's Choice */}
+          <g className="amz-float-5">
+            <g transform="translate(140, 820)">
+              <rect x="0" y="0" width="105" height="30" rx="15" fill="#1a1a2e" stroke="#ff9900" strokeWidth="1.5" opacity="0.9"/>
+              <text x="10" y="20" fill="#ff9900" fontSize="11" fontFamily="Arial" fontWeight="bold">Amazon's Choice</text>
+            </g>
+          </g>
+
+          {/* small floating: search icon top-left */}
+          <g className="amz-float-4">
+            <g transform="translate(160, 350)">
+              <circle cx="15" cy="15" r="13" fill="none" stroke="#8eeeff" strokeWidth="3" opacity="0.7"/>
+              <path d="M24 24 L32 32" stroke="#8eeeff" strokeWidth="3" strokeLinecap="round" opacity="0.7"/>
+            </g>
+          </g>
+
+          {/* Prime badge floating */}
+          <g className="amz-float-3">
+            <g transform="translate(790, 440)">
+              <rect x="0" y="0" width="72" height="28" rx="14" fill="#00a8e1" opacity="0.9"/>
+              <text x="7" y="18" fill="#ffffff" fontSize="10" fontFamily="Arial" fontWeight="bold">PRIME</text>
+              <path d="M62 5 L68 9 L62 13" fill="none" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.7"/>
+            </g>
           </g>
 
           <g className="bot-body">
