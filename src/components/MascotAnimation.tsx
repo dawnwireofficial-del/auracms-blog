@@ -135,6 +135,11 @@ export default function MascotAnimation({ className = '' }: { className?: string
             0%,100% { opacity: .92; filter: brightness(1); }
             50% { opacity: 1; filter: brightness(1.24); }
           }
+          @keyframes botShine {
+            0%,100% { transform: translateX(-80px); opacity: .22; }
+            48% { opacity: .55; }
+            60% { transform: translateX(390px); opacity: .08; }
+          }
           @keyframes botChestPulse {
             0%,100% { opacity: .28; }
             50% { opacity: .75; }
@@ -172,10 +177,7 @@ export default function MascotAnimation({ className = '' }: { className?: string
           .bot-spark2 { animation: botSparkle 2.8s ease-in-out .8s infinite; }
           .bot-spark3 { animation: botSparkle 2.4s ease-in-out 1.4s infinite; }
           @media (prefers-reduced-motion: reduce) {
-            .bot-float, .bot-body, .bot-left-arm, .bot-right-arm, .bot-left-ear, .bot-right-ear,
-            .bot-eye, .bot-spark-l, .bot-spark-r, .bot-chest-glow,
-            .bot-d-mark, .bot-thruster-core, .bot-thruster-halo,
-            .bot-spark1, .bot-spark2, .bot-spark3 { animation: none !important; }
+            * { animation: none !important; }
           }
         `}</style>
 
