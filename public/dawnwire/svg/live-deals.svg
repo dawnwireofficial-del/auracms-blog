@@ -19,7 +19,9 @@
   <text x="31" y="121" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="600" fill="#6E7FA2">Deals Available</text>
   <g class="tag">
     <rect x="233" y="91" width="58" height="58" rx="18" fill="url(#iconBg)" stroke="#FFFFFF"/>
-    <path d="M251 112l16-9 11 11-9 16-13-2-7-7 2-9z" fill="none" stroke="#5B4BFF" stroke-width="3" stroke-linejoin="round"/>
-    <circle cx="268" cy="111" r="2.8" fill="#5B4BFF"/>
+    <path d="M248 107h28l4 16H244z" fill="none" stroke="#5B4BFF" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M250 107l2-5h20l2 5" fill="none" stroke="#5B4BFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="253" cy="127" r="3.2" fill="#5B4BFF"/>
+    <circle cx="273" cy="127" r="3.2" fill="#5B4BFF"/>
   </g>
 </svg>
