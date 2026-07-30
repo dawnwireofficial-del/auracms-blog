@@ -5,7 +5,7 @@
     <filter id="shadow" x="-40%" y="-50%" width="180%" height="210%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#35519A" flood-opacity=".16"/></filter>
   </defs>
   <style>
-    .shield{animation:shield 3s ease-in-out infinite;transform-origin:262px 120px}.check{stroke-dasharray:22;stroke-dashoffset:22;animation:draw 2.4s ease-in-out infinite}@keyframes shield{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}@keyframes draw{0%,25%{stroke-dashoffset:22}55%,100%{stroke-dashoffset:0}}@media(prefers-reduced-motion:reduce){*{animation:none!important}.check{stroke-dashoffset:0}}
+    .shield{animation:shield 3s ease-in-out infinite;transform-origin:262px 120px}.check{stroke-dasharray:20;stroke-dashoffset:20;animation:draw 2.4s ease-in-out infinite}@keyframes shield{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}@keyframes draw{0%,20%{stroke-dashoffset:20}50%,100%{stroke-dashoffset:0}}@media(prefers-reduced-motion:reduce){*{animation:none!important}.check{stroke-dashoffset:0}}
   </style>
   <g filter="url(#shadow)"><rect x="9" y="9" width="302" height="160" rx="30" fill="url(#glass)"/></g>
   <circle cx="38" cy="35" r="6" fill="#28E4BA"/><text x="54" y="40" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="700" fill="#41577F">Verified Reviews</text>
@@ -13,7 +13,7 @@
   <text x="31" y="121" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="600" fill="#6E7FA2">Analyzed</text>
   <g class="shield">
     <rect x="232" y="90" width="59" height="59" rx="18" fill="#F7FAFF" stroke="#FFFFFF"/>
-    <path d="M262 103l16 6v12c0 11-7 17-16 21-9-4-16-10-16-21v-12l16-6z" fill="#28E4BA" opacity=".18" stroke="#28E4BA" stroke-width="2"/>
-    <path class="check" d="M254 121l6 6 11-13" fill="none" stroke="#17BF98" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M262 103l14 5v11c0 10-6 16-14 19-8-3-14-9-14-19v-11l14-5z" fill="#28E4BA" opacity=".18" stroke="#28E4BA" stroke-width="2"/>
+    <path class="check" d="M254 121l5 5 10-11" fill="none" stroke="#17BF98" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
 </svg>

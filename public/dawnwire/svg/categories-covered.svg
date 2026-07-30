@@ -5,11 +5,17 @@
     <filter id="shadow" x="-40%" y="-50%" width="180%" height="210%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#35519A" flood-opacity=".16"/></filter>
   </defs>
   <style>
-    .cell{animation:cell 2.8s ease-in-out infinite}.cell:nth-child(2){animation-delay:.2s}.cell:nth-child(3){animation-delay:.4s}.cell:nth-child(4){animation-delay:.6s}@keyframes cell{0%,100%{opacity:.55;transform:scale(.9)}50%{opacity:1;transform:scale(1.08)}}@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+    .folder{animation:folder 3s ease-in-out infinite;transform-origin:262px 120px}.tab{animation:tab 2.6s ease-in-out infinite}@keyframes folder{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}@keyframes tab{0%,100%{opacity:.5}50%{opacity:1}}@media(prefers-reduced-motion:reduce){*{animation:none!important}}
   </style>
   <g filter="url(#shadow)"><rect x="9" y="9" width="302" height="160" rx="30" fill="url(#glass)"/></g>
   <text x="31" y="42" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="700" fill="#41577F">Categories Covered</text>
   <text x="31" y="96" font-family="Inter,Arial,sans-serif" font-size="38" font-weight="800" fill="#12316A">50+</text>
   <text x="31" y="123" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="600" fill="#6E7FA2">And Growing</text>
-  <g transform="translate(238 90)"><rect width="59" height="59" rx="18" fill="#F7FAFF" stroke="#FFFFFF"/><g fill="none" stroke="#5B4BFF" stroke-width="3"><rect class="cell" x="13" y="13" width="12" height="12" rx="2"/><rect class="cell" x="34" y="13" width="12" height="12" rx="2"/><rect class="cell" x="13" y="34" width="12" height="12" rx="2"/><rect class="cell" x="34" y="34" width="12" height="12" rx="2"/></g></g>
+  <g class="folder" transform="translate(238 90)">
+    <rect width="59" height="59" rx="18" fill="#F7FAFF" stroke="#FFFFFF"/>
+    <path d="M14 20h14l4 6h14v20H14z" fill="none" stroke="#5B4BFF" stroke-width="2.8" stroke-linejoin="round"/>
+    <path class="tab" d="M14 26l6-6h8" fill="none" stroke="#5B4BFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="18" y1="36" x2="42" y2="36" stroke="#5B4BFF" stroke-width="2.5" stroke-linecap="round" opacity=".5"/>
+    <line x1="18" y1="42" x2="38" y2="42" stroke="#5B4BFF" stroke-width="2.5" stroke-linecap="round" opacity=".4"/>
+  </g>
 </svg>

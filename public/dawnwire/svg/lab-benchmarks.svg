@@ -6,13 +6,13 @@
     <filter id="shadow" x="-40%" y="-50%" width="180%" height="210%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#5A479A" flood-opacity=".16"/></filter>
   </defs>
   <style>
-    .wave{animation:wave 3.2s ease-in-out infinite}.flask{animation:tilt 4s ease-in-out infinite;transform-origin:292px 72px}.line{stroke-dasharray:260;stroke-dashoffset:260;animation:draw 3.8s ease-in-out infinite}@keyframes wave{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}@keyframes tilt{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(3deg)}}@keyframes draw{0%,15%{stroke-dashoffset:260}58%,100%{stroke-dashoffset:0}}@media(prefers-reduced-motion:reduce){*{animation:none!important}.line{stroke-dashoffset:0}}
+    .wave{animation:wave 3.2s ease-in-out infinite}.flask{animation:tilt 4s ease-in-out infinite;transform-origin:292px 72px}.line{stroke-dasharray:260;stroke-dashoffset:260;animation:draw 3.8s ease-in-out infinite}@keyframes wave{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}@keyframes tilt{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(3deg)}}@keyframes draw{0%,12%{stroke-dashoffset:260}50%,100%{stroke-dashoffset:0}}@media(prefers-reduced-motion:reduce){*{animation:none!important}.line{stroke-dashoffset:0}}
   </style>
   <g filter="url(#shadow)"><rect x="9" y="9" width="322" height="192" rx="30" fill="url(#glass)"/></g>
   <text x="28" y="43" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="700" fill="#41577F">Lab Benchmarks</text>
   <text x="28" y="92" font-family="Inter,Arial,sans-serif" font-size="39" font-weight="800" fill="#453EB3">98%</text>
   <text x="28" y="119" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="600" fill="#6E7FA2">Accuracy Rate</text>
-  <g class="flask"><circle cx="292" cy="70" r="23" fill="#F7F5FF" stroke="#FFFFFF"/><path d="M286 56h12m-8 0v10l-8 15c-2 4 1 8 6 8h8c5 0 8-4 6-8l-8-15V56" fill="none" stroke="#8A5CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path class="wave" d="M284 78h16l3 6c1 2-1 4-4 4h-14c-3 0-5-2-4-4z" fill="url(#liquid)" opacity=".75"/></g>
+  <g class="flask"><circle cx="292" cy="70" r="23" fill="#F7F5FF" stroke="#FFFFFF"/><path d="M284 56h16l-6 14v18c0 4-3 7-7 7s-7-3-7-7V70z" fill="none" stroke="#8A5CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path class="wave" d="M282 82h20l2 4c1 2-1 4-4 4h-16c-3 0-5-2-4-4z" fill="url(#liquid)" opacity=".75"/></g>
   <path class="line" d="M30 171L56 151 78 164 104 139 126 157 151 128 176 145 198 119 224 142 250 112 276 128 308 99" fill="none" stroke="#8A5CFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
   <g fill="#FFFFFF" stroke="#8A5CFF" stroke-width="3"><circle cx="30" cy="171" r="4.5"/><circle cx="104" cy="139" r="4.5"/><circle cx="176" cy="145" r="4.5"/><circle cx="250" cy="112" r="4.5"/><circle cx="308" cy="99" r="4.5"/></g>
 </svg>
