@@ -160,8 +160,8 @@ export default function MascotAnimation({ className = '' }: { className?: string
             0%,100% { opacity: .25; transform: scale(.7); }
             50% { opacity: 1; transform: scale(1.25); }
           }
-          .bot-float { transform-origin: 512px 720px; animation: botFloat 4.8s ease-in-out infinite; }
-          .bot-body { transform-origin: 512px 820px; animation: botBreathe 4.8s ease-in-out infinite; }
+          .bot-float { transform-origin: 512px 720px; animation: botFloat 3.8s ease-in-out infinite; }
+          .bot-body { transform-origin: 512px 820px; animation: botBreathe 3.4s ease-in-out infinite; }
           .bot-left-arm { transform-box: fill-box; transform-origin: 86% 16%; animation: botLeftArm 3.9s ease-in-out infinite; }
           .bot-right-arm { transform-box: fill-box; transform-origin: 14% 16%; animation: botRightArm 3.9s ease-in-out infinite; }
           .bot-left-ear { transform-box: fill-box; transform-origin: 72% 90%; animation: botLeftEar 5.6s ease-in-out infinite; }
