@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react';
 import { GravityParticleCanvas } from '../common/GravityParticleCanvas';
 import MascotAnimation from '../MascotAnimation';
 
@@ -17,57 +16,14 @@ const heroCards = [
 ] as const;
 
 export default function DawnWireHero({ onOpenAiFinder, onOpenChatbot }: DawnWireHeroProps) {
-  const visualRef = useRef<HTMLDivElement>(null);
-
-  /* pointer parallax — subtle, requestAnimationFrame-based, disabled for touch/reduced-motion */
-  useEffect(() => {
-    const visual = visualRef.current;
-    if (!visual) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    if ('ontouchstart' in window) return;
-
-    const cards = [...visual.querySelectorAll<HTMLElement>('.dw-card')];
-    const mascot = visual.querySelector<HTMLElement>('.dw-visual__mascot');
-    let raf = 0;
-
-    const onMove = (e: PointerEvent) => {
-      const rect = visual.getBoundingClientRect();
-      const x = Math.max(-1, Math.min(1, ((e.clientX - rect.left) / rect.width) * 2 - 1));
-      const y = Math.max(-1, Math.min(1, ((e.clientY - rect.top) / rect.height) * 2 - 1));
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        cards.forEach((card, i) => {
-          const depth = 5 + (i % 3) * 3;
-          card.style.setProperty('--px', `${x * depth}px`);
-          card.style.setProperty('--py', `${y * depth}px`);
-        });
-        if (mascot) {
-          mascot.style.filter = `drop-shadow(${-x * 10}px ${30 + y * 8}px 34px rgba(42,65,146,0.24))`;
-        }
-      });
-    };
-
-    const onLeave = () => {
-      cards.forEach((card) => {
-        card.style.removeProperty('--px');
-        card.style.removeProperty('--py');
-      });
-      if (mascot) mascot.style.removeProperty('filter');
-    };
-
-    visual.addEventListener('pointermove', onMove, { passive: true });
-    visual.addEventListener('pointerleave', onLeave, { passive: true });
-
-    return () => {
-      cancelAnimationFrame(raf);
-      visual.removeEventListener('pointermove', onMove);
-      visual.removeEventListener('pointerleave', onLeave);
-    };
-  }, []);
-
   return (
     <section className="dw-hero" aria-labelledby="dw-hero-title">
       <div className="dw-hero__noise" aria-hidden="true" />
+
+      {/* Full-hero cursor particles */}
+      <div className="dw-hero__particles">
+        <GravityParticleCanvas particleCount={45} />
+      </div>
 
       <div className="dw-hero__container">
         {/* LEFT CONTENT — 46% */}
@@ -117,11 +73,7 @@ export default function DawnWireHero({ onOpenAiFinder, onOpenChatbot }: DawnWire
         </div>
 
         {/* RIGHT VISUAL — 54% */}
-        <div className="dw-visual" ref={visualRef} aria-label="Animated product intelligence overview">
-          {/* Cursor particle canvas behind everything */}
-          <div className="dw-visual__particles">
-            <GravityParticleCanvas particleCount={45} />
-          </div>
+        <div className="dw-visual" aria-label="Animated product intelligence overview">
 
           {/* Orbit background */}
           <img

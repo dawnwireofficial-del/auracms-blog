@@ -8,7 +8,7 @@
   <style>
     .wave{animation:wave 3.2s ease-in-out infinite}.flask{animation:tilt 4s ease-in-out infinite;transform-origin:292px 72px}.line{stroke-dasharray:260;stroke-dashoffset:260;animation:draw 3.8s ease-in-out infinite}@keyframes wave{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}@keyframes tilt{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(3deg)}}@keyframes draw{0%,15%{stroke-dashoffset:260}58%,100%{stroke-dashoffset:0}}@media(prefers-reduced-motion:reduce){*{animation:none!important}.line{stroke-dashoffset:0}}
   </style>
-  <g filter="url(#shadow)"><rect x="9" y="9" width="322" height="192" rx="30" fill="url(#glass)" stroke="#FFFFFF" stroke-opacity=".94" stroke-width="2"/></g>
+  <g filter="url(#shadow)"><rect x="9" y="9" width="322" height="192" rx="30" fill="url(#glass)"/></g>
   <text x="28" y="43" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="700" fill="#41577F">Lab Benchmarks</text>
   <text x="28" y="92" font-family="Inter,Arial,sans-serif" font-size="39" font-weight="800" fill="#453EB3">98%</text>
   <text x="28" y="119" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="600" fill="#6E7FA2">Accuracy Rate</text>

@@ -7,7 +7,7 @@
   <style>
     .stars path{transform-origin:center;animation:pop 3s ease-in-out infinite}.stars path:nth-child(2){animation-delay:.12s}.stars path:nth-child(3){animation-delay:.24s}.stars path:nth-child(4){animation-delay:.36s}.stars path:nth-child(5){animation-delay:.48s}.badge{animation:badge 3.4s ease-in-out infinite;transform-origin:290px 114px}@keyframes pop{0%,30%,100%{transform:scale(1)}45%{transform:scale(1.18)}}@keyframes badge{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}@media(prefers-reduced-motion:reduce){*{animation:none!important}}
   </style>
-  <g filter="url(#shadow)"><rect x="9" y="9" width="322" height="172" rx="30" fill="url(#glass)" stroke="#FFFFFF" stroke-opacity=".94" stroke-width="2"/></g>
+  <g filter="url(#shadow)"><rect x="9" y="9" width="322" height="172" rx="30" fill="url(#glass)"/></g>
   <text x="28" y="45" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="700" fill="#41577F">Top Pick</text>
   <text x="28" y="100" font-family="Inter,Arial,sans-serif" font-size="38" font-weight="800" fill="#12316A">4.8</text>
   <g class="stars" fill="#5B4BFF" transform="translate(101 75) scale(.75)"><path d="M12 0l3.7 7.5L24 8.7l-6 5.8 1.4 8.2L12 18.8 4.6 22.7 6 14.5 0 8.7l8.3-1.2z"/><path d="M45 0l3.7 7.5L57 8.7l-6 5.8 1.4 8.2-7.4-3.9-7.4 3.9 1.4-8.2-6-5.8 8.3-1.2z"/><path d="M78 0l3.7 7.5L90 8.7l-6 5.8 1.4 8.2-7.4-3.9-7.4 3.9 1.4-8.2-6-5.8 8.3-1.2z"/><path d="M111 0l3.7 7.5 8.3 1.2-6 5.8 1.4 8.2-7.4-3.9-7.4 3.9 1.4-8.2-6-5.8 8.3-1.2z"/><path d="M144 0l3.7 7.5 8.3 1.2-6 5.8 1.4 8.2-7.4-3.9-7.4 3.9 1.4-8.2-6-5.8 8.3-1.2z"/></g>

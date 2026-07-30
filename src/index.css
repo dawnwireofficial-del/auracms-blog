@@ -288,18 +288,17 @@
   display: block;
 }
 
-.dw-visual__particles {
+.dw-hero__particles {
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  border-radius: inherit;
 }
 
 .dw-card {
   position: absolute;
   z-index: 6;
-  width: clamp(200px, 18vw, 280px);
+  width: clamp(160px, 14.4vw, 224px);
   filter: drop-shadow(0 26px 42px rgba(47, 63, 124, 0.16));
   transform-origin: center;
   will-change: transform;
@@ -360,13 +359,13 @@
 }
 
 @keyframes dwCardFloatA {
-  0%, 100% { transform: translate3d(var(--px, 0px), var(--py, 0px), 0) rotate(-1.4deg); }
-  50% { transform: translate3d(var(--px, 0px), calc(var(--py, 0px) - 13px), 0) rotate(1.2deg); }
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-1.4deg); }
+  50% { transform: translate3d(0, -13px, 0) rotate(1.2deg); }
 }
 
 @keyframes dwCardFloatB {
-  0%, 100% { transform: translate3d(var(--px, 0px), var(--py, 0px), 0) rotate(1.1deg); }
-  50% { transform: translate3d(var(--px, 0px), calc(var(--py, 0px) - 15px), 0) rotate(-1.2deg); }
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(1.1deg); }
+  50% { transform: translate3d(0, -15px, 0) rotate(-1.2deg); }
 }
 
 @media (max-width: 1180px) {
@@ -374,7 +373,7 @@
     grid-template-columns: minmax(0, 0.9fr) minmax(510px, 1.1fr);
     width: min(1180px, calc(100% - 40px));
   }
-  .dw-card { width: clamp(170px, 18vw, 230px); }
+  .dw-card { width: clamp(136px, 14.4vw, 184px); }
   .dw-proof-strip { width: calc(100% - 40px); }
 }
 
@@ -402,7 +401,7 @@
   .dw-trust-list { gap: 14px; }
   .dw-visual { min-height: 440px; margin-top: 8px; }
   .dw-visual__mascot { width: 230px; }
-  .dw-card { width: 145px; }
+  .dw-card { width: 116px; }
   .dw-card--deal { top: 1%; left: 0; }
   .dw-card--review { top: 7%; right: -4%; }
   .dw-card--drop { top: 37%; left: -7%; }

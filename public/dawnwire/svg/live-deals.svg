@@ -10,7 +10,7 @@
     .pulse{animation:pulse 2.4s ease-in-out infinite;transform-origin:center}.cart{animation:cartBounce 3.2s ease-in-out infinite;transform-origin:262px 120px}.shine{animation:shine 4.4s linear infinite}@keyframes pulse{0%,100%{opacity:.65;transform:scale(.86)}50%{opacity:1;transform:scale(1.18)}}@keyframes cartBounce{0%,100%{transform:rotate(-3deg) translateY(0)}50%{transform:rotate(3deg) translateY(-4px)}}@keyframes shine{0%{transform:translateX(-150px)}100%{transform:translateX(390px)}}@media(prefers-reduced-motion:reduce){*{animation:none!important}}
   </style>
   <g filter="url(#shadow)">
-    <rect x="9" y="9" width="302" height="160" rx="30" fill="url(#glass)" stroke="#FFFFFF" stroke-opacity=".92" stroke-width="2"/>
+    <rect x="9" y="9" width="302" height="160" rx="30" fill="url(#glass)"/>
     <path class="shine" d="M-70 0h45l110 178H40z" fill="#FFFFFF" opacity=".18"/>
   </g>
   <circle cx="38" cy="35" r="6" fill="#28E4BA" filter="url(#glow)"/><circle class="pulse" cx="38" cy="35" r="12" fill="#28E4BA" opacity=".20"/>
