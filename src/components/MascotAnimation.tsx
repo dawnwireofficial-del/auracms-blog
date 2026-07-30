@@ -135,11 +135,6 @@ export default function MascotAnimation({ className = '' }: { className?: string
             0%,100% { opacity: .92; filter: brightness(1); }
             50% { opacity: 1; filter: brightness(1.24); }
           }
-          @keyframes botShine {
-            0%,100% { transform: translateX(-80px); opacity: .22; }
-            48% { opacity: .55; }
-            60% { transform: translateX(390px); opacity: .08; }
-          }
           @keyframes botChestPulse {
             0%,100% { opacity: .28; }
             50% { opacity: .75; }
@@ -180,9 +175,6 @@ export default function MascotAnimation({ className = '' }: { className?: string
             * { animation: none !important; }
           }
         `}</style>
-
-        <ellipse cx="512" cy="1236" rx="178" ry="31" fill="#0e52ff" opacity="0.22" filter={`url(#${uid}-shadow)`}/>
-        <ellipse cx="512" cy="1230" rx="118" ry="16" fill="#4cecff" opacity="0.18" filter={`url(#${uid}-shadow)`}/>
 
         <g className="bot-float">
           <g className="bot-left-ear" filter={`url(#${uid}-blueDrop)`}>
@@ -240,10 +232,6 @@ export default function MascotAnimation({ className = '' }: { className?: string
             <ellipse cx="512" cy="502" rx="184" ry="97" fill="#0056ff" opacity=".16" filter={`url(#${uid}-softGlow)`} clipPath={`url(#${uid}-visorClip)`}/>
             <path d="M355 430 C420 398 465 442 525 426 C578 411 627 388 679 427" fill="none" stroke="#67dcff" strokeWidth="7" strokeLinecap="round" opacity=".38" clipPath={`url(#${uid}-visorClip)`}/>
             <path d="M536 441 C581 416 633 408 677 438 C651 438 626 453 607 471 C581 468 555 458 536 441Z" fill="#d7f8ff" opacity=".55" clipPath={`url(#${uid}-visorClip)`}/>
-
-            <g clipPath={`url(#${uid}-visorClip)`} opacity=".42">
-              <rect x="276" y="390" width="54" height="255" rx="27" fill={`url(#${uid}-cyanGlow)`} transform="rotate(18 303 518)"/>
-            </g>
 
             <g className="bot-eye" filter={`url(#${uid}-eyeGlow)`}>
               <circle cx="425" cy="505" r="38" fill={`url(#${uid}-eye)`}/>
