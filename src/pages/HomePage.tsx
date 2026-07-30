@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { GravityParticleCanvas } from '../components/common/GravityParticleCanvas';
 import { CategoryIcon, TrustBadges } from '../components/common/SvgIcons';
 import { ProductCard } from '../components/common/ProductCard';
 import { DisclosureBanner } from '../components/common/DisclosureBanner';
 import { BannerCarousel } from '../components/common/BannerCarousel';
 import { TrendingDealsSection } from '../components/deals/TrendingDealsSection';
-import MascotAnimation from '../components/MascotAnimation';
+import DawnWireHero from '../components/hero/DawnWireHero';
 import { useAppStore } from '../lib/store';
 import { triggerPageLoadProgress } from '../lib/navigation';
 
@@ -31,91 +30,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
       {/* Editorial Transparency Disclosure */}
       <DisclosureBanner />
 
-      {/* Hero Section with Interactive Gravity Particle Canvas */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#0A1F44] via-blue-950 to-slate-950 text-white py-16 md:py-24 border-b border-blue-900/60 shadow-2xl">
-        {/* Interactive Gravity Canvas */}
-        <GravityParticleCanvas particleCount={65} className="opacity-70" />
-
-        <div className="relative z-10 max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          {/* Left Hero Text */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: 'easeOut' }}
-            className="lg:col-span-7 space-y-6 text-center lg:text-left"
-          >
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-900/80 border border-blue-400/40 text-blue-200 text-xs font-bold backdrop-blur-md shadow-lg">
-              <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-ping" />
-              <span>AI-Powered Discovery Engine & Live Amazon Deals</span>
-            </div>
-
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight font-display leading-[1.1]">
-              Amazon Product Reviews <br className="hidden sm:inline" />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-orange-400 to-amber-200 animate-pulse">
-                &amp; AI-Powered Buying Guides.
-              </span>
-            </h1>
-
-            <p className="text-base sm:text-lg text-slate-300 max-w-2xl font-normal leading-relaxed">
-              DawnWire scans thousands of Amazon verified reviews, technical specifications, and independent lab benchmarks to bring you real top picks and price drops.
-            </p>
-
-            {/* Quick Hero Buttons */}
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={onOpenAiFinder}
-                className="w-full sm:w-auto bg-gradient-to-r from-orange-500 via-amber-500 to-orange-400 hover:from-orange-600 hover:to-amber-600 text-slate-950 font-black px-8 py-4 rounded-2xl text-sm shadow-xl shadow-orange-500/25 transition-all flex items-center justify-center gap-2.5"
-              >
-                <svg className="w-5 h-5 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                <span>Launch AI Product Finder</span>
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={onOpenChatbot}
-                className="w-full sm:w-auto bg-blue-900/90 hover:bg-blue-800 text-white font-extrabold px-7 py-4 rounded-2xl text-sm border border-blue-400/40 backdrop-blur-md shadow-lg transition-all flex items-center justify-center gap-2"
-              >
-                <svg className="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
-                <span>Ask AI Assistant</span>
-              </motion.button>
-            </div>
-
-            {/* Key Value Bullets */}
-            <div className="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-slate-300 font-semibold">
-              <span className="flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                24/7 Price Drop Alerts
-              </span>
-              <span className="flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                Verified Buyer Analysis
-              </span>
-              <span className="flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                Direct Amazon Links
-              </span>
-            </div>
-          </motion.div>
-
-          {/* Right Hero Illustration with Floating Motion */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="lg:col-span-5 flex justify-center relative"
-          >
-            <div className="absolute -inset-4 bg-gradient-to-r from-blue-600/30 to-amber-500/20 rounded-full blur-3xl opacity-50 animate-pulse" />
-            <MascotAnimation className="w-full max-w-md" />
-          </motion.div>
-        </div>
-      </section>
+      {/* Hero Section — Glassmorphism Redesign */}
+      <DawnWireHero onOpenAiFinder={onOpenAiFinder} onOpenChatbot={onOpenChatbot} />
 
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 py-12 space-y-16">

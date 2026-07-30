@@ -253,7 +253,7 @@ router.get('/image-proxy', async (req, res) => {
     res.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
     res.set('Access-Control-Allow-Origin', '*');
     if (response.body) {
-      Readable.fromWeb(response.body).pipe(res);
+      Readable.fromWeb(response.body as any).pipe(res);
     } else {
       const buffer = Buffer.from(await response.arrayBuffer());
       res.send(buffer);

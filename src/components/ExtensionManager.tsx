@@ -29,7 +29,12 @@ export default function ExtensionManager({ token }: Props) {
         setTestResult('success');
       } else {
         setTestResult('error');
-}
+      }
+    } catch {
+      setTestResult('error');
+    }
+    setTimeout(() => setTestResult('idle'), 3000);
+  };
 
 function ImportedProductsTab({ token }: { token: string }) {
   const [products, setProducts] = useState<any[]>([]);
@@ -151,11 +156,6 @@ function ImportedProductsTab({ token }: { token: string }) {
     </div>
   );
 }
-    } catch {
-      setTestResult('error');
-    }
-    setTimeout(() => setTestResult('idle'), 3000);
-  };
 
   const tabs = [
     { key: 'setup', icon: Play, label: 'Setup Guide' },

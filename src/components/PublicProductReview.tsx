@@ -11,7 +11,7 @@ import SocialShareButtons from './SocialShareButtons';
 import CrossSellCarousel from './CrossSellCarousel';
 import { safeText } from '../utils/safeRender';
 import { proxyImageUrl } from '../utils/safeRender';
-import { sanitizeHtml } from '../lib/sanitize';
+import { sanitizeHtml as sanitizeHtmlFromLib } from '../lib/sanitize';
 
 function HlsVideo({ src, poster }: { src: string; poster: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);

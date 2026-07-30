@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 
 import { Post, Category, Comment, AffiliateLink, Page, SiteSettings, User, ContactMessage, NewsletterSubscriber, ActivityLog, MediaItem } from '../types';
+import { proxyImageUrl } from '../utils/safeRender';
 import SeoDashboard from './SeoDashboard';
 import DashboardAnalytics from './DashboardAnalytics';
 import AnalyticsAlerts from './AnalyticsAlerts';

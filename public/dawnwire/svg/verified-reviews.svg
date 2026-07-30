@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 178" role="img" aria-labelledby="title desc">
+  <title id="title">Verified reviews card</title><desc id="desc">Animated glass card showing 250 thousand plus reviews analyzed.</desc>
+  <defs>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFFFFF" stop-opacity=".86"/><stop offset="1" stop-color="#F2F4FF" stop-opacity=".52"/></linearGradient>
+    <filter id="shadow" x="-40%" y="-50%" width="180%" height="210%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#35519A" flood-opacity=".16"/></filter>
+  </defs>
+  <style>
+    .shield{animation:shield 3s ease-in-out infinite;transform-origin:266px 120px}.check{stroke-dasharray:22;stroke-dashoffset:22;animation:draw 2.4s ease-in-out infinite}@keyframes shield{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}@keyframes draw{0%,25%{stroke-dashoffset:22}55%,100%{stroke-dashoffset:0}}@media(prefers-reduced-motion:reduce){*{animation:none!important}.check{stroke-dashoffset:0}}
+  </style>
+  <g filter="url(#shadow)"><rect x="9" y="9" width="302" height="160" rx="30" fill="url(#glass)" stroke="#FFFFFF" stroke-opacity=".94" stroke-width="2"/></g>
+  <circle cx="38" cy="35" r="6" fill="#28E4BA"/><text x="54" y="40" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="700" fill="#41577F">Verified Reviews</text>
+  <text x="31" y="94" font-family="Inter,Arial,sans-serif" font-size="38" font-weight="800" fill="#12316A">250K+</text>
+  <text x="31" y="121" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="600" fill="#6E7FA2">Analyzed</text>
+  <g class="shield">
+    <rect x="232" y="90" width="59" height="59" rx="18" fill="#F7FAFF" stroke="#FFFFFF"/>
+    <path d="M262 103l16 6v12c0 11-7 17-16 21-9-4-16-10-16-21v-12l16-6z" fill="#28E4BA" opacity=".18" stroke="#28E4BA" stroke-width="2"/>
+    <path class="check" d="M254 121l6 6 11-13" fill="none" stroke="#17BF98" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" aria-hidden="true">
+  <defs>
+    <radialGradient id="core" cx="50%" cy="55%" r="50%"><stop stop-color="#FFFFFF" stop-opacity=".95"/><stop offset=".28" stop-color="#E7EEFF" stop-opacity=".58"/><stop offset="1" stop-color="#DDE7FF" stop-opacity="0"/></radialGradient>
+    <linearGradient id="orbit" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#FFFFFF" stop-opacity=".15"/><stop offset=".45" stop-color="#FFFFFF" stop-opacity=".90"/><stop offset="1" stop-color="#8AA5FF" stop-opacity=".22"/></linearGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="12"/></filter>
+  </defs>
+  <style>
+    .ring-a{animation:spin 18s linear infinite;transform-origin:500px 390px}.ring-b{animation:spinReverse 22s linear infinite;transform-origin:500px 390px}.dot-a{animation:orbitA 8s ease-in-out infinite}.dot-b{animation:orbitB 10s ease-in-out infinite}@keyframes spin{to{transform:rotate(360deg)}}@keyframes spinReverse{to{transform:rotate(-360deg)}}@keyframes orbitA{0%,100%{transform:translate(0,0)}50%{transform:translate(12px,-9px)}}@keyframes orbitB{0%,100%{transform:translate(0,0)}50%{transform:translate(-10px,12px)}}@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+  </style>
+  <ellipse cx="500" cy="390" rx="390" ry="245" fill="url(#core)" filter="url(#blur)" opacity=".75"/>
+  <g fill="none" stroke="url(#orbit)">
+    <ellipse cx="500" cy="390" rx="410" ry="220" stroke-width="2"/>
+    <ellipse cx="500" cy="390" rx="330" ry="176" stroke-width="1.5" opacity=".8"/>
+    <ellipse cx="500" cy="390" rx="245" ry="128" stroke-width="1.4" opacity=".68"/>
+  </g>
+  <g class="ring-a" fill="#FFFFFF" stroke="#A3B7FF"><circle cx="162" cy="390" r="6"/><circle cx="752" cy="224" r="4"/></g>
+  <g class="ring-b" fill="#FFFFFF" stroke="#6EEAF4"><circle cx="682" cy="535" r="5"/><circle cx="417" cy="260" r="4"/></g>
+  <g class="dot-a"><circle cx="150" cy="220" r="32" fill="#FFFFFF" fill-opacity=".34" stroke="#FFFFFF" stroke-opacity=".8"/><circle cx="150" cy="220" r="12" fill="#FFFFFF" fill-opacity=".55"/></g>
+  <g class="dot-b"><circle cx="860" cy="284" r="42" fill="#FFFFFF" fill-opacity=".30" stroke="#FFFFFF" stroke-opacity=".78"/><circle cx="860" cy="284" r="15" fill="#FFFFFF" fill-opacity=".5"/></g>
+</svg>
