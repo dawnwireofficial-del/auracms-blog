@@ -135,11 +135,6 @@ export default function MascotAnimation({ className = '' }: { className?: string
             0%,100% { opacity: .92; filter: brightness(1); }
             50% { opacity: 1; filter: brightness(1.24); }
           }
-          @keyframes botShine {
-            0%,100% { transform: translateX(-80px); opacity: .22; }
-            48% { opacity: .55; }
-            60% { transform: translateX(390px); opacity: .08; }
-          }
           @keyframes botChestPulse {
             0%,100% { opacity: .28; }
             50% { opacity: .75; }
@@ -169,7 +164,6 @@ export default function MascotAnimation({ className = '' }: { className?: string
           .bot-eye { transform-box: fill-box; transform-origin: center; animation: botBlink 5.8s linear infinite, botEyePulse 2.1s ease-in-out infinite; }
           .bot-spark-l { animation: botSparkle 2.5s ease-in-out infinite; }
           .bot-spark-r { animation: botSparkle 2.5s ease-in-out .7s infinite; }
-          .bot-visor-shine { animation: botShine 4.6s ease-in-out infinite; }
           .bot-chest-glow { animation: botChestPulse 2.8s ease-in-out infinite; }
           .bot-d-mark { transform-box: fill-box; transform-origin: center; animation: botDPulse 2.8s ease-in-out infinite; }
           .bot-thruster-core { transform-box: fill-box; transform-origin: 50% 0%; animation: botThruster 1.15s ease-in-out infinite; }
@@ -179,7 +173,7 @@ export default function MascotAnimation({ className = '' }: { className?: string
           .bot-spark3 { animation: botSparkle 2.4s ease-in-out 1.4s infinite; }
           @media (prefers-reduced-motion: reduce) {
             .bot-float, .bot-body, .bot-left-arm, .bot-right-arm, .bot-left-ear, .bot-right-ear,
-            .bot-eye, .bot-spark-l, .bot-spark-r, .bot-visor-shine, .bot-chest-glow,
+            .bot-eye, .bot-spark-l, .bot-spark-r, .bot-chest-glow,
             .bot-d-mark, .bot-thruster-core, .bot-thruster-halo,
             .bot-spark1, .bot-spark2, .bot-spark3 { animation: none !important; }
           }
@@ -245,7 +239,7 @@ export default function MascotAnimation({ className = '' }: { className?: string
             <path d="M355 430 C420 398 465 442 525 426 C578 411 627 388 679 427" fill="none" stroke="#67dcff" strokeWidth="7" strokeLinecap="round" opacity=".38" clipPath={`url(#${uid}-visorClip)`}/>
             <path d="M536 441 C581 416 633 408 677 438 C651 438 626 453 607 471 C581 468 555 458 536 441Z" fill="#d7f8ff" opacity=".55" clipPath={`url(#${uid}-visorClip)`}/>
 
-            <g className="bot-visor-shine" clipPath={`url(#${uid}-visorClip)`} opacity=".42">
+            <g clipPath={`url(#${uid}-visorClip)`} opacity=".42">
               <rect x="276" y="390" width="54" height="255" rx="27" fill={`url(#${uid}-cyanGlow)`} transform="rotate(18 303 518)"/>
             </g>
 
