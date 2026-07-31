@@ -42,7 +42,7 @@
       const res = await fetch(baseUrl + '/api/admin/seo/product-reviews/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiToken },
-        body: JSON.stringify(data)
+        body: JSON.stringify({ ...data })
       });
       const result = await res.json();
       if (!res.ok) return { success: false, error: result.error || 'HTTP ' + res.status };
@@ -916,6 +916,7 @@
       if (!imgEl) imgEl = doc.querySelector('img[src*="images-amazon"][src*="images/I"]');
       if (imgEl) {
         product_image = imgEl.getAttribute('src') || imgEl.getAttribute('data-old-hires') || '';
+        if (product_image) product_image = product_image.replace(/\._[^.]*_\./g, '.');
         if (!product_image) {
           try { const d = JSON.parse(imgEl.getAttribute('data-a-dynamic-image') || '{}'); product_image = Object.keys(d)[0] || ''; } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
         }

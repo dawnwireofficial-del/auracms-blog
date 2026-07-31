@@ -12,6 +12,7 @@ import { ProductFaqSection } from '../components/product/ProductFaqSection';
 import { useAppStore, store } from '../lib/store';
 import { sanitizeHtml } from '../lib/sanitize';
 import { safeText, safeSpecValue, isValidImageUrl, proxyImageUrl } from '../utils/safeRender';
+import { trackPageView } from '../lib/tracker';
 
 function HlsVideo({ src, poster }: { src: string; poster: string }) {
   const videoRef = React.useRef<HTMLVideoElement>(null);
@@ -58,6 +59,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const [isInternalLoading, setIsInternalLoading] = useState(true);
   const [directProduct, setDirectProduct] = useState<Product | null>(null);
   const [directFetchDone, setDirectFetchDone] = useState(false);
+  const [brokenImages, setBrokenImages] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     setIsInternalLoading(true);
@@ -67,6 +69,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       setIsInternalLoading(false);
     }, 400);
     return () => clearTimeout(timer);
+  }, [productSlug]);
+
+  useEffect(() => {
+    if (!productSlug) return;
+    trackPageView(`/products/${productSlug}`, `Product: ${productSlug}`);
   }, [productSlug]);
 
   useEffect(() => {
@@ -118,6 +125,19 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const product = directProduct || products.find((p) => p.slug === productSlug) || null;
 
   const allImportedImages = product?.images && product.images.length > 0 ? product.images.filter(Boolean) : [];
+
+  const handleImageError = (index: number, e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    const isProxied = img.src.includes('/api/public/image-proxy');
+    if (isProxied) {
+      const urlParam = img.src.match(/url=([^&]+)/)?.[1];
+      if (urlParam) {
+        img.src = decodeURIComponent(urlParam);
+        return;
+      }
+    }
+    setBrokenImages((prev) => new Set(prev).add(index));
+  };
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -297,7 +317,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105 cursor-zoom-in"
               onClick={() => setIsLightboxOpen(true)}
               referrerPolicy="no-referrer"
-              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+              onError={(e) => handleImageError(selectedImageIndex, e)}
             />
 
             {product.isDeal && product.discountPercentage ? (
@@ -336,7 +356,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                       : 'border-slate-200 dark:border-slate-800 opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <img src={proxyImageUrl(img)} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-contain" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                  <img src={proxyImageUrl(img)} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-contain" referrerPolicy="no-referrer" onError={(e) => handleImageError(idx, e)} />
                   <span className="absolute bottom-1 right-1 bg-slate-900/80 text-white text-[9px] px-1 rounded font-bold">
                     #{idx + 1}
                   </span>
@@ -530,7 +550,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 alt={`${product.title} Imported Shot #${idx + 1}`}
                 className="max-h-full max-w-full object-contain group-hover:scale-105 transition-all duration-300"
                 referrerPolicy="no-referrer"
-                onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                onError={(e) => handleImageError(idx, e)}
               />
               <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <span className="bg-white/90 text-slate-950 font-black text-xs px-3 py-1.5 rounded-xl shadow-lg flex items-center gap-1">
@@ -653,7 +673,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     >
                       {/* Video Thumbnail */}
                       <div className="relative w-24 h-16 rounded-xl bg-slate-950 overflow-hidden shrink-0 border border-slate-700 flex items-center justify-center">
-                        <img src={proxyImageUrl(vid.thumbnailUrl || allImportedImages[0])} alt="" className="w-full h-full object-cover opacity-80" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                        <img src={proxyImageUrl(vid.thumbnailUrl || allImportedImages[0])} alt="" className="w-full h-full object-cover opacity-80" referrerPolicy="no-referrer" onError={(e) => { const t = e.currentTarget; if (t.src.includes('/api/public/image-proxy')) { const m = t.src.match(/url=([^&]+)/); if (m) t.src = decodeURIComponent(m[1]); } else { t.style.display = 'none'; } }} />
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                           <svg className="w-6 h-6 text-amber-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                         </div>
@@ -903,7 +923,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                       : 'border-slate-800 opacity-50 hover:opacity-100'
                   }`}
                 >
-                  <img src={proxyImageUrl(img)} alt="" className="w-full h-full object-contain" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                  <img src={proxyImageUrl(img)} alt="" className="w-full h-full object-contain" referrerPolicy="no-referrer" onError={(e) => handleImageError(idx, e)} />
                 </button>
               ))}
             </div>

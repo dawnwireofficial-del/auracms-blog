@@ -54,14 +54,15 @@ export const ChatbotDrawer: React.FC<ChatbotDrawerProps> = ({
     setIsTyping(true);
 
     try {
-      // Call server API route `/api/ai/chat`
-      const res = await fetch('/api/ai/chat', {
+      const sessionId = sessionStorage.getItem('dw_chat_session') || crypto.randomUUID();
+      sessionStorage.setItem('dw_chat_session', sessionId);
+      const res = await fetch('/api/public/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: currentPrompt,
-          contextProductId: initialContextProduct?.id,
-          chatHistory: messages.slice(-6)
+          sessionId,
+          message: currentPrompt,
+          context: initialContextProduct ? { productSlug: initialContextProduct.slug } : undefined,
         })
       });
 
@@ -69,9 +70,9 @@ export const ChatbotDrawer: React.FC<ChatbotDrawerProps> = ({
       const botMsg: ChatMessage = {
         id: 'bot-' + Date.now(),
         sender: 'assistant',
-        text: data.text || "I found several products matching your criteria. Here are our top recommendations:",
+        text: data.response || data.text || "I found several products matching your criteria. Here are our top recommendations:",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        recommendedProducts: data.recommendedProducts || []
+        recommendedProducts: data.products || data.recommendedProducts || []
       };
 
       setMessages((prev) => [...prev, botMsg]);

@@ -384,7 +384,7 @@ export async function processBulkImport(jobId: string): Promise<BulkImportJob> {
             mapped.specs.video_url = productData.videoUrl;
           }
 
-          const created = await importProductReview({ ...mapped, uploadImages: true, slugSet });
+          const created = await importProductReview({ ...mapped, slugSet });
 
           if (adminToken) {
             await createCloakedLink(created.slug, created.product_name, directUrl, adminToken).catch(() => {});

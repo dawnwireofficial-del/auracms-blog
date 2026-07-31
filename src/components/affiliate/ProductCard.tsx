@@ -87,7 +87,7 @@ export default function ProductCard({
        {/* Image */}
        <a href={`/product/${product.slug || product.id}`} className="relative aspect-square bg-dw-section overflow-hidden">
          {product.productImage ? (
-            <img src={proxyImageUrl(product.productImage)} alt={product.productName} className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            <img src={proxyImageUrl(product.productImage)} alt={product.productName} className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" loading="lazy" onError={(e) => { const img = e.currentTarget; if (img.src.includes('/api/public/image-proxy')) { const m = img.src.match(/url=([^&]+)/); if (m) img.src = decodeURIComponent(m[1]); } else { (e.target as HTMLElement).style.display = 'none'; } }} />
          ) : (
            <div className="w-full h-full flex items-center justify-center text-dw-text-muted">
              <ShoppingBag className="h-12 w-12" />
@@ -160,7 +160,7 @@ export default function ProductCard({
     >
       <a href={`/product/${product.slug || product.id}`} className="w-32 h-32 shrink-0 bg-dw-section rounded-lg overflow-hidden flex items-center justify-center">
         {product.productImage ? (
-          <img src={proxyImageUrl(product.productImage)} alt={product.productName} className="w-full h-full object-contain p-2" referrerPolicy="no-referrer" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          <img src={proxyImageUrl(product.productImage)} alt={product.productName} className="w-full h-full object-contain p-2" referrerPolicy="no-referrer" loading="lazy" onError={(e) => { const img = e.currentTarget; if (img.src.includes('/api/public/image-proxy')) { const m = img.src.match(/url=([^&]+)/); if (m) img.src = decodeURIComponent(m[1]); } else { (e.target as HTMLElement).style.display = 'none'; } }} />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-dw-text-muted"><ShoppingBag className="h-8 w-8" /></div>
         )}

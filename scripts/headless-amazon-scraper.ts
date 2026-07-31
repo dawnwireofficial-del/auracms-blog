@@ -187,18 +187,7 @@ async function main() {
         specs: data.specifications || {},
       };
 
-      // Upload images to imgbb for permanent storage
-      if (IMGBB_KEY && product.product_image) {
-        const imgbbUrl = await uploadToImgBB(product.product_image);
-        if (imgbbUrl) {
-          console.log(`  Image uploaded to imgbb: ${imgbbUrl}`);
-          product.product_image = imgbbUrl;
-        }
-      }
-      if (IMGBB_KEY && Array.isArray(product.gallery) && product.gallery.length > 0) {
-        const uploaded = await Promise.all(product.gallery.map((u: string) => uploadToImgBB(u)));
-        product.gallery = uploaded.map((u: string | null, idx: number) => u || product.gallery[idx]);
-      }
+      // Images keep original Amazon CDN URLs (imgbb reserved for banners/profile images)
 
       console.log(`  ${product.product_name}`);
       console.log(`  Price: $${product.price}${product.original_price ? ` (was $${product.original_price})` : ''}`);

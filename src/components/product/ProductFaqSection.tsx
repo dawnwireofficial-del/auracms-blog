@@ -105,12 +105,13 @@ export const ProductFaqSection: React.FC<ProductFaqSectionProps> = ({
     setCustomAnswer(null);
 
     try {
-      const res = await fetch('/api/ai/chat', {
+      const res = await fetch('/api/public/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: `Answer this customer question about "${product.title}" (${product.brand}): ${customQuestion}. Be concise, factual, and helpful (2-3 sentences max).`,
-          contextProductId: product.id,
+          sessionId: 'faq-' + product.id,
+          message: `Answer this customer question about "${product.title}" (${product.brand}): ${customQuestion}. Be concise, factual, and helpful (2-3 sentences max).`,
+          context: { productSlug: product.slug },
         }),
       });
 

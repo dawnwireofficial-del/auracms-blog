@@ -290,9 +290,11 @@ export async function getProductAnalytics(days: number = 30): Promise<{
     }
 
     const products = ((reviews.data || []) as any[]).map(r => {
-      const reviewPath = `/review/${r.slug || r.id}`;
-      const views = viewCounts.get(reviewPath) || 0;
-      const clicks = clickCounts.get(reviewPath) || 0;
+      const slug = r.slug || r.id;
+      const reviewPath = `/review/${slug}`;
+      const productsPath = `/products/${slug}`;
+      const views = (viewCounts.get(reviewPath) || 0) + (viewCounts.get(productsPath) || 0);
+      const clicks = (clickCounts.get(reviewPath) || 0) + (clickCounts.get(productsPath) || 0);
       return {
         id: r.id,
         product_name: r.product_name,

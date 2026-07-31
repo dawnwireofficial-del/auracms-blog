@@ -91,29 +91,10 @@
         function fix(img) {
           if (!img || img.dataset.fallbackApplied) return;
           if (img.src && img.src.indexOf('m.media-amazon.com') !== -1) {
+            if (img.src.indexOf('/api/public/image-proxy') !== -1) return;
             img.dataset.fallbackApplied = '1';
             img.src = FALLBACK;
           }
-        }
-        function walk(node) {
-          if (node.nodeType === 1 && node.tagName === 'IMG') fix(node);
-          for (var i = 0; i < node.children.length; i++) walk(node.children[i]);
-        }
-        function init() {
-          walk(document.body);
-          var mo = new MutationObserver(function(records) {
-            for (var r = 0; r < records.length; r++) {
-              for (var n = 0; n < records[r].addedNodes.length; n++) {
-                if (records[r].addedNodes[n].nodeType === 1) walk(records[r].addedNodes[n]);
-              }
-            }
-          });
-          mo.observe(document.body, { childList: true, subtree: true });
-        }
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', init);
-        } else {
-          init();
         }
         window.addEventListener('error', function(e) {
           if (e.target && e.target.tagName === 'IMG') fix(e.target);

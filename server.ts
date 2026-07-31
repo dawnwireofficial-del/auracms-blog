@@ -8,6 +8,11 @@ const isProduction = process.env.NODE_ENV === 'production';
 const isVercel = !!process.env.VERCEL;
 const distPath = path.join(process.cwd(), 'dist');
 
+// Validate critical env vars at startup
+if (!process.env.AI_GATEWAY_API_KEY && !process.env.COHERE_API_KEY) {
+  console.warn('[Startup] WARNING: Neither AI_GATEWAY_API_KEY nor COHERE_API_KEY is set. All AI features (SEO optimization, article generation, sentiment analysis, FAQ generation, shopping assistant) will fail.');
+}
+
 // Static assets
 app.use(express.static(distPath));
 

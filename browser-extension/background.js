@@ -82,7 +82,7 @@ async function handleImport(data) {
   const res = await fetch(baseUrl + '/api/admin/seo/product-reviews/import', {
     method: 'POST',
     headers,
-    body: JSON.stringify(data)
+    body: JSON.stringify({ ...data })
   });
   const result = await res.json();
   if (!res.ok) throw new Error(result.error || 'HTTP ' + res.status);
