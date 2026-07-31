@@ -27,3 +27,6 @@ public/assets/
 # OS
 Thumbs.db
 Desktop.ini
+
+# Downloaded asset bundles not used by the app
+Hero Section/

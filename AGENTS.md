@@ -287,6 +287,19 @@ Complete Vike SSR migration, deploy to Vercel, and maintain the production site 
 - **Verified working in production**: AI shopping assistant (tool-calling with `search_products` returning real product citations), sentiment analysis (returns real percentages/summary/factors), FAQ generation (returns real Q&A JSON) — all on `www.dawnwire.com`
 - **Temporary debug error messages restored** to friendly user-facing copy
 
+### Session 10 — Product Image Placeholder Fix + imgbb Scope Correction (this session)
+- **Root cause of "Image unavailable" placeholders** — `index.html`'s pre-React script (from commit `4ba16a2`) ran a `MutationObserver` that replaced ANY `<img>` whose src contained `m.media-amazon.com` with a placeholder SVG — including images already routed through `/api/public/image-proxy` (the proxy URL still contains that domain in its query string). Result: every product image showed "Image unavailable" even though the proxy returned 200.
+- **Fix in `index.html`** — removed the DOM-walk + MutationObserver entirely; the script now only reacts to real `error` events and skips any image whose src contains `/api/public/image-proxy` (those are handled by component-level retry logic).
+- **Fix in `src/App.tsx`** — the React global capture-phase image error handler now also skips proxied images (`!(img.src || '').includes('/api/public/image-proxy')`), so it can't clobber component fallbacks (e.g., ProductCard/ProductDetailPage retry with the raw URL).
+- **imgbb scope corrected** — imgbb is now used ONLY for banners and profile images via `POST /api/admin/upload-image` (`api/routes/admin.ts:290`). It is NOT used for imported product images. Removed `uploadImages: true` from:
+  - `browser-extension/background.js:85` and `browser-extension/content.js:45` (extension import)
+  - `server/bulk-importer.ts:387` (bulk import)
+  - `scripts/headless-amazon-scraper.ts` (removed imgbb upload block; products keep original Amazon CDN URLs)
+- **`.env.example`** — IMGBB_API_KEY docs updated to say "banner/profile image storage", not product import
+- **`IMGBB_API_KEY`** env var set in Vercel production + local `.env` (key `467debc656646bc3b9b530339ca31161`)
+- **Verified in production**: all 20 gallery images of the Beauty of Joseon product return `200 image/jpeg` through `/api/public/image-proxy`; AI endpoints re-verified: `/api/public/chat` (returns product cards), `/api/ai/sentiment` (real percentages/summary), `/api/ai/faq` (real Q&A JSON) — all on `www.dawnwire.com`
+- Committed `38d0a9a` and deployed to production
+
 ### Key design decisions
 - **PA-API 5.0 only** — No scraping. Uses official Amazon Product Advertising API with proper SigV4 authentication.
 - **ASIN is primary identifier** — Extracted from affiliate URLs on initialization, stored in both `product_reviews.asin` and `amazon_sync_status.asin`.

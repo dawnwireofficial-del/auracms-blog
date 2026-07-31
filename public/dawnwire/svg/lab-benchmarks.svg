@@ -12,7 +12,7 @@
   <text x="28" y="43" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="700" fill="#41577F">Lab Benchmarks</text>
   <text x="28" y="92" font-family="Inter,Arial,sans-serif" font-size="39" font-weight="800" fill="#453EB3">98%</text>
   <text x="28" y="119" font-family="Inter,Arial,sans-serif" font-size="14" font-weight="600" fill="#6E7FA2">Accuracy Rate</text>
-  <g class="flask"><circle cx="292" cy="70" r="23" fill="#F7F5FF" stroke="#FFFFFF"/><path d="M284 56h16l-6 14v18c0 4-3 7-7 7s-7-3-7-7V70z" fill="none" stroke="#8A5CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path class="wave" d="M282 82h20l2 4c1 2-1 4-4 4h-16c-3 0-5-2-4-4z" fill="url(#liquid)" opacity=".75"/></g>
+  <g class="flask"><circle cx="292" cy="70" r="23" fill="#F7F5FF" stroke="#FFFFFF"/><path d="M289 48h6v12c5 4 7 8 7 15 2 6 3 10 3 13 0 4-3 5-8 5h-10c-5 0-8-1-8-5 0-3 1-7 3-13 0-7 2-11 7-15V48z" fill="none" stroke="#8A5CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path class="wave" d="M282 82h20l2 4c1 2-1 4-4 4h-16c-3 0-5-2-4-4z" fill="url(#liquid)" opacity=".75"/></g>
   <path class="line" d="M30 171L56 151 78 164 104 139 126 157 151 128 176 145 198 119 224 142 250 112 276 128 308 99" fill="none" stroke="#8A5CFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
   <g fill="#FFFFFF" stroke="#8A5CFF" stroke-width="3"><circle cx="30" cy="171" r="4.5"/><circle cx="104" cy="139" r="4.5"/><circle cx="176" cy="145" r="4.5"/><circle cx="250" cy="112" r="4.5"/><circle cx="308" cy="99" r="4.5"/></g>
 </svg>
