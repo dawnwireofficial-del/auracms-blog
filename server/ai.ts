@@ -1,51 +1,78 @@
-const COHERE_API_KEY = process.env.COHERE_API_KEY || '';
-const COHERE_API = 'https://api.cohere.com/v1/chat';
-const COHERE_MODEL = process.env.COHERE_MODEL || 'command-r-plus-08-2024';
+import { generateText } from 'ai';
+import { createCohere } from '@ai-sdk/cohere';
 
-interface CohereV1Response {
-  text?: string;
-  error?: string;
-  message?: string;
+const AI_GATEWAY_API_KEY = process.env.AI_GATEWAY_API_KEY || '';
+const AI_GATEWAY_BASE_URL = process.env.AI_GATEWAY_BASE_URL || 'https://api.cohere.ai/v2';
+const AI_GATEWAY_MODEL = process.env.AI_GATEWAY_MODEL || 'command-r-plus-08-2024';
+
+function normalizeCohereResponse(body: string): string {
+  try {
+    const parsed = JSON.parse(body);
+    const citations = parsed?.message?.citations;
+    if (Array.isArray(citations)) {
+      for (const citation of citations) {
+        if (!Array.isArray(citation?.sources)) continue;
+        for (const source of citation.sources) {
+          if (source && typeof source === 'object' && !source.document) {
+            source.document = {
+              text: JSON.stringify(source.tool_output ?? source.text ?? ''),
+              title: (source.type === 'tool' ? 'Tool' : 'Document') || 'Document',
+            };
+          }
+        }
+      }
+      return JSON.stringify(parsed);
+    }
+  } catch {
+    // not JSON or unexpected shape — return as-is
+  }
+  return body;
+}
+
+function getClient() {
+  if (!AI_GATEWAY_API_KEY) throw new Error('AI_GATEWAY_API_KEY not configured. Set it in Vercel environment variables.');
+  const opts: Record<string, any> = {
+    apiKey: AI_GATEWAY_API_KEY,
+    fetch: async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+      const res = await fetch(input, init);
+      if (!res.ok) return res;
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) return res;
+      const text = await res.text();
+      const normalized = normalizeCohereResponse(text);
+      if (normalized === text) return new Response(text, { status: res.status, headers: res.headers });
+      return new Response(normalized, { status: res.status, headers: res.headers });
+    },
+  };
+  if (AI_GATEWAY_BASE_URL) opts.baseURL = AI_GATEWAY_BASE_URL;
+  return createCohere(opts);
+}
+
+function getModel() {
+  return getClient()(AI_GATEWAY_MODEL);
 }
 
 export async function cohereChat(promptText: string, system?: string): Promise<string> {
-  if (!COHERE_API_KEY) throw new Error('COHERE_API_KEY not configured. To use this feature, set the COHERE_API_KEY environment variable.');
-  const chatHistory: { role: string; message: string }[] = [];
-  if (system) chatHistory.push({ role: 'SYSTEM', message: system });
-  chatHistory.push({ role: 'USER', message: promptText });
+  if (!AI_GATEWAY_API_KEY) throw new Error('AI_GATEWAY_API_KEY not configured. To use this feature, set the AI_GATEWAY_API_KEY environment variable.');
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 20000);
-  let res: Response;
   try {
-    res = await fetch(COHERE_API, {
-      method: 'POST',
-      signal: controller.signal,
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${COHERE_API_KEY}` },
-      body: JSON.stringify({
-        model: COHERE_MODEL,
-        message: promptText,
-        chat_history: chatHistory.slice(0, -1),
-        preamble: system ? system : undefined,
-        stream: false,
-        max_tokens: 1200,
-        temperature: 0.7,
-      }),
+    const result = await generateText({
+      model: getModel(),
+      prompt: promptText,
+      system,
+      maxOutputTokens: 1200,
+      temperature: 0.7,
+      abortSignal: controller.signal,
     });
+    clearTimeout(timeoutId);
+    return result.text?.trim() || '';
   } catch (e: any) {
     clearTimeout(timeoutId);
-    if (e.name === 'AbortError') throw new Error('Cohere API request timed out. Try again or check your API key.', { cause: e });
-    throw new Error('Cohere API request failed', { cause: e });
+    if (e.name === 'AbortError') throw new Error('AI Gateway request timed out. Try again or check your API key.', { cause: e });
+    throw new Error('AI Gateway request failed: ' + (e.message || 'Unknown error'), { cause: e });
   }
-  clearTimeout(timeoutId);
-  const data: CohereV1Response = await res.json();
-  if (!res.ok) {
-    const errMsg = data.error || data.message || `Cohere HTTP ${res.status}`;
-    throw new Error(errMsg);
-  }
-  const content = data.text || '';
-  if (!content) throw new Error('Cohere returned an empty response');
-  return content.trim();
 }
 
 export async function generateProductVerdict(productInfo: string): Promise<string> {

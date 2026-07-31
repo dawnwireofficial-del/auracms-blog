@@ -15,14 +15,17 @@
     "lint:es": "eslint ."
   },
   "dependencies": {
+    "@ai-sdk/cohere": "^4.0.16",
+    "@ai-sdk/openai": "^4.0.24",
     "@google/genai": "^2.4.0",
     "@supabase/supabase-js": "^2.108.2",
     "@tailwindcss/postcss": "^4.3.2",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
+    "ai": "^7.0.42",
     "bcryptjs": "^3.0.3",
     "compression": "^1.8.1",
-    "dotenv": "^17.2.3",
+    "dotenv": "^17.4.2",
     "express": "^4.21.2",
     "express-rate-limit": "^8.6.0",
     "firebase": "^12.16.0",
@@ -37,7 +40,8 @@
     "recharts": "^3.9.2",
     "resend": "^6.16.0",
     "vike": "^0.4.260",
-    "vike-react": "^0.6.25"
+    "vike-react": "^0.6.25",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

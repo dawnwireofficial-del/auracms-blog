@@ -271,6 +271,22 @@ Complete Vike SSR migration, deploy to Vercel, and maintain the production site 
 - **Headless Amazon scraper**: `scripts/headless-amazon-scraper.ts` — standalone Playwright script for VPS/cron. Accepts `--asins`, `--urls`, `--file`. Full DOM extraction (name, brand, price, gallery, specs, features, deals, coupons). Supports imgbb upload, batch processing (5/batch), dry-run mode.
 - **All changes committed** in `f590850` and pushed to Vercel for deployment.
 
+### Session 9 — AI Gateway Migration, TS Errors Fixed, production deployment (this session)
+- **`AI_GATEWAY_API_KEY` env var** added to Vercel production env; `.env.example` docs updated
+- **AI SDK v7 API fixes**: `maxTokens` → `maxOutputTokens` (renamed in AI SDK v7), `maxSteps` → `stopWhen: isStepCount(n)` (controlled via `stopWhen` callback), `parameters` → `inputSchema` (schema property renamed), tool results via `result.toolResults[i].output` (not `tc.result`)
+- **7 tool execute function signatures** fixed with explicit `any` types to match AI SDK v7 `tool()` overload resolution
+- **Zero TypeScript errors** in both local build and Vercel build
+- **Deployed** to `www.dawnwire.com` with all AI features routed through AI Gateway
+
+### Session 9b — Cohere Provider Fix (this session)
+- **`@ai-sdk/cohere` installed** (v4.0.16) replacing `@ai-sdk/openai` — Cohere key doesn't work with OpenAI-format provider
+- **Base URL fixed to `https://api.cohere.ai/v2`** — Cohere v1 `/chat` expects `message` (singular), but AI SDK sends `messages` (plural) which requires v2; shopping assistant was failing with "message must be at least 1 token long"
+- **Default model**: `command-r-plus-08-2024`
+- **Valid Cohere API key set** in Vercel (was invalid key ending `...ersr`, replaced with working key)
+- **Root cause found for "Invalid JSON response"** — Cohere v2 returns tool-citation sources as `{type:"tool", id, tool_output}` with NO `document` field, but `@ai-sdk/cohere`'s `cohereChatResponseSchema` requires `citations.sources[].document`. When a tool returns real product data, the model cites it, and the response fails schema validation → `AI_APICallError: Invalid JSON response`. Fixed by wrapping `createCohere({ fetch })` in both `server/ai.ts` and `server/ai-shopping-assistant.ts`: the wrapper re-parses JSON responses and injects a synthetic `document: { text, title }` into any citation source missing one.
+- **Verified working in production**: AI shopping assistant (tool-calling with `search_products` returning real product citations), sentiment analysis (returns real percentages/summary/factors), FAQ generation (returns real Q&A JSON) — all on `www.dawnwire.com`
+- **Temporary debug error messages restored** to friendly user-facing copy
+
 ### Key design decisions
 - **PA-API 5.0 only** — No scraping. Uses official Amazon Product Advertising API with proper SigV4 authentication.
 - **ASIN is primary identifier** — Extracted from affiliate URLs on initialization, stored in both `product_reviews.asin` and `amazon_sync_status.asin`.
