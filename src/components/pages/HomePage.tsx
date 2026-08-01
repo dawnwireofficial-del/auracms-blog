@@ -58,9 +58,9 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
   };
 
   return (
-    <div className="bg-body-bg">
-      {/* Sticky Mobile CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-200 p-3 md:hidden flex items-center gap-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+    <div className="bg-body-bg dark:bg-zinc-950">
+      {/* Sticky Mobile CTA (sits above bottom nav) */}
+      <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 p-3 md:hidden flex items-center gap-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
         <span className="text-xs text-text/60 flex-1 leading-tight">
           <span className="font-bold text-primary">Top Pick:</span>{' '}
           {topPick ? (topPick.product_name || topPick.productName || 'Top Product')?.substring(0, 30) + '...' : 'Product Reviews'}
@@ -94,7 +94,7 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
                   <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary2">Technology Growth Platform</span>
                 </div>
 
-                <h1 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-white leading-tight tracking-tight">
+                <h1 className="font-display font-bold text-[28px] sm:text-4xl md:text-5xl lg:text-6xl text-white leading-tight tracking-tight">
                   Amazon Product Reviews<br />
                   &amp; <span className="dw-gradient-text">AI-Powered Buying Guides</span>
                 </h1>
@@ -213,11 +213,11 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
         </ScrollReveal>
 
         {/* Bottom fade transition */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-body-bg to-transparent pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-body-bg dark:from-zinc-950 to-transparent pointer-events-none" />
       </section>
 
       {/* ============ 2. PROOF BAR — IT Tech stats bar ============ */}
-      <section className="relative -mt-1 bg-body-bg">
+      <section className="relative -mt-1 bg-body-bg dark:bg-zinc-950">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10">
           <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {[
@@ -538,7 +538,7 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
       </ScrollReveal>
 
       {/* ============ 4. WHY DAWNWIRE — IT Tech About section ============ */}
-      <section className="py-16 md:py-20 bg-body-bg">
+      <section className="py-16 md:py-20 bg-body-bg dark:bg-zinc-950">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
             <div className="relative">
@@ -749,8 +749,8 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
         </div>
       </ScrollReveal>
 
-      {/* Spacer for mobile sticky CTA */}
-      <div className="h-16 md:hidden" />
+      {/* Spacer for mobile sticky CTA + bottom nav */}
+      <div className="h-24 md:hidden" />
     </div>
   );
 }

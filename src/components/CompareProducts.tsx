@@ -257,7 +257,7 @@ function CompareDrawer({
           initial={prefersReduced ? {} : { y: 100, opacity: 0 }}
           animate={prefersReduced ? {} : { y: 0, opacity: 1 }}
           exit={prefersReduced ? {} : { y: 100, opacity: 0 }}
-          className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-zinc-950 border-t border-slate-200 dark:border-zinc-700/60 shadow-2xl backdrop-blur-lg bg-white/95 dark:bg-zinc-950/95 p-3 md:p-4"
+          className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 right-0 z-40 bg-white dark:bg-zinc-950 border-t border-slate-200 dark:border-zinc-700/60 shadow-2xl backdrop-blur-lg bg-white/95 dark:bg-zinc-950/95 p-3 md:p-4"
         >
           <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">

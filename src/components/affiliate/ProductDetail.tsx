@@ -280,8 +280,8 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
               stores={product.alternativeStores} 
             />
 
-            {/* Mobile Sticky CTA */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-700 p-3 lg:hidden z-40 flex items-center gap-3">
+            {/* Mobile Sticky CTA (sits above bottom nav on mobile) */}
+            <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-700 p-3 lg:hidden z-40 flex items-center gap-3">
               <div className="flex-1">
                 <span className="text-lg font-bold text-slate-800 dark:text-zinc-100">${price.toFixed(2)}</span>
                 {hasDiscount && <span className="text-xs text-slate-400 line-through ml-1">${origPrice.toFixed(2)}</span>}
@@ -447,6 +447,8 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
           </div>
         )}
       </div>
+      {/* Spacer for mobile sticky CTA + bottom nav */}
+      <div className="h-24 md:hidden" />
     </div>
   );
 }

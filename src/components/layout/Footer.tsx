@@ -37,7 +37,7 @@ export const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="bg-[#0A1F44] text-slate-300 pt-16 pb-24 md:pb-12 border-t border-slate-800">
+    <footer className="bg-[#0A1F44] text-slate-300 pt-16 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-12 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4">
         {/* Top Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800">
@@ -71,12 +71,12 @@ export const Footer: React.FC = () => {
                       disabled={isSubmitting}
                       onChange={(e) => setEmail(e.target.value)}
                       autoComplete="email"
-                      className="bg-slate-900 text-sm text-white px-3.5 py-2.5 rounded-xl border border-slate-700 outline-none focus:border-amber-400 flex-1 placeholder-slate-500 disabled:opacity-50"
+                      className="bg-slate-900 text-sm text-white px-3.5 py-2.5 rounded-xl border border-slate-700 outline-none focus:border-amber-400 flex-1 min-w-0 placeholder-slate-500 disabled:opacity-50"
                     />
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+                      className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs transition-colors disabled:opacity-50 flex items-center gap-1.5 shrink-0 whitespace-nowrap"
                     >
                       {isSubmitting ? (
                         <>
@@ -105,7 +105,7 @@ export const Footer: React.FC = () => {
               Explore Products
             </h4>
             <ul className="space-y-2.5 text-xs text-slate-300">
-               <li><a href="/products" className="hover:text-amber-400 transition-colors">All Products (/products)</a></li>
+               <li><a href="/products" className="hover:text-amber-400 transition-colors">All Products</a></li>
                <li><a href="/deals" className="hover:text-amber-400 transition-colors text-orange-400 font-bold">Today's Amazon Deals</a></li>
                <li><a href="/products?sort=rating" className="hover:text-amber-400 transition-colors">Best Sellers & Editors' Picks</a></li>
                <li><a href="/deals" className="hover:text-amber-400 transition-colors">Trending Products</a></li>
@@ -121,8 +121,8 @@ export const Footer: React.FC = () => {
               Editorial Content
             </h4>
             <ul className="space-y-2.5 text-xs text-slate-300">
-               <li><a href="/reviews" className="hover:text-amber-400 transition-colors">Expert Reviews (/reviews)</a></li>
-               <li><a href="/guides" className="hover:text-amber-400 transition-colors">Buying Guides (/guides)</a></li>
+               <li><a href="/reviews" className="hover:text-amber-400 transition-colors">Expert Reviews</a></li>
+               <li><a href="/guides" className="hover:text-amber-400 transition-colors">Buying Guides</a></li>
                <li><a href="/about" className="hover:text-amber-400 transition-colors">How We Review</a></li>
                <li><a href="/about" className="hover:text-amber-400 transition-colors">Editorial Policy</a></li>
                <li><a href="/about" className="hover:text-amber-400 transition-colors">Corrections Policy</a></li>

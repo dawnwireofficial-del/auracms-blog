@@ -409,7 +409,7 @@ export function App() {
         }}
       />
 
-      <main id="main-content" className="flex-1 pb-16 md:pb-0">
+      <main id="main-content" className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
         {renderRoute()}
       </main>
 
@@ -423,7 +423,7 @@ export function App() {
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 1, type: 'spring', stiffness: 260, damping: 20 }}
-        className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-40 flex items-center gap-3"
+        className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-6 right-4 sm:right-6 z-40 flex items-center gap-3"
       >
         <motion.button
           whileHover={{ scale: 1.08 }}

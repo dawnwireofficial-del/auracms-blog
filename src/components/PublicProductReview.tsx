@@ -1102,7 +1102,7 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
         initial={prefersReduced ? {} : { y: 100 }}
         animate={prefersReduced ? {} : { y: 0 }}
         transition={prefersReduced ? {} : { delay: 1, type: 'spring', stiffness: 200 }}
-        className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-zinc-950 border-t border-slate-200 dark:border-zinc-700/60 shadow-2xl backdrop-blur-lg bg-white/95 dark:bg-zinc-950/95 p-3 md:p-4"
+        className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 right-0 z-40 bg-white dark:bg-zinc-950 border-t border-slate-200 dark:border-zinc-700/60 shadow-2xl backdrop-blur-lg bg-white/95 dark:bg-zinc-950/95 p-3 md:p-4"
         style={{ willChange: prefersReduced ? 'auto' : 'transform' }}
       >
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
@@ -1137,7 +1137,7 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
         </div>
       </motion.div>
 
-      <div className="h-20" />
+      <div className="h-28 md:h-20" />
     </>
   );
 }

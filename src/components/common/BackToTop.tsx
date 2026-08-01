@@ -15,7 +15,7 @@ export const BackToTop: React.FC = () => {
   return (
     <button
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      className="fixed bottom-24 right-6 z-40 p-3 rounded-2xl bg-[#246BFF] text-white shadow-2xl hover:bg-[#1A5AD6] transition-all border border-blue-400/30"
+      className="fixed bottom-36 right-6 z-40 p-3 rounded-2xl bg-[#246BFF] text-white shadow-2xl hover:bg-[#1A5AD6] transition-all border border-blue-400/30 md:bottom-24"
       aria-label="Back to top"
     >
       <ChevronUp className="w-5 h-5" />

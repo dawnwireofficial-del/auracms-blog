@@ -954,7 +954,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       </AnimatePresence>
 
       {/* Mobile Bottom Sticky Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 p-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-30 shadow-2xl flex items-center justify-between gap-3">
+      <div className="lg:hidden fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 right-0 p-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-40 shadow-2xl flex items-center justify-between gap-3">
         <div>
           <span className="text-xs font-bold text-slate-500 block truncate max-w-[150px]">{product.title}</span>
             <span className="text-base font-black text-amazon-orange">${product.currentPrice && !isNaN(Number(product.currentPrice)) ? Number(product.currentPrice).toFixed(2) : 'Check Amazon'}</span>
