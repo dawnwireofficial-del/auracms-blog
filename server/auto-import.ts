@@ -277,6 +277,9 @@ export async function generateSeoForProduct(product: any): Promise<ProductSeo> {
   fallback.seo_keywords = [title, brand, category, 'review', 'buying guide', 'best ' + category].filter(Boolean);
   fallback.best_for = category || `Best ${title.split(' ')[0] || 'Product'} Pick`;
   fallback.editor_score = Number(rating) ? Math.min(10, Math.max(1, Math.round(Number(rating) * 2 * 2) / 2)) : 8.5;
+  fallback.final_verdict = `The ${title}${brand ? ` by ${brand}` : ''} delivers ${Number(rating) >= 4.5 ? 'outstanding' : Number(rating) >= 4 ? 'solid' : 'mixed'} performance for its price${price ? ` of $${price}` : ''}. It is best suited for shoppers looking for a dependable ${category || 'everyday'} option — strong value for money overall, with minor trade-offs in the areas our full review highlights.`;
+  fallback.pros = ['Great value for money', 'Reliable build quality', 'Strong overall performance'];
+  fallback.cons = ['May not suit every preference', 'Check our full review for trade-offs'];
 
   try {
     const systemPrompt = 'You are a senior SEO and affiliate content strategist for DawnWire (dawnwire.com). Return strict, raw JSON only. No markdown, no commentary.';
@@ -399,7 +402,7 @@ export async function autoProcessProduct(productId: string): Promise<AutoProcess
         changes.push('final_verdict generated');
       }
       if (typeof seo.editor_score === 'number' && !product.editor_score) {
-        updates.editor_score = seo.editor_score;
+        updates.editor_score = Math.round(seo.editor_score);
         changes.push('editor_score generated');
       }
       if (seo.review_summary && !product.review_summary) {
@@ -418,7 +421,24 @@ export async function autoProcessProduct(productId: string): Promise<AutoProcess
     } catch { /* AI unavailable — keep existing */ }
 
     if (Object.keys(updates).length > 0) {
-      await sb.from('product_reviews').update({ ...updates, updated_at: new Date().toISOString() }).eq('id', productId);
+      const { error: updateError } = await sb.from('product_reviews').update({ ...updates, updated_at: new Date().toISOString() }).eq('id', productId);
+      if (updateError) {
+        console.warn('[autoProcess] bulk update failed, retrying per-column:', updateError.message);
+        // Schema/type mismatch — apply each field independently so one bad column
+        // doesn't block the rest (mirrors updateProductReview fallback).
+        const safe: Record<string, any> = {};
+        for (const [key, value] of Object.entries(updates)) {
+          const retry = await sb.from('product_reviews').update({ [key]: value, updated_at: new Date().toISOString() }).eq('id', productId).select();
+          if (!retry.error) {
+            safe[key] = value;
+          } else {
+            console.warn(`[autoProcess] column "${key}" rejected value`, JSON.stringify(value), '->', retry.error.message);
+          }
+        }
+        if (Object.keys(safe).length > 0) {
+          await sb.from('product_reviews').update({ ...safe, updated_at: new Date().toISOString() }).eq('id', productId);
+        }
+      }
     }
 
     return {
