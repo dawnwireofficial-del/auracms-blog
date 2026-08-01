@@ -300,6 +300,21 @@ Complete Vike SSR migration, deploy to Vercel, and maintain the production site 
 - **Verified in production**: all 20 gallery images of the Beauty of Joseon product return `200 image/jpeg` through `/api/public/image-proxy`; AI endpoints re-verified: `/api/public/chat` (returns product cards), `/api/ai/sentiment` (real percentages/summary), `/api/ai/faq` (real Q&A JSON) — all on `www.dawnwire.com`
 - Committed `38d0a9a` and deployed to production
 
+### Session — Automated Import Pipeline (this session)
+- **`server/auto-import.ts`** — Fully automated import enrichment so no product needs manual editing to go live:
+  - `detectBrandForProduct()` — uses `brand` field, else extracts from product name prefix (2-word heuristic, skips generic lead words), normalizes, auto-creates brand row via `ensureBrandForProduct`
+  - `detectCategoryForProduct()` — signals in priority order: breadcrumb `category` → Amazon `bsrDetail[].category` → `bestSellersRank` → spec `details.department`; word-overlap scoring vs existing categories; **auto-creates a missing category** (word-level matched, never from `best_for` badge values); returns `best_for` badge
+  - `generateSeoForProduct()` — Cohere AI (via `cohereChat`) generates `seo_title`, `seo_description`, `seo_keywords`, `best_for`, `final_verdict`, `editor_score`, `review_summary`, `pros`, `cons`; deterministic heuristic fallback if AI unavailable (editor_score = rating 0-5 → 0-10 scale)
+  - `autoProcessProduct(id)` — orchestrates brand + category + AI SEO; **never overwrites existing editorial/SEO fields** (only fills missing); returns change list
+  - `autoProcessAllProducts(limit, onlyMissing)` — backfill published products missing category/SEO
+- **Wired into `importProductReview`** (`server/seo-engine.ts`) — after insert, if no category resolved, runs `detectCategoryForProduct` smart fallback (BSR/department/breadcrumb + auto-create) and updates `category_id`/`best_for`
+- **Fixed `createCategory`/`updateCategory` schema bug** (`server/db/supabase-db.ts`) — removed non-existent `image` column from insert/update payloads (was 500 on every category creation, would have broken auto-create)
+- **New admin endpoints** (`api/routes/seo.ts`): `POST /product-reviews/auto-process/:id`, `POST /product-reviews/bulk-auto-process` (limit 1-100, `onlyMissing` flag)
+- **Extension integration** (`browser-extension/background.js`) — auto-process called after new import AND after duplicate update; result surfaced as `autoProcessed` in return payload
+- **Bulk importer** (`server/bulk-importer.ts`) — `autoProcessProduct()` called after each created row
+- **Live-verified on `www.dawnwire.com`**: test imports → brand row auto-created, category_id set (matched existing "Beauty & Personal Care", auto-created "Body Oils"/"Face Moisturizers"/"Facial Cleansers"), AI SEO (title/description/keywords/verdict/score/pros/cons) persisted and visible via public slug endpoint; editor_score scale fixed (4.8/5 → 9.5); all test rows + brands + categories cleaned up
+- Committed `81f214a` + `46a1cff` and deployed to production
+
 ### Key design decisions
 - **PA-API 5.0 only** — No scraping. Uses official Amazon Product Advertising API with proper SigV4 authentication.
 - **ASIN is primary identifier** — Extracted from affiliate URLs on initialization, stored in both `product_reviews.asin` and `amazon_sync_status.asin`.
