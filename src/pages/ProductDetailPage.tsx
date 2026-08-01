@@ -727,16 +727,38 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             <span>⚙️ Technical Specifications & Build Specs</span>
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {Object.entries(product.specifications || {}).filter(([k, v]) => !['gallery', 'video_url', 'videoUrl', 'asin', 'source', 'details', 'reviews', 'review_stats', 'review_highlights', 'best_sellers_rank_detail', 'variations', 'ingredients'].includes(k) && (typeof v === 'string' || typeof v === 'number')).map(([key, val]) => {
-              const { display, isLong } = safeSpecValue(val);
-              if (!display) return null;
-              return (
-                <div key={key} className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/60 dark:border-slate-700/60">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block break-words">{key === 'listPrice' ? 'List Price' : key === 'savings' ? 'Savings' : key.replace(/_/g, ' ')}</span>
-                  <span className="text-sm font-bold text-slate-900 dark:text-slate-100 break-words">{isLong ? display.substring(0, 80) + '…' : display}</span>
-                </div>
-              );
-            })}
+            {(() => {
+              const EXCLUDED = ['gallery', 'video_url', 'videoUrl', 'asin', 'source', 'reviews', 'review_stats', 'review_highlights', 'best_sellers_rank_detail', 'variations', 'ingredients'];
+              const entries: [string, unknown][] = [];
+              const raw = product.specifications || {};
+              for (const [k, v] of Object.entries(raw)) {
+                if (EXCLUDED.includes(k)) continue;
+                if (v && typeof v === 'object' && !Array.isArray(v)) {
+                  for (const [sk, sv] of Object.entries(v as any)) {
+                    if (typeof sv === 'string' || typeof sv === 'number') entries.push([`${k}.${sk}`, sv]);
+                  }
+                } else if (typeof v === 'string' || typeof v === 'number') {
+                  entries.push([k, v]);
+                }
+              }
+              return entries.map(([key, val]) => {
+                const { display, isLong } = safeSpecValue(val);
+                if (!display) return null;
+                const label = key === 'listPrice' ? 'List Price'
+                  : key === 'savings' ? 'Savings'
+                  : key === 'details.manufacturer' ? 'Manufacturer'
+                  : key === 'details.bestSellersRank' ? 'Best Sellers Rank'
+                  : key === 'details.item_model_number' ? 'Item Model Number'
+                  : key === 'details.product_dimensions' ? 'Product Dimensions'
+                  : key.replace(/^details\./, '').replace(/_/g, ' ');
+                return (
+                  <div key={key} className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/60 dark:border-slate-700/60">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block break-words">{label}</span>
+                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100 break-words">{isLong ? display.substring(0, 80) + '…' : display}</span>
+                  </div>
+                );
+              });
+            })()}
           </div>
         </div>
 

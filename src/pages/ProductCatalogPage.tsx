@@ -96,11 +96,20 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
     return ids;
   };
   const selectedCategoryIds = selectedCategory !== 'all' ? getCategoryIds(selectedCategory) : null;
+  const selectedCategoryName = selectedCategory !== 'all'
+    ? categories.find(c => c.id === selectedCategory)?.name || ''
+    : '';
 
   // Filter Logic
   let filtered = products.filter((p) => {
-    if (selectedCategoryIds && (!p.categoryId || !selectedCategoryIds.includes(p.categoryId))) {
-      return false;
+    if (selectedCategoryIds) {
+      // Primary: category_id membership (including descendants)
+      const byCategory = p.categoryId && selectedCategoryIds.includes(p.categoryId);
+      // Fallback: word-level best_for / brand / name matching against the category name
+      const nameWords = selectedCategoryName.toLowerCase().split(/[^a-z0-9+]+/).filter(w => w.length > 1);
+      const haystack = `${p.bestFor || ''} ${p.brand || ''} ${p.title || ''}`.toLowerCase();
+      const byBestFor = nameWords.length > 0 && nameWords.some(w => haystack.includes(w));
+      if (!byCategory && !byBestFor) return false;
     }
     if (searchQuery.trim() && !p.title.toLowerCase().includes(searchQuery.toLowerCase()) && !p.brand.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
