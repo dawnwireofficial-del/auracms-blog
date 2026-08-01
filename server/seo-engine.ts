@@ -280,9 +280,22 @@ export async function createProductReview(review: any, slugSet?: Set<string> | n
     while (usedSet.has(`${slug}-${counter}`)) counter++;
     slug = `${slug}-${counter}`;
   }
-  const reviewToInsert = { id: review.id || crypto.randomUUID(), ...review, slug, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+  const reviewToInsert: any = { id: review.id || crypto.randomUUID(), ...review, slug, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
   if (reviewToInsert.review_summary) {
     reviewToInsert.review_summary = sanitizeReviewSummary(reviewToInsert.review_summary);
+  }
+  // Images array -> product_image + gallery
+  if (Array.isArray(reviewToInsert.images)) {
+    const imgs = reviewToInsert.images.filter((u: any) => u && typeof u === 'string');
+    reviewToInsert.product_image = imgs[0] || reviewToInsert.product_image || null;
+    reviewToInsert.gallery = imgs;
+    delete reviewToInsert.images;
+  }
+  // mainCategory (category NAME) -> category_id lookup
+  if (reviewToInsert.mainCategory) {
+    const catId = await findCategoryIdByName(String(reviewToInsert.mainCategory));
+    if (catId) reviewToInsert.category_id = catId;
+    delete reviewToInsert.mainCategory;
   }
   // Auto-detect/link brand
   const brandId = await ensureBrandForProduct(reviewToInsert.brand);
@@ -331,15 +344,49 @@ const PRODUCT_CAMEL_TO_SNAKE: Record<string, string> = {
   categoryId: 'category_id',
 };
 
+async function findCategoryIdByName(name: string): Promise<string | null> {
+  if (!name) return null;
+  const sb = await getClient();
+  const slug = slugify(name);
+  const bySlug = await sb.from('categories').select('id').eq('slug', slug).limit(1);
+  if (bySlug.data?.[0]?.id) return bySlug.data[0].id;
+  const byName = await sb.from('categories').select('id').ilike('name', name).limit(1);
+  if (byName.data?.[0]?.id) return byName.data[0].id;
+  const byExact = await sb.from('categories').select('id').eq('name', name).limit(1);
+  return byExact.data?.[0]?.id || null;
+}
+
 export async function updateProductReview(id: string, updates: any): Promise<any> {
   const sb = await getClient();
   const payload: any = { updated_at: new Date().toISOString() };
   for (const [key, value] of Object.entries(updates)) {
+    if (key === 'images' || key === 'mainCategory') continue;
     if (KNOWN_PRODUCT_REVIEW_COLUMNS.has(key)) {
       payload[key] = value;
     } else if (PRODUCT_CAMEL_TO_SNAKE[key]) {
       payload[PRODUCT_CAMEL_TO_SNAKE[key]] = value;
     }
+  }
+  // Images array -> product_image + gallery (also strip stale gallery from specs)
+  if (Array.isArray(updates.images)) {
+    const imgs = updates.images.filter((u: any) => u && typeof u === 'string');
+    payload.product_image = imgs[0] || null;
+    payload.gallery = imgs;
+    if (payload.specs && typeof payload.specs === 'object') {
+      const cleanSpecs: any = { ...payload.specs };
+      delete cleanSpecs.gallery;
+      payload.specs = cleanSpecs;
+    }
+  }
+  // mainCategory (category NAME from dashboard) -> category_id lookup
+  if (updates.mainCategory) {
+    const catId = await findCategoryIdByName(String(updates.mainCategory));
+    if (catId) payload.category_id = catId;
+  }
+  // brand -> ensure a brand row exists (feeds "Shop by Brand") + link brand_id
+  if (updates.brand) {
+    const brandId = await ensureBrandForProduct(updates.brand);
+    if (brandId) payload.brand_id = brandId;
   }
   if (payload.review_summary) {
     payload.review_summary = sanitizeReviewSummary(payload.review_summary);

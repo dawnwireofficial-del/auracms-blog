@@ -521,10 +521,15 @@ router.post('/amazon-sync/trigger-cycle', authenticate, requireRole(['super_admi
 router.get('/product-reviews', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
   try {
     const all = await seo.getProductReviews();
+    const cats = await dbInstance.getCategories();
+    const catNameById = new Map(cats.map((c: any) => [c.id, c.name]));
     const limit = Math.min(parseInt(req.query.limit as string) || 500, 1000);
     const offset = parseInt(req.query.offset as string) || 0;
     const total = all.length;
-    const items = all.slice(offset, offset + limit);
+    const items = all.slice(offset, offset + limit).map((r: any) => ({
+      ...r,
+      category: r.category_id ? catNameById.get(r.category_id) || '' : ''
+    }));
     res.json({ data: items, total, limit, offset });
   } catch (e: any) {
     res.status(500).json({ error: e.message });
@@ -539,11 +544,13 @@ router.post('/products', authenticate, requireRole(['super_admin', 'admin', 'edi
       product_name: body.title || body.product_name || 'Product',
       brand: body.brand || '',
       product_image: Array.isArray(body.images) ? body.images[0] : (body.product_image || ''),
+      gallery: Array.isArray(body.images) ? body.images.filter(Boolean) : undefined,
+      mainCategory: body.mainCategory || body.category || '',
       affiliate_url: body.affiliate_url || body.amazonOriginalUrl || body.amazon_url || '',
       price: String(body.currentPrice || body.price || ''),
-      listPrice: String(body.referencePrice || body.listPrice || ''),
+      original_price: String(body.referencePrice || body.original_price || body.listPrice || ''),
       rating: Number(body.rating) || 0,
-      reviewCount: Number(body.review_count || body.reviewCount) || 0,
+      review_count: Number(body.review_count || body.reviewCount) || 0,
       pros: Array.isArray(body.pros) ? body.pros : [],
       cons: Array.isArray(body.cons) ? body.cons : [],
       key_features: Array.isArray(body.mainFeatures) ? body.mainFeatures : (Array.isArray(body.key_features) ? body.key_features : []),

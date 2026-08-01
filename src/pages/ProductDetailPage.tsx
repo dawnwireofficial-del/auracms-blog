@@ -95,7 +95,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               shortDescription: data.review_summary || data.shortDescription || '',
               fullDescription: data.review_summary || data.fullDescription || '',
               videoUrl: data.specs?.video_url || data.videoUrl || '',
-              images: (() => { const imgs: string[] = []; if (data.product_image) imgs.push(data.product_image); const specsGallery = data.specs?.gallery; if (Array.isArray(specsGallery)) specsGallery.forEach((u: string) => { if (u && !imgs.includes(u)) imgs.push(u); }); return imgs; })(),
+              images: (() => { const imgs: string[] = []; if (data.product_image) imgs.push(data.product_image); const dbGallery = data.gallery; if (Array.isArray(dbGallery)) dbGallery.forEach((u: string) => { if (u && !imgs.includes(u)) imgs.push(u); }); const specsGallery = data.specs?.gallery; if (Array.isArray(specsGallery)) specsGallery.forEach((u: string) => { if (u && !imgs.includes(u)) imgs.push(u); }); return imgs; })(),
                amazonOriginalUrl: data.amazon_url || '', affiliateUrl: data.affiliate_url || '',
               amazonMarketplace: 'US', associateTrackingId: 'dawnwire-20',
               currentPrice: parseFloat(String(data.price || '0')) || 0,
