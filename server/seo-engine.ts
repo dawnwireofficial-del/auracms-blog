@@ -272,31 +272,35 @@ export async function updateProductReview(id: string, updates: any): Promise<any
   }
   // Don't modify original id
   delete payload.id;
-  
+
   let { data, error } = await sb.from('product_reviews').update(payload).eq('id', id).select().single();
-  if (error) {
-    // Schema cache issue — retry without potentially unknown columns
-    if (error.message?.includes('Could not find') || error.message?.includes('column')) {
-      const safePayload: any = { updated_at: new Date().toISOString() };
-      for (const key of Object.keys(payload)) {
-        if (key === 'updated_at') continue;
-        const retryResult = await sb.from('product_reviews').update({ [key]: payload[key] }).eq('id', id).select().single();
-        if (retryResult.error && (retryResult.error.message?.includes('Could not find') || retryResult.error.message?.includes('column'))) {
-          continue;
-        }
+  if (!error) return data;
+
+  // Schema cache issue — retry per-column, skipping unknown columns.
+  // Only include updated_at if the column actually exists.
+  if (error.message?.includes('Could not find') || error.message?.includes('column')) {
+    const safePayload: any = {};
+    const keys = Object.keys(payload);
+    for (const key of keys) {
+      const retryResult = await sb.from('product_reviews').update({ [key]: payload[key] }).eq('id', id).select().single();
+      if (!retryResult.error) {
         safePayload[key] = payload[key];
       }
-      const retryResult = await sb.from('product_reviews').update(safePayload).eq('id', id).select().single();
-      if (retryResult.error) {
-        console.error('[Supabase Product Review Update Error (retry)]:', retryResult.error.message);
-        throw new Error(`Failed to update product review: ${retryResult.error.message}`);
-      }
-      return retryResult.data;
     }
-    console.error('[Supabase Product Review Update Error]:', error.message);
-    throw new Error(`Failed to update product review: ${error.message}`);
+    // updated_at may or may not exist; only add it if the column is present
+    if (Object.keys(safePayload).length === 0) {
+      console.error('[Supabase Product Review Update Error (retry)]: no writable columns', error.message);
+      throw new Error(`Failed to update product review: ${error.message}`);
+    }
+    const retryResult = await sb.from('product_reviews').update(safePayload).eq('id', id).select().single();
+    if (retryResult.error) {
+      console.error('[Supabase Product Review Update Error (retry)]:', retryResult.error.message);
+      throw new Error(`Failed to update product review: ${retryResult.error.message}`);
+    }
+    return retryResult.data;
   }
-  return data;
+  console.error('[Supabase Product Review Update Error]:', error.message);
+  throw new Error(`Failed to update product review: ${error.message}`);
 }
 
 export async function deleteProductReview(id: string): Promise<boolean> {
