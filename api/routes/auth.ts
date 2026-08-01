@@ -43,7 +43,7 @@ router.post('/register', registerLimiter, async (req, res) => {
   if (useSupabase) {
     try {
       const { data } = await getSupabase().auth.signInWithPassword({ email: safeEmail, password });
-      if (data?.session?.access_token) return res.json({ token: data.session.access_token, user: nu });
+      if (data?.session?.access_token) return res.json({ token: `token-${nu.id}`, user: nu });
     } catch (e) { console.error(e) }
   }
   res.json({ token: `token-${nu.id}`, user: nu });
@@ -82,7 +82,7 @@ router.post('/login', loginLimiter, async (req, res) => {
         }
         if (user && user.status === 'active') {
           dbInstance.log('User Sign-In', `Logged in as: ${user.name} (${user.role})`, user.id, user.name);
-          return res.json({ token: data.session.access_token, user });
+          return res.json({ token: `token-${user.id}`, user });
         }
       }
     } catch (e) { console.error('Supabase login error:', e) }
