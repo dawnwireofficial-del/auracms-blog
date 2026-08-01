@@ -476,11 +476,11 @@ export default function SeoDashboard({ token, baseUrl }: SeoDashboardProps) {
               status: form.status || 'draft',
               schema_enabled: form.schemaEnabled ?? true,
               specs: (() => {
-                const s: Record<string, any> = {};
-                if (gallery.length > 0) s.gallery = gallery;
+                const s: Record<string, any> = { gallery };
                 if (form.videoUrl) s.video_url = form.videoUrl;
-                return Object.keys(s).length > 0 ? s : undefined;
+                return s;
               })(),
+              gallery,
             };
           }}
           listRender={(item, onEdit, onDelete) => {

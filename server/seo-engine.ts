@@ -367,6 +367,13 @@ export async function updateProductReview(id: string, updates: any): Promise<any
       payload[PRODUCT_CAMEL_TO_SNAKE[key]] = value;
     }
   }
+  // Merge specs with the existing row so nested data (asin, reviews, etc.)
+  // isn't wiped when only gallery/video_url is edited.
+  if (updates.specs && typeof updates.specs === 'object') {
+    const existing = await getProductReviewById(id);
+    const existingSpecs = (existing && existing.specs && typeof existing.specs === 'object') ? existing.specs : {};
+    payload.specs = { ...existingSpecs, ...updates.specs };
+  }
   // Images array -> product_image + gallery (also strip stale gallery from specs)
   if (Array.isArray(updates.images)) {
     const imgs = updates.images.filter((u: any) => u && typeof u === 'string');
@@ -376,6 +383,18 @@ export async function updateProductReview(id: string, updates: any): Promise<any
       const cleanSpecs: any = { ...payload.specs };
       delete cleanSpecs.gallery;
       payload.specs = cleanSpecs;
+    }
+  }
+  // Top-level `gallery` array (explicit clear when empty) -> column + specs.gallery
+  if (Array.isArray(updates.gallery)) {
+    const imgs = updates.gallery.filter((u: any) => u && typeof u === 'string');
+    payload.gallery = imgs;
+    if (payload.specs && typeof payload.specs === 'object') {
+      payload.specs = { ...payload.specs, gallery: imgs };
+    } else {
+      const existing = await getProductReviewById(id);
+      const existingSpecs = (existing && existing.specs && typeof existing.specs === 'object') ? existing.specs : {};
+      payload.specs = { ...existingSpecs, gallery: imgs };
     }
   }
   // mainCategory (category NAME from dashboard) -> category_id lookup

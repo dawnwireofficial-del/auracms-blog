@@ -28,6 +28,8 @@ interface ProductReviewItem {
   click_count?: number;
   page_views?: number;
   created_at: string;
+  gallery?: string[];
+  specs?: any;
 }
 
 import { Category } from '../types';
@@ -70,7 +72,7 @@ export default function ProductReviewManager({ token, categories = [] }: { token
 
   function openNew() {
     setEditing({
-      id: '', product_name: '', brand: '', product_image: '', affiliate_url: '', price: '', original_price: '', rating: 0, best_for: '', stock_status: 'in_stock', deal_badge: '', coupon_code: '', coupon_expiry: '', category_id: '', pros: [], cons: [], key_features: [], cta_text: 'Buy on Amazon', review_summary: '', final_verdict: '', status: 'draft', click_count: 0, page_views: 0, created_at: ''
+      id: '', product_name: '', brand: '', product_image: '', affiliate_url: '', price: '', original_price: '', rating: 0, best_for: '', stock_status: 'in_stock', deal_badge: '', coupon_code: '', coupon_expiry: '', category_id: '', pros: [], cons: [], key_features: [], cta_text: 'Buy on Amazon', review_summary: '', final_verdict: '', status: 'draft', click_count: 0, page_views: 0, created_at: '', gallery: [], specs: {}
     });
     setIsNew(true);
   }
@@ -89,11 +91,14 @@ export default function ProductReviewManager({ token, categories = [] }: { token
   }
 
   function openEdit(r: ProductReviewItem) {
+    const gallery = safeJsonArray((r.specs && r.specs.gallery) || r.gallery || []);
     setEditing({
       ...r,
       pros: safeJsonArray(r.pros),
       cons: safeJsonArray(r.cons),
-      key_features: safeJsonArray(r.key_features)
+      key_features: safeJsonArray(r.key_features),
+      gallery,
+      specs: r.specs || {}
     });
     setIsNew(false);
   }
@@ -128,6 +133,8 @@ export default function ProductReviewManager({ token, categories = [] }: { token
       review_summary: editing.review_summary || null,
       final_verdict: editing.final_verdict || null,
       status: editing.status,
+      gallery: editing.gallery || [],
+      specs: { ...(editing.specs || {}), gallery: editing.gallery || [] },
     };
     const url = isNew
       ? '/api/admin/seo/product-reviews'
@@ -485,6 +492,10 @@ export default function ProductReviewManager({ token, categories = [] }: { token
                 <div className="col-span-2">
                   <label className="block text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase mb-1">Product Image URL</label>
                   <input type="text" value={editing.product_image || ''} onChange={e => setEditing({ ...editing, product_image: e.target.value })} className="w-full rounded-lg border border-slate-200 dark:border-zinc-700 p-2 text-xs bg-white dark:bg-zinc-900/50 focus:outline-none br-input font-mono" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase mb-1">Additional Images (one URL per line)</label>
+                  <textarea value={(editing.gallery || []).join('\n')} onChange={e => setEditing({ ...editing, gallery: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })} rows={3} placeholder="https://...&#10;https://..." className="w-full rounded-lg border border-slate-200 dark:border-zinc-700 p-2 text-xs bg-white dark:bg-zinc-900/50 focus:outline-none br-input font-mono" />
                 </div>
                 <div className="col-span-2">
                   <label className="block text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase mb-1">Affiliate URL</label>

@@ -142,37 +142,38 @@ app.use((_req, res, next) => {
   next();
 });
 
-// Scheduled post publisher — checks every 60s
+// Scheduled jobs — checks every 60s but NEVER blocks the request.
+// Heavy work (amazon sync, auto-import) runs fire-and-forget so a cold
+// start can't 504 user requests (Vercel function timeout is 60s).
 let lastSchedulerRun = 0;
 let lastAmazonSyncRun = 0;
 let lastAutoImportRun = 0;
-app.use(async (_req, res, next) => {
+app.use((_req, _res, next) => {
   const now = Date.now();
   if (now - lastSchedulerRun > 60_000) {
     lastSchedulerRun = now;
-    try {
-      const { processScheduledPosts } = await import('../server/scheduler');
-      const result = await processScheduledPosts();
-      if (result.published > 0) {
-        console.log(`[Scheduler] Published ${result.published} scheduled posts`);
-      }
-    } catch (e) { console.error(e) }
+    import('../server/scheduler').then(({ processScheduledPosts }) =>
+      processScheduledPosts().then((result: any) => {
+        if (result.published > 0) {
+          console.log(`[Scheduler] Published ${result.published} scheduled posts`);
+        }
+      }).catch((e: any) => console.error(e))
+    ).catch((e: any) => console.error(e));
   }
   if (now - lastAmazonSyncRun > 120_000) {
     lastAmazonSyncRun = now;
-    try {
-      const { runScheduledSync } = await import('../server/amazon-sync-engine');
-      const result = await runScheduledSync();
-      if (result.processed > 0) {
-        console.log(`[Amazon Sync] Synced ${result.succeeded}/${result.processed} products`);
-      }
-    } catch (e) { console.error(e) }
+    import('../server/amazon-sync-engine').then(({ runScheduledSync }) =>
+      runScheduledSync().then((result: any) => {
+        if (result.processed > 0) {
+          console.log(`[Amazon Sync] Synced ${result.succeeded}/${result.processed} products`);
+        }
+      }).catch((e: any) => console.error(e))
+    ).catch((e: any) => console.error(e));
   }
   // Auto-import from Amazon every 24 hours (86400000 ms)
   if (now - lastAutoImportRun > 86_400_000) {
     lastAutoImportRun = now;
-    try {
-      const { searchAmazon, scrapeAmazonSearch } = await import('../server/amazon-search-scraper');
+    import('../server/amazon-search-scraper').then(async ({ scrapeAmazonSearch }) => {
       const { getProductReviews, importProductReview } = await import('../server/seo-engine');
       const { dbInstance } = await import('../server/db');
       const cats = await dbInstance.getCategories();
@@ -206,7 +207,7 @@ app.use(async (_req, res, next) => {
         } catch {}
       }
       if (totalImported > 0) console.log(`[Auto-Import] Imported ${totalImported} products from ${productCats.length} categories`);
-    } catch (e) { console.error('[Auto-Import] Error:', e) }
+    }).catch((e: any) => console.error('[Auto-Import] Error:', e));
   }
   next();
 });
