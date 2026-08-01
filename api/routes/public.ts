@@ -109,6 +109,7 @@ router.get('/price-history/:id', async (req, res) => {
 
 // Product reviews with entity enrichment for slug lookup
 router.get('/product-reviews/slug/:slug', async (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
   const reviews = await seo.getPublishedProductReviews();
   const rawSlug = req.params.slug;
   const decodedSlug = decodeURIComponent(rawSlug).toLowerCase().trim();
