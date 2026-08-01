@@ -461,29 +461,34 @@ router.get('/search', async (req, res) => {
 
 // Search suggestions
 router.get('/search/suggestions', async (req, res) => {
-  const q = (req.query.q as string || '').toLowerCase().trim();
-  if (!q || q.length < 2) return res.json({ suggestions: [], products: [], categories: [], brands: [] });
-  const reviews = await seo.getProductReviews();
-  const cats = await dbInstance.getCategories();
-  const brands = await dbInstance.getBrands();
-  const publishedReviews = reviews.filter((r: any) => r.status === 'published');
-  const suggestions = publishedReviews
-    .filter((r: any) => r.productName.toLowerCase().includes(q))
-    .slice(0, 8)
-    .map((r: any) => ({ id: r.id, name: r.productName, image: r.productImage, price: r.price, rating: r.rating, slug: r.slug }));
-  const categorySuggestions = cats
-    .filter((c: any) => c.name.toLowerCase().includes(q) && c.status === 'active')
-    .slice(0, 4)
-    .map((c: any) => ({ id: c.id, name: c.name, slug: c.slug }));
-  const brandSuggestions = brands
-    .filter((b: any) => b.name.toLowerCase().includes(q) && b.status === 'active')
-    .slice(0, 4)
-    .map((b: any) => ({ id: b.id, name: b.name, slug: b.slug }));
-  // Keyword suggestions from product names
-  const keywordSugg = [...new Set(publishedReviews.flatMap((r: any) =>
-    (r.seoKeywords || r.productName).toLowerCase().split(',').map((k: string) => k.trim())
-  ).filter((k: string) => k.includes(q)))].slice(0, 4);
-  res.json({ suggestions, products: suggestions, categories: categorySuggestions, brands: brandSuggestions, keywords: keywordSugg });
+  try {
+    const q = (req.query.q as string || '').toLowerCase().trim();
+    if (!q || q.length < 2) return res.json({ suggestions: [], products: [], categories: [], brands: [], keywords: [] });
+    const reviews = await seo.getProductReviews();
+    const cats = await dbInstance.getCategories();
+    const brands = await dbInstance.getBrands();
+    const publishedReviews = reviews.filter((r: any) => r.status === 'published');
+    const suggestions = publishedReviews
+      .filter((r: any) => r.productName.toLowerCase().includes(q))
+      .slice(0, 8)
+      .map((r: any) => ({ id: r.id, name: r.productName, image: r.productImage, price: r.price, rating: r.rating, slug: r.slug }));
+    const categorySuggestions = cats
+      .filter((c: any) => c.name.toLowerCase().includes(q) && c.status === 'active')
+      .slice(0, 4)
+      .map((c: any) => ({ id: c.id, name: c.name, slug: c.slug }));
+    const brandSuggestions = brands
+      .filter((b: any) => b.name.toLowerCase().includes(q) && b.status === 'active')
+      .slice(0, 4)
+      .map((b: any) => ({ id: b.id, name: b.name, slug: b.slug }));
+    // Keyword suggestions from product names / seo_keywords (may be array or comma string)
+    const keywordSugg = [...new Set(publishedReviews.flatMap((r: any) => {
+      const raw = Array.isArray(r.seoKeywords) ? r.seoKeywords.join(',') : (r.seoKeywords || r.productName || '');
+      return String(raw).toLowerCase().split(',').map((k: string) => k.trim());
+    }).filter((k: string) => k && k.includes(q)))].slice(0, 4);
+    res.json({ suggestions, products: suggestions, categories: categorySuggestions, brands: brandSuggestions, keywords: keywordSugg });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // Log search
