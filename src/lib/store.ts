@@ -214,14 +214,23 @@ export const store = {
           globalStore.products = globalStore.products.filter((p) => p.id !== product.id);
         }
         notify();
+        const errText = await res.text().catch(() => '');
+        let msg = `Save failed (${res.status})`;
+        try {
+          const j = JSON.parse(errText);
+          if (j.error) msg = j.error;
+        } catch { /* ignore */ }
+        return { ok: false, error: msg, status: res.status };
       }
-    } catch (e) {
+      return { ok: true, status: res.status };
+    } catch (e: any) {
       if (previous !== null) {
         globalStore.products[index] = previous;
       } else {
         globalStore.products = globalStore.products.filter((p) => p.id !== product.id);
       }
       notify();
+      return { ok: false, error: e.message || 'Network error' };
     }
   },
 

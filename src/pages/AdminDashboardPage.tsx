@@ -288,7 +288,7 @@ export const AdminDashboardPage: React.FC = () => {
   };
 
   // Save product
-  const handleSaveProduct = (e: React.FormEvent) => {
+  const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProduct?.title) return;
 
@@ -342,7 +342,12 @@ export const AdminDashboardPage: React.FC = () => {
       canonicalUrl: editingProduct.canonicalUrl || ''
     };
 
-    store.saveProduct(fullProduct);
+    const result = await store.saveProduct(fullProduct);
+    if (result && result.ok) {
+      setScrapeSuccessMsg('Product saved successfully!');
+    } else if (result) {
+      setScrapeSuccessMsg(`Save failed: ${result.error || 'Unknown error'} (status ${result.status || '?'})`);
+    }
     setEditingProduct(null);
   };
 
@@ -1532,6 +1537,12 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                   </button>
                 </div>
               </form>
+            )}
+
+            {scrapeSuccessMsg && (
+              <div className={scrapeSuccessMsg.includes('failed') || scrapeSuccessMsg.includes('Failed') || scrapeSuccessMsg.includes('Error') || scrapeSuccessMsg.includes('error') ? 'p-4 bg-red-50 text-red-900 rounded-2xl border border-red-200 text-xs font-bold' : 'p-4 bg-emerald-50 text-emerald-900 rounded-2xl border border-emerald-200 text-xs font-bold'}>
+                {scrapeSuccessMsg}
+              </div>
             )}
 
             {/* Product List Table */}
