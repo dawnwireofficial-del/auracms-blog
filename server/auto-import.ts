@@ -236,7 +236,7 @@ export async function generateSeoForProduct(product: any): Promise<ProductSeo> {
   fallback.seo_description = (summary || `Read our in-depth review of ${title}${brand ? ` by ${brand}` : ''}. ${category ? `Best for: ${category}.` : ''} Compare prices, pros & cons.`).substring(0, 158);
   fallback.seo_keywords = [title, brand, category, 'review', 'buying guide', 'best ' + category].filter(Boolean);
   fallback.best_for = category || `Best ${title.split(' ')[0] || 'Product'} Pick`;
-  fallback.editor_score = Number(rating) ? Math.min(10, Math.round((Number(rating) + 0.3) * 2) / 2) : 8.5;
+  fallback.editor_score = Number(rating) ? Math.min(10, Math.max(1, Math.round(Number(rating) * 2 * 2) / 2)) : 8.5;
 
   try {
     const systemPrompt = 'You are a senior SEO and affiliate content strategist for DawnWire (dawnwire.com). Return strict, raw JSON only. No markdown, no commentary.';
