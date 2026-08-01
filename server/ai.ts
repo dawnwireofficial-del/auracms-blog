@@ -52,17 +52,17 @@ function getModel() {
   return getClient()(AI_GATEWAY_MODEL);
 }
 
-export async function cohereChat(promptText: string, system?: string): Promise<string> {
+export async function cohereChat(promptText: string, system?: string, timeoutMs?: number, maxTokens?: number): Promise<string> {
   if (!AI_GATEWAY_API_KEY) throw new Error('AI_GATEWAY_API_KEY not configured. To use this feature, set the AI_GATEWAY_API_KEY environment variable.');
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs || 20000);
   try {
     const result = await generateText({
       model: getModel(),
       prompt: promptText,
       system,
-      maxOutputTokens: 1200,
+      maxOutputTokens: maxTokens || 1200,
       temperature: 0.7,
       abortSignal: controller.signal,
     });
@@ -143,7 +143,7 @@ STRUCTURE (MUST follow exactly):
 
 Use DawnWire's brand voice: professional, authoritative, helpful, and data-driven. Keep paragraphs concise.`;
 
-  const raw = await cohereChat(prompt, systemPrompt);
+  const raw = await cohereChat(prompt, systemPrompt, 50000, 3000);
   const cleaned = raw.replace(/```markdown|```/gi, '').trim();
   const lines = cleaned.split('\n');
   const firstH1 = lines.find(l => l.startsWith('# ') && !l.startsWith('## '));

@@ -284,6 +284,7 @@ export class SupabaseDatabase {
     const sb = await this.ready();
     // NOTE: categories table has no `image` column; insert core fields only.
     const payload: Record<string, any> = {
+      id: crypto.randomUUID(),
       name: cat.name, slug: cat.slug, description: cat.description || null,
       parent_id: cat.parentId || null, status: cat.status || 'active'
     };

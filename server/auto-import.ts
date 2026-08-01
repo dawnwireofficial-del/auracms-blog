@@ -53,6 +53,44 @@ function extractBrandFromName(productName: string): string | null {
 
 // ====== Category Detection ======
 
+// Category keyword map — maps product-name keywords to existing category names.
+// Used as a fallback signal when a product has no breadcrumb/BSR/department.
+const CATEGORY_KEYWORD_MAP: Array<{ category: string; keywords: string[] }> = [
+  { category: 'Electronics', keywords: ['tv', 'television', 'monitor', 'headphone', 'earbud', 'earphone', 'speaker', 'laptop', 'computer', 'camera', 'smartphone', 'phone', 'tablet', 'smartwatch', 'watch', 'keyboard', 'mouse', 'router', 'charger', 'cable', 'drone', 'gadget', 'electronics'] },
+  { category: 'Beauty & Personal Care', keywords: ['serum', 'moisturizer', 'moisturiser', 'cleanser', 'cream', 'lotion', 'skincare', 'skin care', 'eye cream', 'face', 'facial', 'shampoo', 'conditioner', 'body wash', 'soap', 'perfume', 'cologne', 'makeup', 'lipstick', 'foundation', 'sunscreen', 'spf', 'retinol', 'hyaluronic', 'cosmetic', 'deodorant', 'beauty', 'glow'] },
+  { category: 'Home & Kitchen', keywords: ['kitchen', 'cookware', 'blender', 'air fryer', 'coffee maker', 'kettle', 'toaster', 'microwave', 'refrigerator', 'dishwasher', 'vacuum', 'mop', 'home', 'furniture', 'lamp', 'mattress', 'pillow', 'blanket', 'towel', 'storage', 'organizer', 'utensil', 'pan', 'pot', 'knife', 'cutting board'] },
+  { category: 'Fitness', keywords: ['gym', 'workout', 'weights', 'dumbbell', 'kettlebell', 'resistance band', 'yoga', 'mat', 'treadmill', 'exercise bike', 'protein', 'supplement', 'creatine', 'pre-workout', 'whey', 'bcaa', 'fitness', 'training', 'barbell', 'squat'] },
+  { category: 'Sports & Outdoors', keywords: ['basketball', 'football', 'soccer', 'baseball', 'tennis', 'golf', 'camping', 'tent', 'sleeping bag', 'hiking', 'backpack', 'bike', 'bicycle', 'helmet', 'fishing', 'sports', 'outdoor', 'trail'] },
+  { category: 'Gaming', keywords: ['gaming', 'playstation', 'xbox', 'nintendo', 'controller', 'game', 'console', 'vr', 'gpu', 'graphics card', 'esports', 'mechanical keyboard'] },
+  { category: 'Automotive', keywords: ['car', 'automotive', 'vehicle', 'tire', 'tyre', 'oil filter', 'car seat', 'dash cam', 'car charger', 'battery', 'windshield', 'headlight'] },
+  { category: 'Toys & Games', keywords: ['toy', 'lego', 'puzzle', 'board game', 'doll', 'action figure', 'plush', 'kids', 'child', 'play', 'building blocks'] },
+  { category: 'Baby Products', keywords: ['baby', 'infant', 'diaper', 'stroller', 'carrier', 'crib', 'bottle', 'nursery', 'toddler', 'wipes'] },
+  { category: 'Office & Productivity', keywords: ['office', 'desk', 'chair', 'printer', 'scanner', 'stapler', 'paper', 'notebook', 'filing', 'whiteboard', 'stationery'] },
+  { category: 'AI & Software Tools', keywords: ['software', 'ai', 'artificial intelligence', 'saas', 'app', 'tool', 'automation', 'chatgpt', 'copilot', 'plugin', 'extension', 'analytics', 'seo tool'] },
+];
+
+function keywordSignals(review: any): string[] {
+  const text = [
+    review.product_name,
+    review.name,
+    review.title,
+    review.best_for,
+    review.bestFor,
+    review.review_summary,
+    typeof review.specs === 'object' && review.specs ? (review.specs.details?.department || '') : '',
+  ].filter(Boolean).join(' ').toLowerCase();
+  const hits: string[] = [];
+  for (const entry of CATEGORY_KEYWORD_MAP) {
+    for (const kw of entry.keywords) {
+      if (text.includes(kw.toLowerCase())) {
+        hits.push(entry.category);
+        break;
+      }
+    }
+  }
+  return hits;
+}
+
 function categorySignals(review: any): string[] {
   const signals: string[] = [];
   // Breadcrumb category (e.g. "Beauty & Personal Care") — strongest signal
@@ -68,6 +106,8 @@ function categorySignals(review: any): string[] {
   const specs = review.specs || review.specifications || {};
   const dept = specs.details?.department || specs.department || specs.detail_bullets?.Department;
   if (dept && typeof dept === 'string') signals.push(dept);
+  // Keyword fallback (product-name detection for products with no BSR/specs)
+  signals.push(...keywordSignals(review));
   return signals.filter((s) => s && s.trim().length > 1);
 }
 
