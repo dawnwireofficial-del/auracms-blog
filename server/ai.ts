@@ -143,7 +143,7 @@ STRUCTURE (MUST follow exactly):
 
 Use DawnWire's brand voice: professional, authoritative, helpful, and data-driven. Keep paragraphs concise.`;
 
-  const raw = await cohereChat(prompt, systemPrompt, 50000, 3000);
+  const raw = await cohereChat(prompt, systemPrompt, 42000, 2200);
   const cleaned = raw.replace(/```markdown|```/gi, '').trim();
   const lines = cleaned.split('\n');
   const firstH1 = lines.find(l => l.startsWith('# ') && !l.startsWith('## '));
