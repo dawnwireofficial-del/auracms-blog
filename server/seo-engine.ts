@@ -224,6 +224,52 @@ export function sanitizeReviewSummary(text: string | null | undefined): string |
   return clean || null;
 }
 
+async function findBrandIdByName(brandName: string): Promise<string | null> {
+  const sb = await getClient();
+  const slug = slugify(brandName);
+  const { data: bySlug } = await sb.from('brands').select('id').eq('slug', slug).maybeSingle();
+  if (bySlug?.id) return bySlug.id;
+  const { data: byName } = await sb.from('brands').select('id').ilike('name', brandName).maybeSingle();
+  if (byName?.id) return byName.id;
+  const { data: byExact } = await sb.from('brands').select('id').eq('name', brandName).maybeSingle();
+  return byExact?.id || null;
+}
+
+// Auto-detect/create a brand row from a product's brand string. Prod-safe: only
+// inserts columns known to exist (id, name, slug, status, description).
+export async function ensureBrandForProduct(brandName: string | null | undefined): Promise<string | null> {
+  if (!brandName) return null;
+  const name = String(brandName).trim();
+  if (!name || name === 'Generic' || name === 'generic') return null;
+  const sb = await getClient();
+
+  const existing = await findBrandIdByName(name);
+  if (existing) return existing;
+
+  const slug = slugify(name);
+  const brand: Record<string, any> = {
+    id: crypto.randomUUID(),
+    name,
+    slug,
+    status: 'active',
+  };
+  let { data, error } = await sb.from('brands').insert(brand).select().single();
+  if (error) {
+    console.warn('[Supabase ensureBrandForProduct insert error, retrying without extra fields]:', error.message);
+    const minimal = { id: brand.id, name, slug, status: 'active' };
+    const res = await sb.from('brands').insert(minimal).select().single();
+    if (res.error) {
+      console.error('[Supabase ensureBrandForProduct failed]:', res.error.message);
+      // Fall back to a lookup in case the row already exists (race condition)
+      const again = await findBrandIdByName(name);
+      return again;
+    }
+    data = res.data;
+  }
+  console.log('[ensureBrandForProduct] created brand:', name, '->', brand.id);
+  return data?.id || brand.id;
+}
+
 export async function createProductReview(review: any, slugSet?: Set<string> | null): Promise<any> {
   const sb = await getClient();
   let slug = review.slug || slugify(review.product_name || 'product-review');
@@ -238,6 +284,9 @@ export async function createProductReview(review: any, slugSet?: Set<string> | n
   if (reviewToInsert.review_summary) {
     reviewToInsert.review_summary = sanitizeReviewSummary(reviewToInsert.review_summary);
   }
+  // Auto-detect/link brand
+  const brandId = await ensureBrandForProduct(reviewToInsert.brand);
+  if (brandId) reviewToInsert.brand_id = brandId;
   let { data, error } = await sb.from('product_reviews').insert(reviewToInsert).select().single();
   if (error) {
     console.error('[Supabase Product Review Insert Error]:', error.message);
@@ -474,6 +523,12 @@ export async function importProductReview(data: {
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
+
+  // Auto-detect/link brand
+  if (norm.brand) {
+    const brandId = await ensureBrandForProduct(norm.brand);
+    if (brandId) review.brand_id = brandId;
+  }
 
   const rawUrl = review.affiliate_url || '';
   if (rawUrl && rawUrl.includes('amazon') && !rawUrl.includes('tag=')) {

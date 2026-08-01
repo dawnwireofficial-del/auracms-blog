@@ -10,12 +10,14 @@ import { triggerPageLoadProgress } from '../lib/navigation';
 interface ProductCatalogPageProps {
   initialCategory?: string;
   initialQuery?: string;
+  initialBrand?: string;
   isLoading?: boolean;
 }
 
 export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
   initialCategory = 'all',
   initialQuery = '',
+  initialBrand = '',
   isLoading: externalIsLoading = false,
 }) => {
   const { products, categories } = useAppStore();
@@ -27,6 +29,7 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
 
   const [selectedCategory, setSelectedCategory] = useState(resolvedInitial);
   const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [selectedBrand, setSelectedBrand] = useState(initialBrand);
   const [onlyDeals, setOnlyDeals] = useState(false);
   const [onlyPrime, setOnlyPrime] = useState(false);
   const [minRating, setMinRating] = useState(0);
@@ -58,7 +61,8 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
       : 'all';
     setSelectedCategory(newCat);
     setSearchQuery(initialQuery);
-  }, [initialCategory, initialQuery, categories]);
+    setSelectedBrand(initialBrand);
+  }, [initialCategory, initialQuery, initialBrand, categories]);
 
   useEffect(() => {
     if (selectedCompareIds.length === 2) {
@@ -76,10 +80,10 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
       setIsInternalLoading(false);
     }, 350);
     return () => clearTimeout(timer);
-  }, [selectedCategory, searchQuery, initialCategory, initialQuery]);
+  }, [selectedCategory, searchQuery, initialCategory, initialQuery, initialBrand]);
 
   // Reset page when filters change (must be before early return)
-  useEffect(() => { setPage(0); }, [selectedCategory, searchQuery, onlyDeals, onlyPrime, minRating, sortBy]);
+  useEffect(() => { setPage(0); }, [selectedCategory, searchQuery, selectedBrand, onlyDeals, onlyPrime, minRating, sortBy]);
 
   const isLoading = externalIsLoading || isInternalLoading;
 
@@ -100,6 +104,9 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
     ? categories.find(c => c.id === selectedCategory)?.name || ''
     : '';
 
+  // Distinct brands from loaded products (sorted by name)
+  const availableBrands = Array.from(new Set(products.map(p => p.brand).filter(Boolean) as string[])).sort((a, b) => a.localeCompare(b));
+
   // Filter Logic
   let filtered = products.filter((p) => {
     if (selectedCategoryIds) {
@@ -110,6 +117,9 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
       const haystack = `${p.bestFor || ''} ${p.brand || ''} ${p.title || ''}`.toLowerCase();
       const byBestFor = nameWords.length > 0 && nameWords.some(w => haystack.includes(w));
       if (!byCategory && !byBestFor) return false;
+    }
+    if (selectedBrand && p.brand.toLowerCase() !== selectedBrand.toLowerCase()) {
+      return false;
     }
     if (searchQuery.trim() && !p.title.toLowerCase().includes(searchQuery.toLowerCase()) && !p.brand.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
@@ -189,6 +199,23 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
               </select>
             </div>
 
+            {/* Brand Select */}
+            {availableBrands.length > 0 && (
+              <div>
+                <label className="text-xs font-bold text-slate-500 block mb-1.5">Brand</label>
+                <select
+                  value={selectedBrand}
+                  onChange={(e) => setSelectedBrand(e.target.value)}
+                  className="w-full bg-slate-100 dark:bg-slate-800 px-3.5 py-2 rounded-xl text-xs text-slate-900 dark:text-slate-100 outline-none border border-slate-200 dark:border-slate-700 cursor-pointer font-bold"
+                >
+                  <option value="">All Brands</option>
+                  {availableBrands.map((b) => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Checkboxes */}
             <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs font-bold">
               <label className="flex items-center gap-2 cursor-pointer">
@@ -217,6 +244,7 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
               onClick={() => {
                 setSelectedCategory('all');
                 setSearchQuery('');
+                setSelectedBrand('');
                 setOnlyDeals(false);
                 setOnlyPrime(false);
                 setMinRating(0);
@@ -280,6 +308,7 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
               onReset={() => {
                 setSelectedCategory('all');
                 setSearchQuery('');
+                setSelectedBrand('');
                 setOnlyDeals(false);
                 setOnlyPrime(false);
                 setMinRating(0);

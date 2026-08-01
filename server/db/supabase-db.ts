@@ -768,26 +768,60 @@ export class SupabaseDatabase {
     const { data } = await sb.from('brands').select('*').eq('id', id).maybeSingle();
     return data ? mapRow<Brand>(data) : null;
   }
-  async createBrand(input: Omit<Brand, 'id' | 'createdAt' | 'updatedAt'>): Promise<Brand> {
+  async createBrand(input: any): Promise<Brand> {
     const sb = await this.ready();
-    const { data, error } = await sb.from('brands').insert({ name: input.name, slug: input.slug, logo: input.logo, description: input.description, website: input.website, featured: input.featured, status: input.status || 'active' }).select().single();
-    if (error) throw new Error(error.message);
+    const payload: Record<string, any> = {
+      id: input.id || crypto.randomUUID(),
+      name: input.name,
+      slug: input.slug || (input.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      status: input.status || 'active',
+    };
+    if (input.logo) payload.logo_url = input.logo;
+    if (input.description) payload.description = input.description;
+    let { data, error } = await sb.from('brands').insert(payload).select().single();
+    if (error && error.message?.includes('Could not find') || error && error.message?.includes('column')) {
+      const safe: Record<string, any> = { id: payload.id, name: payload.name, slug: payload.slug, status: payload.status };
+      for (const key of ['logo_url', 'description']) {
+        if (payload[key] !== undefined) {
+          const retry = await sb.from('brands').insert({ ...safe, [key]: payload[key] }).select().single();
+          if (!retry.error) { safe[key] = payload[key]; }
+        }
+      }
+      const res = await sb.from('brands').insert(safe).select().single();
+      if (res.error) throw new Error(res.error.message);
+      data = res.data;
+    } else if (error) {
+      throw new Error(error.message);
+    }
     this.log('Brand Created', `Created brand: "${data.name}"`);
     return mapRow<Brand>(data)!;
   }
   async updateBrand(id: string, updates: Partial<Brand>): Promise<Brand | null> {
     const sb = await this.ready();
     const u = updates as any;
-    const payload: Record<string, any> = { updated_at: new Date().toISOString() };
+    const payload: Record<string, any> = {};
     if (u.name !== undefined) payload.name = u.name;
     if (u.slug !== undefined) payload.slug = u.slug;
-    if (u.logo !== undefined) payload.logo = u.logo;
+    if (u.logo !== undefined) payload.logo_url = u.logo;
+    if (u.logoUrl !== undefined) payload.logo_url = u.logoUrl;
     if (u.description !== undefined) payload.description = u.description;
     if (u.website !== undefined) payload.website = u.website;
     if (u.featured !== undefined) payload.featured = u.featured;
     if (u.status !== undefined) payload.status = u.status;
-    const { data, error } = await sb.from('brands').update(payload).eq('id', id).select().single();
-    if (error) return null;
+    let { data, error } = await sb.from('brands').update(payload).eq('id', id).select().single();
+    if (error && (error.message?.includes('Could not find') || error.message?.includes('column'))) {
+      const safe: Record<string, any> = {};
+      const keys = Object.keys(payload);
+      for (const key of keys) {
+        const retryResult = await sb.from('brands').update({ [key]: payload[key] }).eq('id', id).select().single();
+        if (!retryResult.error) safe[key] = payload[key];
+      }
+      const res = await sb.from('brands').update(safe).eq('id', id).select().single();
+      if (res.error) return null;
+      data = res.data;
+    } else if (error) {
+      return null;
+    }
     this.log('Brand Updated', `Updated brand: "${data.name}"`);
     return mapRow<Brand>(data);
   }

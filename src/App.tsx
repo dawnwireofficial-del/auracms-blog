@@ -223,7 +223,8 @@ export function App() {
     if (pathname === '/products' || pathname === '/search') {
       const q = searchParams.get('q') || '';
       const cat = searchParams.get('cat') || 'all';
-      return <ProductCatalogPage initialCategory={cat} initialQuery={q} />;
+      const brand = searchParams.get('brand') || '';
+      return <ProductCatalogPage initialCategory={cat} initialQuery={q} initialBrand={brand} />;
     }
 
     // Today's Deals
@@ -272,7 +273,7 @@ export function App() {
 
     // Brands Listing
     if (pathname === '/brands') {
-      return <BrandsPage onNavigate={(route) => { window.history.pushState({}, '', route); window.dispatchEvent(new PopStateEvent('popstate')); }} />;
+      return <BrandsPage onNavigate={(route, params) => { window.history.pushState({}, '', route + (params || '')); window.dispatchEvent(new PopStateEvent('popstate')); }} />;
     }
 
     // Admin Dashboard
