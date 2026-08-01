@@ -467,11 +467,12 @@ router.get('/search/suggestions', async (req, res) => {
     const reviews = await seo.getProductReviews();
     const cats = await dbInstance.getCategories();
     const brands = await dbInstance.getBrands();
+    const val = (r: any, key: string) => r[key] ?? r[key.replace(/[A-Z]/g, c => '_' + c.toLowerCase())];
     const publishedReviews = reviews.filter((r: any) => r.status === 'published');
     const suggestions = publishedReviews
-      .filter((r: any) => r.productName.toLowerCase().includes(q))
+      .filter((r: any) => String(val(r, 'productName') || '').toLowerCase().includes(q))
       .slice(0, 8)
-      .map((r: any) => ({ id: r.id, name: r.productName, image: r.productImage, price: r.price, rating: r.rating, slug: r.slug }));
+      .map((r: any) => ({ id: r.id, name: val(r, 'productName'), image: val(r, 'productImage'), price: r.price, rating: r.rating, slug: r.slug }));
     const categorySuggestions = cats
       .filter((c: any) => c.name.toLowerCase().includes(q) && c.status === 'active')
       .slice(0, 4)
@@ -482,7 +483,7 @@ router.get('/search/suggestions', async (req, res) => {
       .map((b: any) => ({ id: b.id, name: b.name, slug: b.slug }));
     // Keyword suggestions from product names / seo_keywords (may be array or comma string)
     const keywordSugg = [...new Set(publishedReviews.flatMap((r: any) => {
-      const raw = Array.isArray(r.seoKeywords) ? r.seoKeywords.join(',') : (r.seoKeywords || r.productName || '');
+      const raw = Array.isArray(val(r, 'seoKeywords')) ? val(r, 'seoKeywords').join(',') : (val(r, 'seoKeywords') || val(r, 'productName') || '');
       return String(raw).toLowerCase().split(',').map((k: string) => k.trim());
     }).filter((k: string) => k && k.includes(q)))].slice(0, 4);
     res.json({ suggestions, products: suggestions, categories: categorySuggestions, brands: brandSuggestions, keywords: keywordSugg });
