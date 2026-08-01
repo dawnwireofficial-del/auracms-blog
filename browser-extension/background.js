@@ -72,6 +72,13 @@ async function handleImport(data) {
           })
         });
         if (updateRes.ok) {
+          // Auto-process the updated duplicate (fill missing SEO/category/brand)
+          try {
+            await fetch(baseUrl + '/api/admin/seo/product-reviews/auto-process/' + dupData.id, {
+              method: 'POST',
+              headers
+            });
+          } catch (e) { console.error('[DawnWire BG]', e); }
           return { success: true, updated: true, id: dupData.id };
         }
       }
@@ -133,7 +140,20 @@ async function handleImport(data) {
     } catch (e) { console.error('[DawnWire BG]', e); }
   }
 
-  // 5. Optionally trigger AI article generation
+  // 5. Auto-process: brand + category detection + AI SEO generation (fills
+  //    missing seo_title, description, keywords, best_for, verdict, score)
+  let autoProcessed = false;
+  if (reviewId) {
+    try {
+      const autoRes = await fetch(baseUrl + '/api/admin/seo/product-reviews/auto-process/' + reviewId, {
+        method: 'POST',
+        headers
+      });
+      if (autoRes.ok) autoProcessed = true;
+    } catch (e) { console.error('[DawnWire BG]', e); }
+  }
+
+  // 6. Optionally trigger AI article generation
   let generatedArticle = false;
   if (reviewId && data.amazon_url) {
     try {
@@ -145,7 +165,7 @@ async function handleImport(data) {
     } catch (e) { console.error('[DawnWire BG]', e); }
   }
 
-  return { success: true, review: result, id: reviewId, affiliateLink, generatedArticle, videoFetched };
+  return { success: true, review: result, id: reviewId, affiliateLink, generatedArticle, videoFetched, autoProcessed };
 }
 
 function addToQueue(products, tabId) {

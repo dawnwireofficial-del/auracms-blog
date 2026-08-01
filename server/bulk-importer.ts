@@ -390,6 +390,14 @@ export async function processBulkImport(jobId: string): Promise<BulkImportJob> {
             await createCloakedLink(created.slug, created.product_name, directUrl, adminToken).catch(() => {});
           }
 
+          // Auto-process: fill brand/category/SEO for the newly created product
+          try {
+            const { autoProcessProduct } = await import('./auto-import');
+            await autoProcessProduct(created.id);
+          } catch (e: any) {
+            console.warn('[BulkImporter] auto-process failed for', created.id, e.message);
+          }
+
           succeeded++;
         } catch (createErr) {
           failed++;

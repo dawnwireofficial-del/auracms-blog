@@ -423,6 +423,32 @@ router.post('/product-reviews/import', authenticate, async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+
+// Auto-process a single product: brand + category detection + AI SEO generation
+router.post('/product-reviews/auto-process/:id', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const { autoProcessProduct } = await import('../../server/auto-import');
+    const result = await autoProcessProduct(req.params.id);
+    if (result.error) return res.status(404).json({ error: result.error });
+    res.json(result);
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Bulk auto-process: backfill products missing brand/category/SEO
+router.post('/product-reviews/bulk-auto-process', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const { autoProcessAllProducts } = await import('../../server/auto-import');
+    const limit = Math.min(Number(req.body?.limit) || 20, 100);
+    const onlyMissing = req.body?.onlyMissing !== false;
+    const result = await autoProcessAllProducts(limit, onlyMissing);
+    res.json(result);
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 router.get('/product-reviews/check-duplicate', authenticate, async (req, res) => {
   try {
     const asin = req.query.asin as string;

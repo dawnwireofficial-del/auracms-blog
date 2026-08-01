@@ -494,6 +494,7 @@ export async function importProductReview(data: {
   reviewStats?: { total: number; average: number; distribution: { 5: number; 4: number; 3: number; 2: number; 1: number } };
   best_for?: string;
   category_id?: string;
+  bestSellersRank?: string;
   final_verdict?: string;
   editor_score?: number;
   uploadImages?: boolean;
@@ -626,6 +627,25 @@ export async function importProductReview(data: {
     const res = await sb.from('product_reviews').insert(fallbackPayload).select().single();
     if (res.error) throw new Error(res.error.message);
     created = res.data;
+  }
+
+  // Auto-category fallback: if no category matched from best_for, use smart
+  // detection (Amazon BSR / department / breadcrumb) which may auto-create one.
+  if (!resolvedCategoryId && created?.id) {
+    try {
+      const { detectCategoryForProduct } = await import('./auto-import');
+      const catResult = await detectCategoryForProduct({ ...norm, specs: data.specs, detailBullets: data.detailBullets, bsrDetail: norm.bsrDetail, bestSellersRank: data.bestSellersRank });
+      if (catResult.category_id) {
+        await sb.from('product_reviews').update({ category_id: catResult.category_id, updated_at: new Date().toISOString() }).eq('id', created.id);
+        created.category_id = catResult.category_id;
+      }
+      if (catResult.best_for && !bestFor) {
+        await sb.from('product_reviews').update({ best_for: catResult.best_for, updated_at: new Date().toISOString() }).eq('id', created.id);
+        created.best_for = catResult.best_for;
+      }
+    } catch (e: any) {
+      console.warn('[Import Product Review] category auto-detect failed:', e.message);
+    }
   }
   return created;
 }

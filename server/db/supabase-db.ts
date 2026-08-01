@@ -282,10 +282,12 @@ export class SupabaseDatabase {
 
   async createCategory(cat: Omit<Category, 'id'>): Promise<Category> {
     const sb = await this.ready();
-    const { data, error } = await sb.from('categories').insert({
+    // NOTE: categories table has no `image` column; insert core fields only.
+    const payload: Record<string, any> = {
       name: cat.name, slug: cat.slug, description: cat.description || null,
-      image: cat.image || null, parent_id: cat.parentId || null, status: cat.status || 'active'
-    }).select().single();
+      parent_id: cat.parentId || null, status: cat.status || 'active'
+    };
+    const { data, error } = await sb.from('categories').insert(payload).select().single();
     if (error) throw new Error(error.message);
     this.log('Category Created', `Created category: "${data.name}"`);
     return mapRow<Category>(data)!;
@@ -297,7 +299,6 @@ export class SupabaseDatabase {
     if (updates.name !== undefined) payload.name = updates.name;
     if (updates.slug !== undefined) payload.slug = updates.slug;
     if (updates.description !== undefined) payload.description = updates.description;
-    if (updates.image !== undefined) payload.image = updates.image;
     if (updates.parentId !== undefined) payload.parent_id = updates.parentId;
     if (updates.status !== undefined) payload.status = updates.status;
 
