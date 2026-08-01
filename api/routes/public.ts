@@ -483,7 +483,9 @@ router.get('/search/suggestions', async (req, res) => {
       .map((b: any) => ({ id: b.id, name: b.name, slug: b.slug }));
     // Keyword suggestions from product names / seo_keywords (may be array or comma string)
     const keywordSugg = [...new Set(publishedReviews.flatMap((r: any) => {
-      const raw = Array.isArray(val(r, 'seoKeywords')) ? val(r, 'seoKeywords').join(',') : (val(r, 'seoKeywords') || val(r, 'productName') || '');
+      let raw = val(r, 'seoKeywords') || val(r, 'productName') || '';
+      if (Array.isArray(raw)) raw = raw.join(',');
+      else if (typeof raw === 'string' && raw.trim().startsWith('[')) { try { raw = JSON.parse(raw).join(','); } catch {} }
       return String(raw).toLowerCase().split(',').map((k: string) => k.trim());
     }).filter((k: string) => k && k.includes(q)))].slice(0, 4);
     res.json({ suggestions, products: suggestions, categories: categorySuggestions, brands: brandSuggestions, keywords: keywordSugg });
