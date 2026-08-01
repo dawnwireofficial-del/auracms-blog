@@ -308,12 +308,37 @@ const KNOWN_PRODUCT_REVIEW_COLUMNS = new Set([
   'status', 'created_at', 'updated_at',
 ]);
 
+const PRODUCT_CAMEL_TO_SNAKE: Record<string, string> = {
+  title: 'product_name',
+  shortDescription: 'review_summary',
+  currentPrice: 'price',
+  referencePrice: 'original_price',
+  discountPercentage: 'discount_percentage',
+  isDeal: 'is_deal',
+  isFeatured: 'is_featured',
+  isTrending: 'is_trending',
+  reviewCount: 'review_count',
+  mainFeatures: 'key_features',
+  specifications: 'specs',
+  editorScore: 'editor_score',
+  bestFor: 'best_for',
+  seoTitle: 'seo_title',
+  metaDescription: 'seo_description',
+  metaKeywords: 'seo_keywords',
+  affiliateUrl: 'affiliate_url',
+  amazonOriginalUrl: 'amazon_url',
+  stockStatus: 'stock_status',
+  categoryId: 'category_id',
+};
+
 export async function updateProductReview(id: string, updates: any): Promise<any> {
   const sb = await getClient();
   const payload: any = { updated_at: new Date().toISOString() };
   for (const [key, value] of Object.entries(updates)) {
     if (KNOWN_PRODUCT_REVIEW_COLUMNS.has(key)) {
       payload[key] = value;
+    } else if (PRODUCT_CAMEL_TO_SNAKE[key]) {
+      payload[PRODUCT_CAMEL_TO_SNAKE[key]] = value;
     }
   }
   if (payload.review_summary) {
