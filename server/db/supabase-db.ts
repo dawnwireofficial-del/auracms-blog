@@ -54,6 +54,7 @@ export class SupabaseDatabase {
     try {
       const sb = await this.ready();
       await sb.from('activity_logs').insert({
+        id: crypto.randomUUID(),
         user_id: userId || null,
         user_name: userName || null,
         action,
@@ -175,7 +176,7 @@ export class SupabaseDatabase {
     const readingTime = Math.max(1, Math.round(wordCount / 200));
 
     const payload: Record<string, any> = {
-      title: post.title, slug: post.slug, excerpt: post.excerpt || '', content: post.content,
+      id: crypto.randomUUID(), title: post.title, slug: post.slug, excerpt: post.excerpt || '', content: post.content,
       featured_image: post.featuredImage || null, author_id: authorId, category_id: post.categoryId || null,
       tags: post.tags || [], status: post.status || 'draft', visibility: post.visibility || 'public',
       is_featured: !!post.isFeatured, is_trending: !!post.isTrending, is_editors_pick: !!post.isEditorsPick,
@@ -189,6 +190,7 @@ export class SupabaseDatabase {
     if (error) {
       console.warn('[Supabase Insert Post Warn, retrying with core columns]:', error.message);
       const corePayload = {
+        id: payload.id,
         title: payload.title,
         slug: payload.slug,
         excerpt: payload.excerpt,
@@ -325,7 +327,7 @@ export class SupabaseDatabase {
 
   async createTag(tag: Omit<Tag, 'id'>): Promise<Tag> {
     const sb = await this.ready();
-    const { data, error } = await sb.from('tags').insert({ name: tag.name, slug: tag.slug }).select().single();
+    const { data, error } = await sb.from('tags').insert({ id: crypto.randomUUID(), name: tag.name, slug: tag.slug }).select().single();
     if (error) throw new Error(error.message);
     return mapRow<Tag>(data)!;
   }
@@ -345,6 +347,7 @@ export class SupabaseDatabase {
   async createComment(comment: Omit<Comment, 'id' | 'createdAt' | 'likesCount' | 'status'>): Promise<Comment> {
     const sb = await this.ready();
     const { data, error } = await sb.from('comments').insert({
+      id: crypto.randomUUID(),
       post_id: comment.postId, parent_id: comment.parentId || null,
       name: comment.name, email: comment.email, user_id: comment.userId || null,
       content: comment.content, status: 'approved', likes_count: 0, liked_by: [],
@@ -407,6 +410,7 @@ export class SupabaseDatabase {
   async createAffiliateLink(link: Omit<AffiliateLink, 'id' | 'createdAt' | 'clickCount'>): Promise<AffiliateLink> {
     const sb = await this.ready();
     const payload = {
+      id: crypto.randomUUID(),
       title: link.title, destination_url: link.destinationUrl, affiliate_url: link.affiliateUrl,
       short_slug: link.shortSlug, category_id: link.categoryId || null, post_id: link.postId || null,
       button_text: link.buttonText || 'Buy Now', disclosure_text: link.disclosureText || null,
@@ -475,6 +479,7 @@ export class SupabaseDatabase {
   async createPage(page: Omit<Page, 'id'>): Promise<Page> {
     const sb = await this.ready();
     const { data, error } = await sb.from('pages').insert({
+      id: crypto.randomUUID(),
       title: page.title, slug: page.slug, content: page.content,
       featured_image: page.featuredImage || null, status: page.status || 'draft',
       seo_title: page.seoTitle || null, seo_description: page.seoDescription || null,
@@ -580,6 +585,7 @@ export class SupabaseDatabase {
   async uploadMedia(item: Omit<MediaItem, 'id' | 'createdAt'>): Promise<MediaItem> {
     const sb = await this.ready();
     const { data, error } = await sb.from('media').insert({
+      id: crypto.randomUUID(),
       file_name: item.fileName, url: item.url, mime_type: item.mimeType,
       size: item.size, alt_text: item.altText || null, created_at: new Date().toISOString()
     }).select().single();
@@ -603,6 +609,7 @@ export class SupabaseDatabase {
   async submitMessage(msg: Omit<ContactMessage, 'id' | 'createdAt' | 'status'>): Promise<ContactMessage> {
     const sb = await this.ready();
     const { data, error } = await sb.from('messages').insert({
+      id: crypto.randomUUID(),
       name: msg.name, email: msg.email, subject: msg.subject, message: msg.message,
       status: 'unread', created_at: new Date().toISOString()
     }).select().single();
@@ -627,7 +634,7 @@ export class SupabaseDatabase {
     const sb = await this.ready();
     const { data: existing } = await sb.from('newsletter_subscribers').select('id').ilike('email', email).maybeSingle();
     if (existing) return null;
-    const { data, error } = await sb.from('newsletter_subscribers').insert({ email, created_at: new Date().toISOString(), drip_step: 0 }).select().single();
+    const { data, error } = await sb.from('newsletter_subscribers').insert({ id: crypto.randomUUID(), email, created_at: new Date().toISOString(), drip_step: 0 }).select().single();
     if (error) return null;
     this.log('Newsletter Opt-In', `New subscriber: ${email}`);
     return mapRow<NewsletterSubscriber>(data);
@@ -723,6 +730,7 @@ export class SupabaseDatabase {
   async createTopicCluster(data: Omit<TopicCluster, 'id' | 'createdAt' | 'updatedAt'>): Promise<TopicCluster> {
     const sb = await this.ready();
     const { data: result, error } = await sb.from('topic_clusters').insert({
+      id: crypto.randomUUID(),
       name: data.name, slug: data.slug, description: data.description,
       pillar_page_id: data.pillarPageId, pillar_page_slug: data.pillarPageSlug,
       pillar_page_title: data.pillarPageTitle,
@@ -845,6 +853,7 @@ export class SupabaseDatabase {
     const sb = await this.ready();
     const inp = input as any;
     const { data, error } = await sb.from('category_banners').insert({
+      id: crypto.randomUUID(),
       category_id: inp.categoryId, desktop_image: inp.desktopImage, mobile_image: inp.mobileImage,
       heading: inp.heading, description: inp.description, cta_text: inp.ctaText,
       cta_link: inp.ctaLink, alt_text: inp.altText, sort_order: inp.sortOrder || 0,
@@ -891,6 +900,7 @@ export class SupabaseDatabase {
     const sb = await this.ready();
     const inp = input as any;
     const { data, error } = await sb.from('category_sections').insert({
+      id: crypto.randomUUID(),
       category_id: inp.categoryId, section_type: inp.sectionType,
       title: inp.title, subtitle: inp.subtitle, sort_order: inp.sortOrder || 0,
       settings: inp.settings || {}, is_active: inp.isActive ?? true,
@@ -932,6 +942,7 @@ export class SupabaseDatabase {
     const sb = await this.ready();
     const inp = input as any;
     const { data, error } = await sb.from('deals').insert({
+      id: crypto.randomUUID(),
       product_id: inp.productId, sale_price: inp.salePrice, regular_price: inp.regularPrice,
       discount_percentage: inp.discountPercentage, start_date: inp.startDate, end_date: inp.endDate,
       is_featured: inp.isFeatured ?? false, deal_type: inp.dealType || 'daily',
@@ -972,6 +983,7 @@ export class SupabaseDatabase {
   async createHomepageSection(input: Omit<HomepageSection, 'id'>): Promise<HomepageSection> {
     const sb = await this.ready();
     const { data, error } = await sb.from('homepage_sections').insert({
+      id: crypto.randomUUID(),
       section_type: input.sectionType, title: input.title, subtitle: input.subtitle,
       sort_order: input.sortOrder || 0, settings: input.settings || {}, is_active: input.isActive ?? true,
     }).select().single();
@@ -1006,6 +1018,7 @@ export class SupabaseDatabase {
   async createHomepageHeroSlide(input: Omit<HomepageHeroSlide, 'id'>): Promise<HomepageHeroSlide> {
     const sb = await this.ready();
     const { data, error } = await sb.from('homepage_hero_slides').insert({
+      id: crypto.randomUUID(),
       desktop_image: input.desktopImage, mobile_image: input.mobileImage,
       heading: input.heading, description: input.description, cta_text: input.ctaText,
       cta_link: input.ctaLink, alt_text: input.altText, sort_order: input.sortOrder || 0, is_active: input.isActive ?? true,
@@ -1053,6 +1066,7 @@ export class SupabaseDatabase {
   async addWishlistItem(input: Omit<WishlistItem, 'id' | 'createdAt'>): Promise<WishlistItem> {
     const sb = await this.ready();
     const { data, error } = await sb.from('wishlist_items').insert({
+      id: crypto.randomUUID(),
       user_id: input.userId, session_id: input.sessionId, product_id: input.productId,
     }).select().single();
     if (error && error.code === '23505') throw new Error('Already in wishlist');
@@ -1081,6 +1095,7 @@ export class SupabaseDatabase {
     if (input.userId) await sb.from('recently_viewed').delete().eq('user_id', input.userId).eq('product_id', input.productId);
     else if (input.sessionId) await sb.from('recently_viewed').delete().eq('session_id', input.sessionId).eq('product_id', input.productId);
     await sb.from('recently_viewed').insert({
+      id: crypto.randomUUID(),
       user_id: input.userId, session_id: input.sessionId, product_id: input.productId,
     });
   }
@@ -1098,6 +1113,7 @@ export class SupabaseDatabase {
   async saveComparison(input: Omit<SavedComparison, 'id'>): Promise<SavedComparison> {
     const sb = await this.ready();
     const { data, error } = await sb.from('saved_comparisons').insert({
+      id: crypto.randomUUID(),
       user_id: input.userId, session_id: input.sessionId, name: input.name || 'My Comparison',
       product_ids: input.productIds,
     }).select().single();
@@ -1114,6 +1130,7 @@ export class SupabaseDatabase {
   async logAffiliateClick(input: Omit<AffiliateClick, 'id' | 'createdAt'>): Promise<void> {
     const sb = await this.ready();
     await sb.from('affiliate_clicks').insert({
+      id: crypto.randomUUID(),
       product_id: input.productId, category_id: input.categoryId, page_url: input.pageUrl,
       page_type: input.pageType, banner_id: input.bannerId, section_type: input.sectionType,
       cta_position: input.ctaPosition, device_type: input.deviceType,
@@ -1130,6 +1147,7 @@ export class SupabaseDatabase {
   async logSearch(input: Omit<SearchLog, 'id' | 'createdAt'>): Promise<void> {
     const sb = await this.ready();
     await sb.from('search_logs').insert({
+      id: crypto.randomUUID(),
       query: input.query, category_id: input.categoryId, results_count: input.resultsCount,
       has_results: input.hasResults, session_id: input.sessionId, user_id: input.userId,
       clicked_product_id: input.clickedProductId,
@@ -1156,6 +1174,7 @@ export class SupabaseDatabase {
   async createPriceAlert(input: Omit<PriceAlert, 'id'>): Promise<PriceAlert> {
     const sb = await this.ready();
     const { data, error } = await sb.from('price_alerts').insert({
+      id: crypto.randomUUID(),
       user_id: input.userId, session_id: input.sessionId, product_id: input.productId,
       target_price: input.targetPrice, alert_type: input.alertType || 'price_drop',
     }).select().single();
@@ -1198,6 +1217,7 @@ export class SupabaseDatabase {
     let created = 0;
     for (const e of entries) {
       const { error } = await sb.from('amazon_sync_status').upsert({
+        id: crypto.randomUUID(),
         product_id: e.productId,
         asin: e.asin,
         marketplace_code: e.marketplaceCode,
@@ -1237,6 +1257,7 @@ export class SupabaseDatabase {
   async upsertAmazonApiCredential(input: { marketplaceCode: string; accessKey: string; secretKey: string; partnerTag: string; isActive?: boolean }): Promise<boolean> {
     const sb = await this.ready();
     const { error } = await sb.from('amazon_api_credentials').upsert({
+      id: crypto.randomUUID(),
       marketplace_code: input.marketplaceCode,
       access_key: input.accessKey,
       secret_key: input.secretKey,
