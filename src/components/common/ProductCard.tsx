@@ -82,7 +82,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               -{product.discountPercentage || 20}% DEAL
             </span>
           )}
-          <div className="flex items-center gap-1.5">
+          <div className="absolute top-3 right-3 flex items-center gap-1.5">
             <button
               onClick={handleShare}
               className="p-2 rounded-full transition-colors bg-white/80 dark:bg-slate-800/80 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/60"
