@@ -272,6 +272,7 @@ export const AIProductFinderModal: React.FC<AIProductFinderModalProps> = ({ isOp
                       productId={prod.id}
                       asin={prod.asin}
                       productTitle={prod.title}
+                      productSlug={prod.slug}
                       label="Check Price on Amazon"
                       size="sm"
                       position="ai_finder_result"

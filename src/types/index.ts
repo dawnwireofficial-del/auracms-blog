@@ -86,6 +86,9 @@ export interface Product {
   finalVerdict?: string;
   aiVerdict?: string;
   pageViews?: number;
+  reviewArticle?: string;
+  faq?: Array<{ question: string; answer: string }>;
+  affiliateDisclosure?: string;
 }
 
 export interface MediaItem {

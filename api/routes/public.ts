@@ -580,6 +580,29 @@ router.post('/track/affiliate-click', async (req, res) => {
   res.json({ success: true });
 });
 
+// ====== Product cloak redirect (applies Amazon tag + tracks click, no pre-created rows needed) ======
+router.get('/go/product/:slug', async (req, res) => {
+  try {
+    const slug = req.params.slug;
+    const reviews = await seo.getPublishedProductReviews();
+    const product = reviews.find((r: any) => r.slug === slug || r.product_name === slug);
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+    const asin = product.asin || (product.amazon_url ? (product.amazon_url.match(/\/dp\/([A-Z0-9]{10})/i) || [])[1] : null) || null;
+    const tag = process.env.AMAZON_PARTNER_TAG || 'dawnwire-20';
+    let destination = product.affiliate_url || product.amazon_url || '';
+    if (destination) {
+      if (asin && !destination.includes('tag=')) destination = destination + (destination.includes('?') ? '&' : '?') + 'tag=' + encodeURIComponent(tag);
+      else if (asin && !destination.includes('dawnwire')) destination = destination.replace(/([?&])tag=[^&]*/, `$1tag=${encodeURIComponent(tag)}`);
+    }
+    if (!destination && asin) destination = `https://www.amazon.com/dp/${asin}?tag=${encodeURIComponent(tag)}`;
+    if (!destination) return res.status(404).json({ error: 'No destination URL' });
+    await dbInstance.logAffiliateClick({ productId: product.id, ctaPosition: 'go_cloak', pageUrl: `/products/${product.slug}`, deviceType: 'desktop' });
+    return res.redirect(302, destination);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
 // ====== AI Shopping Assistant Chat ======
 router.post('/chat', async (req, res) => {
   try {

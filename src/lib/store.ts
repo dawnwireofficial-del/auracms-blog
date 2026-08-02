@@ -375,10 +375,22 @@ export const store = {
     globalStore.affiliateClicks.unshift(fullLog);
     notify();
 
-    fetch('/api/analytics/affiliate-click', {
+    fetch('/api/public/track/affiliate-click', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(fullLog)
+      body: JSON.stringify({
+        productId: click.productId,
+        pageUrl: click.pageSource || window.location.pathname,
+        pageType: 'product',
+        ctaPosition: click.ctaPosition,
+        deviceType: click.device,
+        asin: click.asin,
+        productTitle: click.productTitle,
+        category: click.category,
+        brand: click.brand,
+        ctaText: click.ctaText,
+        marketplace: click.marketplace
+      })
     }).catch(() => {});
   },
 

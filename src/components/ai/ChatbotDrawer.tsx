@@ -188,6 +188,7 @@ export const ChatbotDrawer: React.FC<ChatbotDrawerProps> = ({
                         productId={prod.id}
                         asin={prod.asin}
                         productTitle={prod.title}
+                        productSlug={prod.slug}
                         label="Check Price"
                         size="sm"
                         position="chatbot_card"

@@ -19,6 +19,7 @@ interface TrendingDeal {
   affiliateUrl: string;
   dealBadge: string;
   expiresInHours: number;
+  slug?: string;
 }
 
 export const TrendingDealsSection: React.FC = () => {
@@ -55,6 +56,7 @@ export const TrendingDealsSection: React.FC = () => {
               images: p.images,
               asin: p.asin,
               affiliateUrl: p.affiliateUrl,
+              slug: p.slug,
               dealBadge: p.discountPercentage ? (idx === 0 ? '🔥 Top Tech Deal' : idx === 1 ? '⚡ Flash Kitchen Savings' : '🏷️ Lowest Price 30 Days') : '',
               expiresInHours: p.discountPercentage ? 6 + idx * 2 : 0
             }));
@@ -197,6 +199,7 @@ export const TrendingDealsSection: React.FC = () => {
                   productId={deal.id}
                   asin={deal.asin}
                   productTitle={deal.title}
+                  productSlug={deal.slug}
                   category={deal.category}
                   brand={deal.brand}
                   label="Claim Amazon Deal"

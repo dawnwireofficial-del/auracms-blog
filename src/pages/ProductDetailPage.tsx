@@ -11,6 +11,7 @@ import { PriceHistoryTracker } from '../components/product/PriceHistoryTracker';
 import { ProductFaqSection } from '../components/product/ProductFaqSection';
 import { useAppStore, store } from '../lib/store';
 import { sanitizeHtml } from '../lib/sanitize';
+import ReactMarkdown from 'react-markdown';
 import { safeText, safeSpecValue, isValidImageUrl, proxyImageUrl } from '../utils/safeRender';
 import { trackPageView } from '../lib/tracker';
 
@@ -106,6 +107,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               specifications: data.specs || {}, pros: Array.isArray(data.pros) ? data.pros : [],
               cons: Array.isArray(data.cons) ? data.cons : [], bestFor: data.best_for || '',
               editorVerdict: data.review_summary || '', editorScore: Number(data.rating) * 2 || 0,
+              reviewArticle: data.review_article || data.reviewArticle || '',
+              faq: Array.isArray(data.faq) ? data.faq : [],
+              affiliateDisclosure: data.affiliate_disclosure || data.affiliateDisclosure || '',
               similarProductIds: [], alternativeProductIds: [], relatedComparisonIds: [], relatedGuideIds: [],
               isFeatured: true, isTrending: false, isBestSeller: false, published: data.status !== 'draft', status: data.status || 'published',
               lastSyncedAt: '', seoTitle: data.seo_title || '', metaDescription: data.seo_description || '',
@@ -223,6 +227,39 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-24">
       <DisclosureBanner />
+
+      {/* REVIEW + PRODUCT + FAQ STRUCTURED DATA */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: product.title,
+            image: allImportedImages.length ? allImportedImages.map((i) => proxyImageUrl(i)) : undefined,
+            brand: { '@type': 'Brand', name: product.brand || 'DawnWire' },
+            sku: product.asin || undefined,
+            mpn: product.asin || undefined,
+            description: product.shortDescription || product.reviewSummary || product.fullDescription || undefined,
+            aggregateRating: product.rating ? { '@type': 'AggregateRating', ratingValue: Number(product.rating).toFixed(1), reviewCount: product.reviewCount || 0 } : undefined,
+            offers: { '@type': 'Offer', priceCurrency: 'USD', price: product.currentPrice ? Number(product.currentPrice).toFixed(2) : undefined, availability: 'https://schema.org/InStock', url: `https://www.amazon.com/dp/${product.asin}?tag=dawnwire-20` },
+            review: product.editorScore ? {
+              '@type': 'Review',
+              reviewRating: { '@type': 'Rating', ratingValue: Math.min(5, Math.max(0, product.editorScore / 2)).toFixed(1), bestRating: '5' },
+              author: { '@type': 'Organization', name: 'DawnWire' },
+              reviewBody: product.reviewArticle ? product.reviewArticle.substring(0, 800) : product.shortDescription || undefined,
+              datePublished: product.lastSyncedAt || undefined,
+            } : undefined,
+            ...(Array.isArray(product.faq) && product.faq.length > 0 ? {
+              mainEntity: product.faq.slice(0, 10).map((f: any) => ({
+                '@type': 'Question',
+                name: f.question,
+                acceptedAnswer: { '@type': 'Answer', text: f.answer },
+              })),
+            } : {}),
+          }),
+        }}
+      />
 
       {/* Breadcrumbs */}
       <div className="max-w-7xl mx-auto px-4 py-4 text-xs text-slate-500 flex items-center justify-between">
@@ -468,6 +505,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 productId={product.id}
                 asin={product.asin}
                 productTitle={product.title}
+                productSlug={product.slug}
                 category={product.mainCategory}
                 brand={product.brand}
                 label={product.isDeal ? 'Claim Deal on Amazon' : 'Check Live Price on Amazon'}
@@ -719,6 +757,62 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         <ProductFaqSection product={product} onOpenChatbotForProduct={onOpenChatbotForProduct} />
       </section>
 
+      {/* FULL REVIEW ARTICLE (product as article) */}
+      {product.reviewArticle && (
+        <section id="section-article" className="max-w-7xl mx-auto px-4 mt-16">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-10 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-200 dark:border-slate-800">
+              <div className="p-2.5 bg-[#0A1F44] text-amber-400 rounded-xl font-black text-xs shadow-md">DAWNWIRE</div>
+              <div>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100">Full {product.title} Review & Buying Guide</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  In-depth analysis, tested verdicts and the best price on Amazon — updated {product.lastSyncedAt ? new Date(product.lastSyncedAt).toLocaleDateString() : 'recently'}.
+                </p>
+              </div>
+            </div>
+            <article className="prose prose-slate dark:prose-invert max-w-none space-y-5 text-slate-700 dark:text-slate-200 text-[15px] leading-relaxed">
+              <ReactMarkdown
+                components={{
+                  h2: ({ children }) => <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 mt-8 mb-4 border-b border-slate-200 dark:border-slate-800 pb-2">{children}</h2>,
+                  h3: ({ children }) => <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mt-6 mb-3">{children}</h3>,
+                  p: ({ children }) => <p className="leading-relaxed my-3">{children}</p>,
+                  ul: ({ children }) => <ul className="list-disc pl-6 space-y-1.5 my-4">{children}</ul>,
+                  ol: ({ children }) => <ol className="list-decimal pl-6 space-y-1.5 my-4">{children}</ol>,
+                  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                  strong: ({ children }) => <strong className="font-extrabold text-slate-900 dark:text-white">{children}</strong>,
+                  em: ({ children }) => <em className="italic">{children}</em>,
+                  blockquote: ({ children }) => <blockquote className="border-l-4 border-amber-400 pl-4 py-1 italic my-6 text-slate-600 dark:text-slate-300 bg-amber-50 dark:bg-amber-950/30 rounded-r-xl">{children}</blockquote>,
+                  a: ({ href, children }) => <a href={href} className="text-blue-600 dark:text-blue-400 hover:underline font-bold" target="_blank" rel="sponsored noopener noreferrer">{children}</a>,
+                  hr: () => <hr className="my-8 border-slate-200 dark:border-slate-800" />,
+                }}
+              >
+                {product.reviewArticle}
+              </ReactMarkdown>
+            </article>
+            <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-2xl p-5">
+              <div>
+                <h4 className="text-sm font-extrabold text-slate-900 dark:text-slate-100">Ready to buy? Get the best price now.</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  {product.affiliateDisclosure || 'We may earn a commission at no extra cost to you when you shop through our links.'}
+                </p>
+              </div>
+              <AffiliateCTA
+                affiliateUrl={product.affiliateUrl}
+                productId={product.id}
+                asin={product.asin}
+                productTitle={product.title}
+                productSlug={product.slug}
+                variant="deal"
+                size="lg"
+                label="Check Price on Amazon"
+                position="article_bottom"
+                className="shrink-0"
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Specifications & Pros/Cons Section */}
       <section id="section-specs" className="max-w-7xl mx-auto px-4 mt-16 grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left: Specifications */}
@@ -964,6 +1058,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           productId={product.id}
           asin={product.asin}
           productTitle={product.title}
+          productSlug={product.slug}
           variant="sticky_mobile"
           label="Buy on Amazon"
           position="sticky_mobile"

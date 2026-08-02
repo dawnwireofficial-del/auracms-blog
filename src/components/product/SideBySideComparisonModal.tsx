@@ -174,6 +174,7 @@ export const SideBySideComparisonModal: React.FC<SideBySideComparisonProps> = ({
               productId={productA.id}
               asin={productA.asin}
               productTitle={productA.title}
+              productSlug={productA.slug}
               label="Check Price on Amazon"
               className="w-full"
             />
@@ -202,6 +203,7 @@ export const SideBySideComparisonModal: React.FC<SideBySideComparisonProps> = ({
               productId={productB.id}
               asin={productB.asin}
               productTitle={productB.title}
+              productSlug={productB.slug}
               label="Check Price on Amazon"
               className="w-full"
             />

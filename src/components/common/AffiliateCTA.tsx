@@ -6,6 +6,7 @@ interface AffiliateCTAProps {
   productId: string;
   asin: string;
   productTitle: string;
+  productSlug?: string;
   category?: string;
   brand?: string;
   variant?: 'primary' | 'deal' | 'secondary' | 'outline' | 'sticky_mobile';
@@ -20,6 +21,7 @@ export const AffiliateCTA: React.FC<AffiliateCTAProps> = ({
   productId,
   asin,
   productTitle,
+  productSlug,
   category = 'General',
   brand = 'General',
   variant = 'primary',
@@ -43,6 +45,10 @@ export const AffiliateCTA: React.FC<AffiliateCTAProps> = ({
       marketplace: 'US'
     });
   };
+
+  // Cloaked redirect: routes through /api/public/go/product/:slug which applies
+  // the Amazon tag server-side and logs the click into affiliate_clicks.
+  const cloakHref = productSlug ? `/api/public/go/product/${encodeURIComponent(productSlug)}` : '';
 
   const getVariantStyles = () => {
     switch (variant) {
@@ -73,9 +79,9 @@ export const AffiliateCTA: React.FC<AffiliateCTAProps> = ({
 
   return (
     <a
-      href={affiliateUrl || `https://www.amazon.com/dp/${asin}?tag=dawnwire-20`}
+      href={cloakHref || affiliateUrl || `https://www.amazon.com/dp/${asin}?tag=dawnwire-20`}
       target="_blank"
-      rel="noopener noreferrer"
+      rel="sponsored noopener noreferrer"
       onClick={handleClick}
       className={`inline-flex items-center justify-center transition-all duration-200 active:scale-[0.98] select-none ${getVariantStyles()} ${getSizeStyles()} ${className}`}
     >
