@@ -6,6 +6,7 @@ const CATEGORY_SVG_MAP: Record<string, { file: string; icon: string }> = {
   automotive: { file: 'automotive', icon: 'headphone' },
   'baby-products': { file: 'baby-products', icon: 'baby' },
   'beauty-personal-care': { file: 'beauty-personal-care', icon: 'sparkle' },
+  'body-scrubs-treatments': { file: 'body-scrubs-treatments', icon: 'sparkle' },
   business: { file: 'business', icon: 'headphone' },
   electronics: { file: 'electronics', icon: 'headphone' },
   fitness: { file: 'fitness', icon: 'activity' },
