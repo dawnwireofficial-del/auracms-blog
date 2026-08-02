@@ -14,6 +14,7 @@ import DashboardAnalytics from './DashboardAnalytics';
 import AnalyticsAlerts from './AnalyticsAlerts';
 import AmazonSyncDashboard from './AmazonSyncDashboard';
 import ProductReviewManager from './ProductReviewManager';
+import ProductArticlesManager from './ProductArticlesManager';
 import MediaGallery from './MediaGallery';
 import TestimonialManager from './TestimonialManager';
 import AdminPosts from './admin/AdminPosts';
@@ -42,7 +43,7 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
-  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'posts' | 'categories' | 'comments' | 'products' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'seo' | 'ai' | 'clusters' | 'media' | 'brands' | 'banners' | 'deals' | 'homepage' | 'sections' | 'amazon-sync' | 'extension' | 'bulk-import' | 'auto-import'>('dashboard');
+  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'posts' | 'categories' | 'comments' | 'products' | 'product-articles' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'seo' | 'ai' | 'clusters' | 'media' | 'brands' | 'banners' | 'deals' | 'homepage' | 'sections' | 'amazon-sync' | 'extension' | 'bulk-import' | 'auto-import'>('dashboard');
   
   // Data States
   const [posts, setPosts] = useState<Post[]>([]);
@@ -165,6 +166,7 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
             { key: 'categories', icon: FolderOpen, label: `Categories (${categories.length})` },
             { key: 'comments', icon: MessageSquare, label: `Comments (${comments.length})` },
             { key: 'products', icon: ShoppingBag, label: 'Products' },
+            { key: 'product-articles', icon: FileText, label: 'Product Articles' },
             { key: 'testimonials', icon: Star, label: 'Testimonials' },
             { key: 'affiliate', icon: Link2, label: 'Affiliate Slugs' },
             { key: 'pages', icon: FileText, label: `Pages (${pages.length})` },
@@ -314,6 +316,13 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
           {activeMenu === 'products' && (
             <div id="admin-workspace-products">
               <ProductReviewManager token={token} categories={categories} />
+            </div>
+          )}
+
+          {/* E0c: PRODUCT ARTICLES */}
+          {activeMenu === 'product-articles' && (
+            <div id="admin-workspace-product-articles">
+              <ProductArticlesManager token={token} />
             </div>
           )}
 

@@ -5,6 +5,7 @@ import { Footer } from './components/layout/Footer';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
 import { HomePage } from './pages/HomePage';
 import { ProductCatalogPage } from './pages/ProductCatalogPage';
+import { BestCategoryPage } from './pages/BestCategoryPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
 import { DealsPage } from './pages/DealsPage';
 import { ComparisonPage } from './pages/ComparisonPage';
@@ -187,6 +188,15 @@ export function App() {
     if (pathname.startsWith('/browse/')) {
       const slug = pathname.replace('/browse/', '');
       return <ProductCatalogPage initialCategory={slug} />;
+    }
+
+    // Best-of roundups (/best or /best/:slug)
+    if (pathname === '/best' || pathname === '/best/') {
+      return <BestCategoryPage categorySlug="all" />;
+    }
+    if (pathname.startsWith('/best/')) {
+      const slug = pathname.replace('/best/', '');
+      return <BestCategoryPage categorySlug={slug} />;
     }
 
     // Buyers guide (/buyers-guide/:category or /buying-guides)

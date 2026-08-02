@@ -217,16 +217,30 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div className="group relative flex flex-col bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
       {/* Top Badges */}
-      <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
-        {product.isDeal ? (
-          <span className="bg-red-600 text-white font-extrabold text-[11px] px-2.5 py-1 rounded-lg shadow-md">
-            -{product.discountPercentage || 20}% DEAL
-          </span>
-        ) : product.editorScore >= 9.4 ? (
-          <span className="bg-[#0A1F44] text-amber-400 font-black text-[11px] px-2.5 py-1 rounded-lg shadow-md border border-amber-400/30">
-            ★ {product.editorScore} Editor's Choice
-          </span>
-        ) : <div />}
+      <div className="absolute top-3 left-3 right-3 z-10 flex items-start justify-between pointer-events-none">
+        <div className="flex flex-col items-start gap-1">
+          {product.isDeal ? (
+            <span className="bg-red-600 text-white font-extrabold text-[11px] px-2.5 py-1 rounded-lg shadow-md">
+              {product.dealBadge || (product.discountPercentage ? `-${product.discountPercentage}% DEAL` : '🔥 DEAL')}
+            </span>
+          ) : product.editorScore >= 9.4 ? (
+            <span className="bg-[#0A1F44] text-amber-400 font-black text-[11px] px-2.5 py-1 rounded-lg shadow-md border border-amber-400/30">
+              ★ {product.editorScore} Editor's Choice
+            </span>
+          ) : null}
+          {product.couponCode && (
+            <span className="bg-emerald-600 text-white font-black text-[10px] px-2 py-0.5 rounded-md shadow-md">
+              🏷️ {product.couponCode}
+            </span>
+          )}
+          {product.stockStatus && product.stockStatus !== 'in_stock' && (
+            <span className={`font-bold text-[10px] px-2 py-0.5 rounded-md shadow-md text-white ${
+              product.stockStatus === 'out_of_stock' ? 'bg-slate-700' : 'bg-amber-600'
+            }`}>
+              {product.stockStatus === 'out_of_stock' ? 'Out of Stock' : product.stockStatus === 'low_stock' ? '⚠️ Low Stock' : product.stockStatus}
+            </span>
+          )}
+        </div>
 
         <div className="flex items-center gap-1.5 pointer-events-auto">
           <button

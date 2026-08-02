@@ -364,6 +364,7 @@ export interface Post {
   featuredImage?: string;
   authorId: string;
   categoryId: string;
+  productId?: string;
   tags: string[];
   status: 'draft' | 'pending' | 'published' | 'scheduled';
   visibility: 'public' | 'private';

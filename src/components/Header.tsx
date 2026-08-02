@@ -103,7 +103,7 @@ export default function Header({
   const navLinks = [
     { label: 'Products', route: 'products', icon: ShoppingBag },
     { label: 'Deals', route: 'deals', icon: DollarSign, highlight: true },
-    { label: 'Best Sellers', route: 'products', params: '?sort=popularity', icon: Award },
+    { label: 'Best Sellers', route: 'best', icon: Award },
     { label: 'Buying Guides', route: 'buying-guides', icon: BookOpen },
   ];
 

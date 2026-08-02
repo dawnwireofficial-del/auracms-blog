@@ -61,6 +61,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const [directProduct, setDirectProduct] = useState<Product | null>(null);
   const [directFetchDone, setDirectFetchDone] = useState(false);
   const [brokenImages, setBrokenImages] = useState<Set<number>>(new Set());
+  const [captureEmail, setCaptureEmail] = useState('');
+  const [captureTargetPrice, setCaptureTargetPrice] = useState<string>('');
+  const [captureSaving, setCaptureSaving] = useState(false);
+  const [captureMsg, setCaptureMsg] = useState<string | null>(null);
+  const [captureType, setCaptureType] = useState<'success' | 'error'>('success');
 
   useEffect(() => {
     setIsInternalLoading(true);
@@ -141,6 +146,53 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       }
     }
     setBrokenImages((prev) => new Set(prev).add(index));
+  };
+
+  const handleProductCapture = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!product) return;
+    const email = captureEmail.trim();
+    if (!email || !email.includes('@')) {
+      setCaptureType('error');
+      setCaptureMsg('Please enter a valid email address.');
+      return;
+    }
+    setCaptureSaving(true);
+    setCaptureMsg(null);
+    const sessionId = localStorage.getItem('dawnwire_session_id') || (() => {
+      const id = 'sess-' + Math.random().toString(36).substring(2, 10);
+      localStorage.setItem('dawnwire_session_id', id);
+      return id;
+    })();
+    try {
+      const [newsRes, alertRes] = await Promise.all([
+        fetch('/api/public/newsletter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        }),
+        fetch('/api/public/price-alerts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productId: product.id,
+            email,
+            targetPrice: parseFloat(captureTargetPrice) || 0,
+            currentPrice: product.currentPrice ? Number(product.currentPrice) : 0,
+            sessionId,
+          }),
+        }),
+      ]);
+      const ok = newsRes.ok || newsRes.status === 409 || alertRes.ok;
+      setCaptureType(ok ? 'success' : 'error');
+      setCaptureMsg(ok
+        ? 'You are all set! We will email you the moment the price drops below your target, plus our best daily deals.'
+        : 'Something went wrong. Please try again.');
+    } catch (err) {
+      setCaptureType('error');
+      setCaptureMsg('Something went wrong. Please try again.');
+    }
+    setCaptureSaving(false);
   };
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -750,6 +802,65 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       {/* PRICE HISTORY TRACKER & TARGET PRICE ALERTS */}
       <section className="max-w-7xl mx-auto px-4 mt-16">
         <PriceHistoryTracker product={product} />
+      </section>
+
+      {/* NEWSLETTER + PRICE DROP LEAD CAPTURE */}
+      <section className="max-w-7xl mx-auto px-4 mt-16">
+        <div className="bg-gradient-to-br from-[#0A1F44] via-[#12307a] to-[#1a3f9e] text-white rounded-3xl p-6 sm:p-10 border border-blue-500/30 shadow-2xl">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-6">
+              <span className="text-[10px] font-black bg-amber-400 text-slate-950 px-2.5 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1 mb-3">
+                💸 Deals & Price Drops
+              </span>
+              <h3 className="text-xl sm:text-2xl font-extrabold">Never overpay for {product.title}</h3>
+              <p className="text-sm text-blue-200 mt-2 leading-relaxed">
+                Get an instant email when the price drops below your target, plus our best daily {product.mainCategory} deals and exclusive coupon codes — straight to your inbox.
+              </p>
+            </div>
+            <div className="lg:col-span-6 space-y-3">
+              {captureMsg ? (
+                <div className={`p-4 rounded-2xl text-sm font-bold ${captureType === 'error' ? 'bg-red-500/20 text-red-200 border border-red-400/40' : 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/40'}`}>
+                  {captureMsg}
+                </div>
+              ) : (
+                <form onSubmit={handleProductCapture} className="space-y-2.5">
+                  <input
+                    type="email"
+                    value={captureEmail}
+                    onChange={(e) => setCaptureEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    required
+                    className="w-full bg-white/10 backdrop-blur border border-white/25 rounded-xl px-4 py-3 text-sm text-white placeholder-blue-200/60 outline-none focus:ring-2 focus:ring-amber-400/60"
+                  />
+                  <div className="flex items-center gap-2 text-xs text-blue-200">
+                    <span className="shrink-0 font-bold">Target price:</span>
+                    <input
+                      type="number"
+                      min="1"
+                      step="0.01"
+                      value={captureTargetPrice}
+                      onChange={(e) => setCaptureTargetPrice(e.target.value)}
+                      className="bg-white/10 backdrop-blur border border-white/25 rounded-lg px-3 py-1.5 text-sm text-white w-28 outline-none focus:ring-2 focus:ring-amber-400/60"
+                    />
+                    <span className="text-blue-300/80">
+                      (current ${product.currentPrice && !isNaN(Number(product.currentPrice)) ? Number(product.currentPrice).toFixed(2) : '—'})
+                    </span>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={captureSaving}
+                    className="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3 rounded-xl text-sm shadow-lg shadow-amber-500/25 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+                  >
+                    {captureSaving ? 'Saving...' : '🔔 Notify Me When Price Drops + Get Deals'}
+                  </button>
+                  <p className="text-[10px] text-blue-300/70 text-center">
+                    No spam. Unsubscribe anytime. We may earn a commission on qualifying purchases.
+                  </p>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* AI-POWERED PRODUCT FAQ SECTION */}

@@ -269,16 +269,25 @@ export async function getProductAnalytics(days: number = 30): Promise<{
 }> {
   try {
     const sb = await getClient();
-    const [pageViews, affiliateLinks, reviews] = await Promise.all([
+    const [pageViews, affiliateLinks, reviews, rawClicks] = await Promise.all([
       sb.from('page_views').select('path').gte('created_at', new Date(Date.now() - days * 86400000).toISOString()).limit(5000),
       sb.from('affiliate_links').select('title, click_count, clicks_by_page').limit(1000),
       sb.from('product_reviews').select('id, product_name, slug').eq('status', 'published').limit(500),
+      sb.from('affiliate_clicks').select('product_id').gte('created_at', new Date(Date.now() - days * 86400000).toISOString()).limit(5000),
     ]);
 
     const viewCounts = new Map<string, number>();
     for (const row of (pageViews.data || [])) {
       const path = (row as any).path || '';
       viewCounts.set(path, (viewCounts.get(path) || 0) + 1);
+    }
+
+    // Real tracked clicks from affiliate_clicks, grouped by product_id
+    const trackedClickCounts = new Map<string, number>();
+    for (const row of (rawClicks.data || [])) {
+      const pid = (row as any).product_id;
+      if (!pid) continue;
+      trackedClickCounts.set(pid, (trackedClickCounts.get(pid) || 0) + 1);
     }
 
     const clickCounts = new Map<string, number>();
@@ -294,7 +303,8 @@ export async function getProductAnalytics(days: number = 30): Promise<{
       const reviewPath = `/review/${slug}`;
       const productsPath = `/products/${slug}`;
       const views = (viewCounts.get(reviewPath) || 0) + (viewCounts.get(productsPath) || 0);
-      const clicks = (clickCounts.get(reviewPath) || 0) + (clickCounts.get(productsPath) || 0);
+      const tracked = trackedClickCounts.get(r.id) || 0;
+      const clicks = (clickCounts.get(reviewPath) || 0) + (clickCounts.get(productsPath) || 0) + tracked;
       return {
         id: r.id,
         product_name: r.product_name,

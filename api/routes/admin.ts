@@ -536,6 +536,45 @@ router.get('/product-reviews', authenticate, requireRole(['super_admin', 'admin'
   }
 });
 
+// ====== Product Articles ======
+// List all products joined with any linked generated blog post (for edit/publish)
+router.get('/product-articles', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const [products, posts] = await Promise.all([seo.getProductReviews(), dbInstance.getPosts()]);
+    const postByProduct = new Map<string, any>();
+    for (const p of posts) {
+      if (!p.productId) continue;
+      const arr = postByProduct.get(p.productId) || [];
+      arr.push(p);
+      postByProduct.set(p.productId, arr);
+    }
+    const items = products.map((r: any) => ({
+      ...r,
+      articles: postByProduct.get(r.id) || [],
+      hasArticle: (r.review_article || '').length > 0,
+      articlePreview: (r.review_article || '').substring(0, 160),
+    }));
+    res.json({ data: items, total: items.length });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Update a product's review_article body (product-as-article)
+router.put('/product-articles/:id', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const { review_article, faq, affiliate_disclosure } = req.body;
+    const payload: Record<string, any> = {};
+    if (typeof review_article === 'string') payload.review_article = review_article;
+    if (faq !== undefined) payload.faq = Array.isArray(faq) ? faq : [];
+    if (typeof affiliate_disclosure === 'string') payload.affiliate_disclosure = affiliate_disclosure;
+    const updated = await updateProductReview(req.params.id, payload);
+    res.json(updated);
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Product Reviews — create
 router.post('/products', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
   try {

@@ -357,6 +357,8 @@ app.get('/sitemap.xml', async (_req, res) => {
       ...cats.map((c: any) => `<url><loc>${baseUrl}/categories/${c.slug}</loc><priority>0.8</priority></url>`),
       // Buying guide pages
       ...cats.map((c: any) => `<url><loc>${baseUrl}/buyers-guide/${c.slug}</loc><priority>0.6</priority></url>`),
+      // Best-of roundup pages (high-value money keywords)
+      ...cats.map((c: any) => `<url><loc>${baseUrl}/best/${c.slug}</loc><priority>0.9</priority></url>`),
     ];
     res.header('Content-Type', 'application/xml');
     res.send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.join('')}</urlset>`);

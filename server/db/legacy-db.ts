@@ -640,6 +640,7 @@ export class Database {
   public getPosts() { return this.data.posts; }
   public getPostById(id: string) { return this.data.posts.find(p => p.id === id); }
   public getPostBySlug(slug: string) { return this.data.posts.find(p => p.slug === slug); }
+  public getPostsByProductId(productId: string) { return this.data.posts.filter(p => (p as any).productId === productId); }
   
   public createPost(post: Omit<Post, 'id' | 'createdAt' | 'updatedAt' | 'readingTime' | 'authorId'>, authorId: string): Post {
     const id = 'post-' + generateId().slice(0, 8);

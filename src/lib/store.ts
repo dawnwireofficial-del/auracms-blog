@@ -61,14 +61,35 @@ export const store = {
   toggleWishlist: (productId: string) => {
     const list = [...globalStore.wishlist];
     const index = list.indexOf(productId);
-    if (index >= 0) {
-      list.splice(index, 1);
-    } else {
+    const isAdding = index < 0;
+    if (isAdding) {
       list.push(productId);
+    } else {
+      list.splice(index, 1);
     }
     globalStore.wishlist = list;
     localStorage.setItem('dawnwire_wishlist', JSON.stringify(list));
     notify();
+    const sessionId = localStorage.getItem('dawnwire_session_id') || (() => {
+      const id = 'sess-' + Math.random().toString(36).substring(2, 10);
+      localStorage.setItem('dawnwire_session_id', id);
+      return id;
+    })();
+    const userId = globalStore.currentUser?.uid || '';
+    if (isAdding) {
+      fetch('/api/public/wishlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, sessionId, productId }),
+      }).then(r => r.json().then((d: any) => {
+        if (d && d.id) localStorage.setItem(`dawnwire_wishlist_item_${productId}`, d.id);
+      })).catch(() => {});
+    } else {
+      const wishlistItemId = localStorage.getItem(`dawnwire_wishlist_item_${productId}`) || '';
+      if (wishlistItemId) {
+        fetch(`/api/public/wishlist/${wishlistItemId}`, { method: 'DELETE' }).catch(() => {});
+      }
+    }
   },
 
   addRecentlyViewed: (productId: string) => {
@@ -79,6 +100,16 @@ export const store = {
     globalStore.recentlyViewed = list;
     localStorage.setItem('dawnwire_recently_viewed', JSON.stringify(list));
     notify();
+    const sessionId = localStorage.getItem('dawnwire_session_id') || (() => {
+      const id = 'sess-' + Math.random().toString(36).substring(2, 10);
+      localStorage.setItem('dawnwire_session_id', id);
+      return id;
+    })();
+    fetch('/api/public/recently-viewed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: globalStore.currentUser?.uid || '', sessionId, productId }),
+    }).catch(() => {});
   },
 
   clearRecentlyViewed: () => {

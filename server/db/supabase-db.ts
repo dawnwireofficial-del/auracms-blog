@@ -170,6 +170,12 @@ export class SupabaseDatabase {
     return data ? mapRow<Post>(data) : null;
   }
 
+  async getPostsByProductId(productId: string): Promise<Post[]> {
+    const sb = await this.ready();
+    const { data } = await sb.from('posts').select('*').eq('product_id', productId).order('created_at', { ascending: false });
+    return mapRows<Post>(data || []);
+  }
+
   async createPost(post: Partial<Post> & { title: string; slug: string; content: string }, authorId: string): Promise<Post> {
     const sb = await this.ready();
     const wordCount = post.content ? post.content.split(/\s+/).length : 0;
@@ -178,10 +184,12 @@ export class SupabaseDatabase {
     const payload: Record<string, any> = {
       id: crypto.randomUUID(), title: post.title, slug: post.slug, excerpt: post.excerpt || '', content: post.content,
       featured_image: post.featuredImage || null, author_id: authorId, category_id: post.categoryId || null,
+      product_id: post.productId || null,
       tags: post.tags || [], status: post.status || 'draft', visibility: post.visibility || 'public',
       is_featured: !!post.isFeatured, is_trending: !!post.isTrending, is_editors_pick: !!post.isEditorsPick,
       allow_comments: post.allowComments !== false, seo_title: post.seoTitle || null,
       seo_description: post.seoDescription || null, seo_keywords: post.seoKeywords || null,
+      scheduled_at: post.scheduledAt || null,
       published_at: post.status === 'published' ? new Date().toISOString() : null,
       reading_time: readingTime, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
     };
@@ -231,6 +239,7 @@ export class SupabaseDatabase {
     if (updates.content !== undefined) payload.content = updates.content;
     if (updates.featuredImage !== undefined) payload.featured_image = updates.featuredImage;
     if (updates.categoryId !== undefined) payload.category_id = updates.categoryId;
+    if (updates.productId !== undefined) payload.product_id = updates.productId;
     if (updates.tags !== undefined) payload.tags = updates.tags;
     if (updates.status !== undefined) payload.status = updates.status;
     if (updates.visibility !== undefined) payload.visibility = updates.visibility;
@@ -242,6 +251,7 @@ export class SupabaseDatabase {
     if (updates.seoDescription !== undefined) payload.seo_description = updates.seoDescription;
     if (updates.seoKeywords !== undefined) payload.seo_keywords = updates.seoKeywords;
     if (updates.publishedAt !== undefined) payload.published_at = updates.publishedAt;
+    if (updates.scheduledAt !== undefined) payload.scheduled_at = updates.scheduledAt;
     if (updates.status === 'published' && existing.status !== 'published') {
       payload.published_at = new Date().toISOString();
     }
