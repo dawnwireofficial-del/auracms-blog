@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { CategoryIcon, TrustBadges } from '../components/common/SvgIcons';
+import { TrustBadges } from '../components/common/SvgIcons';
+import { AnimatedCategoryIcon } from '../components/common/AnimatedCategoryIcon';
 import { ProductCard } from '../components/common/ProductCard';
 import { DisclosureBanner } from '../components/common/DisclosureBanner';
 import { BannerCarousel } from '../components/common/BannerCarousel';
@@ -89,8 +90,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 whileHover={{ y: -4, scale: 1.03 }}
                 className="group p-4 bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200/80 dark:border-slate-800 hover:border-blue-500/80 hover:shadow-xl transition-all text-center flex flex-col items-center justify-center gap-2"
               >
-                <div className="p-3 bg-blue-50 dark:bg-slate-800 group-hover:bg-blue-600 group-hover:text-white text-blue-600 dark:text-blue-400 rounded-xl transition-colors">
-                  <CategoryIcon icon={cat.icon || 'tag'} className="w-6 h-6" />
+                <div className="p-3 rounded-2xl transition-transform group-hover:scale-105">
+                  <AnimatedCategoryIcon
+                    slug={cat.slug}
+                    icon={cat.icon || 'tag'}
+                    className="w-6 h-6"
+                    imgClassName="w-14 h-14 drop-shadow-md group-hover:drop-shadow-[0_0_12px_rgba(91,114,255,0.45)] transition-all duration-300"
+                  />
                 </div>
                 <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                   {cat.name}
