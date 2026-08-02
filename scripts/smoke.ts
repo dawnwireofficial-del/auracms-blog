@@ -3,6 +3,7 @@ const slug = 'bose-soundlink-flex-bluetooth-speaker-2nd-gen---portable-outdoor-s
 
 const pages = [
   '/', '/products', '/categories', '/deals', '/wishlist', '/buying-guides',
+  '/reviews', '/guides', '/best', '/post',
   '/recently-viewed', '/search', '/sitemap.xml', '/robots.txt', '/llms.txt',
   '/browse/beauty-personal-care', '/browse/electronics', '/browse/home-kitchen', '/browse/sports-outdoors',
   '/browse/toys-games', '/browse/gaming', '/browse/fitness', '/browse/ai-software-tools', '/browse/automotive',
