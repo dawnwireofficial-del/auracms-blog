@@ -10,6 +10,7 @@ import { ProductDetailPage } from './pages/ProductDetailPage';
 import { DealsPage } from './pages/DealsPage';
 import { ComparisonPage } from './pages/ComparisonPage';
 import { ReviewsPage, BuyingGuidesPage } from './pages/EditorialPages';
+import PostDetailPage from './pages/PostDetailPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import BrandsPage from './components/pages/BrandsPage';
 import { ChatbotDrawer } from './components/ai/ChatbotDrawer';
@@ -164,7 +165,7 @@ export function App() {
   const renderRoute = () => {
     // 404 fallback
     const validPaths = [
-      '/products', '/products/', '/categories', '/categories/', '/deals', '/compare', '/reviews', '/guides', '/wishlist', '/admin', '/account', '/login', '/contact', '/buyers-guide', '/buying-guides', '/portfolio', '/service', '/search', '/trending', '/best', '/brands', '/browse', '/product', '/about', '/privacy-policy', '/terms', '/affiliate-disclosure', '/recently-viewed', '/sitemap.xml', '/robots.txt', '/llms.txt'
+      '/products', '/products/', '/categories', '/categories/', '/deals', '/compare', '/reviews', '/guides', '/wishlist', '/admin', '/account', '/login', '/contact', '/buyers-guide', '/buying-guides', '/portfolio', '/service', '/search', '/trending', '/best', '/brands', '/browse', '/product', '/post', '/about', '/privacy-policy', '/terms', '/affiliate-disclosure', '/recently-viewed', '/sitemap.xml', '/robots.txt', '/llms.txt'
     ];
     const isKnownRoute = validPaths.some(p => pathname === p || pathname.startsWith(p + '/'));
     if (!isKnownRoute && pathname !== '/') {
@@ -255,6 +256,12 @@ export function App() {
     // Buying Guides
     if (pathname.startsWith('/guides')) {
       return <BuyingGuidesPage />;
+    }
+
+    // Post detail (/post/:slug)
+    if (pathname.startsWith('/post/')) {
+      const slug = pathname.replace('/post/', '');
+      return <PostDetailPage slug={slug} />;
     }
 
     // Wishlist

@@ -640,6 +640,59 @@ router.post('/product-reviews/generate-article/:id', authenticate, requireRole([
   }
 });
 
+// Generate a category-level buying guide article (How to Choose Best X)
+router.post('/buying-guides/generate/:categoryId', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const { generateBuyingGuideFromCategory } = await import('../../server/ai');
+    const categories = await dbInstance.getCategories();
+    const category = categories.find((c: any) => c.id === req.params.categoryId);
+    if (!category) return res.status(404).json({ error: 'Category not found' });
+
+    const allReviews = await seo.getProductReviews();
+    const published = allReviews.filter((r: any) => r.status === 'published');
+    const catProducts = published
+      .filter((r: any) => r.category_id === category.id)
+      .sort((a: any, b: any) => (Number(b.editor_score) || 0) - (Number(a.editor_score) || 0))
+      .slice(0, 6);
+
+    if (catProducts.length === 0) {
+      return res.status(400).json({ error: `No published products found in category "${category.name}". Add products to this category first.` });
+    }
+
+    const { title, content, excerpt } = await generateBuyingGuideFromCategory(category, catProducts);
+
+    const slug = 'best-' + (category.slug || String(category.name).toLowerCase().replace(/[^a-z0-9]+/g, '-')) + '-buying-guide';
+    const existingPost = await dbInstance.getPostBySlug(slug);
+    const finalSlug = existingPost ? slug + '-' + Date.now().toString(36) : slug;
+    const u = (req as any).user;
+    const post = await dbInstance.createPost({
+      title,
+      slug: finalSlug,
+      excerpt: excerpt.substring(0, 300),
+      content,
+      featuredImage: '',
+      categoryId: category.id,
+      productId: undefined,
+      tags: [category.name, 'buying guide', 'best ' + category.name.toLowerCase()].filter(Boolean),
+      status: 'draft',
+      visibility: 'public',
+      isFeatured: false,
+      isTrending: false,
+      isEditorsPick: false,
+      allowComments: true,
+      seoTitle: title,
+      seoDescription: excerpt.substring(0, 160),
+      seoKeywords: ['buying guide', 'how to choose', 'best ' + category.name.toLowerCase(), category.name].filter(Boolean).join(', '),
+      publishedAt: undefined,
+    }, u.id);
+
+    dbInstance.log('Buying Guide Generated', `AI buying guide for "${category.name}" -> "${title}"`, u.id, u.name);
+    res.json({ post, category, productCount: catProducts.length });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // AI Verdict Generation
 router.post('/product-reviews/:id/generate-ai-verdict', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
   try {

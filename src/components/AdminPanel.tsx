@@ -4,7 +4,7 @@ import {
   LayoutDashboard, BookOpen, FolderOpen, MessageSquare, Link2, 
   Settings as SettingsIcon, LogOut, Mail, List, Eye, 
   Image as ImageIcon, FileText, Search, Star, ShoppingBag, Layers, Timer,
-  Bell, RefreshCw, Download, Package
+  Bell, RefreshCw, Download, Package, Sparkles
 } from 'lucide-react';
 
 import { Post, Category, Comment, AffiliateLink, Page, SiteSettings, User, ContactMessage, NewsletterSubscriber, ActivityLog, MediaItem } from '../types';
@@ -15,6 +15,7 @@ import AnalyticsAlerts from './AnalyticsAlerts';
 import AmazonSyncDashboard from './AmazonSyncDashboard';
 import ProductReviewManager from './ProductReviewManager';
 import ProductArticlesManager from './ProductArticlesManager';
+import ArticleGenerator from './ArticleGenerator';
 import MediaGallery from './MediaGallery';
 import TestimonialManager from './TestimonialManager';
 import AdminPosts from './admin/AdminPosts';
@@ -43,7 +44,7 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
-  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'posts' | 'categories' | 'comments' | 'products' | 'product-articles' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'seo' | 'ai' | 'clusters' | 'media' | 'brands' | 'banners' | 'deals' | 'homepage' | 'sections' | 'amazon-sync' | 'extension' | 'bulk-import' | 'auto-import'>('dashboard');
+  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'posts' | 'categories' | 'comments' | 'products' | 'product-articles' | 'article-generator' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'seo' | 'ai' | 'clusters' | 'media' | 'brands' | 'banners' | 'deals' | 'homepage' | 'sections' | 'amazon-sync' | 'extension' | 'bulk-import' | 'auto-import'>('dashboard');
   
   // Data States
   const [posts, setPosts] = useState<Post[]>([]);
@@ -167,6 +168,7 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
             { key: 'comments', icon: MessageSquare, label: `Comments (${comments.length})` },
             { key: 'products', icon: ShoppingBag, label: 'Products' },
             { key: 'product-articles', icon: FileText, label: 'Product Articles' },
+            { key: 'article-generator', icon: Sparkles, label: 'Article Generator' },
             { key: 'testimonials', icon: Star, label: 'Testimonials' },
             { key: 'affiliate', icon: Link2, label: 'Affiliate Slugs' },
             { key: 'pages', icon: FileText, label: `Pages (${pages.length})` },
@@ -323,6 +325,13 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
           {activeMenu === 'product-articles' && (
             <div id="admin-workspace-product-articles">
               <ProductArticlesManager token={token} />
+            </div>
+          )}
+
+          {/* E0d: ARTICLE GENERATOR */}
+          {activeMenu === 'article-generator' && (
+            <div id="admin-workspace-article-generator">
+              <ArticleGenerator token={token} />
             </div>
           )}
 
