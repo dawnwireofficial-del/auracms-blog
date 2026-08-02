@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Star, TrendingUp, Zap, ShoppingBag, Award, Sparkles } from 'lucide-react';
+import { ArrowRight, Star, TrendingUp, Zap, Award, Sparkles } from 'lucide-react';
 import { proxyImageUrl } from '../../utils/safeRender';
+import { AnimatedCategoryIcon } from '../common/AnimatedCategoryIcon';
 
 interface HomepageSection {
   id: string;
@@ -97,8 +98,13 @@ export default function DynamicHomepageSections({ onNavigate }: { onNavigate: (r
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                 {categories.map((cat: any) => (
                   <button key={cat.id} onClick={() => onNavigate('category', cat.slug)} className="p-4 bg-white dark:bg-zinc-800/50 rounded-xl border border-slate-100 dark:border-zinc-700/50 text-center hover:border-[#0c5adb] hover:shadow-md transition-all group">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#0c5adb]/10 to-blue-500/10 dark:from-[#0c5adb]/20 dark:to-blue-500/20 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-                      <ShoppingBag className="h-5 w-5 text-[#0c5adb]" />
+                    <div className="flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                      <AnimatedCategoryIcon
+                        slug={cat.slug}
+                        icon={cat.icon || 'tag'}
+                        className="w-5 h-5"
+                        imgClassName="w-16 h-16 drop-shadow-md"
+                      />
                     </div>
                     <p className="text-[11px] font-semibold text-slate-700 dark:text-zinc-200">{cat.name}</p>
                   </button>

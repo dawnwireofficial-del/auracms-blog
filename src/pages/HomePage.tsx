@@ -78,7 +78,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             </a>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-4">
             {categories.map((cat, idx) => (
               <motion.a
                 key={cat.id}
@@ -88,14 +88,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 viewport={{ once: true }}
                 transition={{ duration: 0.3, delay: idx * 0.05 }}
                 whileHover={{ y: -4, scale: 1.03 }}
-                className="group p-4 bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200/80 dark:border-slate-800 hover:border-blue-500/80 hover:shadow-xl transition-all text-center flex flex-col items-center justify-center gap-2"
+                className="group p-5 bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200/80 dark:border-slate-800 hover:border-blue-500/80 hover:shadow-xl transition-all text-center flex flex-col items-center justify-center gap-3"
               >
-                <div className="p-3 rounded-2xl transition-transform group-hover:scale-105">
+                <div className="rounded-2xl transition-transform group-hover:scale-105">
                   <AnimatedCategoryIcon
                     slug={cat.slug}
                     icon={cat.icon || 'tag'}
                     className="w-6 h-6"
-                    imgClassName="w-14 h-14 drop-shadow-md group-hover:drop-shadow-[0_0_12px_rgba(91,114,255,0.45)] transition-all duration-300"
+                    imgClassName="w-28 h-28 drop-shadow-md group-hover:drop-shadow-[0_0_14px_rgba(91,114,255,0.5)] transition-all duration-300"
                   />
                 </div>
                 <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">

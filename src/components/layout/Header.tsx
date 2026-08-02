@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { DawnWireLogo, CategoryIcon } from '../common/SvgIcons';
+import { DawnWireLogo } from '../common/SvgIcons';
+import { AnimatedCategoryIcon } from '../common/AnimatedCategoryIcon';
 import { useAppStore } from '../../lib/store';
 import { navigate } from '../../lib/navigation';
 import { logActivityEvent } from '../../lib/activityTracker';
@@ -613,7 +614,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
                         }`}
                       >
                         <div className="flex items-center gap-2.5">
-                          <CategoryIcon icon={cat.icon || 'tag'} className="w-4 h-4 text-blue-500" />
+                          <AnimatedCategoryIcon
+                            slug={cat.slug}
+                            icon={cat.icon || 'tag'}
+                            className="w-4 h-4 text-blue-500"
+                            imgClassName="w-8 h-8 drop-shadow-md shrink-0"
+                          />
                           <span>{cat.name}</span>
                         </div>
                         <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
