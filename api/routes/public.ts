@@ -559,7 +559,10 @@ router.delete('/comparisons/:id', async (req, res) => {
 router.post('/price-alerts', async (req, res) => {
   try { 
     const { addPriceAlert } = await import('../../server/db/price-alerts-db');
-    const alert = await addPriceAlert(req.body.productId, req.body.email, req.body.targetPrice, req.body.currentPrice);
+    const alert = await addPriceAlert(req.body.productId, req.body.email, req.body.targetPrice, req.body.currentPrice, req.body.userId, {
+      alertType: req.body.alertType || 'price_drop',
+      sessionId: req.body.sessionId,
+    });
     res.json(alert); 
   }
   catch (e: any) { res.status(400).json({ error: e.message }); }
@@ -578,6 +581,14 @@ router.post('/track/affiliate-click', async (req, res) => {
   const { productId, categoryId, pageUrl, pageType, ctaPosition, deviceType, sessionId, userId, campaign, articleId } = req.body;
   await dbInstance.logAffiliateClick({ productId, categoryId, pageUrl, pageType, ctaPosition, deviceType, sessionId, userId, campaign, articleId });
   res.json({ success: true });
+});
+
+// ====== Knock notifications client config (public key is safe for the browser) ======
+router.get('/knock-config', async (_req, res) => {
+  const publicKey = process.env.KNOCK_PUBLIC_API_KEY || '';
+  const feedId = process.env.KNOCK_IN_APP_CHANNEL_ID || 'e36a561c-62bf-4387-8084-2aafddb1ee2e';
+  res.set('Cache-Control', 'public, max-age=300');
+  res.json({ enabled: !!publicKey, publicKey, feedId });
 });
 
 // ====== Product cloak redirect (applies Amazon tag + tracks click, no pre-created rows needed) ======

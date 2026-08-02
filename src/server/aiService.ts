@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+﻿import { GoogleGenAI } from '@google/genai';
 
 export async function handleAiChatRequest(prompt: string, contextProductId?: string, history: any[] = []) {
   const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
@@ -19,7 +19,7 @@ Always be objective, concise, and helpful.
 Return a response encouraging the user to check prices on Amazon using DawnWire links.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: [
         { role: 'user', parts: [{ text: `${systemInstruction}\n\nUser Question: ${prompt}` }] }
       ]
@@ -72,7 +72,7 @@ Return a JSON object with:
 - editorVerdict (2 sentences expert opinion)`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: [{ role: 'user', parts: [{ text: prompt }] }]
     });
 
@@ -158,7 +158,7 @@ Return ONLY a valid JSON object matching this schema:
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: [{ role: 'user', parts: [{ text: prompt }] }]
     });
 
@@ -254,7 +254,7 @@ Return ONLY a JSON object matching this schema:
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: [{ role: 'user', parts: [{ text: prompt }] }]
     });
 
@@ -328,7 +328,7 @@ Return ONLY a JSON array of 5 FAQ objects matching this exact JSON schema:
 ]`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: [{ role: 'user', parts: [{ text: prompt }] }]
     });
 

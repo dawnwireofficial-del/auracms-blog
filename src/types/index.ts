@@ -604,7 +604,7 @@ export interface PriceAlert {
   productId: string;
   targetPrice: number;
   currentPrice: number;
-  alertType: 'price_drop' | 'back_in_stock' | 'deal_available';
+  alertType: 'price_drop' | 'price_increase' | 'back_in_stock' | 'deal_available';
   isTriggered: boolean;
   status: 'active' | 'triggered' | 'cancelled';
   createdAt: string;

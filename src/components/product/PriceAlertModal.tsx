@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Product } from '../../types';
 import { toast } from '../../lib/toastStore';
 import { proxyImageUrl } from '../../utils/safeRender';
+import { useAppStore } from '../../lib/store';
 
 interface PriceAlertModalProps {
   product: Product;
@@ -9,6 +10,7 @@ interface PriceAlertModalProps {
 }
 
 export const PriceAlertModal: React.FC<PriceAlertModalProps> = ({ product, onClose }) => {
+  const { currentUser } = useAppStore();
   const [email, setEmail] = useState('');
   const [targetPrice, setTargetPrice] = useState<number>(
     product.currentPrice ? Math.floor(product.currentPrice * 0.9) : 100
@@ -23,7 +25,7 @@ export const PriceAlertModal: React.FC<PriceAlertModalProps> = ({ product, onClo
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
       toast.error('Please enter a valid email address.');
@@ -31,6 +33,23 @@ export const PriceAlertModal: React.FC<PriceAlertModalProps> = ({ product, onClo
     }
 
     setIsSubmitting(true);
+    try {
+      // Persist server-side so price-drop notifications can be delivered
+      await fetch('/api/public/price-alerts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: product.id,
+          email,
+          targetPrice,
+          currentPrice: product.currentPrice || 0,
+          userId: currentUser?.uid,
+        }),
+      });
+    } catch {
+      // local-only fallback below still applies
+    }
+
     setTimeout(() => {
       // Save locally
       const existingAlerts = JSON.parse(localStorage.getItem('priceAlerts') || '[]');

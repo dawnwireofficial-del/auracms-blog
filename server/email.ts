@@ -177,3 +177,36 @@ export async function sendPriceDropAlertEmail(email: string, productName: string
     return false;
   }
 }
+
+// 5b. Price Increase Alert — emailed when a watched product rises to/above the target
+export async function sendPriceIncreaseAlertEmail(email: string, productName: string, productUrl: string, oldPrice: number, newPrice: number): Promise<boolean> {
+  if (!isEmailConfigured()) return false;
+  try {
+    await getClient().emails.send({
+      from: fromEmail,
+      to: email,
+      subject: `Price Increase Alert: ${productName} is now $${newPrice}`,
+      html: `
+        <div style="font-family: Inter, system-ui, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #0A1F44; border-radius: 24px; color: #e2e8f0;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <div style="display: inline-block; background: #f59e0b; width: 48px; height: 48px; border-radius: 14px; line-height: 48px; font-size: 22px; font-weight: 900; color: white;">$</div>
+          </div>
+          <h1 style="font-size: 20px; font-weight: 700; color: #f8fafc; margin: 0 0 8px;">Price update: ${productName}</h1>
+          <p style="font-size: 14px; line-height: 1.6; color: #94a3b8; margin: 0 0 24px;">
+            The item you've been watching, <strong>${productName}</strong>, is now <strong>$${newPrice}</strong> (was $${oldPrice}). We'll keep watching it and let you know about any future price drops.
+          </p>
+          <div style="text-align: center; margin-top: 32px; margin-bottom: 32px;">
+            <a href="${productUrl}" style="display: inline-block; background: #246BFF; color: white; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 600; font-size: 14px;">View Product</a>
+          </div>
+          <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0;">
+            DawnWire — Never miss a great deal again.
+          </p>
+        </div>
+      `
+    });
+    return true;
+  } catch (e) {
+    console.error('Failed to send price increase alert email:', e);
+    return false;
+  }
+}

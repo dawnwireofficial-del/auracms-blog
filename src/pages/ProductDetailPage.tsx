@@ -63,6 +63,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const [brokenImages, setBrokenImages] = useState<Set<number>>(new Set());
   const [captureEmail, setCaptureEmail] = useState('');
   const [captureTargetPrice, setCaptureTargetPrice] = useState<string>('');
+  const [captureAlertType, setCaptureAlertType] = useState<'price_drop' | 'price_increase'>('price_drop');
   const [captureSaving, setCaptureSaving] = useState(false);
   const [captureMsg, setCaptureMsg] = useState<string | null>(null);
   const [captureType, setCaptureType] = useState<'success' | 'error'>('success');
@@ -180,13 +181,16 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             targetPrice: parseFloat(captureTargetPrice) || 0,
             currentPrice: product.currentPrice ? Number(product.currentPrice) : 0,
             sessionId,
+            alertType: captureAlertType,
           }),
         }),
       ]);
       const ok = newsRes.ok || newsRes.status === 409 || alertRes.ok;
       setCaptureType(ok ? 'success' : 'error');
       setCaptureMsg(ok
-        ? 'You are all set! We will email you the moment the price drops below your target, plus our best daily deals.'
+        ? captureAlertType === 'price_increase'
+          ? 'You are all set! We will email you when the price rises above your target, plus our best daily deals.'
+          : 'You are all set! We will email you the moment the price drops below your target, plus our best daily deals.'
         : 'Something went wrong. Please try again.');
     } catch (err) {
       setCaptureType('error');
@@ -810,11 +814,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-6">
               <span className="text-[10px] font-black bg-amber-400 text-slate-950 px-2.5 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1 mb-3">
-                💸 Deals & Price Drops
+                💸 Deals & Price Alerts
               </span>
               <h3 className="text-xl sm:text-2xl font-extrabold">Never overpay for {product.title}</h3>
               <p className="text-sm text-blue-200 mt-2 leading-relaxed">
-                Get an instant email when the price drops below your target, plus our best daily {product.mainCategory} deals and exclusive coupon codes — straight to your inbox.
+                Get an instant email when the price {captureAlertType === 'price_increase' ? 'rises above' : 'drops below'} your target, plus our best daily {product.mainCategory} deals and exclusive coupon codes — straight to your inbox.
               </p>
             </div>
             <div className="lg:col-span-6 space-y-3">
@@ -832,8 +836,22 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     required
                     className="w-full bg-white/10 backdrop-blur border border-white/25 rounded-xl px-4 py-3 text-sm text-white placeholder-blue-200/60 outline-none focus:ring-2 focus:ring-amber-400/60"
                   />
-                  <div className="flex items-center gap-2 text-xs text-blue-200">
-                    <span className="shrink-0 font-bold">Target price:</span>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-blue-200">
+                    <span className="shrink-0 font-bold">Notify when:</span>
+                    <button
+                      type="button"
+                      onClick={() => setCaptureAlertType('price_drop')}
+                      className={`px-3 py-1.5 rounded-lg font-semibold border transition-colors ${captureAlertType === 'price_drop' ? 'bg-amber-400/20 border-amber-400/60 text-amber-300' : 'bg-white/10 border-white/25 text-blue-200 hover:bg-white/20'}`}
+                    >
+                      Price drops to
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCaptureAlertType('price_increase')}
+                      className={`px-3 py-1.5 rounded-lg font-semibold border transition-colors ${captureAlertType === 'price_increase' ? 'bg-amber-400/20 border-amber-400/60 text-amber-300' : 'bg-white/10 border-white/25 text-blue-200 hover:bg-white/20'}`}
+                    >
+                      Price rises to
+                    </button>
                     <input
                       type="number"
                       min="1"
@@ -851,7 +869,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     disabled={captureSaving}
                     className="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3 rounded-xl text-sm shadow-lg shadow-amber-500/25 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
                   >
-                    {captureSaving ? 'Saving...' : '🔔 Notify Me When Price Drops + Get Deals'}
+                    {captureSaving ? 'Saving...' : `🔔 Notify Me When Price ${captureAlertType === 'price_increase' ? 'Rises' : 'Drops'} + Get Deals`}
                   </button>
                   <p className="text-[10px] text-blue-300/70 text-center">
                     No spam. Unsubscribe anytime. We may earn a commission on qualifying purchases.

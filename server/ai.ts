@@ -1,5 +1,7 @@
 import { generateText } from 'ai';
 import { createCohere } from '@ai-sdk/cohere';
+import { deepseekText, isDeepSeekConfigured } from './deepseek-pool';
+import { geminiText, isGeminiConfigured } from './gemini';
 
 const AI_GATEWAY_API_KEY = process.env.AI_GATEWAY_API_KEY || process.env.COHERE_API_KEY || '';
 const AI_GATEWAY_BASE_URL = process.env.AI_GATEWAY_BASE_URL || 'https://api.cohere.ai/v2';
@@ -16,7 +18,7 @@ function normalizeCohereResponse(body: string): string {
           if (source && typeof source === 'object' && !source.document) {
             source.document = {
               text: JSON.stringify(source.tool_output ?? source.text ?? ''),
-              title: (source.type === 'tool' ? 'Tool' : 'Document') || 'Document',
+              title: source.type === 'tool' ? 'Tool' : 'Document',
             };
           }
         }
@@ -53,6 +55,24 @@ function getModel() {
 }
 
 export async function cohereChat(promptText: string, system?: string, timeoutMs?: number, maxTokens?: number): Promise<string> {
+  if (isGeminiConfigured()) {
+    try {
+      return await geminiText(promptText, system, timeoutMs, maxTokens);
+    } catch (e: any) {
+      if (e.name === 'AbortError') throw new Error('AI Gateway request timed out. Try again or check your API key.', { cause: e });
+      console.error('[ai.ts] Gemini failed, falling back to DeepSeek/Cohere:', e.message);
+    }
+  }
+
+  if (isDeepSeekConfigured()) {
+    try {
+      return await deepseekText({ prompt: promptText, system, timeoutMs, maxOutputTokens: maxTokens });
+    } catch (e: any) {
+      if (e.name === 'AbortError') throw new Error('AI Gateway request timed out. Try again or check your API key.', { cause: e });
+      console.error('[ai.ts] DeepSeek failed, falling back to Cohere:', e.message);
+    }
+  }
+
   if (!AI_GATEWAY_API_KEY) throw new Error('AI_GATEWAY_API_KEY not configured. To use this feature, set the AI_GATEWAY_API_KEY environment variable.');
 
   const controller = new AbortController();

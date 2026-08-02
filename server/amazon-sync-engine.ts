@@ -230,7 +230,7 @@ async function syncProduct(
     // Handle price update with history tracking
     if (productData.price != null) {
       const { data: existing } = await sb?.from('amazon_sync_status')
-        .select('current_price, previous_price, currency')
+        .select('current_price, previous_price, currency, is_deal, availability')
         .eq('product_id', job.productId)
         .maybeSingle() || {};
 
@@ -256,6 +256,28 @@ async function syncProduct(
             currency: productData.currency || existing.currency,
             is_deal: productData.isDeal,
             change_type: changeType,
+          });
+        }
+
+        // Deal / back-in-stock transition detection -> notify wishlisted users
+        const dealStarted = productData.isDeal === true && existing.is_deal !== true;
+        const prevOutOfStock = existing.availability === 'OutOfStock' || existing.availability === 'Currently unavailable';
+        const backInStock = prevOutOfStock && !!productData.availability && productData.availability !== 'OutOfStock' && productData.availability !== 'Currently unavailable';
+        if (dealStarted || backInStock) {
+          const { notifyDealToWishlistUsers } = await import('./knock');
+          const { getProductReviewById } = await import('./seo-engine');
+          const row = await getProductReviewById(job.productId);
+          await notifyDealToWishlistUsers({
+            productId: job.productId,
+            productName: productData.title || row?.product_name || '',
+            brand: productData.brand || row?.brand || '',
+            productImage: productData.mainImage || row?.product_image || '',
+            slug: row?.slug,
+            asin: job.asin,
+            price: productData.dealPrice ?? productData.price ?? undefined,
+            originalPrice: productData.referencePrice ?? undefined,
+            discountPct: productData.discountPercent,
+            event: backInStock ? 'back_in_stock' : 'deal_started',
           });
         }
       }
@@ -422,12 +444,15 @@ async function checkPriceAlerts(productId: string, data?: AmazonProductData): Pr
   if (!data?.price) return;
   try {
     const { getActiveAlerts, markAlertTriggered } = await import('./db/price-alerts-db');
-    const { sendPriceDropAlertEmail } = await import('./email');
     const alerts = await getActiveAlerts();
-    const productAlerts = alerts.filter(a => a.productId === productId && data.price! <= (a.targetPrice || 0));
+    const productAlerts = alerts.filter(a => a.productId === productId && (
+      a.alertType === 'price_increase' ? data.price! >= (a.targetPrice || 0) : data.price! <= (a.targetPrice || 0)
+    ));
     
     for (const alert of productAlerts) {
-      await sendPriceDropAlertEmail(
+      const { sendPriceDropAlertEmail, sendPriceIncreaseAlertEmail } = await import('./email');
+      const sender = alert.alertType === 'price_increase' ? sendPriceIncreaseAlertEmail : sendPriceDropAlertEmail;
+      await sender(
         alert.email, 
         data.title || 'Product', 
         (data as any).affiliate_url || '#', 
@@ -435,6 +460,19 @@ async function checkPriceAlerts(productId: string, data?: AmazonProductData): Pr
         data.price
       );
       await markAlertTriggered(alert.id);
+      const { notifyPriceDrop } = await import('./knock');
+      await notifyPriceDrop({
+        userId: alert.userId,
+        email: alert.email,
+        productId,
+        productName: data.title || 'Product',
+        brand: data.brand || '',
+        productImage: data.mainImage || '',
+        asin: (data as any).asin,
+        oldPrice: alert.currentPrice,
+        newPrice: data.price,
+        targetPrice: alert.targetPrice,
+      });
     }
   } catch (e) {
     console.error('Error processing price alerts:', e);

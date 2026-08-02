@@ -24,15 +24,17 @@ async function getClient() {
   return null;
 }
 
-export async function addPriceAlert(productId: string, email: string, targetPrice: number, currentPrice: number): Promise<PriceAlert> {
+export async function addPriceAlert(productId: string, email: string, targetPrice: number, currentPrice: number, userId?: string, opts: { alertType?: PriceAlert['alertType']; sessionId?: string } = {}): Promise<PriceAlert> {
   const alert: PriceAlert = {
     id: generateId(),
     productId,
     email,
+    userId,
+    sessionId: opts.sessionId,
     targetPrice,
     currentPrice,
     status: 'active',
-    alertType: 'price_drop',
+    alertType: opts.alertType || 'price_drop',
     isTriggered: false,
     createdAt: new Date().toISOString()
   };
@@ -43,6 +45,8 @@ export async function addPriceAlert(productId: string, email: string, targetPric
       await client.from('price_alerts').insert([{
         id: alert.id,
         product_id: alert.productId,
+        user_id: userId || null,
+        session_id: opts.sessionId || null,
         email: alert.email,
         target_price: alert.targetPrice,
         current_price: alert.currentPrice,
@@ -72,6 +76,7 @@ export async function getActiveAlerts(): Promise<PriceAlert[]> {
       if (data) return data.map(d => ({
         id: d.id,
         productId: d.product_id,
+        userId: d.user_id || undefined,
         email: d.email,
         targetPrice: d.target_price,
         currentPrice: d.current_price,
@@ -123,11 +128,31 @@ export async function checkPriceAlerts() {
     if (!product) continue;
     
     const currentPrice = parseFloat((product.price || '0').replace(/[^0-9.]/g, ''));
-    if (currentPrice > 0 && currentPrice <= alert.targetPrice) {
+    const fired = alert.alertType === 'price_increase'
+      ? currentPrice > 0 && currentPrice >= alert.targetPrice
+      : currentPrice > 0 && currentPrice <= alert.targetPrice;
+    if (fired) {
       await markAlertTriggered(alert.id);
       triggered++;
-      console.log(`[Price Alerts] Triggered alert ${alert.id} for ${alert.email} on product ${product.product_name} (New Price: $${currentPrice})`);
-      // Here you would normally send an email using Resend, Sendgrid, etc.
+      console.log(`[Price Alerts] Triggered ${alert.alertType} alert ${alert.id} for ${alert.email} on product ${product.product_name} (New Price: $${currentPrice})`);
+      const productUrl = product.slug ? `${process.env.APP_URL || 'https://www.dawnwire.com'}/products/${product.slug}` : '#';
+      const { sendPriceDropAlertEmail, sendPriceIncreaseAlertEmail } = await import('../email');
+      const sender = alert.alertType === 'price_increase' ? sendPriceIncreaseAlertEmail : sendPriceDropAlertEmail;
+      await sender(alert.email, product.product_name, productUrl, alert.currentPrice, currentPrice);
+      const { notifyPriceDrop } = await import('../knock');
+      await notifyPriceDrop({
+        userId: alert.userId,
+        email: alert.email,
+        productId: product.id,
+        productName: product.product_name,
+        brand: product.brand,
+        productImage: product.product_image,
+        slug: product.slug,
+        asin: product.specs?.asin,
+        oldPrice: alert.currentPrice,
+        newPrice: currentPrice,
+        targetPrice: alert.targetPrice,
+      });
     }
   }
 

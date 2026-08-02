@@ -4,6 +4,7 @@ import { z } from 'zod';
 import crypto from 'crypto';
 import { dbInstance } from './db';
 import * as seo from './seo-engine';
+import { deepseekChat, isDeepSeekConfigured } from './deepseek-pool';
 
 const AI_GATEWAY_API_KEY = process.env.AI_GATEWAY_API_KEY || '';
 const AI_GATEWAY_BASE_URL = process.env.AI_GATEWAY_BASE_URL || 'https://api.cohere.ai/v2';
@@ -20,7 +21,7 @@ function normalizeCohereResponse(body: string): string {
           if (source && typeof source === 'object' && !source.document) {
             source.document = {
               text: JSON.stringify(source.tool_output ?? source.text ?? ''),
-              title: (source.type === 'tool' ? 'Tool' : 'Document') || 'Document',
+              title: source.type === 'tool' ? 'Tool' : 'Document',
             };
           }
         }
@@ -383,20 +384,51 @@ RULES:
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-    const result = await generateText({
-      model: getModel(),
-      messages: [
-        ...chatHistory,
-        { role: 'user', content: userMessage },
-      ] as any,
-      system: preamble,
-      tools: gatewayTools,
-      stopWhen: isStepCount(5),
-      temperature: 0.3,
-      maxOutputTokens: 2000,
-      abortSignal: controller.signal,
-    });
-    clearTimeout(timeoutId);
+    const messages = [
+      ...chatHistory,
+      { role: 'user', content: userMessage },
+    ] as any;
+
+    let result: Awaited<ReturnType<typeof generateText<typeof gatewayTools>>>;
+
+    if (isDeepSeekConfigured()) {
+      try {
+        result = await deepseekChat({
+          messages,
+          system: preamble,
+          tools: gatewayTools,
+          maxOutputTokens: 2000,
+          temperature: 0.3,
+          timeoutMs: 30000,
+        });
+      } catch (e: any) {
+        console.error('[ai-shopping-assistant.ts] DeepSeek failed, falling back to Cohere:', e.message);
+        const result2 = await generateText({
+          model: getModel(),
+          messages,
+          system: preamble,
+          tools: gatewayTools,
+          stopWhen: isStepCount(5),
+          temperature: 0.3,
+          maxOutputTokens: 2000,
+          abortSignal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        result = result2;
+      }
+    } else {
+      result = await generateText({
+        model: getModel(),
+        messages,
+        system: preamble,
+        tools: gatewayTools,
+        stopWhen: isStepCount(5),
+        temperature: 0.3,
+        maxOutputTokens: 2000,
+        abortSignal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+    }
 
     const responseText = result.text || '';
 

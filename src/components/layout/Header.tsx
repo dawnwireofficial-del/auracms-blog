@@ -4,6 +4,7 @@ import { useAppStore } from '../../lib/store';
 import { navigate } from '../../lib/navigation';
 import { logActivityEvent } from '../../lib/activityTracker';
 import { proxyImageUrl } from '../../utils/safeRender';
+import { NotificationBell } from '../notifications/NotificationBell';
 
 interface HeaderProps {
   onOpenAiFinder?: () => void;
@@ -500,6 +501,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
               <span className="hidden md:inline">Ask AI</span>
             </button>
           )}
+
+          {/* Notifications */}
+          <NotificationBell currentUser={currentUser} isDarkMode={isDarkMode} />
 
           {/* Wishlist */}
           <a href="/wishlist" aria-label="Wishlist" className="relative p-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
