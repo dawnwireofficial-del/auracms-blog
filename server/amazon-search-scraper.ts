@@ -99,16 +99,49 @@ export function extractFromAmazonSearch(html: string, query: string, minRelevanc
     seenAsins.add(asin);
 
     const asinIndex = match.index;
-    const block = html.slice(asinIndex, asinIndex + 12000);
+    const block = html.slice(asinIndex, asinIndex + 16000);
 
-    const imgMatch = block.match(/<img[^>]+class="[^"]*s-image[^"]*"[^>]+src="([^"]+)"/i) ||
-                     block.match(/<img[^>]+src="([^"]+s-image[^"]*)"[^>]+alt="([^"]+)"/i);
-    const image = imgMatch ? imgMatch[1] : '';
-    const altText = imgMatch && imgMatch[2] ? imgMatch[2] : '';
-    const title = altText.replace(/^Sponsored Ad\s*[-–]\s*/i, '').trim() || `Amazon Product (${asin})`;
+    // Title: modern markup puts it in an h2 aria-label (older markup: img alt)
+    let title = '';
+    const h2Match = block.match(/<h2[^>]*aria-label="([^"]+)"/i);
+    if (h2Match) title = h2Match[1];
+    if (!title) {
+      const imgMatch = block.match(/<img[^>]+class="[^"]*s-image[^"]*"[^>]*alt="([^"]+)"/i) ||
+                       block.match(/<img[^>]+alt="([^"]+)"[^>]+class="[^"]*s-image[^"]*"/i);
+      if (imgMatch) title = imgMatch[1];
+    }
+    title = title.replace(/^Sponsored Ad\s*[-–]\s*/i, '').trim() || `Amazon Product (${asin})`;
 
-    const priceMatch = block.match(/<span class="a-offscreen">([^<]+)<\/span>/i);
-    const priceRaw = priceMatch ? priceMatch[1] : '';
+    // Image: s-image img src (prefer higher-res 2x srcset when present)
+    let image = '';
+    const imgTag = block.match(/<img[^>]+class="[^"]*s-image[^"]*"[^>]*>/i);
+    if (imgTag) {
+      const srcset = imgTag[0].match(/srcset="[^"]*(\/images\/[^"\s]+_AC_UL(?:960|800|640|480|320)[^"\s]*)"/i);
+      if (srcset) image = 'https:' + srcset[1].replace(/^https?:/, '');
+      if (!image) {
+        const src = imgTag[0].match(/src="([^"]+)"/i);
+        if (src) image = src[1];
+      }
+      if (image && image.startsWith('//')) image = 'https:' + image;
+      if (image && !/^https?:/.test(image) && image.startsWith('/')) image = 'https://m.media-amazon.com' + image;
+    }
+
+    // Price: look for a $-prefixed value inside a color-base / offscreen span or a-price block.
+    let priceRaw = '';
+    const offscreen = block.match(/class="[^"]*a-offscreen[^"]*"[^>]*>([^<]+)</i);
+    if (offscreen) priceRaw = offscreen[1];
+    if (!priceRaw) {
+      const priceBlock = block.match(/class="a-price"[^>]*>\s*<span[^>]*>([^<]+)</i);
+      if (priceBlock) priceRaw = priceBlock[1];
+    }
+    if (!priceRaw) {
+      const colored = block.match(/class="[^"]*a-color-base[^"]*">(\$[0-9][^<]*)/i);
+      if (colored) priceRaw = colored[1];
+    }
+    if (!priceRaw) {
+      const dollars = block.match(/>(\$[0-9]+(?:\.[0-9]{2})?)(?:\s*<|\s+more)/);
+      if (dollars) priceRaw = dollars[1];
+    }
     const price = parsePrice(priceRaw);
 
     const url = `https://www.amazon.com/dp/${asin}`;

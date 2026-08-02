@@ -362,8 +362,11 @@ export async function processBulkImport(jobId: string): Promise<BulkImportJob> {
               marketplace,
               availability: 'available',
               ...(productData.specifications || {}),
+              ...(productData.categoryPath ? { category: productData.categoryPath } : {}),
+              ...(productData.bestSellersRank ? { bestSellersRank: productData.bestSellersRank } : {}),
+              ...(productData.department ? { details: { department: productData.department } } : {}),
             },
-            stock_status: productData.isDeal ? 'deal' : 'in_stock',
+            stock_status: 'in_stock',
             deal_badge: productData.isDeal ? 'Amazon Deal' : null,
             best_for: productData.bestFor || null,
             final_verdict: productData.editorVerdict || null,
@@ -377,6 +380,10 @@ export async function processBulkImport(jobId: string): Promise<BulkImportJob> {
 
           if (productData.mainCategory) {
             const catId = await findCategoryIdByName(productData.mainCategory);
+            if (catId) mapped.category_id = catId;
+          } else if (productData.categoryPath) {
+            const topCrumb = productData.categoryPath.split(' › ')[0].trim();
+            const catId = await findCategoryIdByName(topCrumb);
             if (catId) mapped.category_id = catId;
           }
 

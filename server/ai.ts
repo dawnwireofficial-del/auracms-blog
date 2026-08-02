@@ -1,7 +1,7 @@
 import { generateText } from 'ai';
 import { createCohere } from '@ai-sdk/cohere';
 
-const AI_GATEWAY_API_KEY = process.env.AI_GATEWAY_API_KEY || '';
+const AI_GATEWAY_API_KEY = process.env.AI_GATEWAY_API_KEY || process.env.COHERE_API_KEY || '';
 const AI_GATEWAY_BASE_URL = process.env.AI_GATEWAY_BASE_URL || 'https://api.cohere.ai/v2';
 const AI_GATEWAY_MODEL = process.env.AI_GATEWAY_MODEL || 'command-r-plus-08-2024';
 

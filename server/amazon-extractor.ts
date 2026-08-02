@@ -79,6 +79,9 @@ export interface ExtractedProductData {
   rating: number;
   reviewCount: number;
   videoUrl?: string;
+  categoryPath?: string;
+  bestSellersRank?: string;
+  department?: string;
   source: 'pa_api' | 'web_scraper' | 'ai_synthesis' | 'dictionary';
 }
 
@@ -272,6 +275,25 @@ export function extractAsin(url: string): string {
   return match ? match[1].toUpperCase() : '';
 }
 
+const SCRAPER_USER_AGENTS = [
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3 Safari/605.1.15',
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+];
+
+function randomScraperHeaders(): Record<string, string> {
+  const ua = SCRAPER_USER_AGENTS[Math.floor(Math.random() * SCRAPER_USER_AGENTS.length)];
+  return {
+    'User-Agent': ua,
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Cache-Control': 'no-cache',
+    'Cookie': 'i18n-prefs=USD; lc-main=en_US',
+  };
+}
+
 /**
  * Scrape public HTML page of an Amazon product URL
  */
@@ -279,14 +301,9 @@ export async function scrapeAmazonHtml(asin: string): Promise<Partial<ExtractedP
   const targetUrl = `https://www.amazon.com/dp/${asin}`;
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000);
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
     const res = await fetch(targetUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.101',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Cache-Control': 'no-cache'
-      },
+      headers: randomScraperHeaders(),
       signal: controller.signal,
     });
     clearTimeout(timeoutId);
@@ -358,6 +375,57 @@ export async function scrapeAmazonHtml(asin: string): Promise<Partial<ExtractedP
                        html.match(/(https:\/\/[^"]+\.(?:m3u8|mp4))/i);
     const videoUrl = videoMatch ? videoMatch[1] : '';
 
+    // Parse category breadcrumb (e.g. "Beauty & Personal Care › Skin Care › Serums")
+    let categoryPath = '';
+    const bcMatch = html.match(/id="wayfinding-breadcrumbs_feature_div"[\s\S]*?<ul[^>]*>([\s\S]*?)<\/ul>/i);
+    if (bcMatch) {
+      // Each crumb is an <li> containing an <a> with text (or a span for the last crumb).
+      const liBlocks = bcMatch[1].match(/<li[^>]*>([\s\S]*?)<\/li>/gi) || [];
+      const crumbs: string[] = [];
+      for (const li of liBlocks) {
+        const text = li
+          .replace(/<[^>]+>/g, '')
+          .replace(/&amp;/g, '&')
+          .replace(/\u203a|\u00bb|›|»/g, '')
+          .trim();
+        if (text && text.length > 1 && text.toLowerCase() !== 'home') crumbs.push(text);
+      }
+      categoryPath = crumbs.join(' › ');
+    }
+    if (!categoryPath) {
+      const bcTextMatch = html.match(/wayfinding-breadcrumbs[\s\S]{0,2000}?\/ul>/i);
+      if (bcTextMatch) {
+        const text = bcTextMatch[0].replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&');
+        const parts = text.split(/[›»]/).map((s: string) => s.trim()).filter((s: string) => s && s.toLowerCase() !== 'home');
+        categoryPath = parts.slice(0, 3).join(' › ');
+      }
+    }
+
+    // Parse Best Sellers Rank (e.g. "#2,859 in Beauty & Personal Care ... #83 in Facial Serums")
+    const bsrBlocks: string[] = [];
+    const bsrMatch = html.match(/Best Sellers Rank[\s\S]{0,1200}?<\/ul>/i);
+    if (bsrMatch) {
+      // Each rank is an <li> like "#2,859 in Beauty & Personal Care" or "#83 in Facial Serums".
+      const liBlocks = bsrMatch[0].match(/<li[^>]*>([\s\S]*?)<\/li>/gi) || [];
+      for (const li of liBlocks) {
+        const text = li
+          .replace(/<[^>]+>/g, '')
+          .replace(/\s+/g, ' ')
+          .replace(/\([^)]*\)/g, '')
+          .replace(/&amp;/g, '&')
+          .trim();
+        if (/^#[0-9,]+\s+in\s+/i.test(text)) bsrBlocks.push(text);
+      }
+    }
+
+    // Parse "Department" from detail bullets
+    let department = '';
+    const deptMatch = html.match(/Department:\s*<\/td>[\s\S]{0,250}?<\/td>/i) ||
+                      html.match(/Department<\/span>[\s\S]{0,300}?<\/span>/i);
+    if (deptMatch) {
+      department = deptMatch[0].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
     return {
       asin,
       title: rawTitle,
@@ -368,7 +436,10 @@ export async function scrapeAmazonHtml(asin: string): Promise<Partial<ExtractedP
       images: imagesList,
       mainFeatures: features.length ? features : ['High-performance build quality', 'Top-rated Amazon seller item', 'Verified customer satisfaction'],
       rating,
-      videoUrl: videoUrl || undefined
+      videoUrl: videoUrl || undefined,
+      categoryPath,
+      bestSellersRank: bsrBlocks.join(' | '),
+      department,
     };
   } catch (err) {
     return null;
@@ -378,7 +449,7 @@ export async function scrapeAmazonHtml(asin: string): Promise<Partial<ExtractedP
 /**
  * Use AI (Cohere) to synthesize complete, accurate Amazon product metadata
  */
-async function synthesizeWithAi(asin: string, partialTitle?: string, partialBrand?: string): Promise<Partial<ExtractedProductData> | null> {
+export async function synthesizeWithAi(asin: string, partialTitle?: string, partialBrand?: string): Promise<Partial<ExtractedProductData> | null> {
   try {
     const prompt = `Synthesize real-world accurate product review details for the Amazon product with ASIN: ${asin} ${partialTitle ? `(Product: ${partialTitle})` : ''}.
 Return a strict JSON object (no markdown, no code blocks) with the following structure:
@@ -556,6 +627,26 @@ export async function extractAmazonProductData(urlOrAsin: string, associateTag: 
   const finalVideoUrl = scraped?.videoUrl || '';
   const baseSpecs = aiData?.specifications || { 'ASIN': asin, 'Warranty': '1 Year Manufacturer Warranty' };
 
+  // Category from the real Amazon breadcrumb (first crumb = top-level department).
+  // Falls back to AI-synthesized category, then 'Electronics' only as a last resort.
+  const categoryPath = scraped?.categoryPath || '';
+  const categoryCrumbs = categoryPath.split(' › ').map((s: string) => s.trim()).filter(Boolean);
+  const scrapedTopCategory = categoryCrumbs[0] || '';
+  const scrapedSubCategory = categoryCrumbs.length > 1 ? categoryCrumbs[1] : '';
+  const finalMainCategory = scrapedTopCategory || aiData?.mainCategory || 'Electronics';
+  const finalSubcategory = scrapedSubCategory || aiData?.subcategory || 'General';
+
+  // bestFor badge from the Amazon BSR ranking (e.g. "#83 in Facial Serums" -> "Best Facial Serums Pick")
+  let bestFor = '';
+  const scrapedBsr = scraped?.bestSellersRank || '';
+  if (scrapedBsr) {
+    const bsrCats = [...scrapedBsr.matchAll(/#[0-9,]+\s+in\s+([^#]{1,80}?)(?:\s*\||$)/g)].map((m: any) => m[1].trim());
+    const bsrCat = bsrCats[bsrCats.length - 1] || bsrCats[0] || '';
+    if (bsrCat) bestFor = `Best ${bsrCat} Pick`;
+  }
+  if (!bestFor && scrapedSubCategory) bestFor = `Best ${scrapedSubCategory} Pick`;
+  const finalBestFor = bestFor || aiData?.bestFor || `Top Choice for ${finalBrand} Buyers`;
+
   const source: ExtractedProductData['source'] = scraped ? 'web_scraper' : aiData ? 'ai_synthesis' : 'dictionary';
   if (source === 'dictionary') {
     console.warn(`[extractAmazonProductData] All tiers failed — using hardcoded defaults for ${asin}`);
@@ -565,15 +656,15 @@ export async function extractAmazonProductData(urlOrAsin: string, associateTag: 
     asin,
     title: finalTitle,
     brand: finalBrand,
-    mainCategory: aiData?.mainCategory || 'Electronics',
-    subcategory: aiData?.subcategory || 'General',
+    mainCategory: finalMainCategory,
+    subcategory: finalSubcategory,
     currentPrice,
     referencePrice,
     discountPercentage: discount,
     images,
     mainImage: images[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800',
     additionalImages: images.slice(1),
-    bestFor: aiData?.bestFor || `Top Choice for ${finalBrand} Buyers`,
+    bestFor: finalBestFor,
     shortDescription: aiData?.shortDescription || `${finalTitle} delivers high performance and top features on Amazon US.`,
     fullDescription: aiData?.fullDescription || `Full expert review and specifications for ${finalTitle}. Compare prices, features, and user ratings.`,
     editorVerdict: aiData?.editorVerdict || `${finalTitle} offers excellent performance, durable build quality, and high user satisfaction.`,
@@ -589,6 +680,9 @@ export async function extractAmazonProductData(urlOrAsin: string, associateTag: 
     rating: scraped?.rating || 4.6,
     reviewCount: scraped?.rating ? (scraped as any).reviewCount || 0 : 0,
     videoUrl: finalVideoUrl || undefined,
+    categoryPath: categoryPath || undefined,
+    bestSellersRank: scrapedBsr || undefined,
+    department: scraped?.department || undefined,
     source,
   };
 }
