@@ -20,9 +20,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
   const [brands, setBrands] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch('/api/public/brands')
+    // Homepage shows a small featured subset only; the full list lives on /brands.
+    fetch('/api/public/brands?limit=12')
       .then(r => r.json())
-      .then(data => setBrands(Array.isArray(data) ? data : []))
+      .then(data => setBrands(Array.isArray(data) ? data.slice(0, 12) : (data?.data || []).slice(0, 12)))
       .catch(() => {});
   }, []);
 

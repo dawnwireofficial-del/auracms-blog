@@ -280,9 +280,19 @@ router.get('/topic-cluster/:slug', async (req, res) => {
 // ====== Affiliate Platform Public Routes ======
 
 // Brands
-router.get('/brands', async (_req, res) => {
+router.get('/brands', async (req, res) => {
   const brands = await dbInstance.getBrands();
-  res.json(brands.filter((b: any) => b.status === 'active'));
+  const active = brands.filter((b: any) => b.status === 'active');
+  const limit = parseInt(req.query.limit as string);
+  const offset = parseInt(req.query.offset as string) || 0;
+  // Paginated mode: { data, total, limit, offset } — used by /brands page.
+  if (limit > 0) {
+    const sorted = active.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
+    const page = sorted.slice(offset, offset + limit);
+    return res.json({ data: page, total: active.length, limit, offset });
+  }
+  // Legacy mode: plain array (homepage/category consumers).
+  res.json(active);
 });
 
 // Category with banners, sections, subcategories, featured products

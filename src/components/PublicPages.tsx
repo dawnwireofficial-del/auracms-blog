@@ -196,7 +196,7 @@ export default function PublicPages({
         .catch(() => {});
     }
     if (name === 'category' || name === 'products' || name === 'home' || !name) {
-      fetch('/api/public/brands').then(r => r.json()).then(data => setAllBrands(Array.isArray(data) ? data : [])).catch(() => {});
+      fetch('/api/public/brands?limit=20').then(r => r.json()).then(data => setAllBrands(Array.isArray(data) ? data : (data?.data || []))).catch(() => {});
     }
     if (name === 'category' && param) {
       fetch(`/api/public/categories/${param}`).then(r => r.json()).then(data => setCategoryPage(data)).catch(() => setCategoryPage(null));

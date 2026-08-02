@@ -28,8 +28,8 @@ export default function DynamicHomepageSections({ onNavigate }: { onNavigate: (r
     fetch('/api/public/categories').then(r => r.json()).then(res => {
       setCategories(Array.isArray(res) ? res : []);
     }).catch(() => {});
-    fetch('/api/public/brands').then(r => r.json()).then(res => {
-      setBrands(Array.isArray(res) ? res : []);
+    fetch('/api/public/brands?limit=16').then(r => r.json()).then(res => {
+      setBrands(Array.isArray(res) ? res : ((res as any)?.data || []));
     }).catch(() => {});
   }, []);
 
