@@ -3,6 +3,19 @@ Complete Vike SSR migration, deploy to Vercel, and maintain the production site 
 
 ## Progress
 
+### Session — Article Generator + Editorial Hubs + /post/:slug (this session)
+- **`server/ai.ts`**: added `generateBuyingGuideFromCategory(category, topProducts)` — 10-section buying-guide structure (Quick Summary, Key Takeaways, What to Look For, Our Top Picks with `[affiliate-card:slug]` embeds, comparison table, budget tiers, FAQ, Verdict).
+- **`api/routes/seo.ts`**: added `POST /buying-guides/generate/:categoryId` (auth + editor role) — finds category, top 6 published products by `editor_score`, generates guide, creates **draft** post with slug `best-{category-slug}-buying-guide` (dedup suffix), tags `[category name, 'buying guide', 'best <cat>']`, logs 'Buying Guide Generated'; 400 if category empty.
+- **`src/components/ArticleGenerator.tsx`** (new, ~630 lines): admin "Article Generator" sidebar item. Product tab (search `/api/admin/seo/product-reviews?limit=500`, cards show image/name/brand/price/★/editor_score/best_for) + Category tab (`/api/public/categories`). Generate buttons call the two endpoints, then fetch full post via `/api/admin/posts?limit=1000` and open a blog editor: title/slug/excerpt/markdown content (with `[affiliate-card:]` hint)/status, featured-image **file upload** (imgbb via `/api/admin/upload-image`) + **Use Product Image** shortcut + preview, category select, tags, SEO fields, Save → `PUT /api/admin/posts/:id`, View link → `/post/{slug}`.
+- **`src/pages/PostDetailPage.tsx`** (new): public `/post/:slug` renderer — fetches `/api/public/posts/slug/:slug` + categories + affiliate links + related posts; ports `SimpleMarkdown` + `renderBodyWithAffiliates` (affiliate shortcode CTA cards) from PublicPages.tsx:478; SeoHelmet (Article JSON-LD, breadcrumbs); 404 state.
+- **`src/App.tsx`**: `/post` added to `validPaths`; `/post/:slug` route renders `PostDetailPage`.
+- **`src/pages/EditorialPages.tsx`**: rebuilt `ReviewsPage` hub — renders published products from store with `editorScore > 0` as cards (image, brand, ★ editor score/10, verdict, rating/review-count, price), category filter dropdown + sort (Editor Score / User Rating / Newest), links → `/products/:slug`. Rebuilt `BuyingGuidesPage` hub — Best-Of Roundups CTA → `/best`, Browse All Guides CTA → `/buying-guides`, plus a grid of published posts tagged `buying guide` → `/post/:slug`.
+- **`src/components/AdminPanel.tsx`**: `'article-generator'` added to `activeMenu` union, nav item (Sparkles icon) after Product Articles, renders `<ArticleGenerator token={token} />`.
+- **`api/app_source.ts`**: removed Express middleware that 308-redirected bare `/reviews` → `/products` (was blocking the hub).
+- **`vercel.json`**: removed both `/reviews` + `/reviews/` → `/products` redirect entries (was still 308-ing at edge).
+- **`scripts/cleanup-orphaned-posts.ts`** (new): deletes non-published posts with `product_id IS NULL`; removed 11 orphaned draft posts (garbage slugs from old generate-article runs).
+- **Verified prod**: all 32 smoke checks pass (incl. `/reviews`, `/guides`, `/best`, `/post`); `/reviews` 200; buying-guide generate route registered (401 unauth). Commits `e83a580`, `771f2e3`, `dd43f21`, `fdcce52`, `1b08544` all deployed to `www.dawnwire.com`.
+
 ### Phase 0 — AI SEO Optimization Engine
 - `server/optimization-prompts.ts` (6 prompts), `server/seo-optimizer.ts` (analyzeContent, getOptimizationCandidates, optimizePost, optimizeProduct, previewOptimization, bulkOptimize, getOptimizationStats, suggestPostMeta), 7 API endpoints, `SeoOptimizerPanel.tsx` admin UI, `SeoDashboard.tsx` optimizer tab.
 
