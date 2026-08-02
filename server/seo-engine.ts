@@ -319,6 +319,7 @@ const KNOWN_PRODUCT_REVIEW_COLUMNS = new Set([
   'seo_title', 'seo_description', 'seo_keywords', 'comparison_attributes',
   'is_trending', 'is_top_rated', 'brand_id', 'subcategory_id',
   'status', 'created_at', 'updated_at',
+  'review_article', 'faq', 'affiliate_disclosure',
 ]);
 
 const PRODUCT_CAMEL_TO_SNAKE: Record<string, string> = {
@@ -383,6 +384,24 @@ export async function updateProductReview(id: string, updates: any): Promise<any
       const cleanSpecs: any = { ...payload.specs };
       delete cleanSpecs.gallery;
       payload.specs = cleanSpecs;
+    }
+  }
+  // Coerce values to match column types so decimals/strings can't hard-fail the
+  // UPDATE (previously a decimal editor_score like 8.8 threw on the integer
+  // column and, because the route had no try/catch, hung into a 504).
+  // editor_score is NUMERIC now (migration 019) so its decimal is preserved.
+  const roundIntCols = ['editor_rating', 'click_count', 'page_views', 'discount_percentage', 'review_count'];
+  for (const c of roundIntCols) {
+    if (payload[c] != null && payload[c] !== '') {
+      const n = Number(payload[c]);
+      payload[c] = Number.isFinite(n) ? Math.round(n) : null;
+    }
+  }
+  const numCols = ['rating', 'editor_score'];
+  for (const c of numCols) {
+    if (payload[c] != null && payload[c] !== '') {
+      const n = Number(payload[c]);
+      payload[c] = Number.isFinite(n) ? n : null;
     }
   }
   // Top-level `gallery` array (explicit clear when empty) -> column + specs.gallery
@@ -476,6 +495,38 @@ export async function uploadToImgBB(imageUrl: string): Promise<string | null> {
 }
 
 const AMAZON_CDN_RE = /^https?:\/\/(m\.media-amazon\.com|images-na\.ssl-images-amazon\.com)/i;
+
+/**
+ * Find an existing product_reviews row that this import should update instead
+ * of inserting. Match priority: ASIN (column or specs) > slug > exact name.
+ */
+async function findExistingProductForImport(sb: any, norm: any, slug: string): Promise<any | null> {
+  try {
+    // 1. ASIN — the strongest identifier (Amazon variations keep the same ASIN)
+    const asin = norm.asin ? String(norm.asin).trim() : '';
+    if (asin) {
+      const byAsin = await sb.from('product_reviews').select('id').eq('asin', asin).maybeSingle();
+      if (byAsin.data?.id) return byAsin.data;
+      const bySpecAsin = await sb.from('product_reviews').select('id').filter('specs->>asin', 'eq', asin).maybeSingle();
+      if (bySpecAsin.data?.id) return bySpecAsin.data;
+    }
+    // 2. Slug — name-based match when ASIN is unavailable (e.g. amzn.to links)
+    if (slug) {
+      const bySlug = await sb.from('product_reviews').select('id').eq('slug', slug).maybeSingle();
+      if (bySlug.data?.id) return bySlug.data;
+    }
+    // 3. Exact normalized name match (no slug counters yet)
+    const name = (norm.product_name || '').trim().toLowerCase();
+    if (name) {
+      const byName = await sb.from('product_reviews').select('id').eq('product_name', norm.product_name).maybeSingle();
+      if (byName.data?.id) return byName.data;
+    }
+    return null;
+  } catch (e: any) {
+    console.warn('[findExistingProductForImport] lookup failed:', e.message);
+    return null;
+  }
+}
 
 export async function importProductReview(data: {
   product_name: string;
@@ -629,6 +680,43 @@ export async function importProductReview(data: {
     review.affiliate_url = rawUrl.replace(/tag=[^&]+/, 'tag=dawnwire-20');
   }
 
+  // ====== UPSERT: re-importing an existing product refreshes it in place ======
+  // Match by ASIN first (best), then slug, then normalized product name. This way
+  // reimports update reviews, new images, price, specs, ASIN etc. instead of
+  // creating a second row (e.g. when Amazon changes packaging / images).
+  const existing = await findExistingProductForImport(sb, norm, slug);
+  if (existing) {
+    const updatePayload: Record<string, any> = { ...review, updated_at: new Date().toISOString() };
+    delete updatePayload.id;
+    delete updatePayload.created_at;
+    delete updatePayload.slug; // keep the existing slug (stable URL)
+    // Preserve editorial/analytics work across reimports
+    delete updatePayload.seo_title;
+    delete updatePayload.seo_description;
+    delete updatePayload.seo_keywords;
+    delete updatePayload.editor_score;
+    delete updatePayload.editor_rating;
+    delete updatePayload.final_verdict;
+    delete updatePayload.click_count;
+    delete updatePayload.page_views;
+    // Round integer-typed columns so decimal source values can't fail the write.
+    // editor_score is NUMERIC (migration 019) so its decimal is preserved.
+    for (const c of ['editor_rating', 'click_count', 'page_views', 'discount_percentage']) {
+      if (updatePayload[c] != null) updatePayload[c] = Math.round(Number(updatePayload[c]));
+    }
+    const { data: updated, error: upErr } = await sb.from('product_reviews').update(updatePayload).eq('id', existing.id).select().single();
+    if (!upErr && updated) {
+      updated.was_duplicate = true;
+      updated.created = false;
+      updated.updated = true;
+      console.log(`[Import Product Review] Re-import updated existing product ${existing.id} (asin: ${norm.asin || 'n/a'})`);
+      return updated;
+    }
+    if (upErr) {
+      console.warn('[Import Product Review] Duplicate update failed, falling back to insert:', upErr.message);
+    }
+  }
+
   let { data: created, error } = await sb.from('product_reviews').insert(review).select().single();
   if (error) {
     console.warn('[Supabase Import Product Review Error, running sanitized fallback]:', error.message);
@@ -665,6 +753,11 @@ export async function importProductReview(data: {
     } catch (e: any) {
       console.warn('[Import Product Review] category auto-detect failed:', e.message);
     }
+  }
+  if (created) {
+    created.created = true;
+    created.updated = false;
+    created.was_duplicate = false;
   }
   return created;
 }

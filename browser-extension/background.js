@@ -39,6 +39,50 @@ function apiHeaders() {
   }));
 }
 
+// Full product payload for a reimport — refreshes reviews, images, specs, ASIN,
+// price, rating etc. on the existing row instead of only patching a few fields.
+function fullImportPayload(data) {
+  const specs = {
+    ...(data.specs || {}),
+    asin: data.asin || '',
+    source: data.source || (data.amazon_url?.includes('amazon.') ? 'amazon' : 'other'),
+  };
+  if (data.gallery && data.gallery.length) specs.gallery = data.gallery;
+  if (data.reviews && data.reviews.length) specs.reviews = data.reviews;
+  if (data.reviewStats) specs.review_stats = data.reviewStats;
+  if (data.ingredients) specs.ingredients = data.ingredients;
+  if (data.unitSize) specs.unit_size = data.unitSize;
+  if (data.unitPrice) specs.unit_price = data.unitPrice;
+  if (data.bsrDetail && data.bsrDetail.length) specs.best_sellers_rank_detail = data.bsrDetail;
+  if (data.reviewHighlights) specs.review_highlights = data.reviewHighlights;
+  if (data.detailBullets && Object.keys(data.detailBullets).length) specs.detail_bullets = data.detailBullets;
+  if (data.listPrice) specs.listPrice = data.listPrice;
+  if (data.savings) specs.savings = data.savings;
+  if (data.priceRange) specs.priceRange = data.priceRange;
+  if (data.videoUrl) specs.video_url = data.videoUrl;
+  return {
+    product_name: data.product_name || null,
+    brand: data.brand || null,
+    product_image: data.product_image || null,
+    affiliate_url: data.amazon_url || null,
+    price: data.price || null,
+    original_price: data.listPrice || null,
+    rating: data.rating || 0,
+    review_count: data.reviewCount || null,
+    stock_status: data.stockStatus || 'in_stock',
+    deal_badge: data.dealBadge || null,
+    coupon_code: data.couponCode || null,
+    best_for: data.bestFor || data.best_for || null,
+    status: 'published',
+    review_summary: data.review_summary || null,
+    key_features: data.key_features || [],
+    pros: data.pros || [],
+    cons: data.cons || [],
+    gallery: data.gallery || [],
+    specs,
+  };
+}
+
 async function handleImport(data) {
   const { apiToken } = await getSettings();
   if (!apiToken) throw new Error('API token not configured. Open extension popup to set it up.');
@@ -56,20 +100,7 @@ async function handleImport(data) {
         const updateRes = await fetch(baseUrl + '/api/admin/seo/product-reviews/' + dupData.id, {
           method: 'PUT',
           headers,
-          body: JSON.stringify({
-            price: data.price || null,
-            original_price: data.listPrice || null,
-            rating: data.rating || 0,
-            stock_status: data.stockStatus || 'in_stock',
-            deal_badge: data.dealBadge || null,
-            status: 'published',
-            review_summary: data.review_summary || null,
-            key_features: data.key_features || [],
-            pros: data.pros || [],
-            cons: data.cons || [],
-            best_for: data.bestFor || null,
-            specs: data.specs || null,
-          })
+          body: JSON.stringify(fullImportPayload(data))
         });
         if (updateRes.ok) {
           // Auto-process the updated duplicate (fill missing SEO/category/brand)

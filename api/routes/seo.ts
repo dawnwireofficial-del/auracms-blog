@@ -466,8 +466,20 @@ router.get('/product-reviews/check-duplicate', authenticate, async (req, res) =>
     res.json({ duplicate: false });
   } catch { res.json({ duplicate: false }); }
 });
-router.put('/product-reviews/:id', authenticate, async (req, res) => res.json(await seo.updateProductReview(req.params.id, req.body)));
-router.delete('/product-reviews/:id', authenticate, async (req, res) => res.json({ success: await seo.deleteProductReview(req.params.id) }));
+router.put('/product-reviews/:id', authenticate, async (req, res) => {
+  try {
+    res.json(await seo.updateProductReview(req.params.id, req.body));
+  } catch (e: any) {
+    res.status(500).json({ error: e.message || 'Failed to update product review' });
+  }
+});
+router.delete('/product-reviews/:id', authenticate, async (req, res) => {
+  try {
+    res.json({ success: await seo.deleteProductReview(req.params.id) });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message || 'Failed to delete product review' });
+  }
+});
 
 // Fetch video URL from Amazon for a product review
 router.post('/product-reviews/fetch-video/:id', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {

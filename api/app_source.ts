@@ -1,4 +1,5 @@
 import express from 'express';
+import { createRequire } from 'node:module';
 import compression from 'compression';
 import { dbInstance } from '../server/db';
 import * as seo from '../server/seo-engine';
@@ -14,6 +15,38 @@ import migrateRouter from './routes/migrate';
 import cronRouter from './routes/cron';
 
 const app = express();
+
+// Express 4 does NOT forward rejected promises from async route handlers to
+// the error middleware — an unhandled rejection left the Vercel function
+// alive until the 60s timeout, returning 504 (seen on PUT product-reviews and
+// POST /api/auth/register). Patch the Router layer so any rejected promise is
+// passed to next(err) and handled by the global error handler below.
+// This replicates the well-known `express-async-errors` package inline.
+try {
+  const esmRequire = createRequire(import.meta.url);
+  const Layer = esmRequire('express/lib/router/layer') as any;
+  Layer.prototype.handle_request = function (this: any, req: any, res: any, next: any) {
+    const fn = this.handle;
+    if (fn && fn.length > 3) {
+      // Error-handling middleware (err, req, res, next) — let the router dispatch it.
+      next();
+      return;
+    }
+    try {
+      const rv = fn(req, res, next);
+      if (rv && typeof rv.catch === 'function') rv.catch(next);
+    } catch (err) {
+      next(err);
+    }
+  };
+} catch (e) {
+  console.error('Async patch failed, falling back to default Express behavior:', e);
+}
+
+// Vercel terminates TLS and sets X-Forwarded-For / Forwarded. Express must
+// trust the first proxy hop so req.ip is the real client IP — otherwise
+// express-rate-limit throws ValidationErrors and rate limiting keying breaks.
+app.set('trust proxy', 1);
 
 // Compression
 app.use(compression());
@@ -712,6 +745,15 @@ Return a JSON array matching:
 // Health check
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: Date.now(), uptime: process.uptime() });
+});
+
+// Global error handler — catches body-parser errors and any next(err) so an
+// exception returns a JSON 500 instead of hanging the function into a 504.
+// (Async route handlers must catch their own rejections; see route wrappers.)
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  const status = err?.status || err?.statusCode || 500;
+  if (status >= 500) console.error('[Global Error Handler]', err?.message || err);
+  res.status(status).json({ error: err?.message || 'Internal server error' });
 });
 
 export default app;
