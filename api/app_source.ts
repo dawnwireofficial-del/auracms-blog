@@ -297,14 +297,12 @@ app.use(async (req, res, next) => {
     if (slug) return res.redirect(301, `/products/${slug}`);
   }
 
+  // Legacy /review/:slug redirect to canonical /products/:slug
   if (req.path.startsWith('/review/')) {
     const slug = req.path.substring(8);
     if (slug) return res.redirect(301, `/products/${slug}`);
   }
-
-  if (req.path === '/review' || req.path === '/review/' || req.path === '/reviews' || req.path === '/reviews/') {
-    return res.redirect(301, '/products');
-  }
+  // NOTE: bare /reviews now serves the Expert Editorial Reviews hub (SPA route)
 
   for (const entry of OLD_IRRELEVANT_PATTERNS) {
     if (entry.pattern.test(req.path)) {
