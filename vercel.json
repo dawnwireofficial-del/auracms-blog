@@ -34,16 +34,6 @@
       "permanent": true
     },
     {
-      "source": "/reviews/",
-      "destination": "/products",
-      "permanent": true
-    },
-    {
-      "source": "/review/:slug",
-      "destination": "/products/:slug",
-      "permanent": true
-    },
-    {
       "source": "/product/:slug",
       "destination": "/products/:slug",
       "permanent": true
