@@ -526,10 +526,21 @@ router.get('/product-reviews', authenticate, requireRole(['super_admin', 'admin'
     const limit = Math.min(parseInt(req.query.limit as string) || 500, 1000);
     const offset = parseInt(req.query.offset as string) || 0;
     const total = all.length;
-    const items = all.slice(offset, offset + limit).map((r: any) => ({
+    const light = req.query.light === '1' || req.query.light === 'true';
+    const LIGHT = ['review_article', 'final_verdict', 'pros', 'cons', 'faq', 'seo_description', 'seo_keywords', 'seo_title', 'specs', 'affiliate_disclosure'];
+    let items = all.slice(offset, offset + limit).map((r: any) => ({
       ...r,
       category: r.category_id ? catNameById.get(r.category_id) || '' : ''
     }));
+    if (light) {
+      items = items.map((r: any) => {
+        const slim: Record<string, any> = {};
+        Object.keys(r).forEach((k) => { if (!LIGHT.includes(k)) slim[k] = r[k]; });
+        if (typeof slim.review_summary === 'string' && slim.review_summary.length > 280) slim.review_summary = slim.review_summary.slice(0, 280) + '…';
+        if (Array.isArray(slim.key_features)) slim.key_features = slim.key_features.slice(0, 6);
+        return slim;
+      });
+    }
     res.json({ data: items, total, limit, offset });
   } catch (e: any) {
     res.status(500).json({ error: e.message });

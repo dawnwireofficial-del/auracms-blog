@@ -203,10 +203,22 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
             {availableBrands.length > 0 && (
               <div>
                 <label className="text-xs font-bold text-slate-500 block mb-1.5">Brand</label>
+                <input
+                  type="text"
+                  placeholder="Search brands..."
+                  defaultValue=""
+                  onChange={(e) => {
+                    const v = e.target.value.trim();
+                    if (!v) { setSelectedBrand(''); return; }
+                    const match = availableBrands.find((b) => b.toLowerCase() === v.toLowerCase()) || availableBrands.find((b) => b.toLowerCase().includes(v.toLowerCase()));
+                    setSelectedBrand(match || v);
+                  }}
+                  className="w-full bg-slate-100 dark:bg-slate-800 px-3.5 py-2 rounded-xl text-xs text-slate-900 dark:text-slate-100 outline-none border border-slate-200 dark:border-slate-700"
+                />
                 <select
                   value={selectedBrand}
                   onChange={(e) => setSelectedBrand(e.target.value)}
-                  className="w-full bg-slate-100 dark:bg-slate-800 px-3.5 py-2 rounded-xl text-xs text-slate-900 dark:text-slate-100 outline-none border border-slate-200 dark:border-slate-700 cursor-pointer font-bold"
+                  className="w-full mt-2 bg-slate-100 dark:bg-slate-800 px-3.5 py-2 rounded-xl text-xs text-slate-900 dark:text-slate-100 outline-none border border-slate-200 dark:border-slate-700 cursor-pointer font-bold"
                 >
                   <option value="">All Brands</option>
                   {availableBrands.map((b) => (

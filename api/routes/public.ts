@@ -336,6 +336,26 @@ router.get('/categories/:slug/subcategories', async (req, res) => {
 router.get(['/product-reviews', '/products'], async (req, res) => {
   let items = await seo.getProductReviews();
   items = items.filter((r: any) => r.status === 'published');
+  // Lightweight projection for catalog/list contexts: strips heavy blobs
+  // (review summaries, articles, specs, faqs) to cut payload size dramatically.
+  // The product detail page uses GET /product-reviews/slug/:slug for the full row.
+  const light = req.query.light === '1' || req.query.light === 'true';
+  if (light) {
+    // Heavy blobs dropped entirely; review_summary truncated for card snippets.
+    const LIGHT = ['review_article', 'final_verdict', 'pros', 'cons', 'faq', 'seo_description', 'seo_keywords', 'seo_title', 'specs', 'affiliate_disclosure', '_entities'];
+    items = items.map((r: any) => {
+      const slim: Record<string, any> = {};
+      Object.keys(r).forEach((k) => {
+        if (LIGHT.includes(k)) return;
+        slim[k] = r[k];
+      });
+      if (typeof slim.review_summary === 'string' && slim.review_summary.length > 280) {
+        slim.review_summary = slim.review_summary.slice(0, 280) + '…';
+      }
+      if (Array.isArray(slim.key_features)) slim.key_features = slim.key_features.slice(0, 6);
+      return slim;
+    });
+  }
   // Entity enrichment
   items = items.map((r: any) => {
     const pros = Array.isArray(r.pros) ? r.pros : typeof r.pros === 'string' ? [r.pros] : [];

@@ -68,6 +68,57 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const [captureMsg, setCaptureMsg] = useState<string | null>(null);
   const [captureType, setCaptureType] = useState<'success' | 'error'>('success');
 
+  const [showDesktopSticky, setShowDesktopSticky] = useState(false);
+  const buyBoxRef = React.useRef<HTMLDivElement>(null);
+
+  const [activeTab, setActiveTab] = useState<'overview' | 'gallery' | 'videos' | 'specs'>('overview');
+
+  useEffect(() => {
+    const el = buyBoxRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const rect = el.getBoundingClientRect();
+      setShowDesktopSticky(rect.bottom < 0);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [directProduct, isInternalLoading]);
+
+  useEffect(() => {
+    const sectionIds = ['section-overview', 'section-gallery', 'section-video', 'section-specs'];
+    const visible = new Map<string, number>();
+    let raf = 0;
+    const update = () => {
+      let bestId: string | null = null;
+      let bestScore = 0;
+      sectionIds.forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const score = visible.get(id) || 0;
+        if (score > bestScore) { bestScore = score; bestId = id; }
+      });
+      if (bestId === 'section-overview') setActiveTab('overview');
+      else if (bestId === 'section-gallery') setActiveTab('gallery');
+      else if (bestId === 'section-video') setActiveTab('videos');
+      else if (bestId === 'section-specs') setActiveTab('specs');
+    };
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        visible.set((e.target as HTMLElement).id, e.isIntersecting ? e.intersectionRatio : 0);
+      });
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(update);
+    }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
+    const els = sectionIds.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    els.forEach((el) => io.observe(el));
+    return () => { io.disconnect(); cancelAnimationFrame(raf); };
+  }, [directProduct, isInternalLoading]);
+
   useEffect(() => {
     setIsInternalLoading(true);
     setDirectProduct(null);
@@ -234,8 +285,6 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const [activeVideo, setActiveVideo] = useState(productVideos[0]);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'gallery' | 'videos' | 'specs'>('overview');
-
   const isWishlisted = product ? wishlist.includes(product.id) : false;
 
   // Sync selected image index when product changes
@@ -275,9 +324,15 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     );
   }
 
-  // Related products
+  // Related products: same brand first, then same category
   const relatedProducts = products
     .filter((p) => p.mainCategory === product.mainCategory && p.id !== product.id)
+    .sort((a, b) => {
+      const aSameBrand = a.brand && product.brand && a.brand.toLowerCase() === product.brand.toLowerCase() ? 1 : 0;
+      const bSameBrand = b.brand && product.brand && b.brand.toLowerCase() === product.brand.toLowerCase() ? 1 : 0;
+      if (aSameBrand !== bSameBrand) return bSameBrand - aSameBrand;
+      return (b.editorScore || 0) - (a.editorScore || 0);
+    })
     .slice(0, 4);
 
   return (
@@ -345,7 +400,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       </div>
 
       {/* Navigation Quick Tabs */}
-      <div className="max-w-7xl mx-auto px-4 mb-6">
+      <div className="sticky top-[42px] z-30 max-w-7xl mx-auto px-4 mb-6 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-md -mx-0">
         <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 text-xs font-bold overflow-x-auto">
           <button
             onClick={() => { setActiveTab('overview'); document.getElementById('section-overview')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
@@ -410,6 +465,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105 cursor-zoom-in"
               onClick={() => setIsLightboxOpen(true)}
               referrerPolicy="no-referrer"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
               onError={(e) => handleImageError(selectedImageIndex, e)}
             />
 
@@ -449,7 +507,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                       : 'border-slate-200 dark:border-slate-800 opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <img src={proxyImageUrl(img)} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-contain" referrerPolicy="no-referrer" onError={(e) => handleImageError(idx, e)} />
+                  <img src={proxyImageUrl(img)} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-contain" referrerPolicy="no-referrer" loading="lazy" decoding="async" onError={(e) => handleImageError(idx, e)} />
                   <span className="absolute bottom-1 right-1 bg-slate-900/80 text-white text-[9px] px-1 rounded font-bold">
                     #{idx + 1}
                   </span>
@@ -521,7 +579,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           </div>
 
           {/* Pricing & Amazon Buy Box */}
-          <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-md space-y-4">
+          <div ref={buyBoxRef} className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-md space-y-4">
             <div className="flex items-baseline justify-between">
               <div>
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">
@@ -644,6 +702,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 alt={`${product.title} Imported Shot #${idx + 1}`}
                 className="max-h-full max-w-full object-contain group-hover:scale-105 transition-all duration-300"
                 referrerPolicy="no-referrer"
+                loading="lazy"
+                decoding="async"
                 onError={(e) => handleImageError(idx, e)}
               />
               <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -767,7 +827,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     >
                       {/* Video Thumbnail */}
                       <div className="relative w-24 h-16 rounded-xl bg-slate-950 overflow-hidden shrink-0 border border-slate-700 flex items-center justify-center">
-                        <img src={proxyImageUrl(vid.thumbnailUrl || allImportedImages[0])} alt="" className="w-full h-full object-cover opacity-80" referrerPolicy="no-referrer" onError={(e) => { const t = e.currentTarget; if (t.src.includes('/api/public/image-proxy')) { const m = t.src.match(/url=([^&]+)/); if (m) t.src = decodeURIComponent(m[1]); } else { t.style.display = 'none'; } }} />
+                        <img src={proxyImageUrl(vid.thumbnailUrl || allImportedImages[0])} alt="" className="w-full h-full object-cover opacity-80" referrerPolicy="no-referrer" loading="lazy" decoding="async" onError={(e) => { const t = e.currentTarget; if (t.src.includes('/api/public/image-proxy')) { const m = t.src.match(/url=([^&]+)/); if (m) t.src = decodeURIComponent(m[1]); } else { t.style.display = 'none'; } }} />
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                           <svg className="w-6 h-6 text-amber-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                         </div>
@@ -1168,7 +1228,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                       : 'border-slate-800 opacity-50 hover:opacity-100'
                   }`}
                 >
-                  <img src={proxyImageUrl(img)} alt="" className="w-full h-full object-contain" referrerPolicy="no-referrer" onError={(e) => handleImageError(idx, e)} />
+                  <img src={proxyImageUrl(img)} alt="" className="w-full h-full object-contain" referrerPolicy="no-referrer" loading="lazy" decoding="async" onError={(e) => handleImageError(idx, e)} />
                 </button>
               ))}
             </div>
@@ -1193,6 +1253,76 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           position="sticky_mobile"
           className="flex-1"
         />
+      </div>
+
+      {/* Desktop Sticky Buy Box (appears after scrolling past the main buy box) */}
+      <div
+        className={`hidden lg:flex fixed bottom-0 left-0 right-0 z-40 transition-all duration-300 ${
+          showDesktopSticky ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto w-full px-4 pb-4">
+          <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl px-4 py-3 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              {allImportedImages[0] && (
+                <img
+                  src={proxyImageUrl(allImportedImages[0])}
+                  alt=""
+                  className="w-12 h-12 rounded-xl object-contain bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0"
+                  referrerPolicy="no-referrer"
+                  loading="lazy"
+                  decoding="async"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+              )}
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-base font-black text-amazon-orange">
+                    {product.currentPrice && !isNaN(Number(product.currentPrice)) ? `$${Number(product.currentPrice).toFixed(2)}` : 'Check Amazon'}
+                  </span>
+                  {product.referencePrice && Number(product.referencePrice) > 0 && Number(product.currentPrice) > 0 && Number(product.referencePrice) > Number(product.currentPrice) && (
+                    <span className="text-xs text-slate-400 line-through">${Number(product.referencePrice).toFixed(2)}</span>
+                  )}
+                  {product.isDeal && product.discountPercentage ? (
+                    <span className="text-[10px] font-black bg-red-600 text-white px-2 py-0.5 rounded-lg">-{product.discountPercentage}%</span>
+                  ) : null}
+                </div>
+                <span className="text-[11px] font-bold text-slate-500 block truncate max-w-md">{product.title}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="hidden xl:flex items-center gap-2 text-xs font-bold text-slate-500">
+                <div className="flex text-amber-400">{'★'.repeat(Math.round(product.rating || 4.5))}</div>
+                <span>{product.rating}</span>
+                <span className="text-slate-400">({product.reviewCount?.toLocaleString()})</span>
+              </div>
+              <button
+                onClick={() => store.toggleWishlist(product.id)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
+                  isWishlisted
+                    ? 'bg-rose-50 dark:bg-rose-950/80 text-rose-600 border-rose-300'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 hover:text-rose-600'
+                }`}
+              >
+                <svg className={`w-4 h-4 ${isWishlisted ? 'fill-rose-600' : 'fill-none stroke-current'}`} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.684a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                <span className="hidden sm:inline">{isWishlisted ? 'Saved' : 'Save'}</span>
+              </button>
+              <AffiliateCTA
+                affiliateUrl={product.affiliateUrl}
+                productId={product.id}
+                asin={product.asin}
+                productTitle={product.title}
+                productSlug={product.slug}
+                variant="deal"
+                label={product.isDeal ? 'Claim Deal on Amazon' : 'Check Price on Amazon'}
+                position="sticky_desktop"
+                className="px-6 py-2.5"
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
