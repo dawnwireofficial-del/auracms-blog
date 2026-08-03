@@ -1,60 +1,57 @@
 import React from 'react';
 
-// DawnWire Official Brand DW Vector Mark
+// DawnWire Official Geometric Signal D Logo Vector Mark
 export const DawnWireLogoMark: React.FC<{ className?: string }> = ({ className = 'w-10 h-10' }) => {
   return (
-    <svg viewBox="0 0 320 220" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 200 200" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="dwWBlueGradient" x1="140" y1="180" x2="300" y2="20" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#0B2B68" />
-          <stop offset="40%" stopColor="#1E52E8" />
-          <stop offset="100%" stopColor="#0066FF" />
+        <linearGradient id="dwSignalArc" x1="20" y1="20" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#2AD7F7" />
+          <stop offset="50%" stopColor="#4C82FF" />
+          <stop offset="100%" stopColor="#8C6CFF" />
         </linearGradient>
-        <linearGradient id="dwSunGradient" x1="90" y1="150" x2="90" y2="90" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#FF7A00" />
-          <stop offset="100%" stopColor="#FFC700" />
+        <linearGradient id="dwDawnGlow" x1="40" y1="100" x2="160" y2="100" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#FFB45B" />
+          <stop offset="100%" stopColor="#4C82FF" />
         </linearGradient>
+        <filter id="dwNodeGlow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="6" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
       </defs>
 
-      {/* Sun Rays radiating inside 'D' */}
-      <g stroke="#FFB800" strokeWidth="4.5" strokeLinecap="round">
-        <line x1="90" y1="88" x2="90" y2="72" />
-        <line x1="72" y1="95" x2="60" y2="84" />
-        <line x1="108" y1="95" x2="120" y2="84" />
-        <line x1="60" y1="112" x2="46" y2="108" />
-        <line x1="120" y1="112" x2="134" y2="108" />
-        <line x1="56" y1="132" x2="42" y2="134" />
-        <line x1="124" y1="132" x2="138" y2="134" />
-      </g>
-
-      {/* Sun Body inside 'D' */}
-      <path d="M 60 135 A 30 30 0 0 1 120 135 Z" fill="url(#dwSunGradient)" />
-
-      {/* Outer 'D' letter shape in Navy Blue */}
+      {/* Outer Geometric 'D' Arc */}
       <path
-        d="M 32 55 H 98 C 145 55 172 82 172 128 C 172 174 145 200 98 200 H 32 V 55 Z M 60 82 V 173 H 95 C 124 173 144 158 144 128 C 144 98 124 82 95 82 H 60 Z"
-        fill="#0A1F44"
-        fillRule="evenodd"
-        className="dark:fill-slate-100"
+        d="M 40 30 H 105 C 150 30 180 60 180 100 C 180 140 150 170 105 170 H 40 V 30 Z"
+        stroke="url(#dwSignalArc)"
+        strokeWidth="14"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="transition-all duration-300"
       />
 
-      {/* Horizon Wave under Sun cutting across 'D' */}
+      {/* Internal Horizon Cut & Signal Line */}
       <path
-        d="M 32 182 C 65 162 110 148 172 155 C 135 178 85 190 32 192 Z"
-        fill="#0A1F44"
-        className="dark:fill-slate-100"
+        d="M 65 100 C 90 85 115 115 140 100"
+        stroke="url(#dwDawnGlow)"
+        strokeWidth="10"
+        strokeLinecap="round"
       />
 
-      {/* 'W' Swoosh with Growth Arrow */}
-      <path
-        d="M 152 158 C 170 140 190 128 202 148 L 225 195 L 246 128 L 268 195 L 298 75 H 275 L 260 152 L 242 98 L 216 162 L 192 118 C 180 98 162 120 152 158 Z"
-        fill="url(#dwWBlueGradient)"
+      {/* Intelligence Glowing Light Node */}
+      <circle
+        cx="140"
+        cy="100"
+        r="11"
+        fill="#2AD7F7"
+        filter="url(#dwNodeGlow)"
+        className="animate-pulse"
       />
-
-      {/* Upward Arrowhead on W tip */}
-      <path
-        d="M 305 55 L 270 70 L 290 100 Z"
-        fill="#0066FF"
+      <circle
+        cx="140"
+        cy="100"
+        r="5"
+        fill="#FFFFFF"
       />
     </svg>
   );
@@ -63,15 +60,15 @@ export const DawnWireLogoMark: React.FC<{ className?: string }> = ({ className =
 // DawnWire Brand Logo Component
 export const DawnWireLogo: React.FC<{ className?: string; iconOnly?: boolean }> = ({ className = 'h-9', iconOnly = false }) => {
   return (
-    <a href="/" className={`flex items-center gap-2.5 font-bold tracking-tight select-none cursor-pointer ${className}`}>
-      <DawnWireLogoMark className="w-10 h-10 shrink-0 drop-shadow-sm" />
+    <a href="/" className={`flex items-center gap-3 font-bold tracking-tight select-none cursor-pointer group ${className}`}>
+      <DawnWireLogoMark className="w-10 h-10 shrink-0 drop-shadow-[0_0_12px_rgba(76,130,255,0.4)] group-hover:scale-105 transition-transform duration-300" />
       {!iconOnly && (
         <div className="flex flex-col leading-none">
           <div className="text-2xl font-black tracking-tight font-display flex items-center">
-            <span className="text-[#0A1F44] dark:text-white">DAWN</span>
-            <span className="text-[#1D61E7] dark:text-blue-400">WIRE</span>
+            <span className="text-slate-900 dark:text-white">DAWN</span>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-cyan-400">WIRE</span>
           </div>
-          <span className="text-[9px] uppercase tracking-[0.2em] font-extrabold text-blue-600 dark:text-blue-400 opacity-90 mt-0.5">
+          <span className="text-[9px] uppercase tracking-[0.22em] font-black text-blue-500 dark:text-cyan-400 opacity-90 mt-1">
             AI Product Discovery
           </span>
         </div>
