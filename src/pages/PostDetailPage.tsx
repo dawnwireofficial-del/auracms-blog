@@ -8,6 +8,9 @@ import ImageZoom from '../components/ImageZoom';
 import SocialShareButtons from '../components/SocialShareButtons';
 import { trackAffiliateClick } from '../lib/tracker';
 import { proxyImageUrl } from '../utils/safeRender';
+import { AmbientGlow } from '../components/visual/AmbientGlow';
+import { TechnicalGrid } from '../components/visual/TechnicalGrid';
+import { GradientDivider } from '../components/visual/GradientDivider';
 
 function SimpleMarkdown({ content }: { content: string }) {
   if (!content) return null;
@@ -15,25 +18,25 @@ function SimpleMarkdown({ content }: { content: string }) {
     <div className="markdown-body space-y-5">
       <ReactMarkdown
         components={{
-          h2: ({ children }) => <h2 className="font-display text-2xl font-bold text-slate-800 dark:text-white mt-8 mb-4 tracking-tight border-b border-slate-200 dark:border-zinc-700 pb-2">{children}</h2>,
+          h2: ({ children }) => <h2 className="font-display text-2xl font-bold text-slate-800 dark:text-white mt-8 mb-4 tracking-tight border-b border-slate-200 dark:border-blue-500/20 pb-2">{children}</h2>,
           h3: ({ children }) => <h3 className="font-display text-xl font-semibold text-slate-800 dark:text-zinc-100 mt-6 mb-3 tracking-tight">{children}</h3>,
           p: ({ children }) => <p className="leading-relaxed text-slate-800 dark:text-zinc-200">{children}</p>,
           ul: ({ children }) => <ul className="list-disc pl-6 space-y-2 text-slate-500 dark:text-zinc-400 my-4">{children}</ul>,
           ol: ({ children }) => <ol className="list-decimal pl-6 space-y-2 text-slate-500 dark:text-zinc-400 my-4">{children}</ol>,
           li: ({ children }) => <li className="leading-relaxed">{children}</li>,
           blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-[#246BFF] pl-4 py-1 italic my-6 text-slate-800 dark:text-zinc-200 bg-blue-50 dark:bg-[#246BFF]/5 rounded-xl">
+            <blockquote className="border-l-4 border-blue-500 pl-4 py-1 italic my-6 text-slate-800 dark:text-zinc-200 bg-blue-50 dark:bg-blue-500/10 rounded-xl">
               {children}
             </blockquote>
           ),
           strong: ({ children }) => <strong className="font-bold text-slate-800 dark:text-white">{children}</strong>,
           em: ({ children }) => <em className="italic">{children}</em>,
-          code: ({ children }) => <code className="font-mono text-sm bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-[#246BFF]">{children}</code>,
-          hr: () => <hr className="my-8 border-slate-200 dark:border-zinc-700" />,
-          a: ({ href, children }) => <a href={href} className="text-[#246BFF] hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>,
+          code: ({ children }) => <code className="font-mono text-sm bg-zinc-100 dark:bg-slate-900 px-1.5 py-0.5 rounded text-blue-400 border border-blue-500/20">{children}</code>,
+          hr: () => <hr className="my-8 border-slate-200 dark:border-blue-500/20" />,
+          a: ({ href, children }) => <a href={href} className="text-blue-500 hover:underline font-semibold" target="_blank" rel="noopener noreferrer">{children}</a>,
           h1: ({ children }) => <h2 className="font-display text-3xl font-bold text-slate-800 dark:text-white mt-8 mb-4 tracking-tight">{children}</h2>,
           img: ({ src, alt }) => src ? (
-            <div className="my-8 rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-900">
+            <div className="my-8 rounded-xl overflow-hidden bg-zinc-100 dark:bg-[#030712] border border-blue-500/20">
               <ImageZoom src={src} alt={alt || ''} className="w-full object-contain" width={800} height={450} loading="lazy" />
             </div>
           ) : null,

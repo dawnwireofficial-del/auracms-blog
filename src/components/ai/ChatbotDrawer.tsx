@@ -102,25 +102,25 @@ export const ChatbotDrawer: React.FC<ChatbotDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-white dark:bg-slate-900 h-full shadow-2xl flex flex-col border-l border-slate-200 dark:border-slate-800">
+    <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="w-full max-w-lg bg-white dark:bg-[#050B18] h-full shadow-2xl flex flex-col border-l border-slate-200 dark:border-blue-500/20">
         {/* Header */}
-        <div className="bg-[#0A1F44] text-white p-4 flex items-center justify-between border-b border-blue-900">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-900/80 p-1 flex items-center justify-center border border-amber-400/40">
+        <div className="relative overflow-hidden bg-gradient-to-r from-[#050B18] via-[#0A1F44] to-[#050B18] text-white p-4.5 flex items-center justify-between border-b border-blue-500/20 shadow-lg">
+          <div className="flex items-center gap-3 relative z-10">
+            <div className="w-10 h-10 rounded-xl bg-blue-900/80 p-1 flex items-center justify-center border border-blue-400/40 shadow-inner">
               <HeroChatbotIllustration className="w-8 h-8" />
             </div>
             <div>
-              <h3 className="font-extrabold text-sm tracking-wide">DawnWire AI Assistant</h3>
-              <p className="text-[11px] text-blue-200 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <h3 className="font-black text-sm tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-cyan-200">DawnWire AI Assistant</h3>
+              <p className="text-[11px] text-blue-200/90 flex items-center gap-1.5 font-medium">
+                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
                 Powered by Gemini • Live Amazon Data
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-blue-900 transition-colors"
+            className="relative z-10 p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-blue-600/30 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -129,8 +129,8 @@ export const ChatbotDrawer: React.FC<ChatbotDrawerProps> = ({
         </div>
 
         {/* Affiliate Disclosure Notice */}
-        <div className="bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200/80 dark:border-amber-800/80 p-2.5 px-4 text-[11px] text-amber-900 dark:text-amber-200 flex items-center gap-2">
-          <svg className="w-4 h-4 text-amber-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        <div className="bg-amber-500/10 border-b border-amber-500/20 p-2.5 px-4 text-[11px] text-amber-900 dark:text-amber-300 flex items-center gap-2">
+          <svg className="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
           </svg>
           <span>
@@ -139,17 +139,17 @@ export const ChatbotDrawer: React.FC<ChatbotDrawerProps> = ({
         </div>
 
         {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 dark:bg-slate-900/50">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 dark:bg-[#030712]/90">
           {messages.map((msg) => (
             <div
               key={msg.id}
               className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
             >
               <div
-                className={`max-w-[88%] p-3.5 rounded-2xl text-xs leading-relaxed shadow-sm ${
+                className={`max-w-[88%] p-3.5 rounded-2xl text-xs leading-relaxed shadow-md ${
                   msg.sender === 'user'
-                    ? 'bg-blue-600 text-white rounded-br-none'
-                    : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700/80 rounded-bl-none'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-br-none shadow-blue-500/20'
+                    : 'bg-white dark:bg-[#071426] text-slate-900 dark:text-slate-100 border border-slate-200/80 dark:border-blue-500/20 rounded-bl-none'
                 }`}
               >
                 <p className="whitespace-pre-line">{msg.text}</p>
