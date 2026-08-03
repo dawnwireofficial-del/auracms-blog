@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAppStore, store } from '../lib/store';
 import ExtensionManager from '../components/ExtensionManager';
 import AmazonBulkImporter from '../components/AmazonBulkImporter';
+import AutoArticlesPanel from '../components/AutoArticlesPanel';
+import ArticleGenerator from '../components/ArticleGenerator';
 import { ActivityFeedTab } from '../components/admin/ActivityFeedTab';
 import { AdminProfileCropModal } from '../components/admin/AdminProfileCropModal';
 import { ActivityHeatmapD3 } from '../components/admin/ActivityHeatmapD3';
@@ -46,7 +48,7 @@ function BannerUploadBtn({ onUrl }: { onUrl: (url: string) => void }) {
 }
 
 export const AdminDashboardPage: React.FC = () => {
-  const { products, categories, banners, reviews, buyingGuides, syncLogs, affiliateClicks, seoOpportunities, currentUser } = useAppStore();
+  const { products, categories, banners, syncLogs, affiliateClicks, seoOpportunities, currentUser } = useAppStore();
 
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(() => {
     if (currentUser && (currentUser.role === 'super_admin' || currentUser.role === 'admin')) return true;
@@ -91,9 +93,10 @@ export const AdminDashboardPage: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
     if (tab === 'bulk-import') return 'bulk-import';
+    if (tab === 'auto-articles') return 'auto-articles';
     return 'products';
   };
-  const [activeTab, setActiveTab] = useState<'products' | 'activity-feed' | 'link-importer' | 'scraper' | 'reviews' | 'banners' | 'analytics' | 'seo' | 'firebase' | 'profile' | 'extension' | 'bulk-import'>(getInitialTab);
+  const [activeTab, setActiveTab] = useState<'products' | 'activity-feed' | 'link-importer' | 'scraper' | 'auto-articles' | 'reviews' | 'banners' | 'analytics' | 'seo' | 'firebase' | 'profile' | 'extension' | 'bulk-import'>(getInitialTab);
 
   // Form states
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
@@ -146,6 +149,23 @@ export const AdminDashboardPage: React.FC = () => {
   const [sitemapContent, setSitemapContent] = useState('');
 
   const [serverClickData, setServerClickData] = useState<{ totalClicks: number; topLinks: { title: string; clicks: number; url: string }[]; dailyClicks: { date: string; clicks: number }[] }>({ totalClicks: 0, topLinks: [], dailyClicks: [] });
+
+  // Editorial Articles (real blog posts) + AI Article Generator
+  const [editorialPosts, setEditorialPosts] = useState<any[]>([]);
+  const [showArticleGenerator, setShowArticleGenerator] = useState(false);
+
+  useEffect(() => {
+    if (!isAdminLoggedIn) return;
+    const token = localStorage.getItem('dawnwire_auth_token');
+    if (!token) return;
+    fetch('/api/admin/posts?limit=1000', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(body => {
+        const items = body && Array.isArray(body.data) ? body.data : body && Array.isArray(body) ? body : [];
+        setEditorialPosts(items);
+      })
+      .catch(() => {});
+  }, [isAdminLoggedIn]);
 
   useEffect(() => {
     store.fetchProducts();
@@ -720,7 +740,8 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
             { id: 'activity-feed', label: '⚡ Activity Feed & User Insights' },
             { id: 'link-importer', label: '⚡ Link Importer Plugin' },
             { id: 'scraper', label: 'Amazon ASIN Scraper' },
-            { id: 'reviews', label: `Editorial Articles (${reviews.length})` },
+            { id: 'auto-articles', label: '⚡ Auto Articles' },
+            { id: 'reviews', label: `Editorial Articles (${editorialPosts.length})` },
             { id: 'banners', label: `Banners & Sliders (${banners.length})` },
             { id: 'analytics', label: `Affiliate Clicks (${serverClickData.totalClicks})` },
             { id: 'seo', label: 'SEO & Sitemap' },
@@ -1675,31 +1696,70 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
           </div>
         )}
 
+        {/* Tab: Auto Article Factory */}
+        {activeTab === 'auto-articles' && (
+          <AutoArticlesPanel token={localStorage.getItem('dawnwire_auth_token') || ''} />
+        )}
+
         {/* Tab 3: Editorial Reviews & Articles */}
         {activeTab === 'reviews' && (
           <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-lg font-extrabold">Editorial Reviews & Buyer's Guides</h2>
-                <p className="text-xs text-slate-500">Manage independent lab reviews and category roundups.</p>
+                <p className="text-xs text-slate-500">AI-generated articles for your products, plus manual generation & management.</p>
               </div>
+              <button
+                onClick={() => { setShowArticleGenerator(!showArticleGenerator); setActiveTab('reviews'); }}
+                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs shadow transition-colors"
+              >
+                {showArticleGenerator ? '✕ Close Generator' : '✦ Generate Article (AI)'}
+              </button>
             </div>
 
-            <div className="space-y-4">
-              <h3 className="font-bold text-xs uppercase text-slate-400">Published Editorial Reviews ({reviews.length})</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {reviews.map((r) => (
-                  <div key={r.id} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-blue-600 dark:text-blue-400">{r.productName}</span>
-                      <span className="font-extrabold text-amber-500">★ {r.overallScore} / 10</span>
-                    </div>
-                    <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-100">{r.title}</h4>
-                    <p className="text-xs text-slate-500 line-clamp-2">{r.verdict}</p>
-                    <div className="text-[10px] text-slate-400 font-bold pt-1">By {r.authorName} • Updated {r.lastUpdated}</div>
-                  </div>
-                ))}
+            {showArticleGenerator && (
+              <div className="rounded-2xl border border-blue-500/40 bg-slate-50 dark:bg-slate-800/60 p-4">
+                <ArticleGenerator token={localStorage.getItem('dawnwire_auth_token') || ''} />
               </div>
+            )}
+
+            <div className="space-y-4">
+              <h3 className="font-bold text-xs uppercase text-slate-400">All Articles ({editorialPosts.length})</h3>
+              {editorialPosts.length === 0 ? (
+                <div className="py-12 text-center text-sm text-slate-400">
+                  No articles yet. Click "Generate Article (AI)" above to write one, or use the "⚡ Auto Articles" tab to automate it.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {editorialPosts.map((p) => (
+                    <div key={p.id} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className={`font-bold ${p.status === 'published' ? 'text-emerald-600 dark:text-emerald-400' : p.status === 'scheduled' ? 'text-violet-600 dark:text-violet-400' : 'text-slate-500 dark:text-slate-300'}`}>
+                          {String(p.status || 'draft').toUpperCase()}
+                        </span>
+                        <span className="font-extrabold text-blue-600 dark:text-blue-400">{p.productName || p.product_id ? 'Product Article' : (Array.isArray(p.tags) && p.tags.includes('buying guide') ? 'Buying Guide' : 'Article')}</span>
+                      </div>
+                      <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-100 line-clamp-2">{p.title}</h4>
+                      {p.excerpt && <p className="text-xs text-slate-500 line-clamp-2">{p.excerpt}</p>}
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-[10px] text-slate-400 font-bold">{p.slug}</span>
+                        <div className="flex items-center gap-2">
+                          {p.slug && (
+                            <a href={`/post/${p.slug}`} target="_blank" rel="noreferrer" className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-blue-500/30">
+                              View
+                            </a>
+                          )}
+                          {p.status === 'draft' && (
+                            <a href={`/admin?tab=auto-articles`} className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600">
+                              Publish
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

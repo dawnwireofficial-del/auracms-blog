@@ -788,4 +788,110 @@ router.get('/internal-links/:sourceType/:sourceId', authenticate, async (req, re
 router.post('/internal-links', authenticate, async (req, res) => res.json(await seo.createInternalLink(req.body)));
 router.delete('/internal-links/:id', authenticate, async (req, res) => res.json({ success: await seo.deleteInternalLink(req.params.id) }));
 
+// ====== Auto Article Factory ======
+router.post('/auto-articles/generate/:productId', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const { autoGenerateArticleForProduct } = await import('../../server/auto-articles');
+    const product = await seo.getProductReviewById(req.params.productId);
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+    const result = await autoGenerateArticleForProduct(product, {
+      status: req.body?.status,
+      withImage: req.body?.withImage,
+    });
+    if (result.error) return res.status(500).json({ error: result.error });
+    if (result.skipped) return res.json({ ...result, skipped: true });
+    dbInstance.log('Auto Article Generated', `Auto article for "${result.productName}" -> "${result.title}"`, (req as any).user?.id, (req as any).user?.name);
+    res.json(result);
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/auto-articles/run', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const { autoGenerateArticles } = await import('../../server/auto-articles');
+    const limit = parseInt(req.body?.limit, 10) || undefined;
+    const minScore = req.body?.minScore !== undefined ? Number(req.body.minScore) : undefined;
+    const result = await autoGenerateArticles({
+      limit,
+      onlyMissing: req.body?.onlyMissing !== false,
+      status: req.body?.status,
+      withImage: req.body?.withImage,
+      minScore,
+    });
+    res.json(result);
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.get('/auto-articles/stats', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (_req, res) => {
+  try {
+    const { getAutoArticleStats } = await import('../../server/auto-articles');
+    const stats = await getAutoArticleStats();
+    stats.config = { ...stats.config, imageApiKey: '', imageApiKeySet: !!stats.config.imageApiKey } as any;
+    res.json(stats);
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.get('/auto-articles/config', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (_req, res) => {
+  try {
+    const { getConfig } = await import('../../server/auto-articles');
+    const cfg = await getConfig();
+    res.json({ ...cfg, imageApiKey: '', imageApiKeySet: !!cfg.imageApiKey });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/auto-articles/config', authenticate, requireRole(['super_admin', 'admin']), async (req, res) => {
+  try {
+    const { getConfig, saveConfig } = await import('../../server/auto-articles');
+    const current = await getConfig();
+    let imageApiKey = req.body?.imageApiKey;
+    if (imageApiKey === undefined || imageApiKey === '') {
+      imageApiKey = current.imageApiKey;
+    }
+    const cfg = await saveConfig({
+      enabled: req.body?.enabled,
+      intervalMinutes: req.body?.intervalMinutes !== undefined ? Number(req.body.intervalMinutes) : undefined,
+      batchSize: req.body?.batchSize !== undefined ? Number(req.body.batchSize) : undefined,
+      dailyLimit: req.body?.dailyLimit !== undefined ? Number(req.body.dailyLimit) : undefined,
+      status: req.body?.status,
+      withImage: req.body?.withImage,
+      minScore: req.body?.minScore !== undefined ? Number(req.body.minScore) : undefined,
+      imageModel: req.body?.imageModel,
+      imageApiKey,
+    });
+    res.json({ ...cfg, imageApiKey: '', imageApiKeySet: !!cfg.imageApiKey });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/auto-articles/test-image-key', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const { testImageApiKey } = await import('../../server/image-gen');
+    const { getConfig } = await import('../../server/auto-articles');
+    const cfg = await getConfig();
+    const key = req.body?.apiKey || cfg.imageApiKey;
+    const result = await testImageApiKey(key);
+    res.json(result);
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/auto-articles/reset-daily', authenticate, requireRole(['super_admin', 'admin']), async (_req, res) => {
+  try {
+    const { resetDailyCounter } = await import('../../server/auto-articles');
+    await resetDailyCounter();
+    res.json({ success: true });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 export default router;

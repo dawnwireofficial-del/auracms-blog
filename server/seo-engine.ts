@@ -759,6 +759,14 @@ export async function importProductReview(data: {
     created.updated = false;
     created.was_duplicate = false;
   }
+  // Fire-and-forget: auto-generate an AI article (+ design image) for this new
+  // product so it goes live without any manual step. Dedup is handled inside
+  // the auto-articles engine, so re-imports never create a second post.
+  if (created?.id && created.status === 'published') {
+    import('./auto-articles').then(({ autoGenerateArticleForProduct }) =>
+      autoGenerateArticleForProduct(created)
+    ).catch((e: any) => console.warn('[Auto Article] background generation failed:', e.message));
+  }
   return created;
 }
 

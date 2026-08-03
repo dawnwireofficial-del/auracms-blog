@@ -181,6 +181,7 @@ app.use((_req, res, next) => {
 let lastSchedulerRun = 0;
 let lastAmazonSyncRun = 0;
 let lastAutoImportRun = 0;
+let lastAutoArticleRun = 0;
 app.use((_req, _res, next) => {
   const now = Date.now();
   if (now - lastSchedulerRun > 60_000) {
@@ -242,6 +243,25 @@ app.use((_req, _res, next) => {
       if (totalImported > 0) console.log(`[Auto-Import] Imported ${totalImported} products from ${productCats.length} categories`);
     }).catch((e: any) => console.error('[Auto-Import] Error:', e));
   }
+  // Auto Article Factory — generates AI articles (+ design images) for published
+  // products missing an article. Interval + batch come from the admin config.
+  (async () => {
+    try {
+      const { getConfig, autoGenerateArticles } = await import('../server/auto-articles');
+      const cfg = await getConfig();
+      const intervalMs = Math.max(5, cfg.intervalMinutes || 30) * 60_000;
+      if (cfg.enabled && now - lastAutoArticleRun > intervalMs) {
+        lastAutoArticleRun = now;
+        autoGenerateArticles().then((result: any) => {
+          if (result.processed > 0) {
+            console.log(`[Auto Articles] Generated ${result.processed} articles`);
+          }
+        }).catch((e: any) => console.error('[Auto Articles] Error:', e));
+      }
+    } catch (e: any) {
+      console.error('[Auto Articles] Scheduler error:', e);
+    }
+  })();
   next();
 });
 

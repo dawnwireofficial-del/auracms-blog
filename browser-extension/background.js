@@ -184,11 +184,11 @@ async function handleImport(data) {
     } catch (e) { console.error('[DawnWire BG]', e); }
   }
 
-  // 6. Optionally trigger AI article generation
+  // 6. Auto-generate a published AI article (+ design image) for this product
   let generatedArticle = false;
   if (reviewId && data.amazon_url) {
     try {
-      const genRes = await fetch(baseUrl + '/api/admin/seo/product-reviews/generate-article/' + reviewId, {
+      const genRes = await fetch(baseUrl + '/api/admin/seo/auto-articles/generate/' + reviewId, {
         method: 'POST',
         headers
       });

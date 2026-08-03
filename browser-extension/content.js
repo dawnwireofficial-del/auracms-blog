@@ -105,7 +105,7 @@
         } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
       }
       if (id && data.asin) { try { await fetch(baseUrl + '/api/admin/seo/product-reviews/fetch-video/' + id, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiToken } }); } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ } }
-      if (id) { try { await fetch(baseUrl + '/api/admin/seo/product-reviews/generate-article/' + id, { method: 'POST', headers: { 'Authorization': 'Bearer ' + apiToken } }); } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ } }
+      if (id) { try { await fetch(baseUrl + '/api/admin/seo/auto-articles/generate/' + id, { method: 'POST', headers: { 'Authorization': 'Bearer ' + apiToken } }); } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ } }
       return { success: true, review: result, id, affiliateLink, generatedArticle: true };
     } catch (e) { return { success: false, error: e.message }; }
   }
