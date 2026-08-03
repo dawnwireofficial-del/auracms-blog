@@ -12,6 +12,7 @@ import { Suspense, lazy } from 'react';
 import MascotAnimation from '../MascotAnimation';
 import { proxyImageUrl } from '../../utils/safeRender';
 import { useAppStore } from '../../lib/store';
+import { CategoryConstellationCanvas } from '../experience/CategoryConstellationCanvas';
 const ParticleCanvas = lazy(() => import('../ParticleCanvas'));
 
 interface HomePageProps {
@@ -244,7 +245,8 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
 
       {/* ============ 2.5 CATEGORY CONSTELLATION DISCOVERY ============ */}
       <section data-gravity-cursor="explore" className="relative py-14 bg-[#050B18] text-white overflow-hidden border-y border-blue-500/20">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <CategoryConstellationCanvas />
+        <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
           <div className="text-center max-w-2xl mx-auto mb-8">
             <div className="inline-flex items-center gap-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-1 mb-3">
               <Sparkles className="w-3.5 h-3.5 text-cyan-400" />

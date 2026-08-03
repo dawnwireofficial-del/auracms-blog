@@ -25,6 +25,7 @@ import { BackToTop } from './components/common/BackToTop';
 import GravityCursor from './components/common/GravityCursor';
 import ErrorBoundary from './components/ErrorBoundary';
 import { GlobalGravityCanvas } from './components/experience/GlobalGravityCanvas';
+import { CanvasPerformanceManager } from './components/experience/CanvasPerformanceManager';
 
 const NotFound: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => (
   <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
@@ -485,6 +486,7 @@ export function App() {
       <BackToTop />
       <GravityCursor />
       <GlobalGravityCanvas />
+      <CanvasPerformanceManager />
       </div>
     </ErrorBoundary>
   );
