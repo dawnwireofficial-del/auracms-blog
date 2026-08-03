@@ -2,6 +2,7 @@ import { GravityParticleCanvas } from '../common/GravityParticleCanvas';
 import MascotAnimation from '../MascotAnimation';
 import { AmbientGlow } from '../visual/AmbientGlow';
 import { TechnicalGrid } from '../visual/TechnicalGrid';
+import { HeroSignalCanvas } from '../experience/HeroSignalCanvas';
 
 interface DawnWireHeroProps {
   onOpenAiFinder: () => void;
@@ -21,6 +22,7 @@ export default function DawnWireHero({ onOpenAiFinder, onOpenChatbot }: DawnWire
   return (
     <section className="dw-hero relative overflow-hidden" aria-labelledby="dw-hero-title">
       <TechnicalGrid opacity={0.06} />
+      <HeroSignalCanvas />
       <AmbientGlow color="blue" position="top-left" size="xl" />
       <AmbientGlow color="violet" position="top-right" size="lg" />
       <div className="dw-hero__noise" aria-hidden="true" />
