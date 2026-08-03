@@ -1,5 +1,7 @@
 import { GravityParticleCanvas } from '../common/GravityParticleCanvas';
 import MascotAnimation from '../MascotAnimation';
+import { AmbientGlow } from '../visual/AmbientGlow';
+import { TechnicalGrid } from '../visual/TechnicalGrid';
 
 interface DawnWireHeroProps {
   onOpenAiFinder: () => void;
@@ -17,7 +19,10 @@ const heroCards = [
 
 export default function DawnWireHero({ onOpenAiFinder, onOpenChatbot }: DawnWireHeroProps) {
   return (
-    <section className="dw-hero" aria-labelledby="dw-hero-title">
+    <section className="dw-hero relative overflow-hidden" aria-labelledby="dw-hero-title">
+      <TechnicalGrid opacity={0.06} />
+      <AmbientGlow color="blue" position="top-left" size="xl" />
+      <AmbientGlow color="violet" position="top-right" size="lg" />
       <div className="dw-hero__noise" aria-hidden="true" />
 
       {/* Full-hero cursor particles */}

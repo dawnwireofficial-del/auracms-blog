@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { DawnWireLogo } from '../common/SvgIcons';
-
+import { AmbientGlow } from '../visual/AmbientGlow';
+import { TechnicalGrid } from '../visual/TechnicalGrid';
+import { GradientDivider } from '../visual/GradientDivider';
 
 export const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -37,8 +39,12 @@ export const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="bg-[#0A1F44] text-slate-300 pt-16 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-12 border-t border-slate-800">
-      <div className="max-w-7xl mx-auto px-4">
+    <footer className="relative overflow-hidden bg-[#050B18] text-slate-300 pt-16 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-12 border-t border-blue-500/20 shadow-2xl">
+      <TechnicalGrid opacity={0.03} />
+      <AmbientGlow color="blue" position="top-right" size="lg" />
+      <AmbientGlow color="violet" position="bottom-left" size="xl" />
+      <GradientDivider variant="blue-violet" className="absolute top-0 inset-x-0" />
+      <div className="relative z-10 max-w-7xl mx-auto px-4">
         {/* Top Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800">
           {/* Col 1: Brand & Bio */}

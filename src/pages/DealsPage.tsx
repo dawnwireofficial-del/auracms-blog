@@ -4,6 +4,9 @@ import { DisclosureBanner } from '../components/common/DisclosureBanner';
 import { TrendingDealsSection } from '../components/deals/TrendingDealsSection';
 import { useAppStore } from '../lib/store';
 import { Product } from '../types';
+import { AmbientGlow } from '../components/visual/AmbientGlow';
+import { TechnicalGrid } from '../components/visual/TechnicalGrid';
+import { GradientDivider } from '../components/visual/GradientDivider';
 
 export const DealsPage: React.FC = () => {
   const { products } = useAppStore();
@@ -39,13 +42,16 @@ export const DealsPage: React.FC = () => {
       <DisclosureBanner />
 
       {/* Hero Header */}
-      <div className="bg-gradient-to-r from-orange-600 via-amber-600 to-orange-700 text-white py-14 px-4 shadow-inner">
-        <div className="max-w-7xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-amber-200">
-            <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+      <div className="relative overflow-hidden bg-gradient-to-r from-[#050B18] via-[#1E0B00] to-[#050B18] text-white py-16 px-4 border-b border-orange-500/30 shadow-2xl">
+        <TechnicalGrid opacity={0.06} />
+        <AmbientGlow color="orange" position="top-right" size="lg" />
+        <AmbientGlow color="violet" position="bottom-left" size="xl" />
+        <div className="relative z-10 max-w-7xl mx-auto space-y-3">
+          <div className="inline-flex items-center gap-2 bg-orange-500/20 border border-orange-500/30 backdrop-blur-md px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-amber-300">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
             24/7 Price Tracker Active
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight">
+          <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-amber-100 to-orange-300">
             Amazon Deals & Instant Price Drops
           </h1>
           <p className="text-sm text-amber-100 max-w-2xl font-medium">

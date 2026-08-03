@@ -6,6 +6,9 @@ import { SideBySideComparisonModal } from '../components/product/SideBySideCompa
 import { NoResultsEmptyState } from '../components/common/EmptyState';
 import { useAppStore } from '../lib/store';
 import { triggerPageLoadProgress } from '../lib/navigation';
+import { AmbientGlow } from '../components/visual/AmbientGlow';
+import { TechnicalGrid } from '../components/visual/TechnicalGrid';
+import { GradientDivider } from '../components/visual/GradientDivider';
 
 interface ProductCatalogPageProps {
   initialCategory?: string;
@@ -148,12 +151,15 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
       <DisclosureBanner />
 
       {/* Header Banner */}
-      <div className="bg-[#0A1F44] text-white py-12 px-4 border-b border-blue-900">
-        <div className="max-w-7xl mx-auto space-y-2">
-          <h1 className="text-3xl sm:text-4xl font-extrabold font-display">
+      <div className="relative overflow-hidden bg-gradient-to-r from-[#050B18] via-[#0A1F44] to-[#050B18] text-white py-14 px-4 border-b border-blue-500/20 shadow-xl">
+        <TechnicalGrid opacity={0.05} />
+        <AmbientGlow color="blue" position="top-right" size="lg" />
+        <AmbientGlow color="violet" position="bottom-left" size="lg" />
+        <div className="relative z-10 max-w-7xl mx-auto space-y-2">
+          <h1 className="text-3xl sm:text-4xl font-black font-display tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-blue-200">
             {selectedCategory === 'all' ? 'All Products & Amazon Discovery' : `${categories.find(c => c.id === selectedCategory)?.name || ''} Products`}
           </h1>
-          <p className="text-sm text-slate-300 max-w-2xl">
+          <p className="text-sm text-slate-300/90 max-w-2xl font-medium">
             Browse independently bench-marked products, verified Amazon buyer ratings, and current price drops.
           </p>
         </div>

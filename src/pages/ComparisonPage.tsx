@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useAppStore } from '../lib/store';
 import { DisclosureBanner } from '../components/common/DisclosureBanner';
 import { SideBySideComparisonModal } from '../components/product/SideBySideComparisonModal';
+import { AmbientGlow } from '../components/visual/AmbientGlow';
+import { TechnicalGrid } from '../components/visual/TechnicalGrid';
+import { GradientDivider } from '../components/visual/GradientDivider';
 
 export const ComparisonPage: React.FC = () => {
   const { products } = useAppStore();
@@ -16,12 +19,15 @@ export const ComparisonPage: React.FC = () => {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
       <DisclosureBanner />
 
-      <div className="bg-[#0A1F44] text-white py-12 px-4 border-b border-blue-900">
-        <div className="max-w-7xl mx-auto space-y-2">
-          <h1 className="text-3xl sm:text-4xl font-extrabold font-display">
+      <div className="relative overflow-hidden bg-gradient-to-r from-[#050B18] via-[#0A1F44] to-[#050B18] text-white py-14 px-4 border-b border-blue-500/20 shadow-2xl">
+        <TechnicalGrid opacity={0.05} />
+        <AmbientGlow color="cyan" position="top-right" size="lg" />
+        <AmbientGlow color="violet" position="bottom-left" size="lg" />
+        <div className="relative z-10 max-w-7xl mx-auto space-y-2">
+          <h1 className="text-3xl sm:text-4xl font-black font-display tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-cyan-100 to-blue-200">
             Split-Screen Side-By-Side Product Comparisons
           </h1>
-          <p className="text-sm text-slate-300 max-w-2xl">
+          <p className="text-sm text-slate-300 max-w-2xl font-medium">
             Compare technical specs, Gemini AI sentiment scores, feature differences, and live Amazon pricing.
           </p>
         </div>

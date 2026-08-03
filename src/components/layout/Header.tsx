@@ -213,9 +213,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
   const currentMegaCategory = categories.find((c) => c.id === activeMegaCat) || categories[0] || null;
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 transition-colors">
+    <header className="sticky top-0 z-40 w-full bg-white/90 dark:bg-[#050B18]/85 backdrop-blur-xl border-b border-slate-200/80 dark:border-blue-500/20 shadow-2xl shadow-blue-950/20 transition-all duration-300">
       {/* Top Announcement Bar */}
-      <div className="bg-[#0A1F44] text-white text-xs font-medium py-1.5 px-4">
+      <div className="bg-gradient-to-r from-[#050B18] via-[#0A1F44] to-[#050B18] text-white text-xs font-medium py-1.5 px-4 border-b border-blue-500/10">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="bg-orange-600 text-white font-black text-[10px] px-1.5 py-0.5 rounded uppercase">
