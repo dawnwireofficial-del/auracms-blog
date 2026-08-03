@@ -22,6 +22,7 @@ import { EmptyWishlistState } from './components/common/EmptyState';
 import { PageProgressBar } from './components/common/PageProgressBar';
 import { ToastContainer } from './components/common/ToastContainer';
 import { BackToTop } from './components/common/BackToTop';
+import GravityCursor from './components/common/GravityCursor';
 import ErrorBoundary from './components/ErrorBoundary';
 
 const NotFound: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => (
@@ -481,6 +482,7 @@ export function App() {
       {/* Global Toast Notification System */}
       <ToastContainer />
       <BackToTop />
+      <GravityCursor />
       </div>
     </ErrorBoundary>
   );

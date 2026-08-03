@@ -1,6 +1,32 @@
-@import "tailwindcss";
+:root {
+  --gravity-bg-primary: #050816;
+  --gravity-bg-secondary: #080d1d;
+  --gravity-surface: rgba(17, 26, 50, 0.72);
+  --gravity-surface-solid: #111a32;
+  --gravity-text-primary: #f8fafc;
+  --gravity-text-secondary: #b3bcd0;
+  --gravity-text-muted: #778198;
+  --gravity-accent-primary: #5b7cff;
+  --gravity-accent-violet: #8b5cf6;
+  --gravity-accent-cyan: #22d3ee;
+  --gravity-border: rgba(255, 255, 255, 0.1);
+  --gravity-border-hover: rgba(255, 255, 255, 0.2);
+  --gravity-radius-small: 12px;
+  --gravity-radius-medium: 18px;
+  --gravity-radius-large: 26px;
+  --gravity-shadow-small: 0 10px 30px rgba(0, 0, 0, 0.18);
+  --gravity-shadow-large: 0 24px 80px rgba(0, 0, 0, 0.35);
+  --gravity-transition-fast: 180ms;
+  --gravity-transition-normal: 320ms;
+  --gravity-transition-slow: 700ms;
+  --gravity-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
 
-@variant dark (&:where(.dark, .dark *));
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .gravity-cursor {
+    display: none !important;
+  }
+}
 
 @theme {
   --color-primary: #0866FF;

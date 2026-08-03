@@ -83,6 +83,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
               <motion.a
                 key={cat.id}
                 href={`/categories/${cat.slug}`}
+                data-gravity-cursor="explore"
                 initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}

@@ -66,7 +66,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   if (viewMode === 'list') {
     return (
-      <div className="group relative flex flex-col md:flex-row bg-white dark:bg-dw-card rounded-[18px] border border-dw-border-soft/50 hover:border-dw-border shadow-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 overflow-hidden">
+      <div data-gravity-cursor="view" className="group relative flex flex-col md:flex-row bg-white dark:bg-dw-card rounded-[18px] border border-dw-border-soft/50 hover:border-dw-border shadow-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 overflow-hidden">
         {/* Image Container */}
         <div className="relative w-full md:w-64 h-52 md:h-auto shrink-0 bg-slate-50 dark:bg-dw-section p-4 flex items-center justify-center overflow-hidden">
           <img
@@ -215,7 +215,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   // Grid View
   return (
-    <div className="group relative flex flex-col bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
+    <div data-gravity-cursor="view" className="group relative flex flex-col bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
       {/* Top Badges */}
       <div className="absolute top-3 left-3 right-3 z-10 flex items-start justify-between pointer-events-none">
         <div className="flex flex-col items-start gap-1">
