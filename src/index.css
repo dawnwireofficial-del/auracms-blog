@@ -1,3 +1,7 @@
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
 :root {
   --gravity-bg-primary: #050816;
   --gravity-bg-secondary: #080d1d;
