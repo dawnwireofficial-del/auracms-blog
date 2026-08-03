@@ -217,7 +217,7 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
       </section>
 
       {/* ============ 2. PROOF BAR — IT Tech stats bar ============ */}
-      <section className="relative -mt-1 bg-body-bg dark:bg-zinc-950">
+      <section className="relative -mt-1 bg-slate-50 dark:bg-[#030712] transition-colors">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10">
           <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {[
@@ -226,14 +226,14 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
               { value: '50+', label: 'In-Depth Reviews', icon: ShoppingBag, color: 'from-emerald-500 to-teal-400' },
               { value: '15+', label: 'Categories Covered', icon: LayoutGrid, color: 'from-purple-500 to-pink-400' },
             ].map((stat, i) => (
-              <StaggerItem key={i} className="group bg-white rounded-2xl border border-gray-100 p-4 md:p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+              <StaggerItem key={i} className="group bg-white dark:bg-[#071426] rounded-2xl border border-slate-200/80 dark:border-blue-500/20 p-4 md:p-5 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-500/40 transition-all duration-300">
                 <div className="flex items-center gap-3">
                   <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-sm`}>
                     <stat.icon className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <span className="font-display font-bold text-2xl text-heading">{stat.value}<span className="text-sm text-text">{stat.suffix || ''}</span></span>
-                    <p className="text-[10px] text-text font-medium uppercase tracking-wider">{stat.label}</p>
+                    <span className="font-display font-bold text-2xl text-slate-900 dark:text-white">{stat.value}<span className="text-sm text-slate-500 dark:text-slate-400">{stat.suffix || ''}</span></span>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider">{stat.label}</p>
                   </div>
                 </div>
               </StaggerItem>
@@ -243,7 +243,7 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
       </section>
 
       {/* ============ 2.5 CATEGORY CONSTELLATION DISCOVERY ============ */}
-      <section className="py-12 bg-slate-900 text-white overflow-hidden border-y border-slate-800">
+      <section data-gravity-cursor="explore" className="relative py-14 bg-[#050B18] text-white overflow-hidden border-y border-blue-500/20">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="text-center max-w-2xl mx-auto mb-8">
             <div className="inline-flex items-center gap-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-1 mb-3">
