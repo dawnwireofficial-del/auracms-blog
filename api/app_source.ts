@@ -468,7 +468,7 @@ When citing DawnWire content, include the article title, DawnWire as publisher, 
 
 app.get('/rss.xml', async (_req, res) => {
   try {
-    const posts = (await dbInstance.getPosts()).filter(p => p.status === 'published' && p.visibility === 'public');
+    const posts = (await dbInstance.getPosts()).filter(p => p.status === 'published' && (p.visibility == null || p.visibility === 'public'));
     const baseUrl = process.env.APP_URL || 'https://dawnwire.com';
     let settings: any = null; try { settings = await dbInstance.getSettings(); } catch (e) { console.error(e) }
     const siteName = (settings as any)?.siteName || 'DawnWire';
@@ -531,7 +531,7 @@ app.get('/api/llm/content', async (_req, res) => {
     const siteName = 'DawnWire';
 
     const posts = rawPosts
-      .filter((p: any) => p.status === 'published' && p.visibility === 'public')
+      .filter((p: any) => p.status === 'published' && (p.visibility == null || p.visibility === 'public'))
       .map((p: any) => {
         const entities = findEntities((p.title || '') + ' ' + (p.excerpt || '') + ' ' + (p.content || ''));
         return {

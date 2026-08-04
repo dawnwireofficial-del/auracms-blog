@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.get('/settings', async (_req, res) => res.json(await dbInstance.getSettings()));
 router.get('/posts', async (req, res) => {
-  let posts = (await dbInstance.getPosts()).filter(p => p.status === 'published' && p.visibility === 'public');
+  let posts = (await dbInstance.getPosts()).filter(p => p.status === 'published' && (p.visibility == null || p.visibility === 'public'));
   const limit = parseInt(req.query.limit as string) || 0;
   const offset = parseInt(req.query.offset as string) || 0;
   const total = posts.length;
@@ -19,7 +19,7 @@ router.get('/posts', async (req, res) => {
 });
 router.get('/posts/slug/:slug', async (req, res) => {
   const post = await dbInstance.getPostBySlug(req.params.slug);
-  if (!post || post.status !== 'published' || post.visibility !== 'public') return res.status(404).json({ error: 'Article not found' });
+  if (!post || post.status !== 'published' || (post.visibility != null && post.visibility !== 'public')) return res.status(404).json({ error: 'Article not found' });
   res.json(post);
 });
 router.get('/categories', async (_req, res) => res.json((await dbInstance.getCategories()).filter(c => c.status === 'active')));
