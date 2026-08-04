@@ -881,12 +881,16 @@ router.post('/auto-articles/run', authenticate, requireRole(['super_admin', 'adm
     const { autoGenerateArticles } = await import('../../server/auto-articles');
     const limit = parseInt(req.body?.limit, 10) || undefined;
     const minScore = req.body?.minScore !== undefined ? Number(req.body.minScore) : undefined;
+    // Cap the synchronous run at ~45s so the response returns before Vercel's
+    // 60s function limit; the UI re-invokes to process the rest of the batch.
+    const timeBudgetMs = req.body?.timeBudgetMs !== undefined ? Number(req.body.timeBudgetMs) : 45000;
     const result = await autoGenerateArticles({
       limit,
       onlyMissing: req.body?.onlyMissing !== false,
       status: req.body?.status,
       withImage: req.body?.withImage,
       minScore,
+      timeBudgetMs,
     });
     res.json(result);
   } catch (e: any) {

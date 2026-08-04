@@ -142,22 +142,34 @@ export default function AutoArticlesPanel({ token }: { token: string }) {
     setMsg(null);
     setError(null);
     setRunning(true);
+    const results: RunResult[] = [];
+    let processed = 0;
+    const maxRounds = Math.max(1, runLimit || 1);
     try {
-      const res = await fetch('/api/admin/seo/auto-articles/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          limit: runLimit,
-          status: runStatus,
-          withImage: runWithImage,
-          onlyMissing: runOnlyMissing,
-          minScore: runMinScore,
-        }),
-      });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error || 'Run failed');
-      setResults(body.results || []);
-      setMsg(`Run complete — processed ${body.processed} product${body.processed === 1 ? '' : 's'}.`);
+      for (let round = 0; round < maxRounds; round++) {
+        const res = await fetch('/api/admin/seo/auto-articles/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            limit: 1,
+            status: runStatus,
+            withImage: runWithImage,
+            onlyMissing: runOnlyMissing,
+            minScore: runMinScore,
+            timeBudgetMs: 45000,
+          }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.error || 'Run failed');
+        if (Array.isArray(body.results)) results.push(...body.results);
+        processed += body.processed || 0;
+        if (round < maxRounds - 1) {
+          setMsg(`Generating… (${processed}/${maxRounds} done)`);
+        }
+        if (!body.processed) break;
+      }
+      setResults(results);
+      setMsg(`Run complete — processed ${processed} product${processed === 1 ? '' : 's'}.`);
       loadStats();
     } catch (e: any) {
       setError(e.message);

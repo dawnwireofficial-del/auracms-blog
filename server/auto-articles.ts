@@ -293,9 +293,16 @@ export async function autoGenerateArticles(params?: {
   status?: AutoArticleConfig['status'];
   withImage?: boolean;
   minScore?: number;
-}): Promise<{ processed: number; results: AutoArticleResult[]; limited: boolean }> {
+  timeBudgetMs?: number;
+}): Promise<{ processed: number; results: AutoArticleResult[]; limited: boolean; remaining: number }> {
   const config = await getConfig();
   const limit = Math.min(params?.limit ?? config.batchSize, 20);
+  // Vercel serverless functions hard-cap at 60s (Hobby). Each product takes
+  // ~40s (AI article + design image), so cap a synchronous run well under that
+  // and let the caller re-invoke to continue. Background/scheduler runs get a
+  // generous budget since they aren't tied to a request response.
+  const timeBudgetMs = Math.max(5000, params?.timeBudgetMs ?? 300000);
+  const startedAt = Date.now();
   const onlyMissing = params?.onlyMissing ?? true;
   const status = params?.status ?? config.status;
   const withImage = params?.withImage ?? config.withImage;
@@ -327,10 +334,12 @@ export async function autoGenerateArticles(params?: {
     const r = await autoGenerateArticleForProduct(p, { status, withImage });
     results.push(r);
     processed += 1;
+    if (Date.now() - startedAt >= timeBudgetMs) break;
     await new Promise((resolve) => setTimeout(resolve, 400));
   }
 
-  return { processed, results, limited: processed < limit && targets.length > limit };
+  const remaining = Math.max(0, targets.length - processed);
+  return { processed, results, limited: targets.length > processed, remaining };
 }
 
 export async function getAutoArticleStats(): Promise<{
