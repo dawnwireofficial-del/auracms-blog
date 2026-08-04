@@ -289,19 +289,6 @@ function rateLimit(req: express.Request, res: express.Response, next: express.Ne
 app.use(/^\/api\//, rateLimit);
 app.use(/^\/go\//, rateLimit);
 
-// TEMP (remove after repair): gated env dump for Supabase repair
-app.get('/api/debug/supabase-env', (req, res) => {
-  const token = (req.headers['x-debug-token'] || '') as string;
-  if (!process.env.SUPABASE_DEBUG_TOKEN || token !== process.env.SUPABASE_DEBUG_TOKEN) {
-    return res.status(403).json({ error: 'forbidden' });
-  }
-  return res.json({
-    SUPABASE_URL: process.env.SUPABASE_URL || '',
-    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || '',
-  });
-});
-
 // ====== Route modules ======
 app.use('/api/public', publicRouter);
 app.use('/api/auth', authRouter);
