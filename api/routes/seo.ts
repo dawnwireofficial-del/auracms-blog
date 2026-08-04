@@ -864,6 +864,8 @@ router.post('/auto-articles/config', authenticate, requireRole(['super_admin', '
       minScore: req.body?.minScore !== undefined ? Number(req.body.minScore) : undefined,
       imageModel: req.body?.imageModel,
       imageApiKey,
+      imageProvider: req.body?.imageProvider,
+      imageAccountId: req.body?.imageAccountId,
     });
     res.json({ ...cfg, imageApiKey: '', imageApiKeySet: !!cfg.imageApiKey });
   } catch (e: any) {
@@ -873,10 +875,17 @@ router.post('/auto-articles/config', authenticate, requireRole(['super_admin', '
 
 router.post('/auto-articles/test-image-key', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
   try {
-    const { testImageApiKey } = await import('../../server/image-gen');
     const { getConfig } = await import('../../server/auto-articles');
     const cfg = await getConfig();
     const key = req.body?.apiKey || cfg.imageApiKey;
+    const provider = req.body?.provider || cfg.imageProvider || 'auto';
+    const accountId = req.body?.accountId || cfg.imageAccountId;
+    if (provider === 'cloudflare' || (provider === 'auto' && String(key).startsWith('cfut_'))) {
+      const { testCloudflareImageKey } = await import('../../server/image-gen');
+      const result = await testCloudflareImageKey(key, accountId);
+      return res.json(result);
+    }
+    const { testImageApiKey } = await import('../../server/image-gen');
     const result = await testImageApiKey(key);
     res.json(result);
   } catch (e: any) {

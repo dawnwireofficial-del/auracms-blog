@@ -2,7 +2,7 @@ import { dbInstance } from './db';
 import { getSupabaseAdmin } from './lib/supabase';
 import { getProductReviews, getProductReviewById } from './seo-engine';
 import { generateArticleFromProduct } from './ai';
-import { generateDesignImage } from './image-gen';
+import { generateDesignImage, ImageProvider } from './image-gen';
 
 export interface AutoArticleConfig {
   enabled: boolean;
@@ -14,6 +14,8 @@ export interface AutoArticleConfig {
   minScore: number;
   imageModel: string;
   imageApiKey: string;
+  imageProvider: ImageProvider;
+  imageAccountId: string;
 }
 
 export interface AutoArticleResult {
@@ -42,6 +44,8 @@ const DEFAULT_CONFIG: AutoArticleConfig = {
   minScore: parseInt(process.env.AUTO_ARTICLE_MIN_SCORE || '6', 10) || 6,
   imageModel: process.env.GEMINI_IMAGE_MODEL || 'gemini-2.0-flash-preview-image-generation',
   imageApiKey: process.env.GEMINI_API_KEY || '',
+  imageProvider: (process.env.AUTO_ARTICLE_IMAGE_PROVIDER as ImageProvider) || 'auto',
+  imageAccountId: process.env.CLOUDFLARE_ACCOUNT_ID || '',
 };
 
 let cachedConfig: AutoArticleConfig | null = null;
@@ -76,6 +80,8 @@ export async function getConfig(): Promise<AutoArticleConfig> {
       if (data.min_score != null) cfg.minScore = Number(data.min_score);
       if (data.image_model) cfg.imageModel = data.image_model;
       if (data.image_api_key) cfg.imageApiKey = data.image_api_key;
+      if (data.image_provider === 'gemini' || data.image_provider === 'cloudflare' || data.image_provider === 'auto') cfg.imageProvider = data.image_provider;
+      if (data.image_account_id) cfg.imageAccountId = data.image_account_id;
       generatedToday = Number(data.generated_today || 0);
       generatedDate = data.generated_date || generatedDate;
       if (generatedDate !== new Date().toISOString().slice(0, 10)) generatedToday = 0;
@@ -102,6 +108,8 @@ export async function saveConfig(updates: Partial<AutoArticleConfig>): Promise<A
       min_score: cfg.minScore,
       image_model: cfg.imageModel,
       image_api_key: cfg.imageApiKey,
+      image_provider: cfg.imageProvider,
+      image_account_id: cfg.imageAccountId,
       updated_at: new Date().toISOString(),
     };
     const { data: existing } = await sb.from(CONFIG_TABLE).select('id').limit(1).maybeSingle();
@@ -191,7 +199,12 @@ export async function autoGenerateArticleForProduct(
     let featuredImage = '';
     let imageResult: AutoArticleResult['image'];
     if (withImage) {
-      const img = await generateDesignImage(product, { apiKey: config.imageApiKey, model: config.imageModel });
+      const img = await generateDesignImage(product, {
+        apiKey: config.imageApiKey,
+        model: config.imageModel,
+        provider: config.imageProvider,
+        accountId: config.imageAccountId,
+      });
       featuredImage = img.url || product.product_image || '';
       imageResult = { generated: img.generated, source: img.source, fallback: img.fallback };
     } else {

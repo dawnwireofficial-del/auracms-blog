@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import {
   Sparkles, Loader2, Play, Settings2, Check, X, Package, Image as ImageIcon,
-  Eye, RefreshCw, Zap, FileText,
+  Eye, RefreshCw, Zap, FileText, Cloud,
 } from 'lucide-react';
 import { proxyImageUrl } from '../utils/safeRender';
+
+type ImageProvider = 'auto' | 'gemini' | 'cloudflare';
 
 interface Stats {
   totalProducts: number;
@@ -28,6 +30,8 @@ interface Config {
   minScore: number;
   imageModel: string;
   imageApiKey: string;
+  imageProvider: ImageProvider;
+  imageAccountId: string;
   imageApiKeySet?: boolean;
 }
 
@@ -71,6 +75,7 @@ export default function AutoArticlesPanel({ token }: { token: string }) {
 
   // Image-generation API key
   const [keyInput, setKeyInput] = useState('');
+  const [accountIdInput, setAccountIdInput] = useState('');
   const [testingKey, setTestingKey] = useState(false);
   const [keyTest, setKeyTest] = useState<ImageTestResult | null>(null);
 
@@ -101,7 +106,7 @@ export default function AutoArticlesPanel({ token }: { token: string }) {
       const res = await fetch('/api/admin/seo/auto-articles/test-image-key', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ apiKey: keyInput }),
+        body: JSON.stringify({ apiKey: keyInput, provider: cfg?.imageProvider, accountId: accountIdInput }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || 'Test failed');
@@ -120,11 +125,12 @@ export default function AutoArticlesPanel({ token }: { token: string }) {
       const res = await fetch('/api/admin/seo/auto-articles/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ ...cfg, imageApiKey: keyInput }),
+        body: JSON.stringify({ ...cfg, imageApiKey: keyInput, imageAccountId: accountIdInput }),
       });
       if (!res.ok) throw new Error('Failed to save config');
       setMsg('Auto-article settings saved.');
       setKeyInput('');
+      setAccountIdInput('');
       setKeyTest(null);
       loadStats();
     } catch (e: any) {
@@ -169,7 +175,7 @@ export default function AutoArticlesPanel({ token }: { token: string }) {
             <Zap className="w-5 h-5 text-amber-500" /> Auto Article Factory
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Gemini AI writes an SEO article + a design image for every published product — automatically. The product's real photo is used as the image reference.
+            AI writes an SEO article + a design image for every published product — automatically. Image provider: Cloudflare Workers AI or Gemini.
           </p>
         </div>
         <button onClick={loadStats} className="p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
@@ -216,17 +222,44 @@ export default function AutoArticlesPanel({ token }: { token: string }) {
           {/* Image Generation API Key */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 space-y-4">
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-              <ImageIcon className="w-4 h-4 text-violet-500" /> Image Generation API Key
+              <ImageIcon className="w-4 h-4 text-violet-500" /> Image Generation
             </h3>
+            <div>
+              <label className={labelCls}>Provider</label>
+              <div className="flex rounded-xl border border-slate-300 dark:border-slate-700 overflow-hidden">
+                {([
+                  { id: 'auto', label: 'Auto', hint: 'Cloudflare → Gemini' },
+                  { id: 'cloudflare', label: 'Cloudflare', hint: 'Workers AI (free)' },
+                  { id: 'gemini', label: 'Gemini', hint: 'Image model / Imagen' },
+                ] as { id: ImageProvider; label: string; hint: string }[]).map((p) => (
+                  <button key={p.id} onClick={() => setCfg({ ...cfg!, imageProvider: p.id })}
+                    title={p.hint}
+                    className={`flex-1 px-4 py-2 text-xs font-bold capitalize ${cfg?.imageProvider === p.id ? 'bg-violet-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300'}`}>
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Paste any Gemini (Google AI Studio) API key that has image-generation access. The product's real photo is used as the reference so the AI depicts the exact product. Empty = uses the <code className="font-mono">GEMINI_API_KEY</code> server environment variable.
+              <Cloud className="w-3.5 h-3.5 inline -mt-0.5 mr-1 text-orange-500" />
+              <b>Cloudflare</b> — free Workers AI image generation (Flux 1 Schnell). Paste your Cloudflare API token (<code className="font-mono">cfut_...</code>) and your Account ID (from <code className="font-mono">dash.cloudflare.com</code>, the hex string before <code className="font-mono">/ai/</code>).
             </p>
             <div className="flex flex-col sm:flex-row gap-2">
               <input
                 type="password"
                 value={keyInput}
                 onChange={(e) => { setKeyInput(e.target.value); setKeyTest(null); }}
-                placeholder={cfg?.imageApiKeySet ? '•••••••••• (a key is saved) — paste a new key to replace it' : 'Paste your Gemini image-generation API key'}
+                placeholder={cfg?.imageApiKeySet ? '•••••••••• (a key is saved) — paste a new key to replace it' : cfg?.imageProvider === 'cloudflare' ? 'Paste your Cloudflare API token (cfut_...)' : 'Paste your Gemini image-generation API key'}
+                autoComplete="off"
+                className={inputCls}
+              />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="text"
+                value={accountIdInput}
+                onChange={(e) => { setAccountIdInput(e.target.value); setKeyTest(null); }}
+                placeholder={cfg?.imageAccountId ? `Cloudflare Account ID (saved: ${cfg.imageAccountId.substring(0, 8)}…)` : 'Cloudflare Account ID (required for Cloudflare provider)'}
                 autoComplete="off"
                 className={inputCls}
               />
@@ -242,7 +275,7 @@ export default function AutoArticlesPanel({ token }: { token: string }) {
                 onClick={saveConfig}
                 className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-50"
               >
-                <Check className="w-3.5 h-3.5" /> Save Key
+                <Check className="w-3.5 h-3.5" /> Save
               </button>
             </div>
             {cfg?.imageApiKeySet && !keyInput && (
