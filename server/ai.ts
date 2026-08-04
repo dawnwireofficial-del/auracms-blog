@@ -163,7 +163,7 @@ STRUCTURE (MUST follow exactly):
 
 Use DawnWire's brand voice: professional, authoritative, helpful, and data-driven. Keep paragraphs concise.`;
 
-  const raw = await cohereChat(prompt, systemPrompt, 35000, 1800);
+  const raw = await cohereChat(prompt, systemPrompt, 28000, 1500);
   const cleaned = raw.replace(/```markdown|```/gi, '').trim();
   if (!cleaned) throw new Error('AI returned an empty article');
   const lines = cleaned.split('\n');
@@ -209,7 +209,7 @@ Structure (MUST follow):
 PRODUCT:
 ${productInfo}`;
 
-  const raw = await cohereChat(prompt, systemPrompt, 20000, 1000);
+  const raw = await cohereChat(prompt, systemPrompt, 14000, 800);
   const cleaned = raw.replace(/```markdown|```/gi, '').trim();
   if (!cleaned) throw new Error('AI returned an empty article');
   const firstH1 = cleaned.split('\n').find(l => l.startsWith('# ') && !l.startsWith('## '));

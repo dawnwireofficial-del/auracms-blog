@@ -9,6 +9,7 @@ import { ProductDetailSkeleton } from '../components/common/Skeletons';
 import { ProductSentimentCard } from '../components/product/ProductSentimentCard';
 import { PriceHistoryTracker } from '../components/product/PriceHistoryTracker';
 import { ProductFaqSection } from '../components/product/ProductFaqSection';
+import CustomerReviews from '../components/affiliate/CustomerReviews';
 import { useAppStore, store } from '../lib/store';
 import { sanitizeHtml } from '../lib/sanitize';
 import ReactMarkdown from 'react-markdown';
@@ -1043,6 +1044,27 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               });
             })()}
           </div>
+
+          {/* Imported spec/angle images under the specs */}
+          {allImportedImages.length > 0 && (
+            <div className="mt-4">
+              <h4 className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                Product Images & Build Angles ({allImportedImages.length})
+              </h4>
+              <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin">
+                {allImportedImages.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => { setSelectedImageIndex(idx); setIsLightboxOpen(true); }}
+                    className="relative w-20 h-20 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-1.5 border border-slate-200 dark:border-slate-700 shrink-0 hover:ring-2 hover:ring-blue-500/40 transition-all overflow-hidden"
+                  >
+                    <img src={proxyImageUrl(img)} alt={`${product.title} image ${idx + 1}`} className="w-full h-full object-contain" referrerPolicy="no-referrer" loading="lazy" decoding="async" onError={(e) => { const t = e.currentTarget; if (t.src.includes('/api/public/image-proxy')) { const m = t.src.match(/url=([^&]+)/); if (m) t.src = decodeURIComponent(m[1]); } else { t.style.display = 'none'; } }} />
+                    <span className="absolute bottom-0.5 right-0.5 bg-slate-900/80 text-white text-[9px] px-1 rounded font-bold">#{idx + 1}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right: Pros & Cons */}
@@ -1078,6 +1100,22 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           </div>
         </div>
       </section>
+
+      {/* IMPORTED CUSTOMER REVIEWS */}
+      {(() => {
+        const specData = (product.specifications || {}) as any;
+        return Array.isArray(specData.reviews) && specData.reviews.length > 0 ? (
+          <section className="max-w-7xl mx-auto px-4 mt-16">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+              <CustomerReviews
+                reviews={specData.reviews}
+                reviewStats={specData.review_stats}
+                reviewHighlights={specData.review_highlights}
+              />
+            </div>
+          </section>
+        ) : null;
+      })()}
 
       {/* Related Products */}
       {relatedProducts.length > 0 && (

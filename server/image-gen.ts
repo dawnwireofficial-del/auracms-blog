@@ -1,8 +1,9 @@
 import { GoogleGenAI } from '@google/genai';
 
 const ENV_API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
-const GEMINI_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.0-flash-preview-image-generation';
+const GEMINI_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.5-flash-image-preview';
 const IMAGEN_MODEL = process.env.GEMINI_IMAGEN_MODEL || 'imagen-3.0-generate-002';
+const GEMINI_IMAGE_MODEL_FALLBACKS = ['gemini-2.5-flash-image-preview', 'gemini-2.5-flash-image', 'gemini-2.0-flash-preview-image-generation'];
 
 const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || '';
 const CLOUDFLARE_IMAGE_API_KEY = process.env.CLOUDFLARE_IMAGE_API_KEY || '';
@@ -218,14 +219,26 @@ export async function generateDesignImage(
         if (ref) {
           parts.push({ inlineData: { mimeType: ref.mimeType, data: ref.base64 } });
         }
-        const resp = await ai.models.generateContent({
-          model: imageModel,
-          contents: [{ role: 'user', parts }],
-          config: { responseModalities: ['IMAGE'] },
-        });
+        // Try the configured model first, then current fallbacks in case a
+        // stale/deprecated model name is stored in the config.
+        const modelCandidates = [imageModel, ...GEMINI_IMAGE_MODEL_FALLBACKS].filter((m, i, a) => m && a.indexOf(m) === i);
+        let image: { mimeType: string; base64: string } | null = null;
+        for (const candidate of modelCandidates) {
+          if (controller.signal.aborted) break;
+          try {
+            const resp = await ai.models.generateContent({
+              model: candidate,
+              contents: [{ role: 'user', parts }],
+              config: { responseModalities: ['IMAGE'] },
+            });
+            const img = extractImagePart(resp);
+            if (img?.base64 && !img.base64.startsWith('http')) { image = img; break; }
+          } catch (e: any) {
+            console.warn(`[image-gen] Gemini image model ${candidate} failed:`, e?.message);
+          }
+        }
         clearTimeout(t);
-        const image = extractImagePart(resp);
-        if (image?.base64 && !image.base64.startsWith('http')) {
+        if (image?.base64) {
           const url = await uploadBase64ToImgBB(image.base64);
           if (url) return { url, generated: true, source: 'gemini-image', fallback: 'none' };
         }

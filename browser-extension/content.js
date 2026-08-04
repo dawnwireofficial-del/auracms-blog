@@ -1031,7 +1031,7 @@
       } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
 
       const seen = new Set();
-      document.querySelectorAll('#altImages img[src*="images"], #altImages img[src*="media"], .a-spacing-small img[src*="images"], [data-a-carousel-options] img[src*="media"], li[data-csa-c-type="thumb"] img').forEach(img => {
+      document.querySelectorAll('#altImages img[src*="images"], #altImages img[src*="media"], #altImages .imageThumbnail img, #altImages .a-button-thumbnail img, .a-spacing-small img[src*="images"], [data-a-carousel-options] img[src*="media"], li[data-csa-c-type="thumb"] img, #imageBlockThumbs img[src*="images"], [data-csa-c-slot-id="thumbnail-slot"] img').forEach(img => {
         let src = img.getAttribute('src') || img.getAttribute('data-old-hires') || '';
         src = src.replace(/\._[^.]*_\./g, '.');
         if (src && !seen.has(src)) { seen.add(src); gallery.push(src); }

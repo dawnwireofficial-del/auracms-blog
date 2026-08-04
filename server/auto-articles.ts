@@ -42,7 +42,7 @@ const DEFAULT_CONFIG: AutoArticleConfig = {
   status: (process.env.AUTO_ARTICLE_STATUS as AutoArticleConfig['status']) || 'published',
   withImage: process.env.AUTO_ARTICLE_IMAGE !== 'false',
   minScore: parseInt(process.env.AUTO_ARTICLE_MIN_SCORE || '6', 10) || 6,
-  imageModel: process.env.GEMINI_IMAGE_MODEL || 'gemini-2.0-flash-preview-image-generation',
+  imageModel: process.env.GEMINI_IMAGE_MODEL || 'gemini-2.5-flash-image-preview',
   imageApiKey: process.env.GEMINI_API_KEY || '',
   imageProvider: (process.env.AUTO_ARTICLE_IMAGE_PROVIDER as ImageProvider) || 'auto',
   imageAccountId: process.env.CLOUDFLARE_ACCOUNT_ID || '',
@@ -202,6 +202,7 @@ export async function autoGenerateArticleForProduct(
   const config = await getConfig();
   const status = opts?.status || config.status;
   const withImage = opts?.withImage ?? config.withImage;
+  const startedAt = Date.now();
 
   try {
     if (await hasArticleForProduct(productId)) {
@@ -214,7 +215,10 @@ export async function autoGenerateArticleForProduct(
 
     let featuredImage = '';
     let imageResult: AutoArticleResult['image'];
-    if (withImage) {
+    // If the article AI already ate most of the budget, skip image generation
+    // so the post is still created within Vercel's 60s limit.
+    const elapsedForArticle = Date.now() - startedAt;
+    if (withImage && elapsedForArticle < 28000) {
       // Never let image generation block the article: race it with a hard
       // budget and fall back to the product photo if it's too slow/fails.
       try {
@@ -237,7 +241,7 @@ export async function autoGenerateArticleForProduct(
       }
     } else {
       featuredImage = product.product_image || '';
-      imageResult = { generated: false, source: 'product', fallback: 'none' };
+      imageResult = { generated: false, source: 'product', fallback: elapsedForArticle >= 28000 ? 'time-budget' : 'none' };
     }
 
     const imageMd = product.product_image ? `![${product.product_name}](${product.product_image})\n\n` : '';
@@ -346,11 +350,25 @@ export async function autoGenerateArticles(params?: {
 
   const results: AutoArticleResult[] = [];
   let processed = 0;
+  // Hard per-product cap so the request ALWAYS returns before Vercel's 60s
+  // function limit, even if the AI provider hangs (e.g. an AbortController
+  // that the SDK ignores). The UI re-invokes for each remaining product.
+  const productBudgetMs = Math.min(Math.max(10000, timeBudgetMs), 50000);
   for (const p of targets.slice(0, limit)) {
     if (!bumpDailyCounter()) {
       break;
     }
-    const r = await autoGenerateArticleForProduct(p, { status, withImage });
+    const r = await Promise.race<AutoArticleResult>([
+      autoGenerateArticleForProduct(p, { status, withImage }),
+      new Promise<AutoArticleResult>((resolve) =>
+        setTimeout(() => resolve({
+          productId: p.id,
+          productName: p.product_name,
+          productImage: p.product_image || '',
+          error: 'Timed out — the AI provider did not respond in time. Try again.',
+        }), productBudgetMs)
+      ),
+    ]);
     results.push(r);
     processed += 1;
     if (Date.now() - startedAt >= timeBudgetMs) break;
