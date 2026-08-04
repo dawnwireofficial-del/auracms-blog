@@ -90,9 +90,12 @@ async function handleImport(data) {
   const baseUrl = (await getSettings()).apiUrl.replace(/\/$/, '');
   const headers = await apiHeaders();
 
-  // 1. Check for duplicate by ASIN
-  if (data.asin) {
-    const dupRes = await fetch(baseUrl + '/api/admin/seo/product-reviews/check-duplicate?asin=' + encodeURIComponent(data.asin), { headers });
+  // 1. Check for duplicate by ASIN or name
+  const dupQuery = new URLSearchParams();
+  if (data.asin) dupQuery.set('asin', data.asin);
+  if (data.product_name) dupQuery.set('name', data.product_name);
+  if (dupQuery.toString()) {
+    const dupRes = await fetch(baseUrl + '/api/admin/seo/product-reviews/check-duplicate?' + dupQuery.toString(), { headers });
     if (dupRes.ok) {
       const dupData = await dupRes.json();
       if (dupData.duplicate) {
@@ -106,6 +109,13 @@ async function handleImport(data) {
           // Auto-process the updated duplicate (fill missing SEO/category/brand)
           try {
             await fetch(baseUrl + '/api/admin/seo/product-reviews/auto-process/' + dupData.id, {
+              method: 'POST',
+              headers
+            });
+          } catch (e) { console.error('[DawnWire BG]', e); }
+          // Refresh video from Amazon (uses ASIN on the existing row)
+          try {
+            await fetch(baseUrl + '/api/admin/seo/product-reviews/fetch-video/' + dupData.id, {
               method: 'POST',
               headers
             });

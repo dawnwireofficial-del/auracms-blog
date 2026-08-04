@@ -453,15 +453,25 @@ router.get('/product-reviews/check-duplicate', authenticate, async (req, res) =>
   try {
     const asin = req.query.asin as string;
     const name = req.query.name as string;
-    if (!asin && !name) return res.json({ duplicate: false });
+    const url = req.query.url as string;
+    if (!asin && !name && !url) return res.json({ duplicate: false });
     const sb = await (await import('../../server/lib/supabase')).getSupabaseAdmin();
     if (asin) {
       const { data } = await sb.from('product_reviews').select('id').filter('specs->>asin', 'eq', asin).maybeSingle();
       if (data) return res.json({ duplicate: true, id: data.id });
     }
+    if (url) {
+      const { data } = await sb.from('product_reviews').select('id').or(`amazon_url.eq.${url},affiliate_url.eq.${url},affiliate_url.ilike.%${url}%`).maybeSingle();
+      if (data) return res.json({ duplicate: true, id: data.id });
+    }
     if (name) {
+      const slug = (name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
       const { data } = await sb.from('product_reviews').select('id').or(`slug.eq.${name},product_name.ilike.${name}`).maybeSingle();
       if (data) return res.json({ duplicate: true, id: data.id });
+      if (slug && slug !== name) {
+        const { data: bySlug } = await sb.from('product_reviews').select('id').eq('slug', slug).maybeSingle();
+        if (bySlug) return res.json({ duplicate: true, id: bySlug.id });
+      }
     }
     res.json({ duplicate: false });
   } catch { res.json({ duplicate: false }); }
@@ -671,8 +681,8 @@ router.post('/product-reviews/generate-article/:id', authenticate, requireRole([
       return common.length >= 2;
     }).slice(0, 5);
 
-    const { generateArticleFromProduct } = await import('../../server/ai');
-    const { title, content, excerpt } = await generateArticleFromProduct(product, similar);
+    const { generateArticleFromProductWithFallback } = await import('../../server/ai');
+    const { title, content, excerpt } = await generateArticleFromProductWithFallback(product, similar);
 
     const imageMd = product.product_image ? `![${product.product_name}](${product.product_image})\n\n` : '';
     const fullContent = imageMd + content;
@@ -891,6 +901,7 @@ router.post('/auto-articles/run', authenticate, requireRole(['super_admin', 'adm
       withImage: req.body?.withImage,
       minScore,
       timeBudgetMs,
+      excludeIds: Array.isArray(req.body?.excludeIds) ? req.body.excludeIds : undefined,
     });
     res.json(result);
   } catch (e: any) {

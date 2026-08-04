@@ -1,7 +1,7 @@
 import { dbInstance } from './db';
 import { getSupabaseAdmin } from './lib/supabase';
 import { getProductReviews, getProductReviewById } from './seo-engine';
-import { generateArticleFromProduct } from './ai';
+import { generateArticleFromProductWithFallback } from './ai';
 import { generateDesignImage, ImageProvider } from './image-gen';
 
 export interface AutoArticleConfig {
@@ -210,19 +210,31 @@ export async function autoGenerateArticleForProduct(
 
     const allReviews = await getProductReviews();
     const similar = findSimilarProducts(product, allReviews);
-    const { title, content, excerpt } = await generateArticleFromProduct(product, similar);
+    const { title, content, excerpt } = await generateArticleFromProductWithFallback(product, similar);
 
     let featuredImage = '';
     let imageResult: AutoArticleResult['image'];
     if (withImage) {
-      const img = await generateDesignImage(product, {
-        apiKey: config.imageApiKey,
-        model: config.imageModel,
-        provider: config.imageProvider,
-        accountId: config.imageAccountId,
-      });
-      featuredImage = img.url || product.product_image || '';
-      imageResult = { generated: img.generated, source: img.source, fallback: img.fallback };
+      // Never let image generation block the article: race it with a hard
+      // budget and fall back to the product photo if it's too slow/fails.
+      try {
+        const img = await Promise.race([
+          generateDesignImage(product, {
+            apiKey: config.imageApiKey,
+            model: config.imageModel,
+            provider: config.imageProvider,
+            accountId: config.imageAccountId,
+          }),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 15000)),
+        ]);
+        featuredImage = img?.url || product.product_image || '';
+        imageResult = img
+          ? { generated: img.generated, source: img.source, fallback: img.fallback }
+          : { generated: false, source: 'product', fallback: 'timeout' };
+      } catch {
+        featuredImage = product.product_image || '';
+        imageResult = { generated: false, source: 'product', fallback: 'error' };
+      }
     } else {
       featuredImage = product.product_image || '';
       imageResult = { generated: false, source: 'product', fallback: 'none' };
@@ -294,6 +306,7 @@ export async function autoGenerateArticles(params?: {
   withImage?: boolean;
   minScore?: number;
   timeBudgetMs?: number;
+  excludeIds?: string[];
 }): Promise<{ processed: number; results: AutoArticleResult[]; limited: boolean; remaining: number }> {
   const config = await getConfig();
   const limit = Math.min(params?.limit ?? config.batchSize, 20);
@@ -307,6 +320,7 @@ export async function autoGenerateArticles(params?: {
   const status = params?.status ?? config.status;
   const withImage = params?.withImage ?? config.withImage;
   const minScore = params?.minScore ?? config.minScore;
+  const exclude = new Set(params?.excludeIds || []);
 
   const all = await getProductReviews();
   let targets = (all || []).filter((p: any) => p.status === 'published');
@@ -323,6 +337,11 @@ export async function autoGenerateArticles(params?: {
       /* treat all as missing */
     }
     targets = targets.filter((p: any) => !withArticles.has(p.id));
+  }
+  // Skip products already attempted in this run (failed attempts stay eligible
+  // in the DB, so without this a retry loop would pick the same product again).
+  if (exclude.size > 0) {
+    targets = targets.filter((p: any) => !exclude.has(p.id));
   }
 
   const results: AutoArticleResult[] = [];

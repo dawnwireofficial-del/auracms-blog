@@ -500,7 +500,7 @@ const AMAZON_CDN_RE = /^https?:\/\/(m\.media-amazon\.com|images-na\.ssl-images-a
  * Find an existing product_reviews row that this import should update instead
  * of inserting. Match priority: ASIN (column or specs) > slug > exact name.
  */
-async function findExistingProductForImport(sb: any, norm: any, slug: string): Promise<any | null> {
+async function findExistingProductForImport(sb: any, norm: any, slug: string, amazonUrl?: string | null): Promise<any | null> {
   try {
     // 1. ASIN — the strongest identifier (Amazon variations keep the same ASIN)
     const asin = norm.asin ? String(norm.asin).trim() : '';
@@ -509,6 +509,14 @@ async function findExistingProductForImport(sb: any, norm: any, slug: string): P
       if (byAsin.data?.id) return byAsin.data;
       const bySpecAsin = await sb.from('product_reviews').select('id').filter('specs->>asin', 'eq', asin).maybeSingle();
       if (bySpecAsin.data?.id) return bySpecAsin.data;
+    }
+    // 1b. Amazon/affiliate URL — catches old rows whose ASIN was never stored
+    const url = (amazonUrl || '').trim();
+    if (url) {
+      const { data: byUrl } = await sb.from('product_reviews').select('id').eq('amazon_url', url).maybeSingle();
+      if (byUrl?.id) return byUrl;
+      const { data: byAffUrl } = await sb.from('product_reviews').select('id').eq('affiliate_url', url).maybeSingle();
+      if (byAffUrl?.id) return byAffUrl;
     }
     // 2. Slug — name-based match when ASIN is unavailable (e.g. amzn.to links)
     if (slug) {
@@ -684,7 +692,7 @@ export async function importProductReview(data: {
   // Match by ASIN first (best), then slug, then normalized product name. This way
   // reimports update reviews, new images, price, specs, ASIN etc. instead of
   // creating a second row (e.g. when Amazon changes packaging / images).
-  const existing = await findExistingProductForImport(sb, norm, slug);
+  const existing = await findExistingProductForImport(sb, norm, slug, data.amazon_url || data.affiliate_url);
   if (existing) {
     const updatePayload: Record<string, any> = { ...review, updated_at: new Date().toISOString() };
     delete updatePayload.id;

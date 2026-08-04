@@ -163,8 +163,9 @@ STRUCTURE (MUST follow exactly):
 
 Use DawnWire's brand voice: professional, authoritative, helpful, and data-driven. Keep paragraphs concise.`;
 
-  const raw = await cohereChat(prompt, systemPrompt, 42000, 2200);
+  const raw = await cohereChat(prompt, systemPrompt, 35000, 1800);
   const cleaned = raw.replace(/```markdown|```/gi, '').trim();
+  if (!cleaned) throw new Error('AI returned an empty article');
   const lines = cleaned.split('\n');
   const firstH1 = lines.find(l => l.startsWith('# ') && !l.startsWith('## '));
   const title = firstH1
@@ -174,6 +175,65 @@ Use DawnWire's brand voice: professional, authoritative, helpful, and data-drive
   const excerpt = product.review_summary || `An in-depth review and buying guide for ${product.product_name}.`;
 
   return { title, content, excerpt };
+}
+
+// Compact fallback — used when the full article generation times out or the AI
+// provider is too slow. Produces a shorter but complete article so a slow model
+// can never block the product from getting its post within Vercel's 60s cap.
+async function generateCompactArticle(
+  product: any,
+): Promise<{ title: string; content: string; excerpt: string }> {
+  const productInfo = [
+    `Product: ${product.product_name}`,
+    product.brand ? `Brand: ${product.brand}` : '',
+    product.price ? `Price: ${product.price}` : '',
+    product.rating ? `Rating: ${product.rating}/5` : '',
+    product.best_for ? `Best For: ${product.best_for}` : '',
+    product.review_summary ? `Summary: ${product.review_summary}` : '',
+    product.final_verdict ? `Verdict: ${product.final_verdict}` : '',
+    product.pros?.length ? `Pros: ${product.pros.join(', ')}` : '',
+    product.cons?.length ? `Cons: ${product.cons.join(', ')}` : '',
+  ].filter(Boolean).join('\n');
+
+  const systemPrompt = `You are a professional product review writer for DawnWire (dawnwire.com). Write a concise but complete buying guide in Markdown. Output ONLY Markdown, no code fences, no extra commentary.`;
+  const prompt = `Write a compact product review article (roughly 600-800 words) for the following product.
+Structure (MUST follow):
+1. # SEO title (H1)
+2. > **Quick Summary** blockquote — 2-3 concise sentences
+3. ## Key Takeaways — 3 bullet points
+4. ## Overview — a few paragraphs analyzing the product
+5. ## Pros & Cons — short bullet lists
+6. ## Frequently Asked Questions — 3 Q&A pairs formatted as **Q:** and **A:**
+7. ## Verdict — clear recommendation
+
+PRODUCT:
+${productInfo}`;
+
+  const raw = await cohereChat(prompt, systemPrompt, 20000, 1000);
+  const cleaned = raw.replace(/```markdown|```/gi, '').trim();
+  if (!cleaned) throw new Error('AI returned an empty article');
+  const firstH1 = cleaned.split('\n').find(l => l.startsWith('# ') && !l.startsWith('## '));
+  const title = firstH1
+    ? firstH1.replace(/^#\s+/, '').trim()
+    : `Complete ${product.product_name} Review & Buying Guide`;
+  const excerpt = product.review_summary || `An in-depth review and buying guide for ${product.product_name}.`;
+  return { title, content: cleaned, excerpt };
+}
+
+export async function generateArticleFromProductWithFallback(
+  product: any,
+  similarProducts: any[],
+): Promise<{ title: string; content: string; excerpt: string }> {
+  try {
+    return await generateArticleFromProduct(product, similarProducts);
+  } catch (e: any) {
+    console.warn('[ai.ts] Full article generation failed, falling back to compact article:', e.message);
+    try {
+      return await generateCompactArticle(product);
+    } catch (e2: any) {
+      throw new Error('AI article generation failed: ' + (e2.message || 'Unknown error'));
+    }
+  }
 }
 
 export async function refreshArticleContent(post: any): Promise<{ title: string; content: string; excerpt: string } | null> {

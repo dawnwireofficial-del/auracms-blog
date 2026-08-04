@@ -143,6 +143,7 @@ export default function AutoArticlesPanel({ token }: { token: string }) {
     setError(null);
     setRunning(true);
     const results: RunResult[] = [];
+    const attempted: string[] = [];
     let processed = 0;
     const maxRounds = Math.max(1, runLimit || 1);
     try {
@@ -157,11 +158,19 @@ export default function AutoArticlesPanel({ token }: { token: string }) {
             onlyMissing: runOnlyMissing,
             minScore: runMinScore,
             timeBudgetMs: 45000,
+            excludeIds: attempted.length > 0 ? attempted : undefined,
           }),
         });
         const body = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(body.error || 'Run failed');
-        if (Array.isArray(body.results)) results.push(...body.results);
+        if (Array.isArray(body.results)) {
+          results.push(...body.results);
+          // Track every product this run touched so retries pick a DIFFERENT
+          // product instead of re-processing the same failing one.
+          for (const r of body.results) {
+            if (r.productId && !attempted.includes(r.productId)) attempted.push(r.productId);
+          }
+        }
         processed += body.processed || 0;
         if (round < maxRounds - 1) {
           setMsg(`Generating… (${processed}/${maxRounds} done)`);

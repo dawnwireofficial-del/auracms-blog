@@ -1452,6 +1452,15 @@
       const asin = (doc.querySelector('input[name="ASIN"]')?.getAttribute('value')) || '';
       const amazon_url = 'https://www.amazon.com/dp/' + asin;
 
+      const gallery = [];
+      const seen = new Set();
+      doc.querySelectorAll('#altImages img[src*="images"], #altImages img[src*="media"], .a-spacing-small img[src*="images"], [data-a-carousel-options] img[src*="media"], li[data-csa-c-type="thumb"] img').forEach(img => {
+        let src = img.getAttribute('src') || img.getAttribute('data-old-hires') || '';
+        src = src.replace(/\._[^.]*_\./g, '.');
+        if (src && !seen.has(src)) { seen.add(src); gallery.push(src); }
+      });
+      if (product_image && !gallery.includes(product_image)) gallery.unshift(product_image);
+
       const detailBullets = {};
       try {
         doc.querySelectorAll('#productDetails_detailBullets_sections1 tr, #detailBullets_feature_div .a-list-item').forEach(row => {
@@ -1491,7 +1500,7 @@
         reviews = rd.reviews || [];
         reviewStats = rd.reviewStats || reviewStats;
       } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
-      return { product_name, brand, product_image, price, rating, reviewCount, key_features, pros: [], cons: [], review_summary: '', amazon_url, asin, gallery: [], videoUrl, variations: [], listPrice: '', savings: '', priceRange: undefined, specs: {}, detailBullets, stockStatus, dealBadge: '', bestSellersRank, category, bestFor, source: 'amazon', ingredients, unitSize, unitPrice, bsrDetail, reviewHighlights, reviews, reviewStats };
+      return { product_name, brand, product_image, price, rating, reviewCount, key_features, pros: [], cons: [], review_summary: '', amazon_url, asin, gallery, videoUrl, variations: [], listPrice: '', savings: '', priceRange: undefined, specs: {}, detailBullets, stockStatus, dealBadge: '', bestSellersRank, category, bestFor, source: 'amazon', ingredients, unitSize, unitPrice, bsrDetail, reviewHighlights, reviews, reviewStats };
     }
 
     // Generic fallback for other stores
