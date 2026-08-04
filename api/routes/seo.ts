@@ -567,6 +567,75 @@ router.post('/product-reviews/cleanup-blob-videos', authenticate, requireRole(['
   }
 });
 
+// Re-fetch real Amazon product photos for products whose stored image is dead
+// (Amazon 404s the CDN URL). Uses the improved scrapeAmazonHtml which prefers
+// the page's "hiRes"/landing image. Chunked (limit, default 20) to stay inside
+// the 60s function timeout — run it again to keep repairing.
+router.post('/product-reviews/repair-images', authenticate, requireRole(['super_admin', 'admin']), async (req, res) => {
+  try {
+    const { scrapeAmazonHtml, verifyImageUrl } = await import('../../server/amazon-extractor');
+    const reviews = await seo.getProductReviews();
+    const limit = Math.min(parseInt(req.body?.limit, 10) || 20, 40);
+    const results: any[] = [];
+    let repaired = 0, failed = 0, scanned = 0;
+
+    const mapConcurrent = async <T, R>(items: T[], worker: (item: T) => Promise<R>, concurrency: number): Promise<R[]> => {
+      const out: R[] = new Array(items.length);
+      let i = 0;
+      const runners = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+        while (i < items.length) {
+          const idx = i++;
+          try { out[idx] = await worker(items[idx]); } catch (e: any) { out[idx] = e; }
+        }
+      });
+      await Promise.all(runners);
+      return out;
+    };
+
+    const asinOf = (r: any): string => {
+      const specAsin = r.specs?.asin || '';
+      if (specAsin && /^[A-Z0-9]{10}$/.test(specAsin)) return specAsin;
+      return (r.affiliate_url || r.amazon_url || '').match(/\/dp\/([A-Z0-9]{10})/i)?.[1] || '';
+    };
+
+    // Phase 1 — HEAD-check current main image, find dead ones
+    const suspects = (await mapConcurrent(reviews.slice(0, limit), async (r) => {
+      const current = r.product_image || r.specs?.gallery?.[0] || '';
+      if (!current || !/^https:\/\/(m\.)?media-amazon\.com\//.test(current)) return null;
+      scanned++;
+      if (await verifyImageUrl(current, 8000)) return null;
+      return r;
+    }, 6)).filter(Boolean);
+
+    // Phase 2 — scrape real page + verify candidates + update
+    await mapConcurrent(suspects, async (r: any) => {
+      const asin = asinOf(r);
+      if (!asin) { failed++; results.push({ name: r.product_name, error: 'no ASIN' }); return; }
+      const scraped = await scrapeAmazonHtml(asin);
+      const candidates: string[] = [scraped?.mainImage || '', ...(scraped?.images || [])]
+        .filter((u): u is string => typeof u === 'string' && /^https:\/\/(m\.)?media-amazon\.com\//.test(u));
+      const unique = [...new Set(candidates)];
+      const valid: string[] = [];
+      for (const c of unique.slice(0, 6)) {
+        if (await verifyImageUrl(c, 8000)) valid.push(c);
+        if (valid.length >= 6) break;
+      }
+      if (!valid.length) {
+        failed++;
+        results.push({ name: r.product_name, asin, error: 'scrape failed or no valid images' });
+        return;
+      }
+      await seo.updateProductReview(r.id, { gallery: valid });
+      repaired++;
+      results.push({ name: r.product_name, asin, images: valid.length, main: valid[0] });
+    }, 3);
+
+    res.json({ scanned, repaired, failed, processed: results.length, results });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Sanitize review_summary fields (strip injected CSS/JS from Amazon imports)
 router.post('/product-reviews/sanitize-summaries', authenticate, requireRole(['super_admin', 'admin']), async (_req, res) => {
   try {

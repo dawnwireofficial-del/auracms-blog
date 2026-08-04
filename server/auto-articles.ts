@@ -96,30 +96,46 @@ export async function getConfig(): Promise<AutoArticleConfig> {
 export async function saveConfig(updates: Partial<AutoArticleConfig>): Promise<AutoArticleConfig> {
   const cfg = { ...(cachedConfig || await getConfig()), ...updates };
   cachedConfig = cfg;
+  const payload: Record<string, any> = {
+    enabled: cfg.enabled,
+    interval_minutes: cfg.intervalMinutes,
+    batch_size: cfg.batchSize,
+    daily_limit: cfg.dailyLimit,
+    status: cfg.status,
+    with_image: cfg.withImage,
+    min_score: cfg.minScore,
+    image_model: cfg.imageModel,
+    image_api_key: cfg.imageApiKey,
+    image_provider: cfg.imageProvider,
+    image_account_id: cfg.imageAccountId,
+    updated_at: new Date().toISOString(),
+  };
   try {
     const sb = await getSupabaseAdmin();
-    const payload: Record<string, any> = {
-      enabled: cfg.enabled,
-      interval_minutes: cfg.intervalMinutes,
-      batch_size: cfg.batchSize,
-      daily_limit: cfg.dailyLimit,
-      status: cfg.status,
-      with_image: cfg.withImage,
-      min_score: cfg.minScore,
-      image_model: cfg.imageModel,
-      image_api_key: cfg.imageApiKey,
-      image_provider: cfg.imageProvider,
-      image_account_id: cfg.imageAccountId,
-      updated_at: new Date().toISOString(),
-    };
     const { data: existing } = await sb.from(CONFIG_TABLE).select('id').limit(1).maybeSingle();
     if (existing) {
       await sb.from(CONFIG_TABLE).update(payload).eq('id', existing.id);
     } else {
       await sb.from(CONFIG_TABLE).insert({ id: crypto.randomUUID(), ...payload });
     }
-  } catch {
-    /* in-memory only */
+  } catch (e: any) {
+    // Migration 023 may not be applied yet (image_provider/image_account_id columns
+    // missing). Retry without those so the rest of the settings still persist.
+    console.warn('[auto-articles] saveConfig full write failed:', e?.message);
+    try {
+      const sb = await getSupabaseAdmin();
+      const fallback: Record<string, any> = { ...payload };
+      delete fallback.image_provider;
+      delete fallback.image_account_id;
+      const { data: existing } = await sb.from(CONFIG_TABLE).select('id').limit(1).maybeSingle();
+      if (existing) {
+        await sb.from(CONFIG_TABLE).update(fallback).eq('id', existing.id);
+      } else {
+        await sb.from(CONFIG_TABLE).insert({ id: crypto.randomUUID(), ...fallback });
+      }
+    } catch (e2: any) {
+      console.warn('[auto-articles] saveConfig fallback write also failed:', e2?.message);
+    }
   }
   return cfg;
 }

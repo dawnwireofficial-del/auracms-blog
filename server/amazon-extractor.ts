@@ -336,10 +336,21 @@ export async function scrapeAmazonHtml(asin: string): Promise<Partial<ExtractedP
     const refPriceMatch = html.match(/<span class="a-text-price"[^>]*>[\s\S]*?\$([0-9\.,]+)/i);
     const referencePrice = refPriceMatch ? parseFloat(refPriceMatch[1].replace(/,/g, '')) : (currentPrice ? Math.round(currentPrice * 1.15 * 100) / 100 : 0);
 
-    // Parse ALL Unique High-Res Amazon Gallery Images from HTML
+    // Parse ALL Unique High-Res Amazon Gallery Images from HTML.
+    // The declared "hiRes" / #landingImage src is the REAL main product photo —
+    // Amazon's HTML also embeds small video-poster/thumbnail IDs (01/11/21/…)
+    // that are NOT downloadable, so those are de-prioritized.
     const allImageMatches = [...html.matchAll(/https:\/\/m\.media-amazon\.com\/images\/I\/([a-zA-Z0-9%+\-_]+)\.[^"'\s<>\)\}\]]+/gi)];
     const seenImageIds = new Set<string>();
     const uniqueHighResImages: string[] = [];
+
+    const hiResMatch = html.match(/"hiRes"\s*:\s*"https:\/\/m\.media-amazon\.com\/images\/I\/([a-zA-Z0-9%+\-_]+)\./i);
+    const landingMatch = html.match(/id="landingImage"[^>]*src="https:\/\/m\.media-amazon\.com\/images\/I\/([a-zA-Z0-9%+\-_]+)\./i);
+    const preferredMain = hiResMatch?.[1] || landingMatch?.[1] || '';
+    if (preferredMain) {
+      seenImageIds.add(preferredMain);
+      uniqueHighResImages.push(`https://m.media-amazon.com/images/I/${preferredMain}._AC_SL1500_.jpg`);
+    }
 
     for (const match of allImageMatches) {
       const imageId = match[1];
@@ -348,15 +359,18 @@ export async function scrapeAmazonHtml(asin: string): Promise<Partial<ExtractedP
       if (lowerId.includes('sprite') || lowerId.includes('icon') || lowerId.includes('pixel') || lowerId.includes('badge') || lowerId.includes('play-button') || lowerId.includes('overlay') || lowerId.includes('logo')) {
         continue;
       }
-
-      if (!seenImageIds.has(imageId)) {
-        seenImageIds.add(imageId);
-        uniqueHighResImages.push(`https://m.media-amazon.com/images/I/${imageId}._AC_SL1500_.jpg`);
-      }
+      if (seenImageIds.has(imageId)) continue;
+      seenImageIds.add(imageId);
+      uniqueHighResImages.push(`https://m.media-amazon.com/images/I/${imageId}._AC_SL1500_.jpg`);
     }
 
+    // Prefer real product photos (first digit 5-9) for the gallery; only fall
+    // back to all captured IDs if no real-looking photos were found.
+    const realImages = uniqueHighResImages.filter((u) => /^[5-9]/.test((u.match(/\/I\/([A-Za-z0-9%+\-_]+)\./)?.[1] || '').charAt(0)));
+    const gallerySource = realImages.length >= 3 ? realImages : uniqueHighResImages;
+
     const mainImage = uniqueHighResImages[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800';
-    const imagesList = uniqueHighResImages.length ? uniqueHighResImages.slice(0, 8) : [mainImage];
+    const imagesList = (gallerySource.length ? gallerySource : [mainImage]).slice(0, 8);
 
     // Parse Features / Bullet Points
     const bulletMatches = [...html.matchAll(/<span class="a-list-item">([\s\S]*?)<\/span>/gi)];
@@ -443,6 +457,27 @@ export async function scrapeAmazonHtml(asin: string): Promise<Partial<ExtractedP
     };
   } catch (err) {
     return null;
+  }
+}
+
+/**
+ * HEAD-check whether an Amazon CDN image URL is actually downloadable.
+ * Some IDs embedded in the page HTML (video posters, thumbnails) 404 on the CDN.
+ */
+export async function verifyImageUrl(imageUrl: string, timeoutMs = 10000): Promise<boolean> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const res = await fetch(imageUrl, {
+      method: 'HEAD',
+      redirect: 'follow',
+      signal: controller.signal,
+      headers: randomScraperHeaders(),
+    });
+    clearTimeout(timeoutId);
+    return res.ok;
+  } catch {
+    return false;
   }
 }
 
