@@ -146,8 +146,10 @@ async function generateWithCloudflare(
   product: any,
   opts?: DesignImageOpts,
 ): Promise<DesignImageResult | null> {
-  const apiKey = (opts?.apiKey || CLOUDFLARE_IMAGE_API_KEY).trim();
-  const accountId = (opts?.accountId || CLOUDFLARE_ACCOUNT_ID).trim();
+  // Cloudflare always uses its OWN env token/account — never opts.apiKey, which
+  // the auto-articles config fills with the Gemini key (different provider).
+  const apiKey = CLOUDFLARE_IMAGE_API_KEY.trim();
+  const accountId = (CLOUDFLARE_ACCOUNT_ID.trim() || opts?.accountId?.trim() || '');
   if (!apiKey || !accountId) return null;
 
   const model = (opts?.model && String(opts.model).startsWith('@cf/')) ? String(opts.model) : CLOUDFLARE_IMAGE_MODEL;
@@ -225,7 +227,7 @@ export async function generateDesignImage(
 
   // Cloudflare Workers AI first — flux is fast and reliable. Reference-accurate
   // Gemini is tried as a fallback (and when provider='gemini').
-  if (provider === 'cloudflare' || (provider === 'auto' && isCloudflareConfigured(opts?.apiKey, opts?.accountId))) {
+  if (provider === 'cloudflare' || (provider === 'auto' && isCloudflareConfigured())) {
     const cf = await generateWithCloudflare(product, opts);
     if (cf) return cf;
     if (provider === 'cloudflare') return productFallback();
