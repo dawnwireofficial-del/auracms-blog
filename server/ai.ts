@@ -58,15 +58,16 @@ export async function cohereChat(promptText: string, system?: string, timeoutMs?
   // Shared budget. Each provider gets a slice so a slow/broken provider can't
   // eat the whole budget and block the others (Vercel caps synchronous work at 60s).
   const budget = Math.max(9000, timeoutMs || 20000);
-  const slices = 2;
-  const perProvider = Math.max(6500, Math.floor(budget / slices));
+  // Cohere/AI Gateway is the primary provider — it gets the full budget.
+  // Fallbacks get a slice so a broken provider can't blow the whole budget.
+  const fallbackSlice = Math.max(6500, Math.floor(budget / 3));
   const errors: string[] = [];
 
   // 1. Cohere / AI Gateway — the intended production provider.
   if (AI_GATEWAY_API_KEY) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), perProvider);
+      const timeoutId = setTimeout(() => controller.abort(), budget);
       let result;
       try {
         result = await generateText({
@@ -93,7 +94,7 @@ export async function cohereChat(promptText: string, system?: string, timeoutMs?
   // 2. Gemini (if configured) — fall back rather than blocking Cohere.
   if (isGeminiConfigured()) {
     try {
-      const r = await geminiText(promptText, system, perProvider, maxTokens);
+      const r = await geminiText(promptText, system, fallbackSlice, maxTokens);
       if (r) return r;
       errors.push('gemini: empty response');
     } catch (e: any) {
@@ -104,7 +105,7 @@ export async function cohereChat(promptText: string, system?: string, timeoutMs?
   // 3. DeepSeek.
   if (isDeepSeekConfigured()) {
     try {
-      const r = await deepseekText({ prompt: promptText, system, timeoutMs: perProvider, maxOutputTokens: maxTokens });
+      const r = await deepseekText({ prompt: promptText, system, timeoutMs: fallbackSlice, maxOutputTokens: maxTokens });
       if (r) return r;
       errors.push('deepseek: empty response');
     } catch (e: any) {
