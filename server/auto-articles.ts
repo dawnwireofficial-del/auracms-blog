@@ -229,7 +229,7 @@ export async function autoGenerateArticleForProduct(
             provider: config.imageProvider,
             accountId: config.imageAccountId,
           }),
-          new Promise<null>((resolve) => setTimeout(() => resolve(null), 15000)),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 25000)),
         ]);
         featuredImage = img?.url || product.product_image || '';
         imageResult = img

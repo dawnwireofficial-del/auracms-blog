@@ -78,12 +78,14 @@ export function buildDesignPrompt(product: any): string {
   const name = product.product_name || product.name || product.title || 'this product';
   const brand = product.brand ? ` by ${product.brand}` : '';
   const category = product.best_for || product.category || '';
+  const visual = buildProductVisualDetails(product);
   const desc = product.review_summary
     ? `Product description: ${String(product.review_summary).replace(/<[^>]*>/g, '').substring(0, 400)}`
     : '';
   return [
     `Create a premium editorial hero banner image for an affiliate product-review blog post about: ${name}${brand}${category ? ` (category: ${category})` : ''}.`,
     `Showcase THE EXACT product from the reference image — same design, color, materials and shape — as the single hero subject, centered and prominent.`,
+    visual,
     'Style: professional studio product photography, clean deep navy-blue background (#0A1F44) with soft amber/gold accent lighting, gentle reflections, subtle depth of field, ultra high detail, 16:9 widescreen composition.',
     'NO text, NO words, NO logos, NO watermarks, NO other products, NO people, NO hands, NO labels.',
     'The product must look identical to the reference photo. Keep it realistic and sharp.',
@@ -95,17 +97,45 @@ export function buildCloudflarePrompt(product: any): string {
   const name = product.product_name || product.name || product.title || 'this product';
   const brand = product.brand ? ` by ${product.brand}` : '';
   const category = product.best_for || product.category || '';
+  const visual = buildProductVisualDetails(product);
   const desc = product.review_summary
     ? `Product description: ${String(product.review_summary).replace(/<[^>]*>/g, '').substring(0, 400)}`
     : '';
   return [
     `Premium editorial hero banner image for an affiliate product-review blog post about: ${name}${brand}${category ? ` (category: ${category})` : ''}.`,
     'Showcase THE EXACT product as the single hero subject, centered and prominent. Realistic studio product photography.',
+    visual,
     'Style: professional studio product photography, clean deep navy-blue background (#0A1F44) with soft amber/gold accent lighting, gentle reflections, subtle depth of field, ultra high detail, 16:9 widescreen composition.',
     'NO text, NO words, NO logos, NO watermarks, NO other products, NO people, NO hands, NO labels.',
     'Keep it realistic and sharp.',
     desc,
   ].filter(Boolean).join('\n');
+}
+
+// Pull concrete visual details (color, material, size, design) from the product's
+// specs so the text-only Cloudflare prompt can depict the product accurately.
+function buildProductVisualDetails(product: any): string {
+  const specs: any = (product && typeof product.specs === 'object' && product.specs) || {};
+  const details: any = specs.details || specs.detail_bullets || specs;
+  const find = (keys: string[]): string => {
+    for (const k of keys) {
+      const v = details?.[k] ?? specs?.[k];
+      if (v && typeof v === 'string' && v.trim() && v.trim().length < 120) return v.trim();
+    }
+    return '';
+  };
+  const color = find(['color', 'colour', 'Color', 'color_name', 'colorName']);
+  const material = find(['material', 'Material', 'materials', 'Materials']);
+  const size = find(['size', 'Size', 'item_size', 'itemSize', 'unit_size', 'unitSize']);
+  const design = find(['design', 'Design', 'pattern', 'style', 'Style', 'shape']);
+  const parts: string[] = [];
+  if (color) parts.push(`color ${color}`);
+  if (material) parts.push(`material ${material}`);
+  if (size) parts.push(`size/dimensions ${size}`);
+  if (design) parts.push(`design/style ${design}`);
+  return parts.length
+    ? `Key visual details from the product listing: ${parts.join(', ')}. Depict these accurately so the image matches the real product.`
+    : '';
 }
 
 function stripDataUriPrefix(base64: string): string {
@@ -176,11 +206,11 @@ function extractImagePart(response: any): { mimeType: string; base64: string } |
 
 /**
  * Generates an editorial hero image for an article. The product's real photo is
- * used as a REFERENCE ONLY (Gemini) so the AI faithfully depicts the actual product.
+ * used as a REFERENCE (Gemini) so the AI faithfully depicts the actual product.
  * Provider chain:
- *   cloudflare -> Cloudflare Workers AI only (falls back to product photo)
+ *   auto      -> Gemini (reference-accurate) -> Cloudflare (fast) -> Imagen -> product photo
  *   gemini    -> Gemini image model -> Imagen -> product photo
- *   auto      -> Cloudflare (if configured) -> Gemini -> Imagen -> product photo
+ *   cloudflare -> Cloudflare Workers AI only (falls back to product photo)
  */
 export async function generateDesignImage(
   product: any,
@@ -193,14 +223,9 @@ export async function generateDesignImage(
       ? { url: productImage, generated: false, source: 'product', fallback: 'product' }
       : { url: '', generated: false, source: 'none', fallback: 'unavailable' };
 
-  // Cloudflare path
-  if (provider === 'cloudflare' || (provider === 'auto' && isCloudflareConfigured(opts?.apiKey, opts?.accountId))) {
-    const cf = await generateWithCloudflare(product, opts);
-    if (cf) return cf;
-    if (provider === 'cloudflare') return productFallback();
-  }
-
-  // Gemini path
+  // Reference-based Gemini path first — it uses the real product photo as an
+  // image reference so the hero banner accurately depicts the actual product.
+  // Falls through to Cloudflare/Imagen if Gemini is unavailable.
   if (provider === 'gemini' || provider === 'auto') {
     const apiKey = resolveApiKey(provider === 'gemini' ? opts?.apiKey : ENV_API_KEY);
     const imageModel = opts?.model || GEMINI_IMAGE_MODEL;
@@ -265,6 +290,13 @@ export async function generateDesignImage(
         console.warn('[image-gen] Imagen failed:', e.message);
       }
     }
+  }
+
+  // Cloudflare Workers AI path (flux-1-schnell) — fast text-to-image.
+  if (provider === 'cloudflare' || (provider === 'auto' && isCloudflareConfigured(opts?.apiKey, opts?.accountId))) {
+    const cf = await generateWithCloudflare(product, opts);
+    if (cf) return cf;
+    if (provider === 'cloudflare') return productFallback();
   }
 
   return productFallback();

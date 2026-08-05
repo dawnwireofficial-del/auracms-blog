@@ -186,12 +186,11 @@ export class SupabaseDatabase {
       featured_image: post.featuredImage || null, author_id: authorId, category_id: post.categoryId || null,
       product_id: post.productId || null,
       tags: post.tags || [], status: post.status || 'draft', visibility: post.visibility || 'public',
-      is_featured: !!post.isFeatured, is_trending: !!post.isTrending, is_editors_pick: !!post.isEditorsPick,
+      isFeatured: !!post.isFeatured, isTrending: !!post.isTrending, isEditorsPick: !!post.isEditorsPick,
       allow_comments: post.allowComments !== false, seo_title: post.seoTitle || null,
       seo_description: post.seoDescription || null, seo_keywords: post.seoKeywords || null,
-      scheduled_at: post.scheduledAt || null,
       published_at: post.status === 'published' ? new Date().toISOString() : null,
-      reading_time: readingTime, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+      readingTime, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
     };
 
     let { data, error } = await sb.from('posts').insert(payload).select().single();
@@ -206,8 +205,14 @@ export class SupabaseDatabase {
         featured_image: payload.featured_image,
         author_id: payload.author_id,
         category_id: payload.category_id,
+        product_id: payload.product_id,
         tags: payload.tags,
         status: payload.status,
+        visibility: payload.visibility,
+        allow_comments: payload.allow_comments,
+        seo_title: payload.seo_title,
+        seo_description: payload.seo_description,
+        seo_keywords: payload.seo_keywords,
         published_at: payload.published_at,
         created_at: payload.created_at,
         updated_at: payload.updated_at,
@@ -243,28 +248,27 @@ export class SupabaseDatabase {
     if (updates.tags !== undefined) payload.tags = updates.tags;
     if (updates.status !== undefined) payload.status = updates.status;
     if (updates.visibility !== undefined) payload.visibility = updates.visibility;
-    if (updates.isFeatured !== undefined) payload.is_featured = !!updates.isFeatured;
-    if (updates.isTrending !== undefined) payload.is_trending = !!updates.isTrending;
-    if (updates.isEditorsPick !== undefined) payload.is_editors_pick = !!updates.isEditorsPick;
+    if (updates.isFeatured !== undefined) payload.isFeatured = !!updates.isFeatured;
+    if (updates.isTrending !== undefined) payload.isTrending = !!updates.isTrending;
+    if (updates.isEditorsPick !== undefined) payload.isEditorsPick = !!updates.isEditorsPick;
     if (updates.allowComments !== undefined) payload.allow_comments = !!updates.allowComments;
     if (updates.seoTitle !== undefined) payload.seo_title = updates.seoTitle;
     if (updates.seoDescription !== undefined) payload.seo_description = updates.seoDescription;
     if (updates.seoKeywords !== undefined) payload.seo_keywords = updates.seoKeywords;
     if (updates.publishedAt !== undefined) payload.published_at = updates.publishedAt;
-    if (updates.scheduledAt !== undefined) payload.scheduled_at = updates.scheduledAt;
     if (updates.status === 'published' && existing.status !== 'published') {
       payload.published_at = new Date().toISOString();
     }
-    payload.reading_time = readingTime;
+    payload.readingTime = readingTime;
     payload.updated_at = new Date().toISOString();
 
     let { data, error } = await sb.from('posts').update(payload).eq('id', id).select().single();
     if (error) {
       console.warn('[Supabase Update Post Warn, retrying with core columns]:', error.message);
-      delete payload['is_editors_pick'];
-      delete payload['is_trending'];
-      delete payload['is_featured'];
-      delete payload['reading_time'];
+      delete payload['isEditorsPick'];
+      delete payload['isTrending'];
+      delete payload['isFeatured'];
+      delete payload['readingTime'];
       delete payload['visibility'];
       delete payload['allow_comments'];
       delete payload['seo_title'];
