@@ -665,6 +665,103 @@ router.post('/product-reviews/sanitize-summaries', authenticate, requireRole(['s
   }
 });
 
+// Generate a typed article from one or more selected products (multi-product aware).
+// Supports all 7 article types. Always creates a DRAFT post — publishing is manual.
+router.post('/product-reviews/generate-article', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const { productIds, articleType = 'review' } = req.body || {};
+    if (!Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({ error: 'Select at least one product.' });
+    }
+
+    const { ARTICLE_TYPES, ARTICLE_TYPE_LABELS, ARTICLE_TYPE_MIN_PRODUCTS, generateArticleForType } = await import('../../server/ai');
+    const type: 'review' | 'guide' | 'comparison' | 'best-list' | 'how-to' | 'benefits' | 'faq' =
+      ARTICLE_TYPES.includes(articleType) ? articleType : 'review';
+    const min = ARTICLE_TYPE_MIN_PRODUCTS[type] || 1;
+    if (productIds.length < min) {
+      return res.status(400).json({ error: `"${ARTICLE_TYPE_LABELS[type]}" articles require at least ${min} product${min > 1 ? 's' : ''}. Select ${min} or more.` });
+    }
+
+    const products: any[] = [];
+    for (const id of productIds) {
+      const p = await seo.getProductReviewById(id);
+      if (!p) return res.status(404).json({ error: 'One or more selected products were not found.' });
+      if (p.status !== 'published') {
+        // Allow drafts so editors can generate before publishing, but flag it.
+        (p as any)._draft = true;
+      }
+      products.push(p);
+    }
+
+    const generated = await generateArticleForType(products, type);
+
+    let slug = generated.title.toLowerCase().replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').substring(0, 70);
+    if (!slug) slug = (products[0].slug || products[0].id);
+    const existingPost = await dbInstance.getPostBySlug(slug);
+    if (existingPost) slug = slug + '-' + Date.now().toString(36);
+
+    const u = (req as any).user;
+    const post = await dbInstance.createPost({
+      title: generated.title,
+      slug,
+      excerpt: generated.excerpt.substring(0, 300),
+      content: generated.content,
+      featuredImage: products[0].product_image || '',
+      featuredImageAlt: generated.imageAlt,
+      categoryId: products[0].category_id || '',
+      productId: products[0].id,
+      tags: generated.tags,
+      status: 'draft',
+      visibility: 'public',
+      isFeatured: false,
+      isTrending: false,
+      isEditorsPick: false,
+      allowComments: true,
+      seoTitle: generated.seoTitle,
+      seoDescription: generated.seoDescription,
+      seoKeywords: generated.seoKeywords,
+      publishedAt: undefined,
+    }, u.id);
+
+    dbInstance.log('Article Generated', `AI "${ARTICLE_TYPE_LABELS[type]}" from ${products.length} product(s) -> "${generated.title}"`, u.id, u.name);
+    res.json({
+      post,
+      productCount: products.length,
+      articleType: type,
+      imagePrompt: generated.imagePrompt,
+      imageAlt: generated.imageAlt,
+      seo: { seoTitle: generated.seoTitle, seoDescription: generated.seoDescription, seoKeywords: generated.seoKeywords, tags: generated.tags },
+    });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Manually (re)generate the featured-image prompt + auto alt text for selected products.
+router.post('/article/image-prompt', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const { productIds, articleType = 'review', title = '' } = req.body || {};
+    const ids = Array.isArray(productIds) && productIds.length ? productIds : [];
+    const { ARTICLE_TYPES, generateFeaturedImagePrompt, generateImageAltText } = await import('../../server/ai');
+    const type: any = ARTICLE_TYPES.includes(articleType) ? articleType : 'review';
+
+    if (ids.length === 0) {
+      return res.json({ prompt: '', alt: '' });
+    }
+    const products: any[] = [];
+    for (const id of ids) {
+      const p = await seo.getProductReviewById(id);
+      if (p) products.push(p);
+    }
+    res.json({
+      prompt: generateFeaturedImagePrompt(products, type),
+      alt: generateImageAltText(products, title),
+    });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Generate full article from product review
 router.post('/product-reviews/generate-article/:id', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
   try {

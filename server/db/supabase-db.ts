@@ -183,7 +183,7 @@ export class SupabaseDatabase {
 
     const payload: Record<string, any> = {
       id: crypto.randomUUID(), title: post.title, slug: post.slug, excerpt: post.excerpt || '', content: post.content,
-      featured_image: post.featuredImage || null, author_id: authorId, category_id: post.categoryId || null,
+      featured_image: post.featuredImage || null, featured_image_alt: post.featuredImageAlt || null, author_id: authorId, category_id: post.categoryId || null,
       product_id: post.productId || null,
       tags: post.tags || [], status: post.status || 'draft', visibility: post.visibility || 'public',
       isFeatured: !!post.isFeatured, isTrending: !!post.isTrending, isEditorsPick: !!post.isEditorsPick,
@@ -203,6 +203,7 @@ export class SupabaseDatabase {
         excerpt: payload.excerpt,
         content: payload.content,
         featured_image: payload.featured_image,
+        featured_image_alt: payload.featured_image_alt,
         author_id: payload.author_id,
         category_id: payload.category_id,
         product_id: payload.product_id,
@@ -243,6 +244,7 @@ export class SupabaseDatabase {
     if (updates.excerpt !== undefined) payload.excerpt = updates.excerpt;
     if (updates.content !== undefined) payload.content = updates.content;
     if (updates.featuredImage !== undefined) payload.featured_image = updates.featuredImage;
+    if (updates.featuredImageAlt !== undefined) payload.featured_image_alt = updates.featuredImageAlt;
     if (updates.categoryId !== undefined) payload.category_id = updates.categoryId;
     if (updates.productId !== undefined) payload.product_id = updates.productId;
     if (updates.tags !== undefined) payload.tags = updates.tags;
@@ -274,6 +276,7 @@ export class SupabaseDatabase {
       delete payload['seo_title'];
       delete payload['seo_description'];
       delete payload['seo_keywords'];
+      delete payload['featured_image_alt'];
       const res = await sb.from('posts').update(payload).eq('id', id).select().single();
       if (res.error) return null;
       data = res.data;

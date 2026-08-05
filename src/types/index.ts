@@ -362,11 +362,12 @@ export interface Post {
   excerpt: string;
   content: string;
   featuredImage?: string;
+  featuredImageAlt?: string;
   authorId: string;
   categoryId: string;
   productId?: string;
   tags: string[];
-  status: 'draft' | 'pending' | 'published' | 'scheduled';
+  status: 'draft' | 'pending' | 'ready' | 'published' | 'scheduled';
   visibility: 'public' | 'private';
   scheduledAt?: string;
   publishedAt?: string;
