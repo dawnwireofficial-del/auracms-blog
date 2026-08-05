@@ -4,7 +4,7 @@ import {
   LayoutDashboard, BookOpen, FolderOpen, MessageSquare, Link2, 
   Settings as SettingsIcon, LogOut, Mail, List, Eye, 
   Image as ImageIcon, FileText, Search, Star, ShoppingBag, Layers, Timer,
-  Bell, RefreshCw, Download, Package, Sparkles
+  Bell, RefreshCw, Download, Package, Sparkles, ExternalLink
 } from 'lucide-react';
 
 import { Post, Category, Comment, AffiliateLink, Page, SiteSettings, User, ContactMessage, NewsletterSubscriber, ActivityLog, MediaItem } from '../types';
@@ -36,6 +36,14 @@ import AdminLogs from './admin/AdminLogs';
 import ExtensionManager from './ExtensionManager';
 import AmazonBulkImporter from './AmazonBulkImporter';
 import AutoImportPanel from './admin/AutoImportPanel';
+import AutoArticlesPanel from './AutoArticlesPanel';
+import { ActivityFeedTab } from './admin/ActivityFeedTab';
+import { ActivityHeatmapD3 } from './admin/ActivityHeatmapD3';
+import LinkImporterPanel from './admin/LinkImporterPanel';
+import AsinScraperPanel from './admin/AsinScraperPanel';
+import FirebasePanel from './admin/FirebasePanel';
+import AdminProfilePanel from './admin/AdminProfilePanel';
+import SeoSitemapPanel from './admin/SeoSitemapPanel';
 
 interface AdminPanelProps {
   token: string;
@@ -44,7 +52,7 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
-  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'posts' | 'categories' | 'comments' | 'products' | 'product-articles' | 'article-generator' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'seo' | 'ai' | 'clusters' | 'media' | 'brands' | 'banners' | 'deals' | 'homepage' | 'sections' | 'amazon-sync' | 'extension' | 'bulk-import' | 'auto-import'>('dashboard');
+  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'posts' | 'categories' | 'comments' | 'products' | 'product-articles' | 'article-generator' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'seo' | 'ai' | 'clusters' | 'media' | 'brands' | 'banners' | 'deals' | 'homepage' | 'sections' | 'amazon-sync' | 'extension' | 'bulk-import' | 'auto-import' | 'activity' | 'auto-articles' | 'link-importer' | 'scraper' | 'seo-tools' | 'firebase' | 'profile'>('dashboard');
   
   // Data States
   const [posts, setPosts] = useState<Post[]>([]);
@@ -156,19 +164,23 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
           <div className="bg-gradient-to-r from-primary2 to-primary3 p-2 rounded-xl text-white font-display font-bold shadow-lg">DW</div>
           <div>
             <h1 className="font-display font-bold text-white tracking-tight leading-none text-sm">DawnWire</h1>
-            <span className="text-[10px] text-slate-400 font-medium">Admin Console</span>
+            <span className="text-[10px] text-slate-400 font-medium">Super Admin Panel</span>
           </div>
         </div>
 
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto no-scrollbar" id="admin-nav-links" aria-label="Admin panel navigation">
           {[
             { key: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+            { key: 'activity', icon: RefreshCw, label: 'Activity Feed & Insights' },
             { key: 'posts', icon: BookOpen, label: `Posts (${posts.length})` },
             { key: 'categories', icon: FolderOpen, label: `Categories (${categories.length})` },
             { key: 'comments', icon: MessageSquare, label: `Comments (${comments.length})` },
             { key: 'products', icon: ShoppingBag, label: 'Products' },
             { key: 'product-articles', icon: FileText, label: 'Product Articles' },
             { key: 'article-generator', icon: Sparkles, label: 'Article Generator' },
+            { key: 'auto-articles', icon: Sparkles, label: 'Auto Articles' },
+            { key: 'link-importer', icon: ExternalLink, label: 'Link Importer' },
+            { key: 'scraper', icon: Search, label: 'Amazon ASIN Scraper' },
             { key: 'testimonials', icon: Star, label: 'Testimonials' },
             { key: 'affiliate', icon: Link2, label: 'Affiliate Slugs' },
             { key: 'pages', icon: FileText, label: `Pages (${pages.length})` },
@@ -178,6 +190,9 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
             { key: 'contact', icon: Mail, label: `Inquiries (${(messages || []).filter(m => m?.status === 'unread').length})` },
             { key: 'settings', icon: SettingsIcon, label: 'Settings' },
             { key: 'seo', icon: Search, label: 'SEO Engine' },
+            { key: 'seo-tools', icon: Search, label: 'SEO & Sitemap' },
+            { key: 'firebase', icon: Package, label: 'Firebase & Backup' },
+            { key: 'profile', icon: SettingsIcon, label: 'Admin Profile' },
             { key: 'logs', icon: List, label: 'Activity Logs' },
             { key: 'brands', icon: Star, label: 'Brands' },
             { key: 'banners', icon: Eye, label: 'Banners' },
@@ -252,7 +267,7 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
             <h2 className="font-display font-bold text-heading dark:text-zinc-100 capitalize tracking-tight text-lg" id="header-menu-title">
               {activeMenu === 'seo' ? 'SEO Engine' : activeMenu.replace('_', ' ')}
             </h2>
-            <span className="text-[10px] text-text uppercase tracking-wider font-medium hidden sm:block">Administration Panel</span>
+            <span className="text-[10px] text-text uppercase tracking-wider font-medium hidden sm:block">Super Admin Panel</span>
           </div>
           <div className="flex items-center gap-3">
             <a
@@ -299,6 +314,17 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
             </div>
           )}
 
+          {/* A0: ACTIVITY FEED & USER INSIGHTS */}
+          {activeMenu === 'activity' && (
+            <div className="space-y-6" id="admin-workspace-activity">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-extrabold text-slate-900 dark:text-slate-100">Activity Feed & User Insights</h2>
+              </div>
+              <ActivityHeatmapD3 />
+              <ActivityFeedTab />
+            </div>
+          )}
+
           {/* B: POSTS VIEW */}
           {activeMenu === 'posts' && (
             <AdminPosts token={token} categories={categories} onRefresh={triggerRefresh} posts={posts} setPosts={setPosts} />
@@ -332,6 +358,27 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
           {activeMenu === 'article-generator' && (
             <div id="admin-workspace-article-generator">
               <ArticleGenerator token={token} />
+            </div>
+          )}
+
+          {/* E0e: AUTO ARTICLES */}
+          {activeMenu === 'auto-articles' && (
+            <div id="admin-workspace-auto-articles">
+              <AutoArticlesPanel token={token} />
+            </div>
+          )}
+
+          {/* E0f: LINK IMPORTER */}
+          {activeMenu === 'link-importer' && (
+            <div id="admin-workspace-link-importer">
+              <LinkImporterPanel />
+            </div>
+          )}
+
+          {/* E0g: ASIN SCRAPER */}
+          {activeMenu === 'scraper' && (
+            <div id="admin-workspace-scraper">
+              <AsinScraperPanel token={token} />
             </div>
           )}
 
@@ -410,6 +457,27 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
           {/* I: SEO ENGINE VIEW */}
           {activeMenu === 'seo' && (
             <SeoDashboard token={token} baseUrl="" />
+          )}
+
+          {/* I0: SEO & SITEMAP */}
+          {activeMenu === 'seo-tools' && (
+            <div id="admin-workspace-seo-tools">
+              <SeoSitemapPanel token={token} />
+            </div>
+          )}
+
+          {/* I1: FIREBASE & BACKUP */}
+          {activeMenu === 'firebase' && (
+            <div id="admin-workspace-firebase">
+              <FirebasePanel token={token} />
+            </div>
+          )}
+
+          {/* I2: ADMIN PROFILE */}
+          {activeMenu === 'profile' && (
+            <div id="admin-workspace-profile">
+              <AdminProfilePanel user={user} />
+            </div>
           )}
 
           {/* BRANDS VIEW */}
