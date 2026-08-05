@@ -7,6 +7,49 @@ const AI_GATEWAY_API_KEY = process.env.AI_GATEWAY_API_KEY || process.env.COHERE_
 const AI_GATEWAY_BASE_URL = process.env.AI_GATEWAY_BASE_URL || 'https://api.cohere.ai/v2';
 const AI_GATEWAY_MODEL = process.env.AI_GATEWAY_MODEL || 'command-r-plus-08-2024';
 
+// Cloudflare Workers AI — fast text LLMs (seconds, not minutes). Used as the
+// primary provider so synchronous article generation fits Vercel's 60s cap.
+const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || '';
+const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_IMAGE_API_KEY || process.env.CLOUDFLARE_API_TOKEN || '';
+const CLOUDFLARE_TEXT_MODEL = process.env.CLOUDFLARE_TEXT_MODEL || '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+
+export function isCloudflareTextConfigured(): boolean {
+  return CLOUDFLARE_ACCOUNT_ID.trim().length > 0 && CLOUDFLARE_API_TOKEN.trim().length > 0;
+}
+
+async function cloudflareText(promptText: string, system?: string, timeoutMs?: number, maxTokens?: number): Promise<string> {
+  const url = `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(CLOUDFLARE_ACCOUNT_ID)}/ai/run/${CLOUDFLARE_TEXT_MODEL}`;
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), timeoutMs || 30000);
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [
+          ...(system ? [{ role: 'system', content: system }] : []),
+          { role: 'user', content: promptText },
+        ],
+        max_tokens: maxTokens || 1200,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(tid);
+    const data: any = await res.json().catch(() => ({}));
+    if (!res.ok || !data?.success) {
+      const msg = data?.errors?.[0]?.message || `HTTP ${res.status}`;
+      throw new Error('Cloudflare: ' + msg);
+    }
+    const out = data?.result?.response || '';
+    if (!out.trim()) throw new Error('Cloudflare returned an empty response');
+    return out.trim();
+  } catch (e: any) {
+    clearTimeout(tid);
+    if (e.name === 'AbortError') throw new Error('Cloudflare request timed out', { cause: e });
+    throw e;
+  }
+}
+
 function normalizeCohereResponse(body: string): string {
   try {
     const parsed = JSON.parse(body);
@@ -63,7 +106,19 @@ export async function cohereChat(promptText: string, system?: string, timeoutMs?
   const fallbackSlice = Math.max(6500, Math.floor(budget / 3));
   const errors: string[] = [];
 
-  // 1. Cohere / AI Gateway — the intended production provider.
+  // 1. Cloudflare Workers AI — fast text LLM. Completes in seconds so it fits
+  //    Vercel's 60s cap; used for synchronous article generation.
+  if (isCloudflareTextConfigured()) {
+    try {
+      const r = await cloudflareText(promptText, system, Math.min(budget, 25000), maxTokens);
+      if (r) return r;
+      errors.push('cloudflare: empty response');
+    } catch (e: any) {
+      errors.push(`cloudflare: ${e.name === 'AbortError' ? 'timed out' : e.message}`);
+    }
+  }
+
+  // 2. Cohere / AI Gateway — the intended production provider.
   if (AI_GATEWAY_API_KEY) {
     try {
       const controller = new AbortController();
@@ -91,7 +146,7 @@ export async function cohereChat(promptText: string, system?: string, timeoutMs?
     }
   }
 
-  // 2. Gemini (if configured) — fall back rather than blocking Cohere.
+  // 3. Gemini (if configured) — fall back rather than blocking the others.
   if (isGeminiConfigured()) {
     try {
       const r = await geminiText(promptText, system, fallbackSlice, maxTokens);
@@ -102,7 +157,7 @@ export async function cohereChat(promptText: string, system?: string, timeoutMs?
     }
   }
 
-  // 3. DeepSeek.
+  // 4. DeepSeek.
   if (isDeepSeekConfigured()) {
     try {
       const r = await deepseekText({ prompt: promptText, system, timeoutMs: fallbackSlice, maxOutputTokens: maxTokens });
