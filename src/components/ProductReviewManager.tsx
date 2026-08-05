@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Edit3, Trash2, Search, Star, ShoppingBag, ExternalLink, Copy, Check, RefreshCw, X, Save, Eye, Sparkles, FileText } from 'lucide-react';
+import { Plus, Edit3, Trash2, Search, Star, ShoppingBag, ExternalLink, Copy, Check, RefreshCw, X, Save, Eye, Sparkles, FileText, Download } from 'lucide-react';
 import { proxyImageUrl } from '../utils/safeRender';
 
 interface ProductReviewItem {
@@ -9,6 +9,7 @@ interface ProductReviewItem {
   brand?: string;
   product_image?: string;
   affiliate_url?: string;
+  asin?: string;
   price?: string;
   original_price?: string;
   rating: number;
@@ -70,6 +71,24 @@ export default function ProductReviewManager({ token, categories = [] }: { token
     setLoading(false);
   }
 
+  async function downloadCatalogue() {
+    const res = await fetch('/api/admin/seo/product-reviews/export', { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      alert('Download failed: ' + (body.error || res.status));
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dawnwire-catalogue-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
   function openNew() {
     setEditing({
       id: '', product_name: '', brand: '', product_image: '', affiliate_url: '', price: '', original_price: '', rating: 0, best_for: '', stock_status: 'in_stock', deal_badge: '', coupon_code: '', coupon_expiry: '', category_id: '', pros: [], cons: [], key_features: [], cta_text: 'Buy on Amazon', review_summary: '', final_verdict: '', status: 'draft', click_count: 0, page_views: 0, created_at: '', gallery: [], specs: {}
@@ -94,6 +113,7 @@ export default function ProductReviewManager({ token, categories = [] }: { token
     const gallery = safeJsonArray((r.specs && r.specs.gallery) || r.gallery || []);
     setEditing({
       ...r,
+      asin: r.asin || (r.specs && r.specs.asin) || '',
       pros: safeJsonArray(r.pros),
       cons: safeJsonArray(r.cons),
       key_features: safeJsonArray(r.key_features),
@@ -117,6 +137,7 @@ export default function ProductReviewManager({ token, categories = [] }: { token
       brand: editing.brand || null,
       product_image: editing.product_image || null,
       affiliate_url: editing.affiliate_url || null,
+      asin: editing.asin || (editing.affiliate_url || '').match(/\/dp\/([A-Z0-9]{10})/)?.[1] || null,
       price: editing.price || null,
       original_price: editing.original_price || null,
       rating: editing.rating || 0,
@@ -134,7 +155,7 @@ export default function ProductReviewManager({ token, categories = [] }: { token
       final_verdict: editing.final_verdict || null,
       status: editing.status,
       gallery: editing.gallery || [],
-      specs: { ...(editing.specs || {}), gallery: editing.gallery || [] },
+      specs: { ...(editing.specs || {}), gallery: editing.gallery || [], asin: editing.asin || (editing.affiliate_url || '').match(/\/dp\/([A-Z0-9]{10})/)?.[1] || (editing.specs?.asin || null) },
     };
     const url = isNew
       ? '/api/admin/seo/product-reviews'
@@ -252,6 +273,10 @@ export default function ProductReviewManager({ token, categories = [] }: { token
           <button onClick={load} className="p-2 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-700 transition-all flex items-center gap-1.5 text-xs font-semibold" title="Refresh Product List">
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
             Refresh
+          </button>
+          <button onClick={downloadCatalogue} className="px-3 py-2 rounded-xl border border-emerald-600/50 bg-emerald-600/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600/20 transition-all flex items-center gap-1.5 text-xs font-semibold" title="Download full catalogue as CSV (names, live URLs, brand, price, ASIN, stock)">
+            <Download className="h-3.5 w-3.5" />
+            Download Catalogue
           </button>
           <button onClick={openNew} className="px-4 py-2 rounded-xl bg-[#246BFF] text-white text-xs font-semibold hover:bg-[#1a5ae0] transition-all flex items-center gap-1.5">
             <Plus className="h-3.5 w-3.5" />
@@ -498,8 +523,13 @@ export default function ProductReviewManager({ token, categories = [] }: { token
                   <textarea value={(editing.gallery || []).join('\n')} onChange={e => setEditing({ ...editing, gallery: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })} rows={3} placeholder="https://...&#10;https://..." className="w-full rounded-lg border border-slate-200 dark:border-zinc-700 p-2 text-xs bg-white dark:bg-zinc-900/50 focus:outline-none br-input font-mono" />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase mb-1">Affiliate URL</label>
-                  <input type="text" value={editing.affiliate_url || ''} onChange={e => setEditing({ ...editing, affiliate_url: e.target.value })} className="w-full rounded-lg border border-slate-200 dark:border-zinc-700 p-2 text-xs bg-white dark:bg-zinc-900/50 focus:outline-none br-input font-mono" />
+                  <label className="block text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase mb-1">Affiliate URL (your Amazon tag link)</label>
+                  <input type="text" value={editing.affiliate_url || ''} onChange={e => setEditing({ ...editing, affiliate_url: e.target.value })} placeholder="https://www.amazon.com/dp/B0XXXXX?tag=yourtag-20" className="w-full rounded-lg border border-slate-200 dark:border-zinc-700 p-2 text-xs bg-white dark:bg-zinc-900/50 focus:outline-none br-input font-mono" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase mb-1">ASIN / Amazon Product ID</label>
+                  <input type="text" value={editing.asin || ''} onChange={e => setEditing({ ...editing, asin: e.target.value.trim().toUpperCase() })} placeholder="B0XXXXXXX0 (10 chars)" className="w-full rounded-lg border border-slate-200 dark:border-zinc-700 p-2 text-xs bg-white dark:bg-zinc-900/50 focus:outline-none br-input font-mono" />
+                  <p className="text-[10px] text-slate-400 mt-1">Used for video fetch and duplicate detection. Auto-detected from the affiliate URL if left blank on save.</p>
                 </div>
               </div>
 

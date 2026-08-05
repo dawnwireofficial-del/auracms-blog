@@ -411,6 +411,63 @@ router.get('/product-reviews', authenticate, async (req, res) => {
     if (limit > 0) items = items.slice(offset, offset + limit);
     res.json({ data: items, total, limit, offset });
   });
+
+// Export full product catalogue as CSV (names, live URLs, brand, price, ASIN,
+// stock, deals, scores) so you can cross-check everything in one download.
+router.get('/product-reviews/export', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (_req, res) => {
+  try {
+    const items = await seo.getProductReviews();
+    const val = (r: any, key: string) => r[key] == null ? r[key.replace(/[A-Z]/g, c => '_' + c.toLowerCase())] : r[key];
+    const csvCol = (v: any) => {
+      if (v == null) return '';
+      const s = String(v);
+      return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    const header = [
+      'product_name', 'slug', 'live_url', 'brand', 'price', 'original_price', 'currency',
+      'rating', 'review_count', 'editor_score', 'stock_status', 'deal_badge', 'coupon_code',
+      'best_for', 'category', 'asin', 'affiliate_url', 'status', 'page_views', 'click_count',
+      'created_at', 'updated_at',
+    ];
+    const baseUrl = process.env.APP_URL || 'https://www.dawnwire.com';
+    const rows = items.map((r: any) => {
+      const slug = val(r, 'slug') || '';
+      const specs = (r && (r.specs || {})) as any;
+      const asin = val(r, 'asin') || specs?.asin || '';
+      return [
+        val(r, 'productName') || r.product_name || '',
+        slug,
+        `${baseUrl.replace(/\/$/, '')}/product/${encodeURIComponent(slug)}`,
+        val(r, 'brand') || '',
+        val(r, 'price') ?? '',
+        val(r, 'originalPrice') ?? '',
+        val(r, 'currency') ?? '',
+        val(r, 'rating') ?? '',
+        val(r, 'reviewCount') ?? '',
+        val(r, 'editorScore') != null ? val(r, 'editorScore') : '',
+        val(r, 'stockStatus') ?? '',
+        val(r, 'dealBadge') ?? '',
+        val(r, 'couponCode') ?? '',
+        val(r, 'bestFor') ?? '',
+        val(r, 'categoryName') ?? '',
+        asin,
+        val(r, 'affiliateUrl') || val(r, 'amazon_url') || '',
+        val(r, 'status') ?? '',
+        val(r, 'pageViews') ?? '',
+        val(r, 'clickCount') ?? '',
+        val(r, 'createdAt') ?? '',
+        val(r, 'updatedAt') ?? '',
+      ];
+    });
+    const csv = [header, ...rows].map(line => line.map(csvCol).join(',')).join('\n');
+    const timestamp = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="dawnwire-catalogue-${timestamp}.csv"`);
+    return res.send('\uFEFF' + csv);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+});
 router.post('/product-reviews', authenticate, async (req, res) => res.json(await seo.createProductReview(req.body)));
 router.post('/product-reviews/import', authenticate, async (req, res) => {
   try {
@@ -693,6 +750,20 @@ router.post('/product-reviews/generate-article', authenticate, requireRole(['sup
       products.push(p);
     }
 
+    // Dedup: block regeneration for products that already have an article so the
+    // same product can't be featured in multiple posts.
+    const allPosts = await Promise.resolve(dbInstance.getPosts());
+    const linked = allPosts.filter((p: any) => products.some((prod: any) => p.productId === prod.id));
+    if (linked.length > 0) {
+      const used = products
+        .filter((prod: any) => linked.some((p: any) => p.productId === prod.id))
+        .map((prod: any) => prod.product_name);
+      return res.status(400).json({
+        error: `Already has an article: ${used.join(', ')}. Open it from "Existing Articles" to edit instead of generating a duplicate.`,
+        usedPosts: linked,
+      });
+    }
+
     const generated = await generateArticleForType(products, type);
 
     let slug = generated.title.toLowerCase().replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').substring(0, 70);
@@ -779,6 +850,14 @@ router.post('/product-reviews/generate-article/:id', authenticate, requireRole([
     }).slice(0, 5);
 
     const { generateArticleFromProductWithFallback } = await import('../../server/ai');
+
+    // Dedup: if this product already has an article, return it instead of duplicating.
+    const existingForProduct = await dbInstance.getPostsByProductId(product.id);
+    const liveExisting = existingForProduct.find((p: any) => p.status !== 'deleted');
+    if (liveExisting) {
+      return res.json({ post: liveExisting, product, similarCount: similar.length, alreadyExists: true });
+    }
+
     const { title, content, excerpt } = await generateArticleFromProductWithFallback(product, similar);
 
     const imageMd = product.product_image ? `![${product.product_name}](${product.product_image})\n\n` : '';
@@ -838,12 +917,25 @@ router.post('/buying-guides/generate/:categoryId', authenticate, requireRole(['s
     const { title, content, excerpt } = await generateBuyingGuideFromCategory(category, catProducts);
 
     const slug = 'best-' + (category.slug || String(category.name).toLowerCase().replace(/[^a-z0-9]+/g, '-')) + '-buying-guide';
-    const existingPost = await dbInstance.getPostBySlug(slug);
-    const finalSlug = existingPost ? slug + '-' + Date.now().toString(36) : slug;
     const u = (req as any).user;
+
+    // Dedup: if this category already has a (non-draft) buying guide, return it instead
+    // of creating a duplicate. Drafts are reused so a half-finished one can be edited.
+    const allPosts = await Promise.resolve(dbInstance.getPosts());
+    const existingGuide = allPosts.find((p: any) =>
+      p.categoryId === category.id &&
+      (p.tags || []).includes('buying guide') &&
+      p.status !== 'deleted'
+    );
+    if (existingGuide) {
+      dbInstance.log('Buying Guide Skipped', `Existing guide found for "${category.name}" (no duplicate created)`, u.id, u.name);
+      return res.json({ post: existingGuide, category, productCount: catProducts.length, alreadyExists: true });
+    }
+
+    const existingPost = await dbInstance.getPostBySlug(slug);
     const post = await dbInstance.createPost({
       title,
-      slug: finalSlug,
+      slug,
       excerpt: excerpt.substring(0, 300),
       content,
       featuredImage: '',

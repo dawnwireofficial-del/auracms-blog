@@ -60,7 +60,6 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
   const [isInternalLoading, setIsInternalLoading] = useState(true);
   const [directProduct, setDirectProduct] = useState<Product | null>(null);
-  const [directFetchDone, setDirectFetchDone] = useState(false);
   const [brokenImages, setBrokenImages] = useState<Set<number>>(new Set());
   const [captureEmail, setCaptureEmail] = useState('');
   const [captureTargetPrice, setCaptureTargetPrice] = useState<string>('');
@@ -123,7 +122,6 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   useEffect(() => {
     setIsInternalLoading(true);
     setDirectProduct(null);
-    setDirectFetchDone(false);
     const timer = setTimeout(() => {
       setIsInternalLoading(false);
     }, 400);
@@ -137,50 +135,51 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
   useEffect(() => {
     if (!productSlug) return;
+    let cancelled = false;
+    // Optimistic partial render from the store (light, no specs) while the full row loads.
     const found = products.find((p) => p.slug === productSlug);
-    if (found) {
-      setDirectProduct(found);
-      setDirectFetchDone(true);
-      store.addRecentlyViewed(found.id);
-    } else if (!directFetchDone) {
-      fetch(`/api/public/product-reviews/slug/${productSlug}`)
-        .then(r => r.json())
-        .then(data => {
-          if (data && data.id) {
-            const mapped: Product = {
-              id: data.id, title: data.product_name || data.title || '', slug: data.slug || productSlug,
-              categoryId: data.category_id || data.categoryId || '', asin: data.asin || '', brand: data.brand || '', mainCategory: data.category || data.mainCategory || 'Electronics',
-              subcategory: data.subcategory || 'General', productType: 'Physical Product',
-              shortDescription: data.review_summary || data.shortDescription || '',
-              fullDescription: data.review_summary || data.fullDescription || '',
-              videoUrl: data.specs?.video_url || data.videoUrl || '',
-              images: (() => { const imgs: string[] = []; if (data.product_image) imgs.push(data.product_image); const dbGallery = data.gallery; if (Array.isArray(dbGallery)) dbGallery.forEach((u: string) => { if (u && !imgs.includes(u)) imgs.push(u); }); const specsGallery = data.specs?.gallery; if (Array.isArray(specsGallery)) specsGallery.forEach((u: string) => { if (u && !imgs.includes(u)) imgs.push(u); }); return imgs; })(),
-               amazonOriginalUrl: data.amazon_url || '', affiliateUrl: data.affiliate_url || '',
-              amazonMarketplace: 'US', associateTrackingId: 'dawnwire-20',
-              currentPrice: parseFloat(String(data.price || '0')) || 0,
-              referencePrice: parseFloat(String(data.original_price || '0')) || 0,
-              currency: 'USD', isAvailable: true, isDeal: !!data.is_deal, isPrime: true,
-              rating: Number(data.rating) || 0, reviewCount: Number(data.review_count) || 0,
-              mainFeatures: Array.isArray(data.key_features) ? data.key_features : [],
-              specifications: data.specs || {}, pros: Array.isArray(data.pros) ? data.pros : [],
-              cons: Array.isArray(data.cons) ? data.cons : [], bestFor: data.best_for || '',
-              editorVerdict: data.review_summary || '', editorScore: Number(data.rating) * 2 || 0,
-              reviewArticle: data.review_article || data.reviewArticle || '',
-              faq: Array.isArray(data.faq) ? data.faq : [],
-              affiliateDisclosure: data.affiliate_disclosure || data.affiliateDisclosure || '',
-              similarProductIds: [], alternativeProductIds: [], relatedComparisonIds: [], relatedGuideIds: [],
-              isFeatured: true, isTrending: false, isBestSeller: false, published: data.status !== 'draft', status: data.status || 'published',
-              lastSyncedAt: '', seoTitle: data.seo_title || '', metaDescription: data.seo_description || '',
-              metaKeywords: Array.isArray(data.seo_keywords) ? data.seo_keywords : [], canonicalUrl: ''
-            };
-            setDirectProduct(mapped);
-            store.addRecentlyViewed(mapped.id);
-          }
-          setDirectFetchDone(true);
-        })
-        .catch(() => setDirectFetchDone(true));
-    }
-  }, [productSlug, products, directFetchDone]);
+    if (found) setDirectProduct(found);
+    // Always fetch the FULL row by slug so specs-derived data (gallery, video,
+    // customer reviews, ingredients, price history, review article, FAQ) that the
+    // store's light projection strips is available on the detail page.
+    fetch(`/api/public/product-reviews/slug/${productSlug}`)
+      .then(r => r.json())
+      .then(data => {
+        if (cancelled) return;
+        if (data && data.id) {
+          const mapped: Product = {
+            id: data.id, title: data.product_name || data.title || '', slug: data.slug || productSlug,
+            categoryId: data.category_id || data.categoryId || '', asin: data.asin || '', brand: data.brand || '', mainCategory: data.category || data.mainCategory || 'Electronics',
+            subcategory: data.subcategory || 'General', productType: 'Physical Product',
+            shortDescription: data.review_summary || data.shortDescription || '',
+            fullDescription: data.review_summary || data.fullDescription || '',
+            videoUrl: data.specs?.video_url || data.videoUrl || '',
+            images: (() => { const imgs: string[] = []; if (data.product_image) imgs.push(data.product_image); const dbGallery = data.gallery; if (Array.isArray(dbGallery)) dbGallery.forEach((u: string) => { if (u && !imgs.includes(u)) imgs.push(u); }); const specsGallery = data.specs?.gallery; if (Array.isArray(specsGallery)) specsGallery.forEach((u: string) => { if (u && !imgs.includes(u)) imgs.push(u); }); return imgs; })(),
+            amazonOriginalUrl: data.amazon_url || '', affiliateUrl: data.affiliate_url || '',
+            amazonMarketplace: 'US', associateTrackingId: 'dawnwire-20',
+            currentPrice: parseFloat(String(data.price || '0')) || 0,
+            referencePrice: parseFloat(String(data.original_price || '0')) || 0,
+            currency: 'USD', isAvailable: true, isDeal: !!data.is_deal, isPrime: true,
+            rating: Number(data.rating) || 0, reviewCount: Number(data.review_count) || 0,
+            mainFeatures: Array.isArray(data.key_features) ? data.key_features : [],
+            specifications: data.specs || {}, pros: Array.isArray(data.pros) ? data.pros : [],
+            cons: Array.isArray(data.cons) ? data.cons : [], bestFor: data.best_for || '',
+            editorVerdict: data.review_summary || '', editorScore: Number(data.editor_score) || (Number(data.rating) * 2) || 0,
+            reviewArticle: data.review_article || data.reviewArticle || '',
+            faq: Array.isArray(data.faq) ? data.faq : [],
+            affiliateDisclosure: data.affiliate_disclosure || data.affiliateDisclosure || '',
+            similarProductIds: [], alternativeProductIds: [], relatedComparisonIds: [], relatedGuideIds: [],
+            isFeatured: true, isTrending: false, isBestSeller: false, published: data.status !== 'draft', status: data.status || 'published',
+            lastSyncedAt: '', seoTitle: data.seo_title || '', metaDescription: data.seo_description || '',
+            metaKeywords: Array.isArray(data.seo_keywords) ? data.seo_keywords : [], canonicalUrl: ''
+          };
+          setDirectProduct(mapped);
+          store.addRecentlyViewed(mapped.id);
+        }
+      })
+      .catch(() => {})
+    return () => { cancelled = true; };
+  }, [productSlug, products]);
 
   const isLoading = externalIsLoading || isInternalLoading;
 

@@ -161,7 +161,7 @@ export const store = {
         cons: Array.isArray(d.cons) ? d.cons : [],
         bestFor: d.best_for || d.bestFor || '',
         editorVerdict: d.review_summary || d.editorVerdict || '',
-        editorScore: Number(d.rating ? Number(d.rating) * 2 : 0),
+        editorScore: Number(d.editor_score) || (Number(d.rating) ? Number(d.rating) * 2 : 0),
         similarProductIds: [],
         alternativeProductIds: [],
         relatedComparisonIds: [],

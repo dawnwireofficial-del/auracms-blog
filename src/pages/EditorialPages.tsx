@@ -110,9 +110,17 @@ export const BuyingGuidesPage: React.FC = () => {
         const res = await fetch('/api/public/posts?limit=100');
         const body = await res.json();
         const posts = Array.isArray(body.data) ? body.data : Array.isArray(body) ? body : [];
-        const guides = posts
+        const sorted = posts
           .filter((p: Post) => p.tags?.includes('buying guide'))
           .sort((a: Post, b: Post) => new Date(b.publishedAt || b.createdAt).getTime() - new Date(a.publishedAt || a.createdAt).getTime());
+        const seen = new Set<string>();
+        const guides = sorted.filter((p: Post) => {
+          const tag = (p.tags || []).find((t: string) => t !== 'buying guide' && t !== 'best' && /^best\b/i.test(t.trim()));
+          const key = tag ? tag.toLowerCase() : (p.productId || p.categoryId || p.id);
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
         setGuides(guides);
       } catch {
         setGuides([]);

@@ -612,22 +612,23 @@
     return reviews.slice(0, 20);
   }
 
-  function extractReviews() {
+  function extractReviews(doc) {
+    doc = doc || document;
     const reviews = [];
     let reviewStats = { total: 0, average: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } };
     try {
       if (isAmazon()) {
-        reviewStats = extractReviewStats();
-        return { reviews: extractAmazonReviews(), reviewStats };
+        reviewStats = extractReviewStats(doc);
+        return { reviews: extractAmazonReviews(doc), reviewStats };
       }
       if (isWalmart()) {
-        const wmReviews = extractWalmartReviews();
+        const wmReviews = extractWalmartReviews(doc);
         if (wmReviews._stats) { reviewStats.total = wmReviews._stats.total; delete wmReviews._stats; }
         return { reviews: wmReviews, reviewStats };
       }
-      if (isBestBuy()) return { reviews: extractBestBuyReviews(), reviewStats };
-      if (isAliExpress()) return { reviews: extractAliExpressReviews(), reviewStats };
-      if (isEbay()) return { reviews: extractEbayReviews(), reviewStats };
+      if (isBestBuy()) return { reviews: extractBestBuyReviews(doc), reviewStats };
+      if (isAliExpress()) return { reviews: extractAliExpressReviews(doc), reviewStats };
+      if (isEbay()) return { reviews: extractEbayReviews(doc), reviewStats };
     } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return { reviews, reviewStats };
   }
@@ -738,11 +739,12 @@
     return '$' + match[1] + (match[2] ? '.' + match[2].replace(/^0+/, '') : '');
   }
 
-  function extractVariations() {
+  function extractVariations(doc) {
+    doc = doc || document;
     const variations = [];
     try {
       if (isAmazon()) {
-        const dims = document.querySelectorAll('[id^="variation_"]');
+        const dims = doc.querySelectorAll('[id^="variation_"]');
         const seen = new Set();
         dims.forEach(dim => {
           const dimId = dim.id;
@@ -793,20 +795,21 @@
     return '';
   }
 
-  function extractDiscountInfo() {
+  function extractDiscountInfo(doc) {
+    doc = doc || document;
     try {
       let listPrice = '';
       let savings = '';
       if (isAmazon()) {
-        listPrice = document.querySelector('.a-text-price.a-text-price-basis .a-offscreen')?.textContent?.trim()
-          || document.querySelector('#listPrice')?.textContent?.trim()
-          || document.querySelector('.a-text-price .a-offscreen')?.textContent?.trim()
+        listPrice = doc.querySelector('.a-text-price.a-text-price-basis .a-offscreen')?.textContent?.trim()
+          || doc.querySelector('#listPrice')?.textContent?.trim()
+          || doc.querySelector('.a-text-price .a-offscreen')?.textContent?.trim()
           || '';
-        const savingsEl = document.querySelector('.a-price-savings, .a-color-price.a-text-price, [id*="savings"]');
+        const savingsEl = doc.querySelector('.a-price-savings, .a-color-price.a-text-price, [id*="savings"]');
         if (savingsEl) {
           savings = savingsEl.textContent.replace(/\s+/g, ' ').trim();
           if (!savings.toLowerCase().includes('save')) {
-            const priceWhole = document.querySelector('.a-price-whole')?.textContent?.replace(/[^\d]/g, '') || '';
+            const priceWhole = doc.querySelector('.a-price-whole')?.textContent?.replace(/[^\d]/g, '') || '';
             const listNum = listPrice.replace(/[^\d.]/g, '');
             if (listNum && priceWhole) {
               const diff = parseFloat(listNum) - parseFloat(priceWhole);
@@ -815,7 +818,7 @@
             }
           }
         } else {
-          const priceWhole = document.querySelector('.a-price-whole')?.textContent?.replace(/[^\d]/g, '') || '';
+          const priceWhole = doc.querySelector('.a-price-whole')?.textContent?.replace(/[^\d]/g, '') || '';
           const listNum = listPrice.replace(/[^\d.]/g, '');
           if (listNum && priceWhole) {
             const diff = parseFloat(listNum) - parseFloat(priceWhole);
@@ -1261,6 +1264,45 @@
     setTimeout(() => toast.remove(), 5000);
   }
 
+  // Bulk import: open each product in a background tab and extract with the SAME
+  // live-DOM extractor single-product import uses (full data + video). Falls back
+  // to fetch+DOMParser when chrome.runtime is unavailable (safe mode).
+  async function importProductByUrl(url) {
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+      const result = await chrome.runtime.sendMessage({ type: 'IMPORT_FROM_URL', url });
+      return result || { success: false, error: 'No response' };
+    }
+    const resp = await fetch(url, {
+      credentials: 'include',
+      headers: {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Referer': window.location.href,
+        'sec-fetch-dest': 'document',
+        'sec-fetch-mode': 'navigate',
+        'sec-fetch-site': 'same-origin',
+      },
+    });
+    const html = await resp.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const data = extractProductDataFromDoc(doc);
+    if (!data.product_name) return { success: false, error: 'No product data found' };
+    return await fallbackImport(data);
+  }
+
+  // Live-DOM extraction on demand (used by background.js during bulk imports).
+  if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
+    chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+      if (msg && msg.type === 'EXTRACT_PRODUCT_DATA') {
+        try {
+          const data = extractProductData();
+          sendResponse(data || { success: false });
+        } catch (e) { console.error('[DawnWire]', e); sendResponse({ success: false }); }
+      }
+      return false;
+    });
+  }
+
   function createSearchBanner() {
     const existing = document.getElementById('dw-import-banner');
     if (existing) existing.remove();
@@ -1311,17 +1353,11 @@
         if (progressText) progressText.textContent = `Importing ${i + 1}/${results.length}: ${r.title.substring(0, 40)}...`;
         if (progressFill) progressFill.style.width = ((i / results.length) * 100) + '%';
         try {
-          const resp = await fetch(r.url);
-          const html = await resp.text();
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(html, 'text/html');
-          const data = extractProductDataFromDoc(doc);
-          if (data.product_name) {
-            const result = await sendMessage({ type: 'IMPORT_PRODUCT', data });
-            if (result?.success) success++;
-            else failed++;
-          } else { failed++; }
+          const result = await importProductByUrl(r.url);
+          if (result?.success) success++;
+          else failed++;
         } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ failed++; }
+        await new Promise(res => setTimeout(res, 400));
       }
       if (progressFill) progressFill.style.width = '100%';
       if (progressText) progressText.textContent = `Done: ${success} imported, ${failed} failed`;
@@ -1370,16 +1406,10 @@
       let success = 0;
       for (const p of products) {
         try {
-          const resp = await fetch(p.url);
-          const html = await resp.text();
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(html, 'text/html');
-          const data = extractProductDataFromDoc(doc);
-          if (data.product_name) {
-            await sendMessage({ type: 'IMPORT_PRODUCT', data });
-            success++;
-          }
+          const result = await importProductByUrl(p.url);
+          if (result?.success) success++;
         } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
+        await new Promise(res => setTimeout(res, 400));
       }
       showToast(`✅ Imported ${success}/${products.length} products from store`, success > 0 ? 'success' : 'error');
       if (btn) { btn.textContent = 'Import Store (' + products.length + ')'; btn.disabled = false; }
@@ -1425,16 +1455,10 @@
       let success = 0;
       for (const p of products) {
         try {
-          const resp = await fetch(p.url);
-          const html = await resp.text();
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(html, 'text/html');
-          const data = extractProductDataFromDoc(doc);
-          if (data.product_name) {
-            await sendMessage({ type: 'IMPORT_PRODUCT', data });
-            success++;
-          }
+          const result = await importProductByUrl(p.url);
+          if (result?.success) success++;
         } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
+        await new Promise(res => setTimeout(res, 400));
       }
       showToast(`✅ Imported ${success}/${products.length} from wishlist`, success > 0 ? 'success' : 'error');
       if (btn) { btn.textContent = 'Import Wishlist (' + products.length + ')'; btn.disabled = false; }
@@ -1452,55 +1476,95 @@
       const asin = (doc.querySelector('input[name="ASIN"]')?.getAttribute('value')) || '';
       const amazon_url = 'https://www.amazon.com/dp/' + asin;
 
+      let review_summary = '';
+      try {
+        const desc = doc.querySelector('#productDescription p, #productDescription, #aplus p, [data-feature-name="productDescription"] p, #productOverview_feature_div');
+        if (desc) review_summary = desc.textContent.trim().substring(0, 3000);
+        if ((review_summary || '').length < 100) {
+          const aplus = doc.querySelector('#aplus p, #aplus .a-section p, [data-feature-name="aplus"] p');
+          if (aplus) review_summary = aplus.textContent.trim().substring(0, 3000);
+        }
+      } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
+
       const gallery = [];
       const seen = new Set();
-      doc.querySelectorAll('#altImages img[src*="images"], #altImages img[src*="media"], .a-spacing-small img[src*="images"], [data-a-carousel-options] img[src*="media"], li[data-csa-c-type="thumb"] img').forEach(img => {
+      doc.querySelectorAll('#altImages img[src*="images"], #altImages img[src*="media"], #altImages .imageThumbnail img, #altImages .a-button-thumbnail img, .a-spacing-small img[src*="images"], [data-a-carousel-options] img[src*="media"], li[data-csa-c-type="thumb"] img, #imageBlockThumbs img[src*="images"], [data-csa-c-slot-id="thumbnail-slot"] img').forEach(img => {
         let src = img.getAttribute('src') || img.getAttribute('data-old-hires') || '';
         src = src.replace(/\._[^.]*_\./g, '.');
         if (src && !seen.has(src)) { seen.add(src); gallery.push(src); }
       });
       if (product_image && !gallery.includes(product_image)) gallery.unshift(product_image);
 
-      const detailBullets = {};
-      try {
-        doc.querySelectorAll('#productDetails_detailBullets_sections1 tr, #detailBullets_feature_div .a-list-item').forEach(row => {
-          const label = row.querySelector('th, .a-text-bold')?.textContent?.replace(/[:\s]+$/, '').trim();
-          const value = row.querySelector('td, span:not(.a-text-bold)')?.textContent?.trim();
-          if (label && value) detailBullets[label] = value;
-        });
-      } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
-
+      const variations = extractVariations(doc);
+      const discount = extractDiscountInfo(doc);
+      const detailBullets = extractDetailBullets(doc);
       const stockStatus = extractStockStatus(doc);
+      const dealBadge = extractDealInfo(doc);
       const bestSellersRank = extractBestSellersRank(doc);
       const category = extractCategory(doc);
       const bestFor = mapCategoryToBestFor(category);
       const videoUrl = extractVideoUrl(doc);
 
-      // Enhanced extractions for doc-based imports
+      // Enhanced extractions (matching single-product import)
       let ingredients = '';
       let unitSize = '';
       let unitPrice = '';
       let bsrDetail = [];
       let reviewHighlights = '';
-      try {
-        if (isAmazon()) {
-          ingredients = extractIngredients(doc);
-          const unitInfo = extractUnitInfo(doc);
-          unitSize = unitInfo.unitSize || '';
-          unitPrice = unitInfo.unitPrice || '';
-          bsrDetail = extractBSRDetail(doc);
-          reviewHighlights = extractReviewHighlights(doc);
+      if (isAmazon()) {
+        ingredients = extractIngredients(doc);
+        const unitInfo = extractUnitInfo(doc);
+        unitSize = unitInfo.unitSize || '';
+        unitPrice = unitInfo.unitPrice || '';
+        bsrDetail = extractBSRDetail(doc);
+        reviewHighlights = extractReviewHighlights(doc);
+        if ((review_summary || '').length < 200 && reviewHighlights) {
+          review_summary = (review_summary ? review_summary + ' | ' : '') + 'Customer insights: ' + reviewHighlights.substring(0, 500);
         }
-      } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
-      // Reviews extraction for doc-based imports
+      }
+
       let reviews = [];
       let reviewStats = { total: 0, average: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } };
       try {
-        const rd = extractReviews();
+        const rd = extractReviews(doc);
         reviews = rd.reviews || [];
         reviewStats = rd.reviewStats || reviewStats;
       } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
-      return { product_name, brand, product_image, price, rating, reviewCount, key_features, pros: [], cons: [], review_summary: '', amazon_url, asin, gallery, videoUrl, variations: [], listPrice: '', savings: '', priceRange: undefined, specs: {}, detailBullets, stockStatus, dealBadge: '', bestSellersRank, category, bestFor, source: 'amazon', ingredients, unitSize, unitPrice, bsrDetail, reviewHighlights, reviews, reviewStats };
+      let rCount = reviewCount;
+      let rRating = rating;
+      if (reviewStats.total > 0 && (!rCount || rCount === 0)) {
+        rCount = reviewStats.total;
+      }
+      if (reviewStats.average > 0 && !rRating) {
+        rRating = reviewStats.average;
+      }
+
+      let priceRange;
+      if (variations.length > 0) {
+        const allPrices = [];
+        variations.forEach(dim => dim.options.forEach(o => { if (o.price) allPrices.push(o.price); }));
+        if (allPrices.length > 1) {
+          const toNum = (s) => parseFloat(s.replace(/[^0-9.]/g, ''));
+          const sorted = [...allPrices].sort((a, b) => toNum(a) - toNum(b));
+          priceRange = { low: sorted[0], high: sorted[sorted.length - 1] };
+        }
+      }
+
+      const specs = {};
+      const specMappings = {
+        'Manufacturer': 'manufacturer', 'Unit Count': 'unitCount', 'Target Use Body Part': 'targetUse',
+        'Special Features': 'specialFeatures', 'Target Audience': 'targetAudience', 'UPC': 'upc',
+        'Model Number': 'modelNumber', 'Part Number': 'partNumber', 'Best Sellers Rank': 'bestSellersRank',
+        'Item model number': 'modelNumber', 'Number of Items': 'unitCount', 'Package Dimensions': 'packageDimensions',
+        'Item Weight': 'itemWeight',
+      };
+      Object.entries(detailBullets).forEach(([label, value]) => {
+        const key = specMappings[label] || label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_+$/, '');
+        specs[key] = value;
+      });
+      if (bestSellersRank) specs.bestSellersRank = bestSellersRank;
+
+      return { product_name, brand, product_image, price, rating: rRating, reviewCount: rCount, key_features, pros: [], cons: [], review_summary, amazon_url, asin, gallery, videoUrl, variations, listPrice: discount.listPrice, savings: discount.savings, priceRange, specs, detailBullets, stockStatus, dealBadge, bestSellersRank, category, bestFor, source: 'amazon', ingredients, unitSize, unitPrice, bsrDetail, reviewHighlights, reviews, reviewStats };
     }
 
     // Generic fallback for other stores

@@ -35,7 +35,7 @@ interface PostDraft {
   title?: string;
 }
 
-type Mode = 'product' | 'category';
+type Mode = 'product' | 'category' | 'articles';
 type ArticleStatus = 'draft' | 'ready' | 'published' | 'scheduled';
 type ArticleType = 'review' | 'guide' | 'comparison' | 'best-list' | 'how-to' | 'benefits' | 'faq';
 
@@ -119,6 +119,8 @@ export default function ArticleGenerator({ token }: { token: string }) {
   const [mode, setMode] = useState<Mode>('product');
   const [products, setProducts] = useState<GeneratorProduct[]>([]);
   const [categories, setCategories] = useState<GeneratorCategory[]>([]);
+  const [existingPosts, setExistingPosts] = useState<any[]>([]);
+  const [usedProductIds, setUsedProductIds] = useState<Record<string, boolean>>({});
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -158,16 +160,23 @@ export default function ArticleGenerator({ token }: { token: string }) {
   async function load() {
     setLoading(true);
     try {
-      const [pr, cats] = await Promise.all([
+      const [pr, cats, postsRes] = await Promise.all([
         fetch('/api/admin/seo/product-reviews?limit=500', { headers: { Authorization: `Bearer ${token}` } }),
         fetch('/api/public/categories'),
+        fetch('/api/admin/posts?limit=1000', { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       const prBody = await pr.json().catch(() => ({}));
       const catsBody = await cats.json().catch(() => ({}));
+      const postsBody = await postsRes.json().catch(() => ({}));
       const items = Array.isArray(prBody.data) ? prBody.data : Array.isArray(prBody) ? prBody : [];
       const catsItems = Array.isArray(catsBody.data) ? catsBody.data : Array.isArray(catsBody) ? catsBody : [];
+      const postItems = Array.isArray(postsBody.data) ? postsBody.data : Array.isArray(postsBody) ? postsBody : [];
       setProducts(items);
       setCategories(catsItems.filter((c: any) => c.status === 'active' || c.status === undefined));
+      setExistingPosts(postItems.filter((p: any) => p.status && p.status !== 'deleted'));
+      const used: Record<string, boolean> = {};
+      postItems.forEach((p: any) => { if (p.productId) used[p.productId] = true; });
+      setUsedProductIds(used);
       setError(null);
     } catch (e: any) {
       setError(e.message);
@@ -189,6 +198,10 @@ export default function ArticleGenerator({ token }: { token: string }) {
   const activeType = ARTICLE_TYPES.find((t) => t.value === articleType) || ARTICLE_TYPES[0];
 
   function toggleProduct(id: string) {
+    if (usedProductIds[id]) {
+      setError('This product already has an article. Edit it from the "Existing Articles" tab instead.');
+      return;
+    }
     setSelectedIds((prev) => {
       const next = { ...prev };
       if (next[id]) delete next[id];
@@ -206,6 +219,31 @@ export default function ArticleGenerator({ token }: { token: string }) {
   }
 
   function openEditor() {
+    setShowEditor(true);
+    setShowPreview(false);
+  }
+
+  // Load an existing post into the editor (published posts included) so the admin
+  // can edit content / upload a featured image anytime.
+  function openExistingPost(existing: any) {
+    setError(null);
+    const p = existing || {};
+    setPost({ id: p.id, slug: p.slug, title: p.title });
+    setEditGeneratedType('review');
+    setEditTitle(p.title || '');
+    setEditSlug(p.slug || '');
+    setEditExcerpt(p.excerpt || '');
+    setEditContent(p.content || '');
+    setEditImage(p.featuredImage || p.featured_image || '');
+    setEditImageAlt(p.featuredImageAlt || p.featured_image_alt || '');
+    setEditCategory(p.categoryId || p.category_id || '');
+    setEditTags(Array.isArray(p.tags) ? p.tags.join(', ') : (p.tags || ''));
+    setEditStatus((p.status as ArticleStatus) || 'draft');
+    setEditSeoTitle(p.seoTitle || p.seo_title || '');
+    setEditSeoDescription(p.seoDescription || p.seo_description || '');
+    setEditSeoKeywords(p.seoKeywords || p.seo_keywords || '');
+    setEditImagePrompt(makeImagePrompt([], 'review', selectedCategory?.name));
+    setSelectedIds({});
     setShowEditor(true);
     setShowPreview(false);
   }
@@ -284,7 +322,9 @@ export default function ArticleGenerator({ token }: { token: string }) {
       setEditSeoDescription(full.seo_description || '');
       setEditSeoKeywords(typeof full.seo_keywords === 'string' ? full.seo_keywords : '');
       openEditor();
-      setMsg('Buying guide generated as a draft. Add a featured image, then publish.');
+      setMsg(body.alreadyExists
+        ? 'An article already exists for this category — the existing one was opened (no duplicate created).'
+        : 'Buying guide generated as a draft. Add a featured image, then publish.');
     } catch (e: any) {
       setError(e.message);
     }
@@ -700,13 +740,13 @@ export default function ArticleGenerator({ token }: { token: string }) {
         </div>
         <div className="flex items-center gap-2">
           <div className="flex rounded-xl border border-slate-300 dark:border-slate-700 overflow-hidden">
-            {(['product', 'category'] as Mode[]).map((m) => (
+            {(['product', 'category', 'articles'] as Mode[]).map((m) => (
               <button
                 key={m}
                 onClick={() => { setMode(m); resetSelection(); }}
                 className={`px-4 py-2 text-xs font-bold capitalize transition-all ${mode === m ? 'bg-blue-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
               >
-                {m === 'product' ? 'Product Articles' : 'Category Buying Guides'}
+                {m === 'product' ? 'Product Articles' : m === 'category' ? 'Category Buying Guides' : 'Existing Articles'}
               </button>
             ))}
           </div>
@@ -763,12 +803,86 @@ export default function ArticleGenerator({ token }: { token: string }) {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder={mode === 'product' ? 'Search products by name, brand, or category...' : 'Search categories...'}
+          placeholder={mode === 'product' ? 'Search products by name, brand, or category...' : mode === 'category' ? 'Search categories...' : 'Search articles by title or slug...'}
           className="w-full pl-10 pr-4 py-3 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/40 text-slate-900 dark:text-slate-100"
         />
       </div>
 
-      {mode === 'product' ? (
+      {mode === 'articles' && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
+              All Articles ({existingPosts.length})
+            </p>
+            <p className="text-xs text-slate-400">Edit any article — published or draft — to update content or upload a featured image.</p>
+          </div>
+          {existingPosts.length === 0 ? (
+            <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 text-sm text-slate-400">No posts yet. Generate one first.</div>
+          ) : (
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-[10px] uppercase tracking-wider text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                    <th className="px-4 py-3 font-bold">Title</th>
+                    <th className="px-4 py-3 font-bold">Status</th>
+                    <th className="px-4 py-3 font-bold">Category</th>
+                    <th className="px-4 py-3 font-bold">Image</th>
+                    <th className="px-4 py-3 font-bold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {existingPosts
+                    .filter((p: any) => {
+                      const q = search.toLowerCase();
+                      return !q || (p.title || '').toLowerCase().includes(q) || (p.slug || '').toLowerCase().includes(q);
+                    })
+                    .map((p: any) => (
+                      <tr key={p.id} className="border-b border-slate-100 dark:border-slate-800/60 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                        <td className="px-4 py-3">
+                          <div className="font-bold text-slate-800 dark:text-slate-100 line-clamp-1">{p.title || '(untitled)'}</div>
+                          <div className="text-[11px] text-slate-400 font-mono truncate">/{p.slug}</div>
+                          {p.productId && <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">Linked to product</div>}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${p.status === 'published' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : p.status === 'draft' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-slate-500/10 text-slate-500'}`}>
+                            {p.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
+                          {p.categoryId ? (categories.find((c: any) => c.id === p.categoryId)?.name || '—') : '—'}
+                        </td>
+                        <td className="px-4 py-3">
+                          {(p.featuredImage || p.featured_image) ? (
+                            <img src={proxyImageUrl(p.featuredImage || p.featured_image)} alt="" className="w-12 h-8 object-cover rounded-md border border-slate-200 dark:border-slate-700" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                          ) : (
+                            <span className="text-[10px] text-slate-400">No image</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => openExistingPost(p)} className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+                              <PencilLine className="w-3 h-3" /> Edit
+                            </button>
+                            {p.slug && (
+                              <a href={`/post/${p.slug}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[10px] text-blue-500 hover:underline">
+                                <ExternalLink className="w-3 h-3" /> View
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+              {existingPosts.filter((p: any) => (p.title || '').toLowerCase().includes(search.toLowerCase()) || (p.slug || '').toLowerCase().includes(search.toLowerCase())).length === 0 && search && (
+                <div className="text-center py-12 text-sm text-slate-400">No articles match "{search}".</div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {mode === 'articles' ? null : mode === 'product' ? (
         <>
           {selectedProducts.length > 0 && (
             <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-900/40 via-indigo-900/30 to-slate-900 border border-blue-500/30 text-white space-y-2">
@@ -790,11 +904,12 @@ export default function ArticleGenerator({ token }: { token: string }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredProducts.slice(0, 48).map((p) => {
               const selected = !!selectedIds[p.id];
+              const used = !!usedProductIds[p.id];
               return (
                 <div
                   key={p.id}
-                  className={`group bg-white dark:bg-slate-900 rounded-2xl border p-4 transition-all hover:shadow-lg cursor-pointer ${selected ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-slate-200 dark:border-slate-800'}`}
                   onClick={() => toggleProduct(p.id)}
+                  className={`group bg-white dark:bg-slate-900 rounded-2xl border p-4 transition-all ${used ? 'opacity-60 cursor-not-allowed border-slate-200 dark:border-slate-800' : 'hover:shadow-lg cursor-pointer ' + (selected ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-slate-200 dark:border-slate-800')}`}
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative">
@@ -822,7 +937,11 @@ export default function ArticleGenerator({ token }: { token: string }) {
                     </div>
                   )}
                   <div className="mt-2 flex items-center justify-between">
-                    <span className={`text-[11px] font-bold ${selected ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}`}>{selected ? 'Selected' : 'Click to select'}</span>
+                    {used ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400"><FileText className="w-3 h-3" /> Has article</span>
+                    ) : (
+                      <span className={`text-[11px] font-bold ${selected ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}`}>{selected ? 'Selected' : 'Click to select'}</span>
+                    )}
                     {p.slug && (
                       <a href={`/product/${p.slug}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-[10px] text-blue-500 hover:underline">
                         <ExternalLink className="w-3 h-3" /> View

@@ -8,6 +8,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     handleImport(message.data).then(sendResponse).catch(err => sendResponse({ success: false, error: err.message }));
     return true;
   }
+  if (message.type === 'IMPORT_FROM_URL') {
+    // Bulk import: open the product in a background tab, extract with the same
+    // live-DOM path as single-product import, then import & close the tab.
+    importFromUrl(message.url).then(sendResponse).catch(err => sendResponse({ success: false, error: err.message }));
+    return true;
+  }
   if (message.type === 'IMPORT_BATCH') {
     addToQueue(message.products, sender.tab?.id);
     sendResponse({ queued: message.products.length });
@@ -81,6 +87,50 @@ function fullImportPayload(data) {
     gallery: data.gallery || [],
     specs,
   };
+}
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+async function waitForTabComplete(tabId, timeoutMs = 30000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const tab = await chrome.tabs.get(tabId);
+      if (tab.status === 'complete') return true;
+    } catch (e) { return false; }
+    await sleep(500);
+  }
+  return false;
+}
+
+// Opens the product in a background tab, lets its JS render, then asks the
+// content script to extract full live-DOM data (identical to single-product
+// import). Imports via handleImport (dup-check → create → article → video).
+async function importFromUrl(url) {
+  let tab;
+  try {
+    tab = await chrome.tabs.create({ url, active: false });
+  } catch (e) {
+    throw new Error('Could not open product tab: ' + e.message);
+  }
+  try {
+    await waitForTabComplete(tab.id);
+    await sleep(1500); // let dynamic content (reviews, video, A+) render
+    let data = null;
+    for (let attempt = 0; attempt < 6; attempt++) {
+      try {
+        const res = await chrome.tabs.sendMessage(tab.id, { type: 'EXTRACT_PRODUCT_DATA' });
+        if (res && res.product_name) { data = res; break; }
+      } catch (e) { /* content script not injected/ready yet */ }
+      await sleep(1200);
+    }
+    if (!data || !data.product_name) {
+      return { success: false, error: 'Could not extract product from ' + url };
+    }
+    return await handleImport(data);
+  } finally {
+    try { await chrome.tabs.remove(tab.id); } catch (e) {}
+  }
 }
 
 async function handleImport(data) {

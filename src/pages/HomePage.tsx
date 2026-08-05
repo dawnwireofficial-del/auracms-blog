@@ -43,6 +43,28 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
       {/* Hero Section — Glassmorphism Redesign */}
       <DawnWireHero onOpenAiFinder={onOpenAiFinder} onOpenChatbot={onOpenChatbot} />
 
+      {/* Editorial intro — useful, visible copy with internal links */}
+      <section id="home-editorial" className="max-w-7xl mx-auto px-4 pt-10">
+        <div className="rounded-3xl border border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 sm:p-8 shadow-sm">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-100 mb-3">
+            Why DawnWire? Honest reviews, real deals, expert buying guides.
+          </h2>
+          <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3 max-w-3xl">
+            DawnWire is an independent product review site. We research and score products across beauty, personal
+            care, tech, and home, publish in-depth buying guides and head-to-head comparisons, and track Amazon prices
+            daily so you can spot a genuine price drop versus an inflated one. Every pick is scored out of ten and
+            capped off with a clear final verdict so you can decide faster.
+          </p>
+          <div className="flex flex-wrap gap-2 text-xs font-bold">
+            <a href="/reviews" className="px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">Read our reviews</a>
+            <a href="/best" className="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">Best-of roundups</a>
+            <a href="/guides" className="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">Buying guides</a>
+            <a href="/deals" className="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">Today's deals</a>
+            <a href="/about" className="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">How we test</a>
+          </div>
+        </div>
+      </section>
+
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 py-12 space-y-16">
         {/* Promotional Sliders & Banners managed from Admin */}

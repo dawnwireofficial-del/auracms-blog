@@ -2,6 +2,7 @@ import app from './api/app_source';
 import path from 'path';
 import fs from 'fs';
 import express from 'express';
+import { renderHomePageHtml } from './server/ssr/home';
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const isProduction = process.env.NODE_ENV === 'production';
@@ -14,6 +15,23 @@ if (!process.env.AI_GATEWAY_API_KEY && !process.env.COHERE_API_KEY) {
 }
 
 // Static assets
+// Server-render the homepage before the static middleware so crawlers receive
+// semantic HTML (H1, headings, editorial copy, internal links) in the raw
+// response instead of the empty JS shell. The client React app hydrates over it.
+app.get('/', async (req, res, next) => {
+  const indexPath = path.join(distPath, 'index.html');
+  if (!fs.existsSync(indexPath)) return next();
+  let ssrBody = '';
+  try {
+    ssrBody = await renderHomePageHtml();
+  } catch (e) {
+    console.error('[SSR] homepage render failed:', e);
+  }
+  const html = fs.readFileSync(indexPath, 'utf8');
+  res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=900, stale-while-revalidate=300');
+  return res.type('html').send(html.replace('<div id="root"></div>', `<div id="root">${ssrBody}</div>`));
+});
+
 app.use(express.static(distPath));
 
 // Fallback to dist/index.html for SPA client-side routing

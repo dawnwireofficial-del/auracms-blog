@@ -5,7 +5,8 @@
   "description": "Import Amazon product details directly into your DawnWire website as affiliate product reviews.",
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "tabs"
   ],
   "host_permissions": [
     "https://dawnwire.com/*",
