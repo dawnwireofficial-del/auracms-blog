@@ -55,44 +55,64 @@ function getModel() {
 }
 
 export async function cohereChat(promptText: string, system?: string, timeoutMs?: number, maxTokens?: number): Promise<string> {
+  // Shared budget. Each provider gets a slice so a slow/broken provider can't
+  // eat the whole budget and block the others (Vercel caps synchronous work at 60s).
+  const budget = Math.max(9000, timeoutMs || 20000);
+  const slices = 2;
+  const perProvider = Math.max(6500, Math.floor(budget / slices));
+  const errors: string[] = [];
+
+  // 1. Cohere / AI Gateway — the intended production provider.
+  if (AI_GATEWAY_API_KEY) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), perProvider);
+      let result;
+      try {
+        result = await generateText({
+          model: getModel(),
+          prompt: promptText,
+          system,
+          maxOutputTokens: maxTokens || 1200,
+          temperature: 0.7,
+          abortSignal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+      } catch (e: any) {
+        clearTimeout(timeoutId);
+        throw e;
+      }
+      const text = result.text?.trim() || '';
+      if (text) return text;
+      errors.push('gateway: empty response');
+    } catch (e: any) {
+      errors.push(`gateway: ${e.name === 'AbortError' ? 'timed out' : e.message}`);
+    }
+  }
+
+  // 2. Gemini (if configured) — fall back rather than blocking Cohere.
   if (isGeminiConfigured()) {
     try {
-      return await geminiText(promptText, system, timeoutMs, maxTokens);
+      const r = await geminiText(promptText, system, perProvider, maxTokens);
+      if (r) return r;
+      errors.push('gemini: empty response');
     } catch (e: any) {
-      if (e.name === 'AbortError') throw new Error('AI Gateway request timed out. Try again or check your API key.', { cause: e });
-      console.error('[ai.ts] Gemini failed, falling back to DeepSeek/Cohere:', e.message);
+      errors.push(`gemini: ${e.name === 'AbortError' ? 'timed out' : e.message}`);
     }
   }
 
+  // 3. DeepSeek.
   if (isDeepSeekConfigured()) {
     try {
-      return await deepseekText({ prompt: promptText, system, timeoutMs, maxOutputTokens: maxTokens });
+      const r = await deepseekText({ prompt: promptText, system, timeoutMs: perProvider, maxOutputTokens: maxTokens });
+      if (r) return r;
+      errors.push('deepseek: empty response');
     } catch (e: any) {
-      if (e.name === 'AbortError') throw new Error('AI Gateway request timed out. Try again or check your API key.', { cause: e });
-      console.error('[ai.ts] DeepSeek failed, falling back to Cohere:', e.message);
+      errors.push(`deepseek: ${e.name === 'AbortError' ? 'timed out' : e.message}`);
     }
   }
 
-  if (!AI_GATEWAY_API_KEY) throw new Error('AI_GATEWAY_API_KEY not configured. To use this feature, set the AI_GATEWAY_API_KEY environment variable.');
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs || 20000);
-  try {
-    const result = await generateText({
-      model: getModel(),
-      prompt: promptText,
-      system,
-      maxOutputTokens: maxTokens || 1200,
-      temperature: 0.7,
-      abortSignal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-    return result.text?.trim() || '';
-  } catch (e: any) {
-    clearTimeout(timeoutId);
-    if (e.name === 'AbortError') throw new Error('AI Gateway request timed out. Try again or check your API key.', { cause: e });
-    throw new Error('AI Gateway request failed: ' + (e.message || 'Unknown error'), { cause: e });
-  }
+  throw new Error('AI request failed: ' + (errors.join(' | ') || 'no providers configured') + (errors.length ? ' (try again or check the configured API keys)' : ''));
 }
 
 export async function generateProductVerdict(productInfo: string): Promise<string> {
