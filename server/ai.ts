@@ -184,7 +184,7 @@ STRUCTURE (MUST follow exactly):
 
 Use DawnWire's brand voice: professional, authoritative, helpful, and data-driven. Keep paragraphs concise.`;
 
-  const raw = await cohereChat(prompt, systemPrompt, 28000, 1500);
+  const raw = await cohereChat(prompt, systemPrompt, 40000, 1500);
   const cleaned = raw.replace(/```markdown|```/gi, '').trim();
   if (!cleaned) throw new Error('AI returned an empty article');
   const lines = cleaned.split('\n');

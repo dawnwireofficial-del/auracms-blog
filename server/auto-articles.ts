@@ -353,7 +353,7 @@ export async function autoGenerateArticles(params?: {
   // Hard per-product cap so the request ALWAYS returns before Vercel's 60s
   // function limit, even if the AI provider hangs (e.g. an AbortController
   // that the SDK ignores). The UI re-invokes for each remaining product.
-  const productBudgetMs = Math.min(Math.max(10000, timeBudgetMs), 50000);
+  const productBudgetMs = Math.min(Math.max(10000, timeBudgetMs), 55000);
   for (const p of targets.slice(0, limit)) {
     if (!bumpDailyCounter()) {
       break;
