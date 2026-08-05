@@ -20,7 +20,10 @@ function mapRow<T>(row: Record<string, any> | undefined | null): T | null {
   if (!row) return null;
   const result: Record<string, any> = {};
   for (const [key, value] of Object.entries(row)) {
-    result[snakeToCamel(key)] = value;
+    if (!key.includes('_')) result[snakeToCamel(key)] = value;
+  }
+  for (const [key, value] of Object.entries(row)) {
+    if (key.includes('_')) result[snakeToCamel(key)] = value;
   }
   return result as unknown as T;
 }
