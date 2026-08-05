@@ -150,7 +150,7 @@ async function generateWithCloudflare(
   const accountId = (opts?.accountId || CLOUDFLARE_ACCOUNT_ID).trim();
   if (!apiKey || !accountId) return null;
 
-  const model = opts?.model || CLOUDFLARE_IMAGE_MODEL;
+  const model = (opts?.model && String(opts.model).startsWith('@cf/')) ? String(opts.model) : CLOUDFLARE_IMAGE_MODEL;
   const url = `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/ai/run/${model}`;
 
   try {
@@ -223,12 +223,19 @@ export async function generateDesignImage(
       ? { url: productImage, generated: false, source: 'product', fallback: 'product' }
       : { url: '', generated: false, source: 'none', fallback: 'unavailable' };
 
-  // Reference-based Gemini path first — it uses the real product photo as an
-  // image reference so the hero banner accurately depicts the actual product.
-  // Falls through to Cloudflare/Imagen if Gemini is unavailable.
+  // Cloudflare Workers AI first — flux is fast and reliable. Reference-accurate
+  // Gemini is tried as a fallback (and when provider='gemini').
+  if (provider === 'cloudflare' || (provider === 'auto' && isCloudflareConfigured(opts?.apiKey, opts?.accountId))) {
+    const cf = await generateWithCloudflare(product, opts);
+    if (cf) return cf;
+    if (provider === 'cloudflare') return productFallback();
+  }
+
+  // Reference-based Gemini path — uses the real product photo as an image
+  // reference so the hero banner accurately depicts the actual product.
   if (provider === 'gemini' || provider === 'auto') {
     const apiKey = resolveApiKey(provider === 'gemini' ? opts?.apiKey : ENV_API_KEY);
-    const imageModel = opts?.model || GEMINI_IMAGE_MODEL;
+    const imageModel = (opts?.model && !String(opts.model).startsWith('@cf/')) ? opts.model : GEMINI_IMAGE_MODEL;
 
     if (apiKey) {
       let ref: { mimeType: string; base64: string } | null = null;
@@ -290,13 +297,6 @@ export async function generateDesignImage(
         console.warn('[image-gen] Imagen failed:', e.message);
       }
     }
-  }
-
-  // Cloudflare Workers AI path (flux-1-schnell) — fast text-to-image.
-  if (provider === 'cloudflare' || (provider === 'auto' && isCloudflareConfigured(opts?.apiKey, opts?.accountId))) {
-    const cf = await generateWithCloudflare(product, opts);
-    if (cf) return cf;
-    if (provider === 'cloudflare') return productFallback();
   }
 
   return productFallback();
