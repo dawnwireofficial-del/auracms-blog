@@ -12,7 +12,6 @@ import { ComparisonPage } from './pages/ComparisonPage';
 import { ReviewsPage, BuyingGuidesPage } from './pages/EditorialPages';
 import PostDetailPage from './pages/PostDetailPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
-import AdminPanel from './components/AdminPanel';
 import BrandsPage from './components/pages/BrandsPage';
 import { ChatbotDrawer } from './components/ai/ChatbotDrawer';
 import { AIProductFinderModal } from './components/ai/AIProductFinderModal';
@@ -297,17 +296,8 @@ export function App() {
       return <BrandsPage onNavigate={(route, params) => { window.history.pushState({}, '', route + (params || '')); window.dispatchEvent(new PopStateEvent('popstate')); }} />;
     }
 
-    // Admin Dashboard (Super Admin Panel)
+    // Admin Dashboard (Super Admin Panel — tab-based portal, all panels under one roof)
     if (pathname.startsWith('/admin')) {
-      if (currentUser) {
-        return (
-          <AdminPanel
-            token={localStorage.getItem('dawnwire_auth_token') || ''}
-            user={currentUser as any}
-            onLogout={() => { store.logout(); }}
-          />
-        );
-      }
       return <AdminDashboardPage />;
     }
 

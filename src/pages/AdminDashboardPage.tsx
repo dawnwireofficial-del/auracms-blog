@@ -10,8 +10,32 @@ import { ActivityHeatmapD3 } from '../components/admin/ActivityHeatmapD3';
 import { SeoHealthProgressChart } from '../components/admin/SeoHealthProgressChart';
 import { TopViewedCategoriesChart } from '../components/admin/TopViewedCategoriesChart';
 import { OpenGraphAuditTool } from '../components/admin/OpenGraphAuditTool';
-import { Product, CategoryBanner, EditorialReview, BuyingGuide } from '../types';
+import { Product, CategoryBanner, EditorialReview, BuyingGuide, Post, Comment, AffiliateLink, Page, SiteSettings, NewsletterSubscriber, ContactMessage, ActivityLog, MediaItem, TopicCluster } from '../types';
 import { proxyImageUrl } from '../utils/safeRender';
+import DashboardAnalytics from '../components/DashboardAnalytics';
+import ProductReviewManager from '../components/ProductReviewManager';
+import ProductArticlesManager from '../components/ProductArticlesManager';
+import TestimonialManager from '../components/TestimonialManager';
+import SeoDashboard from '../components/SeoDashboard';
+import AnalyticsAlerts from '../components/AnalyticsAlerts';
+import AmazonSyncDashboard from '../components/AmazonSyncDashboard';
+import AutoImportPanel from '../components/admin/AutoImportPanel';
+import MediaGallery from '../components/MediaGallery';
+import AdminPosts from '../components/admin/AdminPosts';
+import AdminCategories from '../components/admin/AdminCategories';
+import AdminComments from '../components/admin/AdminComments';
+import AdminAffiliate from '../components/admin/AdminAffiliate';
+import AdminPages from '../components/admin/AdminPages';
+import AdminSubscribers from '../components/admin/AdminSubscribers';
+import AdminDrips from '../components/admin/AdminDrips';
+import AdminContact from '../components/admin/AdminContact';
+import AdminSettings from '../components/admin/AdminSettings';
+import AdminLogs from '../components/admin/AdminLogs';
+import AdminBrands from '../components/admin/AdminBrands';
+import AdminBanners from '../components/admin/AdminBanners';
+import AdminDeals from '../components/admin/AdminDeals';
+import AdminHomepage from '../components/admin/AdminHomepage';
+import AdminCategorySections from '../components/admin/AdminCategorySections';
 
 function BannerUploadBtn({ onUrl }: { onUrl: (url: string) => void }) {
   const [uploading, setUploading] = React.useState(false);
@@ -49,6 +73,7 @@ function BannerUploadBtn({ onUrl }: { onUrl: (url: string) => void }) {
 
 export const AdminDashboardPage: React.FC = () => {
   const { products, categories, banners, syncLogs, affiliateClicks, seoOpportunities, currentUser } = useAppStore();
+  const token = localStorage.getItem('dawnwire_auth_token') || '';
 
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(() => {
     if (currentUser && (currentUser.role === 'super_admin' || currentUser.role === 'admin')) return true;
@@ -92,11 +117,15 @@ export const AdminDashboardPage: React.FC = () => {
   const getInitialTab = (): typeof activeTab => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
+    if (tab) {
+      const valid = ['bulk-import','auto-articles','dashboard','posts','categories','comments','product-review','product-articles','article-generator','testimonials','affiliate','pages','subscribers','drips','alerts','contact','settings','seo-engine','logs','brands','banners','deals','homepage','sections','clusters','amazon-sync','media','auto-import'];
+      if (valid.includes(tab)) return tab as typeof activeTab;
+    }
     if (tab === 'bulk-import') return 'bulk-import';
     if (tab === 'auto-articles') return 'auto-articles';
     return 'products';
   };
-  const [activeTab, setActiveTab] = useState<'products' | 'activity-feed' | 'link-importer' | 'scraper' | 'auto-articles' | 'reviews' | 'banners' | 'analytics' | 'seo' | 'firebase' | 'profile' | 'extension' | 'bulk-import'>(getInitialTab);
+  const [activeTab, setActiveTab] = useState<'products' | 'activity-feed' | 'link-importer' | 'scraper' | 'auto-articles' | 'reviews' | 'banners' | 'analytics' | 'seo' | 'firebase' | 'profile' | 'extension' | 'bulk-import' | 'dashboard' | 'posts' | 'categories' | 'comments' | 'product-review' | 'product-articles' | 'article-generator' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'brands' | 'deals' | 'homepage' | 'sections' | 'clusters' | 'amazon-sync' | 'media' | 'auto-import' | 'seo-engine'>(getInitialTab);
 
   // Form states
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
@@ -153,6 +182,61 @@ export const AdminDashboardPage: React.FC = () => {
   // Editorial Articles (real blog posts) + AI Article Generator
   const [editorialPosts, setEditorialPosts] = useState<any[]>([]);
   const [showArticleGenerator, setShowArticleGenerator] = useState(false);
+
+  // Super Admin Portal — extra panel data (from the sidebar panels)
+  const [adminPosts, setAdminPosts] = useState<Post[]>([]);
+  const [adminComments, setAdminComments] = useState<Comment[]>([]);
+  const [affiliateLinks, setAffiliateLinks] = useState<AffiliateLink[]>([]);
+  const [adminPages, setAdminPages] = useState<Page[]>([]);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
+  const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([]);
+  const [messages, setMessages] = useState<ContactMessage[]>([]);
+  const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [media, setMedia] = useState<MediaItem[]>([]);
+  const [topicClusters, setTopicClusters] = useState<TopicCluster[]>([]);
+  const [adminRefresh, setAdminRefresh] = useState(0);
+  const triggerAdminRefresh = () => setAdminRefresh(v => v + 1);
+
+  useEffect(() => {
+    if (!isAdminLoggedIn) return;
+    const token = localStorage.getItem('dawnwire_auth_token');
+    if (!token) return;
+    const headers = { Authorization: `Bearer ${token}` };
+    const get = async (url: string) => {
+      try {
+        const r = await fetch(url, { headers });
+        if (!r.ok) return null;
+        const j = await r.json();
+        if (Array.isArray(j)) return j;
+        if (j && Array.isArray(j.data)) return j.data;
+        return j;
+      } catch { return null; }
+    };
+    (async () => {
+      const [postsRes, commRes, affRes, pageRes, settingsRes, subRes, msgRes, logRes, mediaRes, clusterRes] = await Promise.all([
+        get('/api/admin/posts?limit=500'),
+        get('/api/admin/comments'),
+        get('/api/admin/affiliate'),
+        get('/api/admin/pages'),
+        get('/api/public/settings'),
+        get('/api/admin/subscribers'),
+        get('/api/admin/messages'),
+        get('/api/admin/logs'),
+        get('/api/admin/media'),
+        get('/api/admin/topic-clusters'),
+      ]);
+      if (Array.isArray(postsRes)) setAdminPosts(postsRes as Post[]);
+      if (Array.isArray(commRes)) setAdminComments(commRes as Comment[]);
+      if (Array.isArray(affRes)) setAffiliateLinks(affRes as AffiliateLink[]);
+      if (Array.isArray(pageRes)) setAdminPages(pageRes as Page[]);
+      if (settingsRes && !(settingsRes as any)?.error) setSiteSettings(settingsRes as SiteSettings);
+      if (Array.isArray(subRes)) setSubscribers(subRes as NewsletterSubscriber[]);
+      if (Array.isArray(msgRes)) setMessages(msgRes as ContactMessage[]);
+      if (Array.isArray(logRes)) setLogs(logRes as ActivityLog[]);
+      if (Array.isArray(mediaRes)) setMedia(mediaRes as MediaItem[]);
+      if (Array.isArray(clusterRes)) setTopicClusters(clusterRes as TopicCluster[]);
+    })();
+  }, [isAdminLoggedIn, adminRefresh]);
 
   useEffect(() => {
     if (!isAdminLoggedIn) return;
@@ -734,21 +818,46 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
 
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
         {/* Navigation Tabs */}
-        <div className="flex flex-wrap gap-2 p-1.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm text-xs font-extrabold">
+        <div className="flex flex-nowrap gap-2 p-1.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm text-xs font-extrabold overflow-x-auto no-scrollbar">
           {[
+            { id: 'dashboard', label: '📊 Dashboard' },
             { id: 'products', label: `Products (${products.length})` },
-            { id: 'activity-feed', label: '⚡ Activity Feed & User Insights' },
+            { id: 'product-review', label: '🛍️ Product Manager' },
+            { id: 'product-articles', label: '📄 Product Articles' },
+            { id: 'article-generator', label: '✨ Article Generator' },
+            { id: 'auto-articles', label: '⚡ Auto Articles' },
             { id: 'link-importer', label: '⚡ Link Importer Plugin' },
             { id: 'scraper', label: 'Amazon ASIN Scraper' },
-            { id: 'auto-articles', label: '⚡ Auto Articles' },
             { id: 'reviews', label: `Editorial Articles (${editorialPosts.length})` },
             { id: 'banners', label: `Banners & Sliders (${banners.length})` },
-            { id: 'analytics', label: `Affiliate Clicks (${serverClickData.totalClicks})` },
+            { id: 'amazon-sync', label: '🔄 Amazon Sync' },
+            { id: 'bulk-import', label: '📦 Bulk Import' },
+            { id: 'auto-import', label: '🤖 Auto Import' },
+            { id: 'activity-feed', label: '⚡ Activity Feed & Insights' },
+            { id: 'testimonials', label: '⭐ Testimonials' },
+            { id: 'affiliate', label: '🔗 Affiliate Slugs' },
+            { id: 'brands', label: '🏷️ Brands' },
+            { id: 'deals', label: '🔥 Deals' },
+            { id: 'homepage', label: '🏠 Homepage' },
+            { id: 'sections', label: '🧩 Sections' },
+            { id: 'seo-engine', label: '🧠 SEO Engine' },
             { id: 'seo', label: 'SEO & Sitemap' },
+            { id: 'analytics', label: `Affiliate Clicks (${serverClickData.totalClicks})` },
             { id: 'firebase', label: 'Firebase & Backup' },
+            { id: 'posts', label: `Posts (${adminPosts.length})` },
+            { id: 'categories', label: `Categories (${categories.length})` },
+            { id: 'comments', label: `Comments (${adminComments.length})` },
+            { id: 'pages', label: `Pages (${adminPages.length})` },
+            { id: 'clusters', label: `Clusters (${topicClusters.length})` },
+            { id: 'media', label: `Media (${media.length})` },
+            { id: 'subscribers', label: `Subscribers (${subscribers.length})` },
+            { id: 'drips', label: '✉️ Drips' },
+            { id: 'alerts', label: '🔔 Alerts' },
+            { id: 'contact', label: `Inquiries (${(messages || []).filter(m => m?.status === 'unread').length})` },
+            { id: 'settings', label: '⚙️ Settings' },
+            { id: 'logs', label: `Activity Logs (${logs.length})` },
             { id: 'profile', label: '👤 Admin Profile & Settings' },
-            { id: 'extension', label: '🔌 Extension Settings' },
-            { id: 'bulk-import', label: '📦 Bulk Import' }
+            { id: 'extension', label: '🔌 Extension Settings' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -2532,6 +2641,216 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
               </div>
             </form>
           </div>
+        )}
+
+        {/* Tab: Dashboard Analytics */}
+        {activeTab === 'dashboard' && (
+          <DashboardAnalytics token={localStorage.getItem('dawnwire_auth_token') || ''} />
+        )}
+
+        {/* Tab: Product Manager (full CRUD catalogue) */}
+        {activeTab === 'product-review' && (
+          <ProductReviewManager token={token} categories={categories} />
+        )}
+
+        {/* Tab: Product Articles */}
+        {activeTab === 'product-articles' && (
+          <ProductArticlesManager token={token} />
+        )}
+
+        {/* Tab: Article Generator */}
+        {activeTab === 'article-generator' && (
+          <div className="p-6 bg-white dark:bg-zinc-800/50 rounded-3xl border border-slate-200/80 dark:border-zinc-700/50 shadow-sm">
+            <ArticleGenerator token={token} />
+          </div>
+        )}
+
+        {/* Tab: Amazon Sync */}
+        {activeTab === 'amazon-sync' && (
+          <AmazonSyncDashboard token={token} />
+        )}
+
+        {/* Tab: Auto Import */}
+        {activeTab === 'auto-import' && (
+          <div className="bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 shadow-sm p-6">
+            <AutoImportPanel token={token} />
+          </div>
+        )}
+
+        {/* Tab: Testimonials */}
+        {activeTab === 'testimonials' && (
+          <div className="bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 shadow-sm p-6">
+            <TestimonialManager token={token} />
+          </div>
+        )}
+
+        {/* Tab: Affiliate Slugs */}
+        {activeTab === 'affiliate' && (
+          <AdminAffiliate token={token} affiliateLinks={affiliateLinks} onRefresh={triggerAdminRefresh} />
+        )}
+
+        {/* Tab: Brands */}
+        {activeTab === 'brands' && (
+          <div className="bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 shadow-sm p-6">
+            <AdminBrands token={token} />
+          </div>
+        )}
+
+        {/* Tab: Deals */}
+        {activeTab === 'deals' && (
+          <div className="bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 shadow-sm p-6">
+            <AdminDeals token={token} />
+          </div>
+        )}
+
+        {/* Tab: Homepage */}
+        {activeTab === 'homepage' && (
+          <div className="bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 shadow-sm p-6">
+            <AdminHomepage token={token} />
+          </div>
+        )}
+
+        {/* Tab: Sections */}
+        {activeTab === 'sections' && (
+          <div className="bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 shadow-sm p-6">
+            <AdminCategorySections token={token} categories={categories} />
+          </div>
+        )}
+
+        {/* Tab: SEO Engine */}
+        {activeTab === 'seo-engine' && (
+          <SeoDashboard token={token} baseUrl="" />
+        )}
+
+        {/* Tab: Posts */}
+        {activeTab === 'posts' && (
+          <AdminPosts token={token} categories={categories} onRefresh={triggerAdminRefresh} posts={adminPosts} setPosts={setAdminPosts} />
+        )}
+
+        {/* Tab: Categories */}
+        {activeTab === 'categories' && (
+          <AdminCategories token={token} categories={categories} onRefresh={triggerAdminRefresh} />
+        )}
+
+        {/* Tab: Comments */}
+        {activeTab === 'comments' && (
+          <AdminComments token={token} comments={adminComments} posts={adminPosts} onRefresh={triggerAdminRefresh} />
+        )}
+
+        {/* Tab: Pages */}
+        {activeTab === 'pages' && (
+          <AdminPages token={token} pages={adminPages} onRefresh={triggerAdminRefresh} />
+        )}
+
+        {/* Tab: Topic Clusters */}
+        {activeTab === 'clusters' && (
+          <div className="bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 shadow-sm overflow-hidden">
+            <div className="p-4 bg-slate-50 dark:bg-zinc-900 border-b border-slate-100 dark:border-zinc-700/50 flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-700 dark:text-zinc-200">Topic Clusters ({topicClusters.length})</span>
+              <span className="text-[10px] text-slate-400 dark:text-zinc-500">Pillar pages with cluster content for SEO topic authority</span>
+            </div>
+            <div className="p-4 space-y-4">
+              {topicClusters.length === 0 ? (
+                <p className="text-xs text-slate-400 dark:text-zinc-500 p-8 text-center">No topic clusters created yet. Clusters group a pillar page with related content for SEO topical authority.</p>
+              ) : (
+                topicClusters.map((cluster) => (
+                  <div key={cluster.id} className="border border-slate-200 dark:border-zinc-700 rounded-xl p-4 hover:border-[#246BFF]/50 transition-all">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-slate-800 dark:text-zinc-100 text-sm">{cluster.name}</h4>
+                          <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ${cluster.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500 dark:text-zinc-400'}`}>
+                            {cluster.status}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1 line-clamp-2">{cluster.description}</p>
+                        <div className="flex items-center gap-4 mt-2 text-[10px] text-slate-400 dark:text-zinc-500">
+                          <span className="font-medium">Pillar: {cluster.pillarPageTitle}</span>
+                          <span>{(cluster as any).clusterPostIds?.length || 0} cluster posts</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <a href={`/cluster/${cluster.slug}`} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold text-[#246BFF] bg-[#246BFF]/5 px-3 py-1.5 rounded-lg hover:bg-[#246BFF]/10 transition-all">View</a>
+                        <button onClick={async () => {
+                          if (!confirm('Delete this topic cluster?')) return;
+                          try {
+                            const res = await fetch(`/api/admin/topic-clusters/${cluster.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                            if (res.ok) setTopicClusters(prev => prev.filter((c) => c.id !== cluster.id));
+                          } catch (e) { console.error(e); }
+                        }} className="text-[10px] font-bold text-red-500 bg-red-50 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-all cursor-pointer">Delete</button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Tab: Media Gallery */}
+        {activeTab === 'media' && (
+          <div className="bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 shadow-sm p-6">
+            <MediaGallery
+              items={media}
+              onDelete={async (id) => {
+                await fetch(`/api/admin/media/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+                setMedia(prev => prev.filter(m => m.id !== id));
+              }}
+              onUpload={() => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = () => {
+                  const file = input.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = (e) => {
+                    const base64 = e.target?.result as string;
+                    if (!base64) return;
+                    fetch('/api/admin/upload-image', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                      body: JSON.stringify({ base64, fileName: file.name }),
+                    }).then(r => r.json()).then((newItem) => {
+                      if (newItem.id) setMedia(prev => [newItem, ...prev]);
+                    }).catch(console.error);
+                  };
+                  reader.readAsDataURL(file);
+                };
+                input.click();
+              }}
+            />
+          </div>
+        )}
+
+        {/* Tab: Subscribers */}
+        {activeTab === 'subscribers' && (
+          <AdminSubscribers token={token} subscribers={subscribers} onRefresh={triggerAdminRefresh} />
+        )}
+
+        {/* Tab: Drips */}
+        {activeTab === 'drips' && (
+          <AdminDrips token={token} subscribers={subscribers} />
+        )}
+
+        {/* Tab: Alerts */}
+        {activeTab === 'alerts' && (
+          <AnalyticsAlerts token={token} />
+        )}
+
+        {/* Tab: Inquiries */}
+        {activeTab === 'contact' && (
+          <AdminContact token={token} messages={messages} onRefresh={triggerAdminRefresh} />
+        )}
+
+        {/* Tab: Settings */}
+        {activeTab === 'settings' && (
+          <AdminSettings token={token} settings={siteSettings} onRefresh={triggerAdminRefresh} />
+        )}
+
+        {/* Tab: Activity Logs */}
+        {activeTab === 'logs' && (
+          <AdminLogs token={token} logs={logs} />
         )}
       </div>
 

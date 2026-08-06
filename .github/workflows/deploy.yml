@@ -1,0 +1,27 @@
+name: Deploy to Vercel Production
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Deploy to production
+        env:
+          VERCEL_ORG_ID: team_XBNSPwcit0xkWNJb8CpPq6na
+          VERCEL_PROJECT_ID: prj_St3lzIAB1KNKuzhloL6Sah078ScG
+        run: npx vercel --prod --yes --token "${{ secrets.VERCEL_TOKEN }}"
