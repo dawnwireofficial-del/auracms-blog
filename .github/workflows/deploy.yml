@@ -17,6 +17,12 @@ jobs:
         with:
           node-version: 20
 
+      - name: Restore upload manifest
+        uses: actions/cache@v4
+        with:
+          path: .vercel-deploy-manifest.json
+          key: vercel-upload-manifest-${{ github.ref }}
+
       - name: Deploy to production
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}

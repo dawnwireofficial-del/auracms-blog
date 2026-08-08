@@ -30,3 +30,6 @@ Desktop.ini
 
 # Downloaded asset bundles not used by the app
 Hero Section/
+
+# Vercel deploy incremental manifest
+.vercel-deploy-manifest.json
