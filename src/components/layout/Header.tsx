@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { DawnWireLogo } from '../common/SvgIcons';
 import { AnimatedCategoryIcon } from '../common/AnimatedCategoryIcon';
 import { useAppStore } from '../../lib/store';
 import { navigate } from '../../lib/navigation';
 import { logActivityEvent } from '../../lib/activityTracker';
 import { proxyImageUrl } from '../../utils/safeRender';
-import { NotificationBell } from '../notifications/NotificationBell';
+
+const NotificationBell = lazy(() => import('../notifications/NotificationBell').then(m => ({ default: m.NotificationBell })));
 
 interface HeaderProps {
   onOpenAiFinder?: () => void;
@@ -504,7 +505,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
           )}
 
           {/* Notifications */}
-          <NotificationBell currentUser={currentUser} isDarkMode={isDarkMode} />
+          <Suspense fallback={null}>
+            <NotificationBell currentUser={currentUser} isDarkMode={isDarkMode} />
+          </Suspense>
 
           {/* Wishlist */}
           <a href="/wishlist" aria-label="Wishlist" className="relative p-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">

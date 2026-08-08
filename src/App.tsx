@@ -1,20 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { motion } from 'motion/react';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
 import { HomePage } from './pages/HomePage';
-import { ProductCatalogPage } from './pages/ProductCatalogPage';
-import { BestCategoryPage } from './pages/BestCategoryPage';
-import { ProductDetailPage } from './pages/ProductDetailPage';
-import { DealsPage } from './pages/DealsPage';
-import { ComparisonPage } from './pages/ComparisonPage';
-import { ReviewsPage, BuyingGuidesPage } from './pages/EditorialPages';
-import PostDetailPage from './pages/PostDetailPage';
-import { AdminDashboardPage } from './pages/AdminDashboardPage';
-import BrandsPage from './components/pages/BrandsPage';
-import { ChatbotDrawer } from './components/ai/ChatbotDrawer';
-import { AIProductFinderModal } from './components/ai/AIProductFinderModal';
 import { Product } from './types';
 import { useAppStore, store } from './lib/store';
 import { ProductCard } from './components/common/ProductCard';
@@ -26,6 +15,25 @@ import GravityCursor from './components/common/GravityCursor';
 import ErrorBoundary from './components/ErrorBoundary';
 import { GlobalGravityCanvas } from './components/experience/GlobalGravityCanvas';
 import { CanvasPerformanceManager } from './components/experience/CanvasPerformanceManager';
+
+const ProductCatalogPage = lazy(() => import('./pages/ProductCatalogPage').then(m => ({ default: m.ProductCatalogPage })));
+const BestCategoryPage = lazy(() => import('./pages/BestCategoryPage').then(m => ({ default: m.BestCategoryPage })));
+const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage').then(m => ({ default: m.ProductDetailPage })));
+const DealsPage = lazy(() => import('./pages/DealsPage').then(m => ({ default: m.DealsPage })));
+const ComparisonPage = lazy(() => import('./pages/ComparisonPage').then(m => ({ default: m.ComparisonPage })));
+const ReviewsPage = lazy(() => import('./pages/EditorialPages').then(m => ({ default: m.ReviewsPage })));
+const BuyingGuidesPage = lazy(() => import('./pages/EditorialPages').then(m => ({ default: m.BuyingGuidesPage })));
+const PostDetailPage = lazy(() => import('./pages/PostDetailPage'));
+const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })));
+const BrandsPage = lazy(() => import('./components/pages/BrandsPage'));
+const ChatbotDrawer = lazy(() => import('./components/ai/ChatbotDrawer').then(m => ({ default: m.ChatbotDrawer })));
+const AIProductFinderModal = lazy(() => import('./components/ai/AIProductFinderModal').then(m => ({ default: m.AIProductFinderModal })));
+
+const PageLoader: React.FC = () => (
+  <div className="min-h-[60vh] flex items-center justify-center">
+    <div className="w-10 h-10 rounded-full border-4 border-blue-200 dark:border-slate-700 border-t-blue-600 animate-spin" />
+  </div>
+);
 
 const NotFound: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => (
   <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
@@ -430,7 +438,9 @@ export function App() {
       />
 
       <main id="main-content" className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
-        {renderRoute()}
+        <Suspense fallback={<PageLoader />}>
+          {renderRoute()}
+        </Suspense>
       </main>
 
       <Footer />
@@ -469,17 +479,25 @@ export function App() {
       </motion.div>
 
       {/* AI Assistant Drawer */}
-      <ChatbotDrawer
-        isOpen={isChatbotOpen}
-        onClose={() => setIsChatbotOpen(false)}
-        initialContextProduct={chatbotContextProduct}
-      />
+      {isChatbotOpen && (
+        <Suspense fallback={null}>
+          <ChatbotDrawer
+            isOpen={isChatbotOpen}
+            onClose={() => setIsChatbotOpen(false)}
+            initialContextProduct={chatbotContextProduct}
+          />
+        </Suspense>
+      )}
 
       {/* AI Product Finder Quiz Modal */}
-      <AIProductFinderModal
-        isOpen={isAiFinderOpen}
-        onClose={() => setIsAiFinderOpen(false)}
-      />
+      {isAiFinderOpen && (
+        <Suspense fallback={null}>
+          <AIProductFinderModal
+            isOpen={isAiFinderOpen}
+            onClose={() => setIsAiFinderOpen(false)}
+          />
+        </Suspense>
+      )}
 
       {/* Global Toast Notification System */}
       <ToastContainer />

@@ -1,12 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { Product } from '../../types';
 import { AffiliateCTA } from './AffiliateCTA';
-import { ProductSparkline } from '../product/ProductSparkline';
 import { PriceAlertModal } from '../product/PriceAlertModal';
 import { useAppStore, store } from '../../lib/store';
 import { toast } from '../../lib/toastStore';
 import { sanitizeHtml } from '../../lib/sanitize';
 import { proxyImageUrl } from '../../utils/safeRender';
+
+const ProductSparkline = lazy(() => import('../product/ProductSparkline').then(m => ({ default: m.ProductSparkline })));
+
+const Sparkline: React.FC<{ productId: string; currentPrice: number }> = ({ productId, currentPrice }) => (
+  <Suspense fallback={<div className="h-8" />}>
+    <ProductSparkline productId={productId} currentPrice={currentPrice} />
+  </Suspense>
+);
 
 interface ProductCardProps {
   product: Product;
@@ -180,7 +187,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
             {/* Price Movement Sparkline */}
             {product.currentPrice && (
-              <ProductSparkline productId={product.id} currentPrice={product.currentPrice} />
+              <Sparkline productId={product.id} currentPrice={product.currentPrice} />
             )}
 
             <div className="flex items-center gap-2">
@@ -340,7 +347,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {/* Sparkline Trend Chart */}
           {product.currentPrice && (
             <div className="pt-1 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <ProductSparkline productId={product.id} currentPrice={product.currentPrice} />
+              <Sparkline productId={product.id} currentPrice={product.currentPrice} />
               {onSelectCompare && (
                 <button
                   onClick={() => onSelectCompare(product.id)}
