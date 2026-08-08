@@ -12,8 +12,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Deploy to production
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: team_XBNSPwcit0xkWNJb8CpPq6na
           VERCEL_PROJECT_ID: prj_St3lzIAB1KNKuzhloL6Sah078ScG
-        run: npx vercel@54.4.1 --prod --yes --token "${{ secrets.VERCEL_TOKEN }}"
+          VERCEL_PROJECT_NAME: auracms-blog
+        run: node scripts/vercel-deploy.mjs
