@@ -28,6 +28,17 @@ const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage').then(
 const BrandsPage = lazy(() => import('./components/pages/BrandsPage'));
 const ChatbotDrawer = lazy(() => import('./components/ai/ChatbotDrawer').then(m => ({ default: m.ChatbotDrawer })));
 const AIProductFinderModal = lazy(() => import('./components/ai/AIProductFinderModal').then(m => ({ default: m.AIProductFinderModal })));
+const AboutPage = lazy(() => import('./components/pages/AboutPage'));
+const ContactPage = lazy(() => import('./components/pages/ContactPage'));
+const PortfolioPage = lazy(() => import('./components/pages/PortfolioPage'));
+const ServicesPage = lazy(() => import('./components/pages/ServicesPage'));
+const ServiceDetailPage = lazy(() => import('./components/pages/ServiceDetailPage'));
+const AdvertisePage = lazy(() => import('./components/pages/AdvertisePage'));
+const SubmitProductPage = lazy(() => import('./components/pages/SubmitProductPage'));
+const EditorialPolicyPage = lazy(() => import('./components/pages/ContentPages').then(m => ({ default: m.EditorialPolicyPage })));
+const AffiliateDisclosurePage = lazy(() => import('./components/pages/ContentPages').then(m => ({ default: m.AffiliateDisclosurePage })));
+const PrivacyPage = lazy(() => import('./components/pages/ContentPages').then(m => ({ default: m.PrivacyPage })));
+const TermsPage = lazy(() => import('./components/pages/ContentPages').then(m => ({ default: m.TermsPage })));
 
 const PageLoader: React.FC = () => (
   <div className="min-h-[60vh] flex items-center justify-center">
@@ -176,7 +187,7 @@ export function App() {
   const renderRoute = () => {
     // 404 fallback
     const validPaths = [
-      '/products', '/products/', '/categories', '/categories/', '/deals', '/compare', '/reviews', '/guides', '/wishlist', '/admin', '/account', '/login', '/contact', '/buyers-guide', '/buying-guides', '/portfolio', '/service', '/search', '/trending', '/best', '/brands', '/browse', '/product', '/post', '/about', '/privacy-policy', '/terms', '/affiliate-disclosure', '/recently-viewed', '/sitemap.xml', '/robots.txt', '/llms.txt'
+      '/products', '/products/', '/categories', '/categories/', '/deals', '/compare', '/reviews', '/guides', '/wishlist', '/admin', '/account', '/login', '/contact', '/buyers-guide', '/buying-guides', '/portfolio', '/service', '/services', '/services/', '/search', '/trending', '/best', '/brands', '/browse', '/product', '/post', '/about', '/privacy-policy', '/privacy', '/terms', '/affiliate-disclosure', '/editorial-policy', '/advertise', '/submit-product', '/recently-viewed', '/sitemap.xml', '/robots.txt', '/llms.txt'
     ];
     const isKnownRoute = validPaths.some(p => pathname === p || pathname.startsWith(p + '/'));
     if (!isKnownRoute && pathname !== '/') {
@@ -302,6 +313,66 @@ export function App() {
     // Brands Listing
     if (pathname === '/brands') {
       return <BrandsPage onNavigate={(route, params) => { window.history.pushState({}, '', route + (params || '')); window.dispatchEvent(new PopStateEvent('popstate')); }} />;
+    }
+
+    const nav = (route: string, params?: string) => { window.history.pushState({}, '', route + (params || '')); window.dispatchEvent(new PopStateEvent('popstate')); };
+
+    // About
+    if (pathname === '/about') {
+      return <AboutPage onNavigate={nav} />;
+    }
+
+    // Contact
+    if (pathname === '/contact' || pathname === '/contact/') {
+      return <ContactPage onNavigate={nav} />;
+    }
+
+    // Editorial policy
+    if (pathname === '/editorial-policy' || pathname === '/editorial-policy/') {
+      return <EditorialPolicyPage />;
+    }
+
+    // Affiliate disclosure
+    if (pathname === '/affiliate-disclosure' || pathname === '/affiliate-disclosure/') {
+      return <AffiliateDisclosurePage />;
+    }
+
+    // Privacy policy (support both /privacy and /privacy-policy)
+    if (pathname === '/privacy' || pathname === '/privacy-policy' || pathname === '/privacy-policy/') {
+      return <PrivacyPage />;
+    }
+
+    // Terms
+    if (pathname === '/terms' || pathname === '/terms/') {
+      return <TermsPage />;
+    }
+
+    // Portfolio listing
+    if (pathname === '/portfolio' || pathname === '/portfolio/' || pathname.startsWith('/portfolio/')) {
+      return <PortfolioPage onNavigate={nav} />;
+    }
+
+    // Services
+    if (pathname === '/service' || pathname === '/services' || pathname === '/services/') {
+      return <ServicesPage onNavigate={nav} />;
+    }
+    if (pathname.startsWith('/service/')) {
+      const slug = pathname.replace('/service/', '').split('/')[0];
+      return <ServiceDetailPage serviceSlug={slug} onNavigate={nav} />;
+    }
+    if (pathname.startsWith('/services/')) {
+      const slug = pathname.replace('/services/', '').split('/')[0];
+      return <ServiceDetailPage serviceSlug={slug} onNavigate={nav} />;
+    }
+
+    // Advertise
+    if (pathname === '/advertise') {
+      return <AdvertisePage onNavigate={nav} />;
+    }
+
+    // Submit product for review
+    if (pathname === '/submit-product') {
+      return <SubmitProductPage />;
     }
 
     // Admin Dashboard (Super Admin Panel — tab-based portal, all panels under one roof)
