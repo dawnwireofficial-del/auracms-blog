@@ -191,7 +191,7 @@ export default function ProductArticlesManager({ token }: { token: string }) {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           {r.product_image ? (
-                            <img src={proxyImageUrl(r.product_image)} alt="" className="w-10 h-10 rounded-lg object-contain bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" referrerPolicy="no-referrer" />
+                            <img src={proxyImageUrl(r.product_image)} alt="" className="w-10 h-10 rounded-lg object-contain bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700" referrerPolicy="no-referrer" />
                           ) : (
                             <div className="w-10 h-10 rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-400"><FileText className="w-4 h-4" /></div>
                           )}

@@ -72,7 +72,7 @@ export const ReviewsPage: React.FC = () => {
             {reviews.map((p) => (
               <a key={p.id} href={`/products/${p.slug}`} className="group bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all">
                 {p.images?.[0] && (
-                  <div className="aspect-square bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <div className="aspect-square bg-white dark:bg-slate-800 overflow-hidden">
                     <img src={proxyImageUrl(p.images[0])} alt={p.productName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                   </div>
                 )}
@@ -186,7 +186,7 @@ export const BuyingGuidesPage: React.FC = () => {
               {guides.map((guide) => (
                 <a key={guide.id} href={`/post/${guide.slug}`} className="group bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all">
                   {guide.featuredImage && (
-                    <div className="aspect-video bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                    <div className="aspect-video bg-white dark:bg-slate-800 overflow-hidden">
                       <img src={proxyImageUrl(guide.featuredImage)} alt={guide.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                     </div>
                   )}

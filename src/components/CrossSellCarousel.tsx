@@ -61,7 +61,7 @@ export default function CrossSellCarousel({ products, currentId, onNavigate }: C
               className="min-w-[220px] w-[220px] bg-white dark:bg-zinc-800/50 rounded-xl border border-slate-200 dark:border-zinc-700 p-4 hover:shadow-md hover:border-[#246BFF]/30 transition-all shrink-0"
             >
               {p.product_image && (
-                <div className="w-full h-28 bg-slate-50 dark:bg-zinc-900 rounded-lg mb-3 p-3 border border-slate-100 dark:border-zinc-700/50 overflow-hidden">
+                <div className="w-full h-28 bg-white dark:bg-zinc-900 rounded-lg mb-3 p-3 border border-slate-100 dark:border-zinc-700/50 overflow-hidden">
                   <img src={proxyImageUrl(p.product_image)} alt={p.product_name} className="w-full h-full object-contain" loading="lazy" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 </div>
               )}

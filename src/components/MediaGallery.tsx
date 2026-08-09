@@ -62,7 +62,7 @@ export default function MediaGallery({ items, onDelete, onUpload }: Props) {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {filtered.map(item => (
             <div key={item.id} className="group relative bg-white dark:bg-zinc-800/50 rounded-xl border border-slate-100 dark:border-zinc-700/50 shadow-sm overflow-hidden hover:shadow-md transition-all">
-              <div className="aspect-square bg-slate-50 dark:bg-zinc-900 relative">
+              <div className="aspect-square bg-white dark:bg-zinc-900 relative">
                 <img
                   src={item.url}
                   alt={item.altText || item.fileName || 'Media'}

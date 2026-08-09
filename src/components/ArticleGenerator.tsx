@@ -586,7 +586,7 @@ export default function ArticleGenerator({ token }: { token: string }) {
 
               {editImage ? (
                 <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
-                  <img src={proxyImageUrl(editImage)} alt={editImageAlt} className="w-full h-44 object-contain bg-slate-50 dark:bg-slate-950" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  <img src={proxyImageUrl(editImage)} alt={editImageAlt} className="w-full h-44 object-contain bg-white dark:bg-slate-950" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   <button onClick={() => setEditImage('')} className="absolute top-2 right-2 p-1.5 rounded-lg bg-slate-950/70 text-white hover:bg-slate-950" title="Remove image"><X className="w-3.5 h-3.5" /></button>
                 </div>
               ) : (
@@ -689,7 +689,7 @@ export default function ArticleGenerator({ token }: { token: string }) {
               <div className="p-6">
                 <h1 className="font-display text-3xl font-bold text-slate-900 dark:text-white mb-2">{editTitle}</h1>
                 {editImage && (
-                  <img src={proxyImageUrl(editImage)} alt={editImageAlt} className="w-full h-64 object-contain bg-slate-50 dark:bg-slate-950 my-4 rounded-xl border border-slate-200 dark:border-slate-700" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  <img src={proxyImageUrl(editImage)} alt={editImageAlt} className="w-full h-64 object-contain bg-white dark:bg-slate-950 my-4 rounded-xl border border-slate-200 dark:border-slate-700" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 )}
                 {editExcerpt && <p className="text-sm text-slate-500 dark:text-zinc-400 italic mb-4">{editExcerpt}</p>}
                 <div className="markdown-body space-y-4">
@@ -914,7 +914,7 @@ export default function ArticleGenerator({ token }: { token: string }) {
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       {p.product_image ? (
-                        <img src={proxyImageUrl(p.product_image)} alt="" className="w-14 h-14 rounded-lg object-contain bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                        <img src={proxyImageUrl(p.product_image)} alt="" className="w-14 h-14 rounded-lg object-contain bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                       ) : (
                         <div className="w-14 h-14 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400"><Package className="w-5 h-5" /></div>
                       )}

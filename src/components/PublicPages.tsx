@@ -1027,7 +1027,7 @@ export default function PublicPages({
                     || (p.reviewSummary || '').toLowerCase().includes(q);
                 }).map((p: any) => (
                   <button key={p.id} onClick={() => onNavigate('product', p.slug)} className="bg-white dark:bg-zinc-800/50 rounded-xl border border-slate-100 dark:border-zinc-700/50 p-3 hover:shadow-md transition-shadow text-left">
-                    <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 dark:bg-zinc-900 mb-2">
+                    <div className="aspect-square rounded-lg overflow-hidden bg-white dark:bg-zinc-900 mb-2">
                       {p.productImage ? <img src={proxyImageUrl(p.productImage)} alt={p.productName} referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-full h-full object-contain p-2" /> : <div className="w-full h-full flex items-center justify-center text-slate-300 text-xs">No img</div>}
                     </div>
                     <p className="text-xs font-semibold text-slate-700 dark:text-zinc-200 line-clamp-2">{p.productName}</p>

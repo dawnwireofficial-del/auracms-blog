@@ -163,7 +163,7 @@ function RecentlyViewed({ onNavigate }: { onNavigate: (route: string, param?: st
       <div className="flex gap-3 overflow-x-auto pb-2">
         {items.map((item: any, i: number) => (
           <button key={i} onClick={() => onNavigate('review', item.slug || item.id)} className="shrink-0 w-28 group text-left">
-            <div className="aspect-square rounded-xl overflow-hidden bg-slate-100 dark:bg-zinc-950/30 border border-slate-200 dark:border-zinc-700/50 mb-2">
+            <div className="aspect-square rounded-xl overflow-hidden bg-white dark:bg-zinc-950/30 border border-slate-200 dark:border-zinc-700/50 mb-2">
               {item.image && <img src={proxyImageUrl(item.image)} alt="" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />}
             </div>
             <p className="text-[10px] font-bold text-slate-800 dark:text-zinc-100 truncate">{item.name}</p>
@@ -549,7 +549,7 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
                 <ImageZoom
                   src={activeImage}
                   alt={review.product_name}
-                  className="w-full max-h-[400px] object-contain rounded-xl bg-slate-50 dark:bg-zinc-950/40"
+                  className="w-full max-h-[400px] object-contain rounded-xl bg-white dark:bg-zinc-950/40"
                   containerClassName="rounded-xl"
                 />
                 <div className="absolute top-3 right-3 bg-black/50 text-white text-[10px] px-2.5 py-1 rounded-full backdrop-blur-sm">🔍 {gallery.length} photos</div>
@@ -1107,7 +1107,7 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
       >
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            {review.product_image && <img src={proxyImageUrl(review.product_image)} alt="" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-10 h-10 rounded-lg object-cover bg-slate-100 shrink-0" loading="lazy" />}
+            {review.product_image && <img src={proxyImageUrl(review.product_image)} alt="" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-10 h-10 rounded-lg object-cover bg-white dark:bg-slate-900 shrink-0" loading="lazy" />}
             <div className="min-w-0">
               <p className="text-sm font-bold text-slate-800 dark:text-zinc-100 truncate">{review.product_name}</p>
               <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-zinc-400">

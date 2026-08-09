@@ -123,7 +123,7 @@ export default function BuyerGuidePage({ category, onNavigate }: BuyerGuidePageP
                 className="bg-white dark:bg-zinc-800/50 rounded-xl border border-slate-200 dark:border-zinc-700 overflow-hidden hover:shadow-lg hover:border-[#246BFF]/20 transition-all group"
               >
                 {p.product_image && (
-                  <div className="h-44 bg-slate-50 dark:bg-zinc-900 p-6 border-b border-slate-100 dark:border-zinc-700/50">
+                  <div className="h-44 bg-white dark:bg-zinc-900 p-6 border-b border-slate-100 dark:border-zinc-700/50">
                     <img src={proxyImageUrl(p.product_image)} alt={p.product_name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" loading="lazy" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   </div>
                 )}

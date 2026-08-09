@@ -129,7 +129,7 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
           {/* Left: Image Gallery */}
           <div>
-            <div className="relative aspect-square glass-panel rounded-xl overflow-hidden shadow-lg border border-brand-secondary/20 hover:border-brand-secondary/40 transition-all flex items-center justify-center bg-white/5">
+            <div className="relative aspect-square glass-panel rounded-xl overflow-hidden shadow-lg border border-brand-secondary/20 hover:border-brand-secondary/40 transition-all flex items-center justify-center bg-white">
               <ProductSpotlight />
               {images.length > 0 ? (
                 brokenImages.has(activeImage) ? (

@@ -460,7 +460,7 @@ export default function PublicProductsPage({ onNavigate }: PublicProductsPagePro
                   {/* Image */}
                   <div
                     onClick={() => onNavigate('review', review.slug || review.id)}
-                    className="aspect-square bg-slate-50 dark:bg-slate-900/30 relative overflow-hidden cursor-pointer"
+                    className="aspect-square bg-white dark:bg-slate-900/30 relative overflow-hidden cursor-pointer"
                   >
                     {review.productImage ? (
                       <img src={proxyImageUrl(review.productImage)} alt={review.productName} className="w-full h-full object-contain p-6 group-hover:scale-110 transition-transform duration-500" loading="lazy" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />

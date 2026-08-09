@@ -238,7 +238,7 @@ export default function LinkImporterPanel() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="space-y-4">
-              <div className="aspect-square rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 flex items-center justify-center">
+              <div className="aspect-square rounded-2xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 flex items-center justify-center">
                 <img
                   src={proxyImageUrl(extractedPreview.images?.[0] || '')}
                   alt={extractedPreview.title}

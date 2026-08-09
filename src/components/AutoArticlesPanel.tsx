@@ -415,7 +415,7 @@ export default function AutoArticlesPanel({ token }: { token: string }) {
                   <div key={r.productId + '-' + i} className="px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       {r.productImage ? (
-                        <img src={proxyImageUrl(r.productImage)} alt="" className="w-12 h-12 rounded-xl object-contain bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                        <img src={proxyImageUrl(r.productImage)} alt="" className="w-12 h-12 rounded-xl object-contain bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                       ) : (
                         <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400"><Package className="w-5 h-5" /></div>
                       )}
@@ -432,9 +432,9 @@ export default function AutoArticlesPanel({ token }: { token: string }) {
                       </div>
                     </div>
                     {r.featuredImage ? (
-                      <img src={proxyImageUrl(r.featuredImage)} alt="" className="w-16 h-16 rounded-xl object-cover bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      <img src={proxyImageUrl(r.featuredImage)} alt="" className="w-16 h-16 rounded-xl object-cover bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                     ) : (
-                      <div className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400"><ImageIcon className="w-5 h-5" /></div>
+                      <div className="w-16 h-16 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center text-slate-400"><ImageIcon className="w-5 h-5" /></div>
                     )}
                     <div className="flex items-center gap-2">
                       {r.slug && (

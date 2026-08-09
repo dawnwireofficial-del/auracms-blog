@@ -129,7 +129,7 @@ export default function CustomerAccountPage({ currentUser, onNavigate, onOpenLog
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {wishlist.map(item => (
                         <div key={item.id} className="p-4 rounded-xl border border-slate-100 dark:border-zinc-800 hover:border-[#246BFF]/30 transition-all cursor-pointer group" onClick={() => onNavigate('product', item.slug || item.productId)}>
-                           {item.productImage && <img src={proxyImageUrl(item.productImage)} referrerPolicy="no-referrer" className="w-full h-32 object-contain mb-4 rounded-lg bg-slate-50 dark:bg-zinc-950 p-2 mix-blend-multiply dark:mix-blend-normal" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
+                           {item.productImage && <img src={proxyImageUrl(item.productImage)} referrerPolicy="no-referrer" className="w-full h-32 object-contain mb-4 rounded-lg bg-white dark:bg-zinc-950 p-2 mix-blend-multiply dark:mix-blend-normal" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
                            <h3 className="font-bold text-sm text-slate-800 dark:text-zinc-200 line-clamp-2 mb-2 group-hover:text-[#246BFF] transition-colors">{item.productName}</h3>
                            <div className="flex justify-between items-center text-xs">
                              <span className="font-semibold text-slate-900 dark:text-white">{item.price}</span>
@@ -154,7 +154,7 @@ export default function CustomerAccountPage({ currentUser, onNavigate, onOpenLog
                       {history.map(item => (
                         <div key={item.id} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-all cursor-pointer" onClick={() => onNavigate('product', item.slug || item.productId)}>
                            {item.productImage ? (
-                              <img src={proxyImageUrl(item.productImage)} referrerPolicy="no-referrer" className="w-16 h-16 object-contain rounded-lg bg-slate-100 dark:bg-zinc-950 p-1 mix-blend-multiply dark:mix-blend-normal" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                              <img src={proxyImageUrl(item.productImage)} referrerPolicy="no-referrer" className="w-16 h-16 object-contain rounded-lg bg-white dark:bg-zinc-950 p-1 mix-blend-multiply dark:mix-blend-normal" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                             ) : (
                              <div className="w-16 h-16 rounded-lg bg-slate-100 dark:bg-zinc-900 flex items-center justify-center text-slate-400"><ShoppingBag className="h-6 w-6" /></div>
                            )}

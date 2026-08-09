@@ -64,7 +64,7 @@ export default function DynamicHomepageSections({ onNavigate }: { onNavigate: (r
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-5">
                 {products.slice(0, section.settings?.limit || 10).map((p: any) => (
                   <div key={p.id || p.slug} onClick={() => onNavigate('product', p.slug)} className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col h-full">
-                    <div className="aspect-square rounded-xl overflow-hidden bg-gray-50 mb-4 relative flex items-center justify-center p-2">
+                    <div className="aspect-square rounded-xl overflow-hidden bg-white dark:bg-white/5 mb-4 relative flex items-center justify-center p-2">
                       {p.image_url ? <img src={proxyImageUrl(p.image_url)} alt={p.product_name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} /> : <div className="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">No img</div>}
                       {p.original_price && (
                         <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">

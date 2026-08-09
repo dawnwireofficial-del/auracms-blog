@@ -492,7 +492,7 @@ export default function SeoDashboard({ token, baseUrl }: SeoDashboardProps) {
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="flex -space-x-2 shrink-0">
                   {allImgs.slice(0, 3).map((img, i) => (
-                    <img key={i} src={proxyImageUrl(img)} alt="" className={`w-8 h-8 rounded-lg object-cover bg-slate-100 border-2 border-white ${i > 0 ? '-ml-2' : ''}`} referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    <img key={i} src={proxyImageUrl(img)} alt="" className={`w-8 h-8 rounded-lg object-cover bg-white border-2 border-white ${i > 0 ? '-ml-2' : ''}`} referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   ))}
                   {allImgs.length > 3 && <div className="w-8 h-8 rounded-lg bg-slate-100 border-2 border-white -ml-2 flex items-center justify-center text-[9px] font-bold text-slate-400">+{allImgs.length - 3}</div>}
                   {allImgs.length === 0 && <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-[9px] text-slate-300">No img</div>}

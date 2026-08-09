@@ -1053,7 +1053,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Left Column: Image & Pricing */}
                   <div className="space-y-4">
-                    <div className="aspect-square rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 flex items-center justify-center">
+                    <div className="aspect-square rounded-2xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 flex items-center justify-center">
                       <img
                         src={proxyImageUrl(extractedPreview.images?.[0] || (extractedPreview as any).mainImage || (extractedPreview as any).imageUrl || (extractedPreview as any).productImage || '')}
                         alt={extractedPreview.title}
@@ -1691,7 +1691,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                   {filteredProducts.map((p) => (
                     <tr key={p.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
                       <td className="p-4 font-bold flex items-center gap-3">
-                        <img src={proxyImageUrl(p.images?.[0] || (p as any).mainImage || (p as any).imageUrl || (p as any).productImage || '')} alt="" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-10 h-10 object-contain rounded-lg bg-slate-100 dark:bg-slate-800 p-1" />
+                        <img src={proxyImageUrl(p.images?.[0] || (p as any).mainImage || (p as any).imageUrl || (p as any).productImage || '')} alt="" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-10 h-10 object-contain rounded-lg bg-white dark:bg-slate-800 p-1" />
                         <div>
                           <div className="text-slate-900 dark:text-slate-100 line-clamp-1">{p.title}</div>
                           <div className="text-[10px] text-slate-400">{p.brand} {p.isDeal && <span className="text-orange-500 font-black ml-1">[HOT DEAL]</span>}</div>

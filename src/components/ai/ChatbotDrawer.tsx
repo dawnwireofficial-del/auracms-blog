@@ -169,7 +169,7 @@ export const ChatbotDrawer: React.FC<ChatbotDrawerProps> = ({
                       <img
                         src={proxyImageUrl(prod.images[0])}
                         alt={prod.title}
-                        className="w-16 h-16 object-contain rounded-lg bg-slate-50 dark:bg-slate-900 p-1 shrink-0"
+                        className="w-16 h-16 object-contain rounded-lg bg-white dark:bg-slate-900 p-1 shrink-0"
                         referrerPolicy="no-referrer"
                         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       />

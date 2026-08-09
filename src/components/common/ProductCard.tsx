@@ -76,7 +76,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     return (
       <div data-gravity-cursor="view" className="group relative flex flex-col md:flex-row bg-white dark:bg-dw-card rounded-[18px] border border-dw-border-soft/50 hover:border-dw-border shadow-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 overflow-hidden">
         {/* Image Container */}
-        <div className="relative w-full md:w-64 h-52 md:h-auto shrink-0 bg-slate-50 dark:bg-dw-section p-4 flex items-center justify-center overflow-hidden">
+        <div className="relative w-full md:w-64 h-52 md:h-auto shrink-0 bg-white dark:bg-dw-section p-4 flex items-center justify-center overflow-hidden">
           <img
             src={proxyImageUrl(product.images?.[0] || product.productImage) || 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f1f5f9"/><text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">No image</text></svg>')}
             alt={product.title}
@@ -283,7 +283,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </div>
 
       {/* Image */}
-      <a href={`/products/${product.slug}`} className="relative h-56 bg-slate-50/80 dark:bg-[#030712]/60 p-6 flex items-center justify-center overflow-hidden border-b border-slate-200/60 dark:border-blue-500/10">
+      <a href={`/products/${product.slug}`} className="relative h-56 bg-white dark:bg-[#030712]/60 p-6 flex items-center justify-center overflow-hidden border-b border-slate-200/60 dark:border-blue-500/10">
         <img
           src={proxyImageUrl(product.images?.[0] || product.productImage) || 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f1f5f9"/><text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">No image</text></svg>')}
           alt={product.title}

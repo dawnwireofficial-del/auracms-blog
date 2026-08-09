@@ -425,7 +425,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
                                 src={proxyImageUrl(p.images?.[0]) || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100'}
                                 alt={p.title}
                                 referrerPolicy="no-referrer"
-                                className="w-10 h-10 object-contain rounded-lg bg-slate-50 dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700 shrink-0"
+                                className="w-10 h-10 object-contain rounded-lg bg-white dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700 shrink-0"
                                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                               />
                               <div className="min-w-0">

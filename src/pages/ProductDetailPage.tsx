@@ -458,7 +458,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       <div id="section-overview" className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Col: Interactive Image Gallery with Zoom & Lightbox Trigger */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="relative group bg-slate-900/90 rounded-3xl p-6 border border-blue-500/30 shadow-2xl shadow-blue-950/40 flex flex-col items-center justify-center h-96 overflow-hidden">
+          <div className="relative group bg-white dark:bg-slate-900/90 rounded-3xl p-6 border border-slate-200 dark:border-blue-500/30 shadow-2xl shadow-blue-950/40 flex flex-col items-center justify-center h-96 overflow-hidden">
             <img
               src={proxyImageUrl(allImportedImages[selectedImageIndex])}
               alt={`${product.title} angle ${selectedImageIndex + 1}`}
@@ -1055,7 +1055,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   <button
                     key={idx}
                     onClick={() => { setSelectedImageIndex(idx); setIsLightboxOpen(true); }}
-                    className="relative w-20 h-20 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-1.5 border border-slate-200 dark:border-slate-700 shrink-0 hover:ring-2 hover:ring-blue-500/40 transition-all overflow-hidden"
+                    className="relative w-20 h-20 rounded-2xl bg-white dark:bg-slate-800/60 p-1.5 border border-slate-200 dark:border-slate-700 shrink-0 hover:ring-2 hover:ring-blue-500/40 transition-all overflow-hidden"
                   >
                     <img src={proxyImageUrl(img)} alt={`${product.title} image ${idx + 1}`} className="w-full h-full object-contain" referrerPolicy="no-referrer" loading="lazy" decoding="async" onError={(e) => { const t = e.currentTarget; if (t.src.includes('/api/public/image-proxy')) { const m = t.src.match(/url=([^&]+)/); if (m) t.src = decodeURIComponent(m[1]); } else { t.style.display = 'none'; } }} />
                     <span className="absolute bottom-0.5 right-0.5 bg-slate-900/80 text-white text-[9px] px-1 rounded font-bold">#{idx + 1}</span>
@@ -1305,7 +1305,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 <img
                   src={proxyImageUrl(allImportedImages[0])}
                   alt=""
-                  className="w-12 h-12 rounded-xl object-contain bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0"
+                  className="w-12 h-12 rounded-xl object-contain bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0"
                   referrerPolicy="no-referrer"
                   loading="lazy"
                   decoding="async"
