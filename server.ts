@@ -3,6 +3,9 @@ import path from 'path';
 import fs from 'fs';
 import express from 'express';
 import { renderHomePageHtml } from './server/ssr/home';
+import { renderProductPageHtml } from './server/ssr/product';
+import { renderCategoryPageHtml } from './server/ssr/category';
+import { renderPostPageHtml } from './server/ssr/post';
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const isProduction = process.env.NODE_ENV === 'production';
@@ -15,22 +18,36 @@ if (!process.env.AI_GATEWAY_API_KEY && !process.env.COHERE_API_KEY) {
 }
 
 // Static assets
-// Server-render the homepage before the static middleware so crawlers receive
+// Server-render dynamic pages before the static middleware so crawlers receive
 // semantic HTML (H1, headings, editorial copy, internal links) in the raw
 // response instead of the empty JS shell. The client React app hydrates over it.
-app.get('/', async (req, res, next) => {
+function serveSsr(render: () => Promise<string | null>, res: express.Response, next: express.NextFunction) {
   const indexPath = path.join(distPath, 'index.html');
   if (!fs.existsSync(indexPath)) return next();
-  let ssrBody = '';
-  try {
-    ssrBody = await renderHomePageHtml();
-  } catch (e) {
-    console.error('[SSR] homepage render failed:', e);
-  }
-  const html = fs.readFileSync(indexPath, 'utf8');
-  res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=900, stale-while-revalidate=300');
-  return res.type('html').send(html.replace('<div id="root"></div>', `<div id="root">${ssrBody}</div>`));
-});
+  (async () => {
+    let ssrBody = '';
+    try {
+      ssrBody = (await render()) || '';
+    } catch (e) {
+      console.error('[SSR] render failed:', e);
+    }
+    if (!ssrBody) return next();
+    const html = fs.readFileSync(indexPath, 'utf8');
+    res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=900, stale-while-revalidate=300');
+    return res.type('html').send(html.replace('<div id="root"></div>', `<div id="root">${ssrBody}</div>`));
+  })().catch(next);
+}
+
+app.get('/', (req, res, next) => serveSsr(renderHomePageHtml, res, next));
+
+// Product review detail pages (/products/:slug and legacy /product/:slug)
+app.get('/products/:slug', (req, res, next) => serveSsr(() => renderProductPageHtml(req.params.slug), res, next));
+
+// Category landing pages (/categories/:slug)
+app.get('/categories/:slug', (req, res, next) => serveSsr(() => renderCategoryPageHtml(req.params.slug), res, next));
+
+// Editorial post pages (/post/:slug)
+app.get('/post/:slug', (req, res, next) => serveSsr(() => renderPostPageHtml(req.params.slug), res, next));
 
 app.use(express.static(distPath));
 
