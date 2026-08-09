@@ -111,10 +111,10 @@ export const ChatbotDrawer: React.FC<ChatbotDrawerProps> = ({
               <HeroChatbotIllustration className="w-8 h-8" />
             </div>
             <div>
-              <h3 className="font-black text-sm tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-cyan-200">DawnWire AI Assistant</h3>
+              <h3 className="font-black text-sm tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-orange-200">DawnWire AI Assistant</h3>
               <p className="text-[11px] text-blue-200/90 flex items-center gap-1.5 font-medium">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                Powered by Gemini • Live Amazon Data
+                <span className="w-2 h-2 rounded-full bg-dw-orange animate-pulse" />
+                Ask Dawnwire AI • Live Amazon Data
               </p>
             </div>
           </div>
@@ -148,7 +148,7 @@ export const ChatbotDrawer: React.FC<ChatbotDrawerProps> = ({
               <div
                 className={`max-w-[88%] p-3.5 rounded-2xl text-xs leading-relaxed shadow-md ${
                   msg.sender === 'user'
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-br-none shadow-blue-500/20'
+                    ? 'bg-gradient-to-r from-dw-navy to-dw-blue text-white rounded-br-none shadow-dw-blue/20'
                     : 'bg-white dark:bg-[#071426] text-slate-900 dark:text-slate-100 border border-slate-200/80 dark:border-blue-500/20 rounded-bl-none'
                 }`}
               >

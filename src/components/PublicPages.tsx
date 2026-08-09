@@ -587,7 +587,7 @@ export default function PublicPages({
               datePublished: activePost.publishedAt || activePost.createdAt,
               dateModified: activePost.updatedAt || activePost.createdAt,
               author: activePost.authorId ? { '@type': 'Person', name: 'Author' } : { '@type': 'Organization', name: settings?.siteName || 'DawnWire' },
-              publisher: { '@type': 'Organization', name: settings?.siteName || 'DawnWire', logo: { '@type': 'ImageObject', url: settings?.logoUrl || '/logo.png' } },
+              publisher: { '@type': 'Organization', name: settings?.siteName || 'DawnWire', logo: { '@type': 'ImageObject', url: settings?.logoUrl || '/logo/logo-transparent.png' } },
               mainEntityOfPage: { '@type': 'WebPage', '@id': typeof window !== 'undefined' ? window.location.origin + '/post/' + activePost.slug : undefined },
             }]}
             breadcrumbs={[

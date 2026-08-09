@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface GradientDividerProps {
-  variant?: 'blue-violet' | 'cyan-blue' | 'subtle';
+  variant?: 'blue-violet' | 'cyan-blue' | 'blue-orange' | 'subtle';
   className?: string;
 }
 
@@ -12,6 +12,7 @@ export const GradientDivider: React.FC<GradientDividerProps> = ({
   const gradientClasses = {
     'blue-violet': 'from-transparent via-blue-500/40 to-transparent',
     'cyan-blue': 'from-transparent via-cyan-400/40 to-transparent',
+    'blue-orange': 'from-transparent via-dw-blue/50 to-transparent',
     'subtle': 'from-transparent via-slate-700/50 to-transparent'
   };
 

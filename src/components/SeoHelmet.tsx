@@ -57,7 +57,7 @@ export default function SeoHelmet({
   const fullTitle = title ? `${title} | ${name}` : defaultTitle;
   const fullDesc = description || defaultDescription;
   const fullUrl = canonical || baseUrl;
-  const imgUrl = ogImage || logoUrl || `${baseUrl}/logo.png`;
+  const imgUrl = ogImage || logoUrl || `${baseUrl}/logo/logo-transparent.png`;
 
   const schemas: Record<string, any>[] = [];
 

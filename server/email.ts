@@ -31,7 +31,7 @@ export async function sendWelcomeEmail(email: string, name: string): Promise<boo
       html: `
         <div style="font-family: Inter, system-ui, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #0A1F44; border-radius: 24px; color: #e2e8f0;">
           <div style="text-align: center; margin-bottom: 24px;">
-            <div style="display: inline-block; background: #246BFF; width: 48px; height: 48px; border-radius: 14px; line-height: 48px; font-size: 22px; font-weight: 900; color: white;">DW</div>
+            <div style="display: inline-block; background: linear-gradient(135deg, #0A1F44, #246BFF); border: 1px solid #FF8A00; width: 48px; height: 48px; border-radius: 14px; line-height: 48px; font-size: 22px; font-weight: 900; color: white;">DW</div>
           </div>
           <h1 style="font-size: 20px; font-weight: 700; color: #f8fafc; margin: 0 0 8px;">Welcome, ${name}!</h1>
           <p style="font-size: 14px; line-height: 1.6; color: #94a3b8; margin: 0 0 24px;">
@@ -46,7 +46,7 @@ export async function sendWelcomeEmail(email: string, name: string): Promise<boo
             </ul>
           </div>
           <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0;">
-            DawnWire &mdash; Technology that helps businesses grow.
+            DawnWire &mdash; Discover. Compare. Buy Smart.
           </p>
         </div>
       `
@@ -69,7 +69,7 @@ export async function sendContactNotification(name: string, email: string, subje
       html: `
         <div style="font-family: Inter, system-ui, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #0A1F44; border-radius: 24px; color: #e2e8f0;">
           <div style="text-align: center; margin-bottom: 16px;">
-            <div style="display: inline-block; background: #246BFF; width: 40px; height: 40px; border-radius: 14px; line-height: 40px; font-size: 18px; font-weight: 900; color: white;">DW</div>
+            <div style="display: inline-block; background: linear-gradient(135deg, #0A1F44, #246BFF); border: 1px solid #FF8A00; width: 40px; height: 40px; border-radius: 14px; line-height: 40px; font-size: 18px; font-weight: 900; color: white;">DW</div>
           </div>
           <h1 style="font-size: 18px; font-weight: 700; color: #f8fafc; margin: 0 0 16px;">New Contact Inquiry</h1>
           <table style="font-size: 13px; color: #94a3b8; width: 100%; border-collapse: collapse;">
@@ -101,7 +101,7 @@ export async function sendCommentNotification(postTitle: string, commenterName: 
       html: `
         <div style="font-family: Inter, system-ui, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #0A1F44; border-radius: 24px; color: #e2e8f0;">
           <div style="text-align: center; margin-bottom: 16px;">
-            <div style="display: inline-block; background: #246BFF; width: 40px; height: 40px; border-radius: 14px; line-height: 40px; font-size: 18px; font-weight: 900; color: white;">DW</div>
+            <div style="display: inline-block; background: linear-gradient(135deg, #0A1F44, #246BFF); border: 1px solid #FF8A00; width: 40px; height: 40px; border-radius: 14px; line-height: 40px; font-size: 18px; font-weight: 900; color: white;">DW</div>
           </div>
           <h1 style="font-size: 18px; font-weight: 700; color: #f8fafc; margin: 0 0 8px;">New Comment</h1>
           <p style="font-size: 13px; color: #94a3b8; margin: 0 0 16px;">
@@ -110,7 +110,7 @@ export async function sendCommentNotification(postTitle: string, commenterName: 
           <div style="background: #08152E; border-radius: 14px; padding: 16px; margin-bottom: 16px;">
             <p style="font-size: 13px; color: #e2e8f0; margin: 0; line-height: 1.6; font-style: italic;">"${commentContent}"</p>
           </div>
-          ${postUrl ? `<a href="${postUrl}" style="display: inline-block; background: #246BFF; color: white; font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 14px; text-decoration: none;">View Comment</a>` : ''}
+          ${postUrl ? `<a href="${postUrl}" style="display: inline-block; background: linear-gradient(135deg, #246BFF, #FF8A00); color: white; font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 14px; text-decoration: none;">View Comment</a>` : ''}
         </div>
       `
     });
@@ -156,14 +156,14 @@ export async function sendPriceDropAlertEmail(email: string, productName: string
       html: `
         <div style="font-family: Inter, system-ui, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #0A1F44; border-radius: 24px; color: #e2e8f0;">
           <div style="text-align: center; margin-bottom: 24px;">
-            <div style="display: inline-block; background: #10b981; width: 48px; height: 48px; border-radius: 14px; line-height: 48px; font-size: 22px; font-weight: 900; color: white;">$</div>
+            <div style="display: inline-block; background: linear-gradient(135deg, #0A1F44, #246BFF); border: 1px solid #FF8A00; width: 48px; height: 48px; border-radius: 14px; line-height: 48px; font-size: 22px; font-weight: 900; color: white;">$</div>
           </div>
           <h1 style="font-size: 20px; font-weight: 700; color: #f8fafc; margin: 0 0 8px;">Great news! The price dropped.</h1>
           <p style="font-size: 14px; line-height: 1.6; color: #94a3b8; margin: 0 0 24px;">
             The item you've been watching, <strong>${productName}</strong>, has just dropped in price from $${oldPrice} to <strong>$${newPrice}</strong>.
           </p>
           <div style="text-align: center; margin-top: 32px; margin-bottom: 32px;">
-            <a href="${productUrl}" style="display: inline-block; background: #246BFF; color: white; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 600; font-size: 14px;">View Deal Now</a>
+            <a href="${productUrl}" style="display: inline-block; background: linear-gradient(135deg, #246BFF, #FF8A00); color: white; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 600; font-size: 14px;">View Deal Now</a>
           </div>
           <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0;">
             DawnWire — Never miss a great deal again.
@@ -189,14 +189,14 @@ export async function sendPriceIncreaseAlertEmail(email: string, productName: st
       html: `
         <div style="font-family: Inter, system-ui, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #0A1F44; border-radius: 24px; color: #e2e8f0;">
           <div style="text-align: center; margin-bottom: 24px;">
-            <div style="display: inline-block; background: #f59e0b; width: 48px; height: 48px; border-radius: 14px; line-height: 48px; font-size: 22px; font-weight: 900; color: white;">$</div>
+            <div style="display: inline-block; background: linear-gradient(135deg, #0A1F44, #246BFF); border: 1px solid #FF8A00; width: 48px; height: 48px; border-radius: 14px; line-height: 48px; font-size: 22px; font-weight: 900; color: white;">$</div>
           </div>
           <h1 style="font-size: 20px; font-weight: 700; color: #f8fafc; margin: 0 0 8px;">Price update: ${productName}</h1>
           <p style="font-size: 14px; line-height: 1.6; color: #94a3b8; margin: 0 0 24px;">
             The item you've been watching, <strong>${productName}</strong>, is now <strong>$${newPrice}</strong> (was $${oldPrice}). We'll keep watching it and let you know about any future price drops.
           </p>
           <div style="text-align: center; margin-top: 32px; margin-bottom: 32px;">
-            <a href="${productUrl}" style="display: inline-block; background: #246BFF; color: white; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 600; font-size: 14px;">View Product</a>
+            <a href="${productUrl}" style="display: inline-block; background: linear-gradient(135deg, #246BFF, #FF8A00); color: white; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 600; font-size: 14px;">View Product</a>
           </div>
           <p style="font-size: 12px; color: #64748b; text-align: center; margin: 0;">
             DawnWire — Never miss a great deal again.

@@ -237,7 +237,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
       </div>
 
       {/* Main Header Row */}
-      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
         {/* Logo */}
         <div className="shrink-0">
           <DawnWireLogo />
@@ -482,7 +482,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
           {onOpenAiFinder && (
             <button
               onClick={onOpenAiFinder}
-              className="hidden sm:flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 border border-indigo-400/30"
+              className="hidden sm:flex items-center gap-1.5 bg-gradient-to-r from-dw-navy to-dw-blue hover:from-dw-blue-700 hover:to-dw-blue-600 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md shadow-dw-blue/30 border border-dw-blue/40"
             >
               <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -495,12 +495,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
           {onOpenChatbot && (
             <button
               onClick={onOpenChatbot}
-              className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md shadow-orange-500/20"
+              className="flex items-center gap-1.5 bg-gradient-to-r from-dw-blue to-dw-orange hover:from-dw-blue-600 hover:to-orange-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md shadow-dw-orange/25"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
               </svg>
-              <span className="hidden md:inline">Ask AI</span>
+              <span className="hidden md:inline">Ask Dawnwire AI</span>
             </button>
           )}
 

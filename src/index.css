@@ -62,6 +62,10 @@
   --color-dw-border-soft: #233B61;
   --color-dw-text: #F7FAFF;
   --color-dw-text-muted: #9DB0CE;
+  --color-dw-navy: #0A1F44;
+  --color-dw-blue: #246BFF;
+  --color-dw-orange: #FF8A00;
+  --color-dw-bg: #F8FAFC;
   --color-dw-navy-950: #061438;
   --color-dw-navy-900: #0A1F44;
   --color-dw-navy-800: #12316A;
@@ -131,7 +135,7 @@
 }
 
 .dw-gradient-primary {
-  background: linear-gradient(135deg, #2463FF 0%, #5B4BFF 55%, #D45EFF 100%);
+  background: linear-gradient(135deg, #0A1F44 0%, #246BFF 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -144,7 +148,7 @@
   isolation: isolate;
   overflow: hidden;
   min-height: clamp(720px, 78vh, 860px);
-  background: linear-gradient(135deg, #FBFDFF 0%, #F0F5FF 42%, #F6F2FF 72%, #FFFFFF 100%);
+  background: linear-gradient(135deg, #FBFDFF 0%, #F0F5FF 42%, #F6F7FF 72%, #FFFFFF 100%);
   color: #061438;
 }
 
@@ -163,7 +167,7 @@
   height: 640px;
   right: -110px;
   top: -220px;
-  background: radial-gradient(circle, rgba(111, 91, 255, 0.18) 0%, rgba(111, 91, 255, 0) 68%);
+  background: radial-gradient(circle, rgba(36, 107, 255, 0.20) 0%, rgba(36, 107, 255, 0) 68%);
 }
 
 .dw-hero::after {
@@ -270,15 +274,15 @@
 
 .dw-btn--primary {
   color: #fff;
-  background: linear-gradient(135deg, #2463FF 0%, #5B4BFF 55%, #D45EFF 100%);
-  box-shadow: 0 18px 50px rgba(72, 77, 255, 0.28);
+  background: linear-gradient(135deg, #0A1F44 0%, #246BFF 100%);
+  box-shadow: 0 18px 50px rgba(36, 107, 255, 0.30);
 }
 
 .dw-btn--secondary {
-  color: #0A1F44;
-  background: rgba(255,255,255,0.72);
-  border-color: rgba(91, 107, 164, 0.15);
-  box-shadow: 0 14px 40px rgba(54, 79, 141, 0.14), inset 0 1px 0 rgba(255,255,255,0.95);
+  color: #FF8A00;
+  background: rgba(255,255,255,0.60);
+  border: 2px solid rgba(255, 138, 0, 0.65);
+  box-shadow: 0 14px 40px rgba(255, 138, 0, 0.16), inset 0 1px 0 rgba(255,255,255,0.95);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }

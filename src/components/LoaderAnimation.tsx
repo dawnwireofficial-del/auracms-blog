@@ -43,8 +43,8 @@ export default function LoaderAnimation() {
           </svg>
 
           {/* Center logo with pulse */}
-          <div className="absolute inset-2 bg-white dark:bg-zinc-950 rounded-full border border-slate-200 dark:border-zinc-800 flex items-center justify-center animate-[pulse_2s_ease-in-out_infinite]">
-            <span className="font-display font-black text-lg text-[#246BFF]">DW</span>
+          <div className="absolute inset-2 bg-white dark:bg-zinc-950 rounded-full border border-slate-200 dark:border-zinc-800 flex items-center justify-center animate-[pulse_2s_ease-in-out_infinite] overflow-hidden">
+            <img src="/logo/dw-mark.png" alt="DawnWire" className="w-8 h-8 object-contain" draggable={false} />
           </div>
         </div>
 
@@ -103,7 +103,7 @@ export default function LoaderAnimation() {
         {/* Subtle background particles */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
           <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-[#246BFF]/20 rounded-full animate-[float_4s_ease-in-out_infinite]" />
-          <div className="absolute top-3/4 right-1/3 w-1.5 h-1.5 bg-[#7C3AED]/20 rounded-full animate-[float_5s_ease-in-out_infinite]" />
+          <div className="absolute top-3/4 right-1/3 w-1.5 h-1.5 bg-[#FF8A00]/20 rounded-full animate-[float_5s_ease-in-out_infinite]" />
           <div className="absolute bottom-1/4 right-1/4 w-1 h-1 bg-[#246BFF]/20 rounded-full animate-[float_3s_ease-in-out_infinite]" />
         </div>
       </div>

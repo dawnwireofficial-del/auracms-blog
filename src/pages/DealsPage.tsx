@@ -45,7 +45,7 @@ export const DealsPage: React.FC = () => {
       <div className="relative overflow-hidden bg-gradient-to-r from-[#050B18] via-[#1E0B00] to-[#050B18] text-white py-16 px-4 border-b border-orange-500/30 shadow-2xl">
         <TechnicalGrid opacity={0.06} />
         <AmbientGlow color="orange" position="top-right" size="lg" />
-        <AmbientGlow color="violet" position="bottom-left" size="xl" />
+        <AmbientGlow color="orange" position="bottom-left" size="xl" />
         <div className="relative z-10 max-w-7xl mx-auto space-y-3">
           <div className="inline-flex items-center gap-2 bg-orange-500/20 border border-orange-500/30 backdrop-blur-md px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-amber-300">
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />

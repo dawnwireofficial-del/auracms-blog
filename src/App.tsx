@@ -533,7 +533,7 @@ export function App() {
             setChatbotContextProduct(undefined);
             setIsChatbotOpen(true);
           }}
-          className="relative group bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white p-4 rounded-full shadow-2xl shadow-blue-600/50 border border-blue-400/40 flex items-center justify-center gap-2"
+          className="relative group bg-gradient-to-r from-dw-blue to-dw-orange text-white p-4 rounded-full shadow-2xl shadow-dw-orange/40 border border-dw-orange/40 flex items-center justify-center gap-2"
         >
           {/* Pulsing ring indicator */}
           <span className="absolute -top-1 -right-1 flex h-4 w-4">
@@ -545,7 +545,7 @@ export function App() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
           </svg>
 
-          <span className="hidden sm:inline font-black text-xs pr-1">Ask AI Assistant</span>
+          <span className="hidden sm:inline font-black text-xs pr-1">Ask Dawnwire AI</span>
         </motion.button>
       </motion.div>
 

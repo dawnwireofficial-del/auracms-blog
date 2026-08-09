@@ -2,7 +2,6 @@ import { GravityParticleCanvas } from '../common/GravityParticleCanvas';
 import MascotAnimation from '../MascotAnimation';
 import { AmbientGlow } from '../visual/AmbientGlow';
 import { TechnicalGrid } from '../visual/TechnicalGrid';
-import { HeroSignalCanvas } from '../experience/HeroSignalCanvas';
 
 interface DawnWireHeroProps {
   onOpenAiFinder: () => void;
@@ -22,9 +21,8 @@ export default function DawnWireHero({ onOpenAiFinder, onOpenChatbot }: DawnWire
   return (
     <section className="dw-hero relative overflow-hidden" aria-labelledby="dw-hero-title">
       <TechnicalGrid opacity={0.06} />
-      <HeroSignalCanvas />
       <AmbientGlow color="blue" position="top-left" size="xl" />
-      <AmbientGlow color="violet" position="top-right" size="lg" />
+      <AmbientGlow color="blue" position="top-right" size="lg" />
       <div className="dw-hero__noise" aria-hidden="true" />
 
       {/* Full-hero cursor particles */}
@@ -35,7 +33,7 @@ export default function DawnWireHero({ onOpenAiFinder, onOpenChatbot }: DawnWire
       <div className="dw-hero__container">
         {/* LEFT CONTENT — 46% */}
         <div className="dw-hero__content">
-          <div className="dw-eyebrow">✦ AI-Powered Discovery Engine &amp; Live Amazon Deals</div>
+          <div className="dw-eyebrow">✦ AI-Powered Product Discovery Engine &amp; Live Amazon Deals</div>
 
           <h1 id="dw-hero-title">
             Amazon Product Reviews &amp;<br />
@@ -43,17 +41,17 @@ export default function DawnWireHero({ onOpenAiFinder, onOpenChatbot }: DawnWire
           </h1>
 
           <p className="dw-hero__copy">
-            DawnWire scans verified Amazon reviews, technical specifications and independent benchmarks to surface stronger product picks and useful price drops.
+            Discover. Compare. Buy Smart. — DawnWire scans verified Amazon reviews, technical specifications and independent benchmarks to surface stronger product picks and useful price drops.
           </p>
 
           <div className="dw-hero__actions">
             <button className="dw-btn dw-btn--primary" onClick={onOpenAiFinder}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              Launch AI Product Finder
+              Explore Products
             </button>
             <button className="dw-btn dw-btn--secondary" onClick={onOpenChatbot}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              Ask AI Assistant
+              Ask Dawnwire AI
             </button>
           </div>
 

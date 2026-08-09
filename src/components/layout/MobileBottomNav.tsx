@@ -128,10 +128,10 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenAiFinder
       {onOpenAiFinder && (
         <button
           onClick={onOpenAiFinder}
-          className="flex flex-col items-center justify-center flex-1 min-w-0 py-1 px-0.5 rounded-xl text-indigo-600 dark:text-indigo-400 font-bold transition-all relative hover:scale-105 active:scale-95"
+          className="flex flex-col items-center justify-center flex-1 min-w-0 py-1 px-0.5 rounded-xl text-dw-blue dark:text-blue-400 font-bold transition-all relative hover:scale-105 active:scale-95"
           title="AI Product Finder"
         >
-          <div className="w-6 h-6 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 text-white flex items-center justify-center shadow-sm shrink-0">
+          <div className="w-6 h-6 rounded-lg bg-gradient-to-r from-dw-navy to-dw-blue text-white flex items-center justify-center shadow-sm shrink-0">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>

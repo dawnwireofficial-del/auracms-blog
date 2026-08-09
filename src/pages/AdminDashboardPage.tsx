@@ -711,12 +711,11 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
   if (!isAdminLoggedIn) {
     return (
       <div className="min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-slate-800/90 border border-slate-700/80 p-8 rounded-3xl shadow-2xl space-y-6 text-center backdrop-blur-xl">
-          <div className="w-16 h-16 bg-blue-600/20 text-blue-400 rounded-2xl flex items-center justify-center mx-auto border border-blue-500/30">
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
+        <div className="max-w-md w-full bg-slate-800/90 border border-slate-700/80 p-8 rounded-3xl shadow-2xl space-y-6 text-center backdrop-blur-xl relative overflow-hidden">
+          <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-dw-blue/20 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-dw-orange/15 blur-3xl pointer-events-none" />
+          <div className="relative">
+            <img src="/logo/dw-mark.png" alt="DawnWire" className="w-16 h-16 mx-auto object-contain" draggable={false} />
 
           <div>
             <h1 className="text-2xl font-black font-display text-white">DawnWire Admin Portal</h1>
@@ -754,12 +753,12 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
 
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold py-3 rounded-xl text-xs transition-all shadow-lg shadow-blue-600/20"
+              className="w-full bg-gradient-to-r from-dw-navy to-dw-blue hover:from-dw-blue-700 hover:to-dw-blue-600 text-white font-extrabold py-3 rounded-xl text-xs transition-all shadow-lg shadow-dw-blue/25"
             >
               Sign In to Admin Operations
             </button>
           </form>
-
+          </div>
 
         </div>
       </div>

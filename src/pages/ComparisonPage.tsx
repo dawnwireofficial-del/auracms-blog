@@ -22,7 +22,7 @@ export const ComparisonPage: React.FC = () => {
       <div className="relative overflow-hidden bg-gradient-to-r from-[#050B18] via-[#0A1F44] to-[#050B18] text-white py-14 px-4 border-b border-blue-500/20 shadow-2xl">
         <TechnicalGrid opacity={0.05} />
         <AmbientGlow color="cyan" position="top-right" size="lg" />
-        <AmbientGlow color="violet" position="bottom-left" size="lg" />
+        <AmbientGlow color="blue" position="bottom-left" size="lg" />
         <div className="relative z-10 max-w-7xl mx-auto space-y-2">
           <h1 className="text-3xl sm:text-4xl font-black font-display tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-cyan-100 to-blue-200">
             Split-Screen Side-By-Side Product Comparisons

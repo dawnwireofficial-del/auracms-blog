@@ -70,7 +70,7 @@ export default function WishlistPage({ onNavigate, user }: { onNavigate: (r: str
       <div className="relative overflow-hidden bg-gradient-to-r from-[#050B18] via-[#0A1F44] to-[#050B18] text-white py-14 px-4 border-b border-blue-500/20 shadow-2xl mb-12">
         <TechnicalGrid opacity={0.05} />
         <AmbientGlow color="blue" position="top-right" size="lg" />
-        <AmbientGlow color="violet" position="bottom-left" size="lg" />
+        <AmbientGlow color="blue" position="bottom-left" size="lg" />
         <div className="relative z-10 max-w-7xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 text-xs font-bold mb-4 shadow-sm">
             <Heart className="h-4 w-4 fill-pink-500 text-pink-500" />

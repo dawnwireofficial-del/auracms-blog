@@ -107,21 +107,22 @@ export const TrendingDealsSection: React.FC = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10 border-b border-blue-800/60 pb-5">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="bg-gradient-to-r from-red-600 to-amber-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow">
-              🔥 LIVE AMAZON PRICE DROPS
+            <span className="bg-gradient-to-r from-dw-blue to-dw-orange text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow">
+              ⚡ DW DEAL WATCH
             </span>
             <span className="text-xs text-slate-300 font-medium">Updated every 15 minutes</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold font-display">
-            Top 4 Trending Amazon Deals
+            Top Trending Amazon Deals
           </h2>
         </div>
 
         <a
           href="/deals"
-          className="text-xs font-bold bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-xl transition-all"
+          className="text-xs font-bold bg-gradient-to-r from-dw-blue to-dw-orange hover:opacity-90 text-white px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-lg shadow-dw-blue/20"
         >
-          View All Active Deals &rarr;
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          View All Active Deals
         </a>
       </div>
 

@@ -161,7 +161,7 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
       {/* 1. SIDEBAR — Dataflow-inspired design */}
       <aside className="w-64 bg-[#1E293B] text-slate-300 flex flex-col shrink-0 border-r border-white/10" id="admin-sidebar">
         <div className="p-5 border-b border-white/10 flex items-center gap-3">
-          <div className="bg-gradient-to-r from-primary2 to-primary3 p-2 rounded-xl text-white font-display font-bold shadow-lg">DW</div>
+          <img src="/logo/dw-mark.png" alt="DawnWire" className="w-9 h-9 object-contain rounded-lg bg-white/10 p-1 shadow-lg" draggable={false} />
           <div>
             <h1 className="font-display font-bold text-white tracking-tight leading-none text-sm">DawnWire</h1>
             <span className="text-[10px] text-slate-400 font-medium">Super Admin Panel</span>

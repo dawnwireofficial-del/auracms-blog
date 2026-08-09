@@ -518,13 +518,13 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
           {/* AI Assistant Callout */}
           {onOpenChatbotForProduct && (
-            <div className="p-4 bg-gradient-to-r from-blue-900/90 to-indigo-900/90 text-white rounded-2xl border border-blue-500/40 shadow-lg flex items-center justify-between gap-3">
+            <div className="p-4 bg-gradient-to-r from-dw-navy to-dw-blue text-white rounded-2xl border border-dw-orange/40 shadow-lg flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-amber-400 text-slate-950 rounded-xl font-black text-xs shrink-0 shadow">
                   AI
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-white">Ask Gemini Assistant</h4>
+                  <h4 className="text-xs font-bold text-white">Ask Dawnwire AI</h4>
                   <p className="text-[11px] text-blue-200">Query specifications, real user reviews, or comparisons instantly.</p>
                 </div>
               </div>

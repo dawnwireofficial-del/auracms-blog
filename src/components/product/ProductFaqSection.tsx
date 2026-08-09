@@ -343,7 +343,7 @@ export const ProductFaqSection: React.FC<ProductFaqSectionProps> = ({
       )}
 
       {/* Interactive Custom Question Form */}
-      <div className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl p-5 sm:p-6 shadow-md border border-slate-700 space-y-3">
+      <div className="bg-gradient-to-r from-dw-navy to-dw-blue text-white rounded-2xl p-5 sm:p-6 shadow-md border border-dw-orange/30 space-y-3">
         <div className="flex items-center gap-2">
           <span className="text-amber-400 font-black text-sm">💡</span>
           <h4 className="font-extrabold text-sm text-slate-100">

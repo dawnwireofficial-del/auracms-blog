@@ -111,17 +111,17 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 viewport={{ once: true }}
                 transition={{ duration: 0.3, delay: idx * 0.05 }}
                 whileHover={{ y: -4, scale: 1.03 }}
-                className="group p-5 bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200/80 dark:border-slate-800 hover:border-blue-500/80 hover:shadow-xl transition-all text-center flex flex-col items-center justify-center gap-3"
+                className="group p-5 bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200/80 dark:border-slate-800 hover:border-dw-blue/80 hover:shadow-xl hover:shadow-dw-blue/10 hover:bg-gradient-to-b hover:from-white hover:to-dw-bg transition-all text-center flex flex-col items-center justify-center gap-3"
               >
                 <div className="rounded-2xl transition-transform group-hover:scale-105">
                   <AnimatedCategoryIcon
                     slug={cat.slug}
                     icon={cat.icon || 'tag'}
                     className="w-6 h-6"
-                    imgClassName="w-28 h-28 drop-shadow-md group-hover:drop-shadow-[0_0_14px_rgba(91,114,255,0.5)] transition-all duration-300"
+                    imgClassName="w-28 h-28 drop-shadow-md group-hover:drop-shadow-[0_0_14px_rgba(36,107,255,0.5)] transition-all duration-300"
                   />
                 </div>
-                <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200 group-hover:text-dw-blue dark:group-hover:text-blue-400 transition-colors">
                   {cat.name}
                 </span>
               </motion.a>
@@ -163,7 +163,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                   whileHover={{ y: -4 }}
                   className="group p-4 bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200/80 dark:border-slate-800 hover:border-blue-500/80 hover:shadow-xl transition-all text-center flex flex-col items-center justify-center gap-2"
                 >
-                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500/10 to-purple-500/10 flex items-center justify-center group-hover:from-blue-600 group-hover:to-purple-600 group-hover:text-white text-blue-600 dark:text-blue-400 transition-colors">
+                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-dw-blue/10 to-dw-orange/10 flex items-center justify-center group-hover:from-dw-blue group-hover:to-dw-orange group-hover:text-white text-dw-blue dark:text-blue-400 transition-colors">
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>

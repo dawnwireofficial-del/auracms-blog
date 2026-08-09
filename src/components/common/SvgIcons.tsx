@@ -1,76 +1,33 @@
 import React from 'react';
 
-// DawnWire Official Geometric Signal D Logo Vector Mark
+// DawnWire Official DW Monogram Logo Mark
 export const DawnWireLogoMark: React.FC<{ className?: string }> = ({ className = 'w-10 h-10' }) => {
   return (
-    <svg viewBox="0 0 200 200" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="dwSignalArc" x1="20" y1="20" x2="180" y2="180" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#2AD7F7" />
-          <stop offset="50%" stopColor="#4C82FF" />
-          <stop offset="100%" stopColor="#8C6CFF" />
-        </linearGradient>
-        <linearGradient id="dwDawnGlow" x1="40" y1="100" x2="160" y2="100" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#FFB45B" />
-          <stop offset="100%" stopColor="#4C82FF" />
-        </linearGradient>
-        <filter id="dwNodeGlow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="6" result="blur" />
-          <feComposite in="SourceGraphic" in2="blur" operator="over" />
-        </filter>
-      </defs>
-
-      {/* Outer Geometric 'D' Arc */}
-      <path
-        d="M 40 30 H 105 C 150 30 180 60 180 100 C 180 140 150 170 105 170 H 40 V 30 Z"
-        stroke="url(#dwSignalArc)"
-        strokeWidth="14"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="transition-all duration-300"
-      />
-
-      {/* Internal Horizon Cut & Signal Line */}
-      <path
-        d="M 65 100 C 90 85 115 115 140 100"
-        stroke="url(#dwDawnGlow)"
-        strokeWidth="10"
-        strokeLinecap="round"
-      />
-
-      {/* Intelligence Glowing Light Node */}
-      <circle
-        cx="140"
-        cy="100"
-        r="11"
-        fill="#2AD7F7"
-        filter="url(#dwNodeGlow)"
-        className="animate-pulse"
-      />
-      <circle
-        cx="140"
-        cy="100"
-        r="5"
-        fill="#FFFFFF"
-      />
-    </svg>
+    <img
+      src="/logo/dw-mark.png"
+      alt="DawnWire"
+      className={`object-contain select-none ${className}`}
+      draggable={false}
+    />
   );
 };
 
 // DawnWire Brand Logo Component
-export const DawnWireLogo: React.FC<{ className?: string; iconOnly?: boolean }> = ({ className = 'h-9', iconOnly = false }) => {
+export const DawnWireLogo: React.FC<{ className?: string; iconOnly?: boolean; tagline?: boolean }> = ({ className = 'h-9', iconOnly = false, tagline = false }) => {
   return (
-    <a href="/" className={`flex items-center gap-3 font-bold tracking-tight select-none cursor-pointer group ${className}`}>
-      <DawnWireLogoMark className="w-10 h-10 shrink-0 drop-shadow-[0_0_12px_rgba(76,130,255,0.4)] group-hover:scale-105 transition-transform duration-300" />
+    <a href="/" className={`flex items-center gap-2.5 font-bold tracking-tight select-none cursor-pointer group ${className}`}>
+      <DawnWireLogoMark className="w-9 h-9 shrink-0 group-hover:scale-105 transition-transform duration-300" />
       {!iconOnly && (
         <div className="flex flex-col leading-none">
           <div className="text-2xl font-black tracking-tight font-display flex items-center">
-            <span className="text-slate-900 dark:text-white">DAWN</span>
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-cyan-400">WIRE</span>
+            <span className="text-dw-navy dark:text-white">DAWN</span>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-dw-blue to-dw-orange">WIRE</span>
           </div>
-          <span className="text-[9px] uppercase tracking-[0.22em] font-black text-blue-500 dark:text-cyan-400 opacity-90 mt-1">
-            AI Product Discovery
-          </span>
+          {tagline && (
+            <span className="text-[9px] uppercase tracking-[0.22em] font-black text-dw-blue dark:text-dw-orange opacity-90 mt-1">
+              Discover. Compare. Buy Smart.
+            </span>
+          )}
         </div>
       )}
     </a>
@@ -82,7 +39,7 @@ export const HeroChatbotIllustration: React.FC<{ className?: string }> = ({ clas
   return (
     <div className={`relative flex items-center justify-center ${className}`}>
       {/* Background ambient glow */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/20 via-orange-500/10 to-indigo-500/20 rounded-full blur-3xl animate-pulse -z-10" />
+      <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/20 via-orange-500/10 to-dw-blue/20 rounded-full blur-3xl animate-pulse -z-10" />
 
       <svg viewBox="0 0 400 360" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto drop-shadow-2xl">
         {/* Floating Data Lines */}
@@ -181,7 +138,7 @@ export const TrustBadges: React.FC = () => {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-xl">
+        <div className="p-2.5 bg-dw-blue/10 text-dw-blue dark:bg-blue-900/40 dark:text-blue-400 rounded-xl">
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
           </svg>

@@ -53,15 +53,15 @@ export const AffiliateCTA: React.FC<AffiliateCTAProps> = ({
   const getVariantStyles = () => {
     switch (variant) {
       case 'deal':
-        return 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg shadow-orange-500/25 border-none font-extrabold';
+        return 'bg-gradient-to-r from-dw-blue to-dw-orange hover:from-dw-blue-600 hover:to-orange-500 text-white shadow-lg shadow-dw-orange/25 border-none font-extrabold';
       case 'sticky_mobile':
-        return 'w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 shadow-xl text-center rounded-xl text-base flex items-center justify-center gap-2';
+        return 'w-full bg-gradient-to-r from-dw-blue to-dw-orange hover:opacity-90 text-white font-bold py-3 px-6 shadow-xl text-center rounded-xl text-base flex items-center justify-center gap-2';
       case 'secondary':
-        return 'bg-blue-900 hover:bg-blue-950 text-white shadow-md font-bold';
+        return 'bg-dw-navy hover:bg-dw-blue-700 text-white shadow-md font-bold';
       case 'outline':
-        return 'border-2 border-orange-500/80 hover:border-orange-600 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30 font-bold';
+        return 'border-2 border-dw-orange/80 hover:border-dw-orange text-dw-orange hover:bg-orange-50 dark:hover:bg-orange-950/30 font-bold';
       default:
-        return 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-extrabold shadow-md shadow-orange-500/20';
+        return 'bg-gradient-to-r from-dw-navy to-dw-blue hover:from-dw-blue-700 hover:to-dw-blue-600 text-white font-extrabold shadow-md shadow-dw-blue/25';
     }
   };
 

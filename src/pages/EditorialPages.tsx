@@ -28,10 +28,10 @@ export const ReviewsPage: React.FC = () => {
       <DisclosureBanner />
       <div className="relative overflow-hidden bg-gradient-to-r from-[#050B18] via-[#0A1F44] to-[#050B18] text-white py-14 px-4 border-b border-blue-500/20 shadow-2xl">
         <TechnicalGrid opacity={0.05} />
-        <AmbientGlow color="violet" position="top-right" size="lg" />
+        <AmbientGlow color="blue" position="top-right" size="lg" />
         <AmbientGlow color="blue" position="bottom-left" size="lg" />
         <div className="relative z-10 max-w-7xl mx-auto space-y-2">
-          <h1 className="text-3xl sm:text-4xl font-black font-display tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-violet-100 to-blue-200">
+          <h1 className="text-3xl sm:text-4xl font-black font-display tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-orange-200">
             Expert Editorial Reviews
           </h1>
           <p className="text-sm text-slate-300 max-w-2xl font-medium">
@@ -133,11 +133,17 @@ export const BuyingGuidesPage: React.FC = () => {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
       <ReadingProgressBar />
       <DisclosureBanner />
-      <div className="bg-[#0A1F44] text-white py-12 px-4 border-b border-blue-900">
-        <div className="max-w-7xl mx-auto space-y-2">
-          <h1 className="text-3xl sm:text-4xl font-extrabold font-display">Buyer’s Guides & Best-Of Roundups</h1>
+      <div className="relative overflow-hidden bg-[#0A1F44] text-white py-12 px-4 border-b border-blue-900">
+        <AmbientGlow color="blue" position="top-right" size="lg" />
+        <div className="max-w-7xl mx-auto space-y-2 relative z-10">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <span className="bg-gradient-to-r from-dw-blue to-dw-orange text-white text-[9px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full">BUYING GUIDE</span>
+            <span className="bg-white/10 border border-white/20 text-white text-[9px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full">BEST OF</span>
+            <span className="bg-white/10 border border-white/20 text-white text-[9px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full">EXPERT REVIEW</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold font-display">Dawnwire Buying Guides</h1>
           <p className="text-sm text-slate-300 max-w-2xl">
-            Comprehensive purchasing advice to help you choose the best product for your specific budget and use case.
+            Discover. Compare. Buy Smart. — Comprehensive purchasing advice to help you choose the best product for your specific budget and use case.
           </p>
         </div>
       </div>

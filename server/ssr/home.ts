@@ -108,8 +108,8 @@ export async function renderHomePageHtml(): Promise<string> {
     .join('\n');
 
   return `<article class="ssr-content" id="home-seo-content">
-  <h1>Amazon Product Reviews, Buying Guides &amp; AI-Powered Deals</h1>
-  <p>DawnWire is an independent product review site that helps you find the right gear before you buy. We test and
+  <h1>Amazon Product Reviews &amp; AI-Powered Buying Guides</h1>
+  <p>Discover. Compare. Buy Smart. — DawnWire is an independent product review site that helps you find the right gear before you buy. We test and
   compare ${productCount > 0 ? `over ${productCount} products across ` : ''}${categoryCount > 0 ? `${categoryCount} categories` : 'popular categories'} including
   beauty, personal care, tech, and home essentials, and we publish in-depth buying guides, head-to-head comparisons,
   and best-of roundup lists so you can shop with confidence.</p>

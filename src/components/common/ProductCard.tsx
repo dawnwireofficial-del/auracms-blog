@@ -1,6 +1,7 @@
 import React, { useState, Suspense, lazy } from 'react';
 import { Product } from '../../types';
 import { AffiliateCTA } from './AffiliateCTA';
+import { DwBadge } from './DwBadge';
 import { PriceAlertModal } from '../product/PriceAlertModal';
 import { useAppStore, store } from '../../lib/store';
 import { toast } from '../../lib/toastStore';
@@ -227,13 +228,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <div className="absolute top-3 left-3 right-3 z-10 flex items-start justify-between pointer-events-none">
         <div className="flex flex-col items-start gap-1">
           {product.isDeal ? (
-            <span className="bg-red-600 text-white font-extrabold text-[11px] px-2.5 py-1 rounded-lg shadow-md">
-              {product.dealBadge || (product.discountPercentage ? `-${product.discountPercentage}% DEAL` : '🔥 DEAL')}
-            </span>
+            <DwBadge type="popular-deal" />
           ) : product.editorScore >= 9.4 ? (
-            <span className="bg-[#0A1F44] text-amber-400 font-black text-[11px] px-2.5 py-1 rounded-lg shadow-md border border-amber-400/30">
-              ★ {product.editorScore} Editor's Choice
-            </span>
+            <DwBadge type="editors-choice" />
+          ) : product.editorScore >= 8.5 ? (
+            <DwBadge type="expert-reviewed" />
           ) : null}
           {product.couponCode && (
             <span className="bg-emerald-600 text-white font-black text-[10px] px-2 py-0.5 rounded-md shadow-md">
