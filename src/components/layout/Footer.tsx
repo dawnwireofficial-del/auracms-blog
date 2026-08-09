@@ -49,7 +49,7 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800">
           {/* Col 1: Brand & Bio */}
           <div className="lg:col-span-2 space-y-4">
-            <DawnWireLogo iconOnly={false} tagline className="text-white" />
+            <DawnWireLogo iconOnly={false} className="text-white" />
             <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
               DawnWire is an AI-powered product discovery, independent reviews, comparison, and Amazon deals platform. We empower buyers to find the exact right product at the best price.
             </p>

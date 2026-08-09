@@ -12,23 +12,19 @@ export const DawnWireLogoMark: React.FC<{ className?: string }> = ({ className =
   );
 };
 
-// DawnWire Brand Logo Component
+// DawnWire Brand Logo Component (full logo from official kit)
 export const DawnWireLogo: React.FC<{ className?: string; iconOnly?: boolean; tagline?: boolean }> = ({ className = 'h-9', iconOnly = false, tagline = false }) => {
   return (
-    <a href="/" className={`flex items-center gap-2.5 font-bold tracking-tight select-none cursor-pointer group ${className}`}>
-      <DawnWireLogoMark className="w-9 h-9 shrink-0 group-hover:scale-105 transition-transform duration-300" />
-      {!iconOnly && (
-        <div className="flex flex-col leading-none">
-          <div className="text-2xl font-black tracking-tight font-display flex items-center">
-            <span className="text-dw-navy dark:text-white">DAWN</span>
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-dw-blue to-dw-orange">WIRE</span>
-          </div>
-          {tagline && (
-            <span className="text-[9px] uppercase tracking-[0.22em] font-black text-dw-blue dark:text-dw-orange opacity-90 mt-1">
-              Discover. Compare. Buy Smart.
-            </span>
-          )}
-        </div>
+    <a href="/" className={`flex items-center gap-2.5 select-none cursor-pointer group ${className}`}>
+      {iconOnly ? (
+        <DawnWireLogoMark className="h-9 w-9 shrink-0 group-hover:scale-105 transition-transform duration-300" />
+      ) : (
+        <img
+          src="/logo/logo-transparent.png"
+          alt="DawnWire"
+          className="h-9 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform duration-300"
+          draggable={false}
+        />
       )}
     </a>
   );
