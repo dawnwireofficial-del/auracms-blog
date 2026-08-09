@@ -3,13 +3,19 @@ Complete Vike SSR migration, deploy to Vercel, and maintain the production site 
 
 ## Progress
 
-### Session — Code-Splitting Perf + API-Based Auto-Deploy (this session)
+### Session — Permanent Deployment (gitSource, no uploads) (this session)
+- **Root cause of flaky deploys found**: the Vercel project was already connected to GitHub (type `github`, repoId `1310817594`, org `dawnwireofficial-del`) but `link.productionBranch` was `main` while our repo branch is `master` — so Vercel's native Git auto-deploy never fired and CI fell back to the `/v2/files` upload pipeline.
+- **Upload pipeline failures**: the Hobby `POST /v2/files` quota (5000 file-deltas/24h) is silently exhausted by full-repo uploads; commit `44b3a4c` tried incremental uploads + cheat manifest, but the same day a manifest-cache miss forced re-upload of all 402 files → 337 rate-limited (429) → `No deploy created` (run failed, live site stuck on `9f06558`).
+- **Permanent fix — `gitSource` deploy** (`scripts/vercel-deploy.mjs`, rewritten from scratch, and `.github/workflows/deploy.yml`):
+  - CI now POSTs `/v13/deployments?teamId=` with `{name, project, target:'production', gitSource:{type:'github', repoId: 1310817594, ref:'master', sha: HEAD}}` — **Vercel clones the repo itself and builds; zero file uploads, zero quota, zero rate limits, no manifests**.
+  - Workflow env: `VERCEL_TOKEN` (project-scoped `vcp_` token, stored as GH secret + backup at `C:\Users\atifn\AppData\Local\Temp\opencode\setsecret\vtok.txt`), `VERCEL_ORG_ID: team_XBNSPwcit0xkWNJb8CpPq6na`, `VERCEL_PROJECT_ID: prj_St3lzIAB1KNKuzhloL6Sah078ScG`, `VERCEL_GIT_REPO_ID: 1310817594`.
+  - Poll `/v13/deployments/:id` until `READY`.
+- **Verified end-to-end**: push `master` (commit `4a13cec`) triggered CI → deploy `dpl_2yxjXPb2xMWXCwNCTnzJY2wAe1fE` → READY, aliases `www.dawnwire.com` + `dawnwire.com` + `auracms-blog-git-master-dawn-wire.vercel.app`. Live site serves `/assets/index-Dt7POqO8.js`.
+- Deprecated (still in git history): the `/v2/files` upload-based deploy, the `.vercel-deploy-manifest.json` incremental scheme (gitignore entry is harmless). Deploying now = push to `master`.
+
+### Session — API-Build Deploy (superseded above, history only)
 - **Perf: cut initial JS 2.1 MB → ~556 KB raw** (commit `4b70e54`): `React.lazy()` + `Suspense` in `src/App.tsx` for ProductCatalogPage, BestCategoryPage, ProductDetailPage, DealsPage, ComparisonPage, ReviewsPage, BuyingGuidesPage, PostDetailPage, AdminDashboardPage, BrandsPage, ChatbotDrawer, AIProductFinderModal; vendored `manualChunks` in `vite.config.ts` (charts/video/firebase/knock/motion/markdown/icons/supabase/ai/react); lazy-loaded `ProductSparkline` (recharts) + `NotificationBell` (knock) out of the entry. Live entry is now `/assets/index-*.js` ~180 KB + preloads react/motion/icons.
-- **CI auto-deploy fixed via direct API** — the Vercel CLI (`vercel --prod`) rejects the user-created tokens in GitHub Actions (`The token provided via --token argument is not valid` / `Could not retrieve Project Settings`) because session tokens are machine-bound (`vca_…`/`vcr_…` in `auth.json`) and scoped `vck_`/`vcp_` tokens can't read `/v2/user`+`/teams/{id}`. Vercel also refuses API-restricted token minting ("Not authorized").
-  - **Working token**: user-provided project-scoped `vcp_` token — CAN `GET /v9/projects/{id}` (200), CAN `POST /v2/files` (200), CAN `POST /v13/deployments` — but NOT via the CLI (CLI still demands team-read). It's stored as GitHub secret `VERCEL_TOKEN` (repo `dawnwireofficial-del/auracms-blog`), backup copy at `C:\Users\atifn\AppData\Local\Temp\opencode\setsecret\vtok.txt`.
-  - **scripts/vercel-deploy.mjs** (new, runs in CI): `git ls-files` → SHA‑1 digest per file → parallel upload to `POST /v2/files?teamId=` (headers `x-now-digest` sha1hex, `x-now-size`, `application/octet-stream`) → create prod deploy `POST /v13/deployments?teamId=` with `{name,project,target:'production',files}` → poll `/v13/deployments/{id}` until `READY`.
-  - **`.github/workflows/deploy.yml`**: now just `setup-node@v4` (node 20) + `node scripts/vercel-deploy.mjs` with `VERCEL_TOKEN`/`VERCEL_ORG_ID`/`VERCEL_PROJECT_ID` env. CLI-based step removed.
-  - **Verified**: push `master` triggered run #5 → uploaded 1573 files → deploy `dpl_DGXy6xfd…` → READY, aliases `www.dawnwire.com`+`dawnwire.com` assigned. Live checks: home 200, `/assets/index-DZKVIcS4.js` 180.1 KB.
+- **CI deploy variance** (now replaced by gitSource, above): CLI tokens were machine-bound/team-inop, so direct-API upload path was used until the Hobby upload quota complaint kill it.
 
 ### Session — Article Generator + Editorial Hubs + /blog/:slug
 - **`server/ai.ts`**: added `generateBuyingGuideFromCategory(category, topProducts)` — 10-section buying-guide structure (Quick Summary, Key Takeaways, What to Look For, Our Top Picks with `[affiliate-card:slug]` embeds, comparison table, budget tiers, FAQ, Verdict).
