@@ -60,7 +60,7 @@ export const ProductCardSkeleton: React.FC<{ viewMode?: 'grid' | 'list' }> = ({ 
 // Full Product Catalog Skeleton Page
 export const ProductCatalogSkeleton: React.FC = () => {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
       {/* Header Banner Skeleton */}
       <div className="bg-[#0A1F44] py-12 px-4 border-b border-blue-900">
         <div className="max-w-7xl mx-auto space-y-3">
@@ -115,7 +115,7 @@ export const ProductCatalogSkeleton: React.FC = () => {
 // Full Product Detail Skeleton Page
 export const ProductDetailSkeleton: React.FC = () => {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
         {/* Breadcrumb Skeleton */}
         <div className="flex items-center gap-2">

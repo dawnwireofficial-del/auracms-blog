@@ -38,7 +38,7 @@ export const DealsPage: React.FC = () => {
   const filtered = dealProducts.filter((p) => (p.discountPercentage || 0) >= minDiscount);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
       <DisclosureBanner />
 
       {/* Hero Header */}

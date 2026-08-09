@@ -23,7 +23,7 @@ export const ReviewsPage: React.FC = () => {
     });
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
       <ReadingProgressBar />
       <DisclosureBanner />
       <div className="relative overflow-hidden bg-gradient-to-r from-[#050B18] via-[#0A1F44] to-[#050B18] text-white py-14 px-4 border-b border-blue-500/20 shadow-2xl">
@@ -79,13 +79,13 @@ export const ReviewsPage: React.FC = () => {
                 <div className="p-5 space-y-3">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide truncate">{p.brand || 'Review'}</span>
-                    <span className="text-amber-500 font-extrabold bg-amber-50 dark:bg-amber-950 px-2.5 py-1 rounded-xl shrink-0">★ {p.editorScore} / 10</span>
+                    <span className="text-amber-500 font-extrabold bg-amber-50 dark:bg-amber-950 px-2.5 py-1 rounded-xl shrink-0">â˜… {p.editorScore} / 10</span>
                   </div>
                   <h2 className="text-base font-extrabold text-slate-900 dark:text-slate-100 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{p.productName}</h2>
                   <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-3 leading-relaxed">{p.editorVerdict}</p>
                   <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
                     <div className="text-xs text-slate-500">
-                      <span className="text-amber-500 font-bold">★ {p.rating}</span>
+                      <span className="text-amber-500 font-bold">â˜… {p.rating}</span>
                       <span className="text-slate-400"> ({p.reviewCount || 0} reviews)</span>
                     </div>
                     {typeof p.currentPrice === 'number' && p.currentPrice > 0 && <span className="text-sm font-black text-slate-900 dark:text-white">${p.currentPrice.toFixed(2)}</span>}
@@ -130,7 +130,7 @@ export const BuyingGuidesPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
       <ReadingProgressBar />
       <DisclosureBanner />
       <div className="relative overflow-hidden bg-[#0A1F44] text-white py-12 px-4 border-b border-blue-900">
@@ -143,7 +143,7 @@ export const BuyingGuidesPage: React.FC = () => {
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold font-display">Dawnwire Buying Guides</h1>
           <p className="text-sm text-slate-300 max-w-2xl">
-            Discover. Compare. Buy Smart. — Comprehensive purchasing advice to help you choose the best product for your specific budget and use case.
+            Discover. Compare. Buy Smart. â€” Comprehensive purchasing advice to help you choose the best product for your specific budget and use case.
           </p>
         </div>
       </div>
@@ -154,7 +154,7 @@ export const BuyingGuidesPage: React.FC = () => {
             <div className="space-y-2">
               <span className="inline-block bg-amber-500 text-white text-[9px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full">Winner Podiums</span>
               <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">Best-Of Roundups</h2>
-              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">Every category ranked — our editors pick the overall winner, runner-up, and best-value champion.</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">Every category ranked â€” our editors pick the overall winner, runner-up, and best-value champion.</p>
             </div>
             <a href="/best" className="mt-4 self-start bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-3 rounded-xl text-xs shrink-0 transition-colors">
               Explore Roundups &rarr;
@@ -193,7 +193,7 @@ export const BuyingGuidesPage: React.FC = () => {
                   <div className="p-5 space-y-3">
                     <div className="flex items-center gap-2 text-xs text-slate-400">
                       <span className="font-bold text-blue-600 dark:text-blue-400 uppercase">Buying Guide</span>
-                      <span>•</span>
+                      <span>â€¢</span>
                       <span>{guide.readingTime || 5} min read</span>
                     </div>
                     <h2 className="text-base font-extrabold text-slate-900 dark:text-slate-100 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{guide.title}</h2>

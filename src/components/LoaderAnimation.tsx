@@ -20,7 +20,7 @@ export default function LoaderAnimation() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6" id="app-global-loader">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 flex flex-col items-center justify-center p-6" id="app-global-loader">
       <div className="text-center space-y-8">
         {/* Animated mascot/logo */}
         <div className="relative h-20 w-20 mx-auto">

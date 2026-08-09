@@ -56,7 +56,7 @@ export default function BrandsPage({ onNavigate }: { onNavigate: (r: string, p?:
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-white dark:bg-slate-950">
       <div className="max-w-7xl mx-auto px-4 py-12">
         <ScrollReveal>
           <div className="mb-10">

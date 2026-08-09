@@ -36,14 +36,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
   const topRatedProducts = filteredProducts.filter((p) => p.editorScore >= 9.0).slice(0, 8);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-x-hidden">
       {/* Editorial Transparency Disclosure */}
       <DisclosureBanner />
 
-      {/* Hero Section — Glassmorphism Redesign */}
+      {/* Hero Section â€” Glassmorphism Redesign */}
       <DawnWireHero onOpenAiFinder={onOpenAiFinder} onOpenChatbot={onOpenChatbot} />
 
-      {/* Editorial intro — useful, visible copy with internal links */}
+      {/* Editorial intro â€” useful, visible copy with internal links */}
       <section id="home-editorial" className="max-w-7xl mx-auto px-4 pt-10">
         <div className="rounded-3xl border border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 sm:p-8 shadow-sm">
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-100 mb-3">
@@ -198,7 +198,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-600 text-white text-[11px] font-black uppercase tracking-wider mb-2">
-                🔥 Hot Amazon Price Drops
+                ðŸ”¥ Hot Amazon Price Drops
               </div>
               <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100">
                 Today's Verified Amazon Deals
@@ -366,7 +366,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 >
                   <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
                     <span className="font-bold text-blue-600 dark:text-blue-400 uppercase">{guide.category}</span>
-                    <span>•</span>
+                    <span>â€¢</span>
                     <span>{guide.readTimeMinutes} min read</span>
                   </div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400">
@@ -398,7 +398,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                   <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
                     <span className="font-bold text-blue-600 dark:text-blue-400 uppercase">{rev.productName}</span>
                     <span className="font-black text-amber-500 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded">
-                      ★ {rev.overallScore}/10
+                      â˜… {rev.overallScore}/10
                     </span>
                   </div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400">

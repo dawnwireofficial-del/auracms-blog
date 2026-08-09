@@ -147,7 +147,7 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
   const goToPage = (p: number) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
       <DisclosureBanner />
 
       {/* Header Banner */}
@@ -198,7 +198,7 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
                   <optgroup key={c.id} label={c.name}>
                     <option value={c.id}>{c.name}</option>
                     {categories.filter(child => child.parentId === c.id).map(child => (
-                      <option key={child.id} value={child.id}>— {child.name}</option>
+                      <option key={child.id} value={child.id}>â€” {child.name}</option>
                     ))}
                   </optgroup>
                 ))}
@@ -243,7 +243,7 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
                   onChange={(e) => setOnlyDeals(e.target.checked)}
                   className="rounded text-orange-500 focus:ring-orange-500"
                 />
-                <span className="text-orange-600 dark:text-orange-400">🔥 Show Amazon Deals Only</span>
+                <span className="text-orange-600 dark:text-orange-400">ðŸ”¥ Show Amazon Deals Only</span>
               </label>
 
               <label className="flex items-center gap-2 cursor-pointer">
@@ -373,7 +373,7 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
             disabled={page === 0}
             className="px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            ← Prev
+            â† Prev
           </button>
           {Array.from({ length: Math.min(totalPages, 10) }, (_, i) => {
             const startPage = Math.max(0, Math.min(page - 4, totalPages - 10));
@@ -396,7 +396,7 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
             disabled={page >= totalPages - 1}
             className="px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            Next →
+            Next â†’
           </button>
         </div>
       )}

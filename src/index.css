@@ -62,7 +62,7 @@
   --color-dw-navy: #0A1F44;
   --color-dw-blue: #246BFF;
   --color-dw-orange: #FF8A00;
-  --color-dw-bg: #F8FAFC;
+  --color-dw-bg: #FFFFFF;
   --color-dw-navy-950: #061438;
   --color-dw-navy-900: #0A1F44;
   --color-dw-navy-800: #12316A;
@@ -77,7 +77,7 @@
   --color-dw-ink-500: #6E7FA2;
 
   /* IT Tech template theme tokens (light-mode defaults; dark: variants handle dark) */
-  --color-body-bg: #F1F3FE;
+  --color-body-bg: #FFFFFF;
   --color-body-bg3: #152433;
   --color-body-bg4: #233342;
   --color-heading: #041424;
@@ -479,7 +479,7 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 dark:bg-dw-page dark:text-dw-text transition-colors duration-200;
+    @apply bg-white text-slate-900 dark:bg-dw-page dark:text-dw-text transition-colors duration-200;
   }
 
   /* High Contrast Accessibility Mode Overrides */

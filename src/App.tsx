@@ -47,7 +47,7 @@ const PageLoader: React.FC = () => (
 );
 
 const NotFound: React.FC<{ onNavigate: (route: string) => void }> = ({ onNavigate }) => (
-  <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
+  <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center p-4">
     <div className="text-center max-w-md">
       <h1 className="text-8xl font-black bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-orange-500 mb-4">404</h1>
       <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Page Not Found</h2>
@@ -235,7 +235,7 @@ export function App() {
     if (pathname === '/recently-viewed') {
       const viewedProducts = products.filter((p) => recentlyViewed.includes(p.id));
       return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4">
+        <div className="min-h-screen bg-white dark:bg-slate-950 py-12 px-4">
           <div className="max-w-7xl mx-auto space-y-6">
             <h1 className="text-3xl font-black text-slate-900 dark:text-slate-100">Recently Viewed Products ({viewedProducts.length})</h1>
             {viewedProducts.length === 0 ? (
@@ -290,7 +290,7 @@ export function App() {
     if (pathname === '/wishlist') {
       const wishlistedProducts = products.filter((p) => wishlist.includes(p.id));
       return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4">
+        <div className="min-h-screen bg-white dark:bg-slate-950 py-12 px-4">
           <div className="max-w-7xl mx-auto space-y-6">
             <h1 className="text-3xl font-black text-slate-900 dark:text-slate-100">My Saved Wishlist ({wishlistedProducts.length})</h1>
             {wishlistedProducts.length === 0 ? (
@@ -375,7 +375,7 @@ export function App() {
       return <SubmitProductPage />;
     }
 
-    // Admin Dashboard (Super Admin Panel — tab-based portal, all panels under one roof)
+    // Admin Dashboard (Super Admin Panel â€” tab-based portal, all panels under one roof)
     if (pathname.startsWith('/admin')) {
       return <AdminDashboardPage />;
     }
@@ -383,7 +383,7 @@ export function App() {
     // Account / Auth
     if (pathname === '/account' || pathname === '/login') {
       return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-16 px-4 flex items-center justify-center">
+        <div className="min-h-screen bg-white dark:bg-slate-950 py-16 px-4 flex items-center justify-center">
           <div className="max-w-md w-full bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-6 text-center">
             <h2 className="text-2xl font-black">{currentUser ? 'User Account Profile' : 'Sign In to DawnWire'}</h2>
             {currentUser ? (
@@ -440,7 +440,7 @@ export function App() {
                       type="password"
                       value={loginPasswordInput}
                       onChange={(e) => setLoginPasswordInput(e.target.value)}
-                      placeholder="••••••••"
+                      placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                       className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 rounded-xl text-xs outline-none focus:border-blue-500 dark:text-white"
                       required
                     />
@@ -497,7 +497,7 @@ export function App() {
 
   return (
     <ErrorBoundary>
-    <div className="min-h-screen flex flex-col font-sans bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-orange-500 selection:text-white">
+    <div className="min-h-screen flex flex-col font-sans bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-orange-500 selection:text-white">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:font-bold">Skip to content</a>
       <PageProgressBar />
       <Header

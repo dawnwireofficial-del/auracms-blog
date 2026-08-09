@@ -65,7 +65,7 @@ export default function WishlistPage({ onNavigate, user }: { onNavigate: (r: str
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#030712] text-slate-900 dark:text-white pb-20">
+    <div className="min-h-screen bg-white dark:bg-[#030712] text-slate-900 dark:text-white pb-20">
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gradient-to-r from-[#050B18] via-[#0A1F44] to-[#050B18] text-white py-14 px-4 border-b border-blue-500/20 shadow-2xl mb-12">
         <TechnicalGrid opacity={0.05} />

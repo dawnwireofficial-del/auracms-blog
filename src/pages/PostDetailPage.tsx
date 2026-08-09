@@ -135,7 +135,7 @@ export default function PostDetailPage({ slug }: PostDetailPageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center">
         <div className="animate-pulse text-slate-400 text-sm font-bold">Loading article...</div>
       </div>
     );
@@ -143,7 +143,7 @@ export default function PostDetailPage({ slug }: PostDetailPageProps) {
 
   if (notFound || !post) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center">
         <div className="text-center space-y-4">
           <h1 className="text-3xl font-black text-slate-900 dark:text-white">Article Not Found</h1>
           <p className="text-sm text-slate-500">The article you're looking for doesn't exist or isn't published yet.</p>
@@ -156,7 +156,7 @@ export default function PostDetailPage({ slug }: PostDetailPageProps) {
   const cat = categories.find(c => c.id === post.categoryId);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-zinc-200 pb-20">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-800 dark:text-zinc-200 pb-20">
       <SeoHelmet
         title={post.seoTitle || post.title}
         description={post.seoDescription || post.excerpt || ''}
