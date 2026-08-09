@@ -44,9 +44,9 @@ const caseStudies = [
     techStack: ['GoHighLevel', 'OpenAI', 'Twilio', 'CRM', 'Automation', 'Webhooks', 'Zapier/Make'],
     cta: 'View Automation',
     image: '/portfolio/help-me-exit.png',
-    accent: 'from-purple-600 to-blue-500',
-    shadowColor: 'shadow-purple-100/30',
-    badgeColor: 'bg-purple-50 text-purple-600',
+    accent: 'from-dw-blue to-dw-orange',
+    shadowColor: 'shadow-orange-100/30',
+    badgeColor: 'bg-dw-blue/10 text-dw-blue',
   },
   {
     id: 'datadrivenhq',

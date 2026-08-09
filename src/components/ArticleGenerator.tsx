@@ -885,7 +885,7 @@ export default function ArticleGenerator({ token }: { token: string }) {
       {mode === 'articles' ? null : mode === 'product' ? (
         <>
           {selectedProducts.length > 0 && (
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-900/40 via-indigo-900/30 to-slate-900 border border-blue-500/30 text-white space-y-2">
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-900/40 via-blue-900/30 to-slate-900 border border-blue-500/30 text-white space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-cyan-300">Selected Products ({selectedProducts.length})</p>
                 <button onClick={() => { setSelectedIds({}); }} className="text-xs text-slate-300 hover:text-white">Clear all</button>
@@ -990,7 +990,7 @@ export default function ArticleGenerator({ token }: { token: string }) {
       )}
 
       {mode === 'category' && selectedCategory && (
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-900/40 via-indigo-900/30 to-slate-900 border border-blue-500/30 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-900/40 via-blue-900/30 to-slate-900 border border-blue-500/30 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <p className="text-[10px] font-bold uppercase tracking-widest text-cyan-300">Selected Category</p>
             <p className="font-bold">Best {selectedCategory.name} — Buying Guide</p>

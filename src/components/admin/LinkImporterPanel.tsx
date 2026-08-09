@@ -310,12 +310,12 @@ export default function LinkImporterPanel() {
                 </div>
               </div>
               {extractedPreview.videoUrl && (
-                <div className="p-3 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/80 rounded-2xl text-[11px] font-mono flex items-center justify-between text-purple-900 dark:text-purple-300">
+                <div className="p-3 bg-dw-blue/10 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/80 rounded-2xl text-[11px] font-mono flex items-center justify-between text-dw-blue dark:text-blue-300">
                   <div className="flex items-center gap-2 truncate">
                     <span className="text-base">▶️</span>
                     <span className="truncate max-w-md font-bold">{extractedPreview.videoUrl}</span>
                   </div>
-                  <span className="px-2 py-0.5 bg-purple-600 text-white rounded text-[9px] font-bold shrink-0">READY TO EMBED</span>
+                  <span className="px-2 py-0.5 bg-dw-blue text-white rounded text-[9px] font-bold shrink-0">READY TO EMBED</span>
                 </div>
               )}
               <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 rounded-2xl text-[11px] font-mono flex items-center justify-between text-amber-900 dark:text-amber-300">

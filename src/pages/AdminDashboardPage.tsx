@@ -1149,13 +1149,13 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                     {/* Extracted Product Video Stream */}
                     {(extractedPreview.videoUrl || extractedPreview.specifications?.video_url) && (
                       <div>
-                        <span className="text-[10px] font-extrabold uppercase text-purple-500 tracking-wider block mb-1">🎬 Extracted Product Video Stream</span>
-                        <div className="p-3 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/80 rounded-2xl text-[11px] font-mono flex items-center justify-between text-purple-900 dark:text-purple-300">
+                        <span className="text-[10px] font-extrabold uppercase text-dw-blue tracking-wider block mb-1">🎬 Extracted Product Video Stream</span>
+                        <div className="p-3 bg-dw-blue/10 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/80 rounded-2xl text-[11px] font-mono flex items-center justify-between text-dw-blue dark:text-blue-300">
                           <div className="flex items-center gap-2 truncate">
                             <span className="text-base">▶️</span>
                             <span className="truncate max-w-md font-bold">{extractedPreview.videoUrl || extractedPreview.specifications?.video_url}</span>
                           </div>
-                          <span className="px-2 py-0.5 bg-purple-600 text-white rounded text-[9px] font-bold shrink-0">READY TO EMBED</span>
+                          <span className="px-2 py-0.5 bg-dw-blue text-white rounded text-[9px] font-bold shrink-0">READY TO EMBED</span>
                         </div>
                       </div>
                     )}
@@ -1350,8 +1350,8 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                 </div>
 
                 {/* Product Video Stream URL Section */}
-                <div className="p-4 bg-purple-500/10 dark:bg-purple-950/30 rounded-2xl border border-purple-500/30 space-y-2">
-                  <label className="block text-xs font-black text-purple-900 dark:text-purple-300 flex items-center gap-1.5">
+                <div className="p-4 bg-dw-blue/10 dark:bg-blue-950/30 rounded-2xl border border-dw-blue/30 space-y-2">
+                  <label className="block text-xs font-black text-dw-blue dark:text-blue-300 flex items-center gap-1.5">
                     <span>🎬 Product Video URL (YouTube Review or MP4 Stream)</span>
                   </label>
                   <input
@@ -1366,7 +1366,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                         specifications: { ...(editingProduct.specifications || {}), video_url: url }
                       });
                     }}
-                    className="w-full bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 outline-none font-mono text-[11px] text-purple-900 dark:text-purple-300 focus:ring-2 focus:ring-purple-500"
+                    className="w-full bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 outline-none font-mono text-[11px] text-dw-blue dark:text-blue-300 focus:ring-2 focus:ring-dw-blue"
                   />
                   <p className="text-[10px] text-slate-500 dark:text-slate-400">
                     Paste any YouTube video link or direct MP4/HLS stream URL. It will automatically render an interactive video player on the review page.
@@ -1487,7 +1487,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                 </div>
 
                 {/* AI Gemini SEO Utility Section */}
-                <div className="p-4 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 dark:from-slate-900 dark:to-blue-950/40 border border-blue-200/80 dark:border-blue-800/80 rounded-2xl space-y-4">
+                <div className="p-4 bg-gradient-to-br from-blue-50/80 to-blue-100/50 dark:from-slate-900 dark:to-blue-950/40 border border-blue-200/80 dark:border-blue-800/80 rounded-2xl space-y-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <h4 className="text-xs font-black uppercase tracking-wider text-blue-900 dark:text-blue-300 flex items-center gap-1.5">
@@ -1842,7 +1842,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                   {editorialPosts.map((p) => (
                     <div key={p.id} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
                       <div className="flex items-center justify-between text-xs">
-                        <span className={`font-bold ${p.status === 'published' ? 'text-emerald-600 dark:text-emerald-400' : p.status === 'scheduled' ? 'text-violet-600 dark:text-violet-400' : 'text-slate-500 dark:text-slate-300'}`}>
+                        <span className={`font-bold ${p.status === 'published' ? 'text-emerald-600 dark:text-emerald-400' : p.status === 'scheduled' ? 'text-dw-blue dark:text-blue-400' : 'text-slate-500 dark:text-slate-300'}`}>
                           {String(p.status || 'draft').toUpperCase()}
                         </span>
                         <span className="font-extrabold text-blue-600 dark:text-blue-400">{p.productName || p.product_id ? 'Product Article' : (Array.isArray(p.tags) && p.tags.includes('buying guide') ? 'Buying Guide' : 'Article')}</span>
@@ -2294,7 +2294,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                 <button
                   onClick={handleBatchGenerateSeo}
                   disabled={isBatchSeoRunning || products.length === 0}
-                  className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold px-4 py-2 rounded-xl text-xs shadow flex items-center gap-2 transition-all"
+                  className="bg-dw-blue hover:bg-dw-blue-700 disabled:opacity-50 text-white font-bold px-4 py-2 rounded-xl text-xs shadow flex items-center gap-2 transition-all"
                 >
                   {isBatchSeoRunning ? (
                     <>

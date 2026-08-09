@@ -214,7 +214,7 @@ export const SideBySideComparisonModal: React.FC<SideBySideComparisonProps> = ({
         <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 space-y-4 shadow-inner">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="p-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-xs font-bold">
+              <span className="p-2 rounded-xl bg-gradient-to-r from-dw-navy to-dw-blue text-xs font-bold">
                 📊 AI Sentiment
               </span>
               <h4 className="text-sm font-black">

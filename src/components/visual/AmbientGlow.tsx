@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface AmbientGlowProps {
-  color?: 'blue' | 'violet' | 'cyan' | 'orange';
+  color?: 'blue' | 'cyan' | 'orange';
   position?: 'top-left' | 'top-right' | 'center' | 'bottom-left' | 'bottom-right';
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
@@ -15,7 +15,6 @@ export const AmbientGlow: React.FC<AmbientGlowProps> = ({
 }) => {
   const colorClasses = {
     blue: 'from-dw-blue/25 via-dw-blue-500/10 to-transparent',
-    violet: 'from-dw-navy/25 via-dw-blue/10 to-transparent',
     cyan: 'from-cyan-500/20 via-dw-blue/10 to-transparent',
     orange: 'from-dw-orange/25 via-orange-600/10 to-transparent'
   };

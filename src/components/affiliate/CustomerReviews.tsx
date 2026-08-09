@@ -66,7 +66,7 @@ export default function CustomerReviews({ reviews, reviewStats, reviewHighlights
       </div>
 
       {reviewHighlights && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-200/50 dark:border-blue-800/30 p-4">
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/20 rounded-2xl border border-blue-200/50 dark:border-blue-800/30 p-4">
           <div className="flex items-center gap-2 mb-2">
             <ThumbsUp className="h-4 w-4 text-blue-500" />
             <span className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase">Customers say</span>
@@ -111,7 +111,7 @@ export default function CustomerReviews({ reviews, reviewStats, reviewHighlights
               className="bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 p-4 hover:border-slate-200 dark:hover:border-zinc-600 transition-all"
             >
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#246BFF] to-purple-500 flex items-center justify-center text-white text-xs font-bold shrink-0 overflow-hidden">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-dw-blue to-dw-orange flex items-center justify-center text-white text-xs font-bold shrink-0 overflow-hidden">
                   {review.avatar ? (
                     <img src={proxyImageUrl(review.avatar)} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   ) : (

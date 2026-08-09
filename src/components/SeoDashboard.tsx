@@ -205,10 +205,10 @@ export default function SeoDashboard({ token, baseUrl }: SeoDashboardProps) {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
                   { label: 'Published Posts', value: stats.totalPublishedPosts, icon: BookOpen, color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' },
-                  { label: 'Published Pages', value: stats.totalPages, icon: FileText, color: 'text-purple-600 bg-purple-50 dark:bg-purple-900/20' },
+                  { label: 'Published Pages', value: stats.totalPages, icon: FileText, color: 'text-dw-blue bg-dw-blue/10 dark:bg-blue-900/20' },
                   { label: 'Product Reviews', value: stats.totalProducts, icon: Star, color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/20' },
                   { label: 'Portfolio Projects', value: stats.totalPortfolio, icon: Briefcase, color: 'text-green-600 bg-green-50 dark:bg-green-900/20' },
-                  { label: 'Active Redirects', value: stats.totalRedirects, icon: Link2, color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20' },
+                  { label: 'Active Redirects', value: stats.totalRedirects, icon: Link2, color: 'text-dw-orange bg-dw-orange/10 dark:bg-orange-900/20' },
                   { label: 'Keywords Tracked', value: stats.totalKeywords, icon: Target, color: 'text-rose-600 bg-rose-50 dark:bg-rose-900/20' },
                   { label: 'Affiliate Clicks', value: stats.totalAffiliateClicks, icon: TrendingUp, color: 'text-teal-600 bg-teal-50 dark:bg-teal-900/20' },
                   { label: '404 Errors', value: stats.total404Errors, icon: AlertTriangle, color: 'text-red-600 bg-red-50 dark:bg-red-900/20' },
@@ -528,7 +528,7 @@ export default function SeoDashboard({ token, baseUrl }: SeoDashboardProps) {
                       } catch (e: any) { alert('❌ ' + e.message); }
                       if (btn) { btn.textContent = 'Gen Article'; (btn as HTMLButtonElement).disabled = false; }
                     }}
-                    className="p-1.5 hover:bg-purple-50 rounded-lg text-slate-400 hover:text-purple-600 transition-all text-[10px] font-bold flex items-center gap-1"
+                    className="p-1.5 hover:bg-dw-blue/10 rounded-lg text-slate-400 hover:text-dw-blue transition-all text-[10px] font-bold flex items-center gap-1"
                     title="Generate full article with AI"
                     id={`gen-article-${item.id}`}
                   >

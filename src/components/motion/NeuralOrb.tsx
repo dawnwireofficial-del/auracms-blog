@@ -33,7 +33,7 @@ export default function NeuralOrb({
     <div className={`relative flex items-center justify-center ${dimensions} ${className}`}>
       {/* Outer Glow / Breathing Layer */}
       <motion.div
-        className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#246BFF]/40 via-cyan-400/30 to-purple-600/40 blur-md"
+        className="absolute inset-0 rounded-full bg-gradient-to-tr from-dw-blue/40 via-cyan-400/30 to-dw-orange/40 blur-md"
         animate={{
           scale: state === 'listening' ? [1, 1.25, 1] : state === 'processing' ? [0.95, 1.1, 0.95] : [1, 1.08, 1],
           opacity: state === 'error' ? 0.4 : [0.5, 0.8, 0.5],

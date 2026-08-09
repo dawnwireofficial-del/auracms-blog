@@ -72,7 +72,7 @@ export default function GravityCursor() {
             ? mode === 'explore'
               ? 'w-16 h-16 border-cyan-400/80 bg-cyan-500/10 backdrop-blur-[2px] scale-110'
               : mode === 'view'
-              ? 'w-14 h-14 border-purple-500/80 bg-purple-500/10 scale-105'
+              ? 'w-14 h-14 border-dw-blue/80 bg-dw-blue/10 scale-105'
               : 'w-12 h-12 border-blue-500/70 bg-blue-500/10 scale-100'
             : 'w-8 h-8 border-slate-400/30 bg-transparent'
         }`}
@@ -88,7 +88,7 @@ export default function GravityCursor() {
           </span>
         )}
         {isHovered && mode === 'view' && (
-          <span className="absolute inset-0 flex items-center justify-center text-[9px] font-black uppercase tracking-wider text-purple-300 opacity-90">
+          <span className="absolute inset-0 flex items-center justify-center text-[9px] font-black uppercase tracking-wider text-blue-300 opacity-90">
             View
           </span>
         )}

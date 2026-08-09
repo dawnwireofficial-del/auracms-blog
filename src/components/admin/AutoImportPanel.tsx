@@ -70,7 +70,7 @@ export default function AutoImportPanel({ token }: { token: string }) {
           <button
             onClick={startImport}
             disabled={isRunning || loading}
-            className="px-5 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-5 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-dw-navy to-dw-blue rounded-xl hover:from-dw-blue-700 hover:to-dw-blue-600 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {loading ? (
               <><RefreshCw className="h-4 w-4 animate-spin" /> Starting...</>

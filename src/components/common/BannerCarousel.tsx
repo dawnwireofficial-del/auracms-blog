@@ -197,7 +197,7 @@ export const BannerCarousel: React.FC<BannerCarouselProps> = ({
                   href={current.targetUrl || current.affiliateUrl || '#'}
                   target={current.affiliateUrl ? '_blank' : '_self'}
                   rel={current.affiliateUrl ? 'noopener noreferrer' : undefined}
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold px-6 py-3 rounded-2xl text-xs shadow-xl shadow-blue-600/30 transition-all hover:scale-105"
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-dw-navy to-dw-blue hover:from-dw-blue-700 hover:to-dw-blue-600 text-white font-extrabold px-6 py-3 rounded-2xl text-xs shadow-xl shadow-dw-blue/30 transition-all hover:scale-105"
                 >
                   <span>{current.ctaText}</span>
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

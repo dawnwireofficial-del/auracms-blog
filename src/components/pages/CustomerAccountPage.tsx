@@ -172,7 +172,7 @@ export default function CustomerAccountPage({ currentUser, onNavigate, onOpenLog
               {activeTab === 'comparisons' && (
                 <div>
                   <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                    <LayoutGrid className="h-5 w-5 text-purple-500" /> Saved Comparisons
+                    <LayoutGrid className="h-5 w-5 text-dw-blue" /> Saved Comparisons
                   </h2>
                   {comparisons.length === 0 ? (
                     <EmptyState message="You haven't saved any product comparisons." icon={<LayoutGrid className="h-12 w-12 text-slate-300 dark:text-zinc-700" />} />

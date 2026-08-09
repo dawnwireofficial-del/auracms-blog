@@ -231,7 +231,7 @@ export default function AutoArticlesPanel({ token }: { token: string }) {
               { label: 'Have Article', value: stats.withArticle, color: 'text-emerald-600 dark:text-emerald-400' },
               { label: 'Missing Article', value: ok, color: 'text-amber-600 dark:text-amber-400' },
               { label: 'Posts Published', value: stats.publishedPosts, color: 'text-emerald-600 dark:text-emerald-400' },
-              { label: `Generated Today`, value: `${stats.generatedToday}/${stats.dailyLimit}`, color: 'text-violet-600 dark:text-violet-400' },
+              { label: `Generated Today`, value: `${stats.generatedToday}/${stats.dailyLimit}`, color: 'text-dw-blue dark:text-blue-400' },
             ].map((s) => (
               <div key={s.label} className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
                 <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">{s.label}</div>
@@ -243,7 +243,7 @@ export default function AutoArticlesPanel({ token }: { token: string }) {
           {/* Image Generation API Key */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 space-y-4">
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-              <ImageIcon className="w-4 h-4 text-violet-500" /> Image Generation
+              <ImageIcon className="w-4 h-4 text-dw-blue" /> Image Generation
             </h3>
             <div>
               <label className={labelCls}>Provider</label>
@@ -255,7 +255,7 @@ export default function AutoArticlesPanel({ token }: { token: string }) {
                 ] as { id: ImageProvider; label: string; hint: string }[]).map((p) => (
                   <button key={p.id} onClick={() => setCfg({ ...cfg!, imageProvider: p.id })}
                     title={p.hint}
-                    className={`flex-1 px-4 py-2 text-xs font-bold capitalize ${cfg?.imageProvider === p.id ? 'bg-violet-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300'}`}>
+                    className={`flex-1 px-4 py-2 text-xs font-bold capitalize ${cfg?.imageProvider === p.id ? 'bg-dw-blue text-white' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300'}`}>
                     {p.label}
                   </button>
                 ))}
@@ -287,14 +287,14 @@ export default function AutoArticlesPanel({ token }: { token: string }) {
               <button
                 onClick={testImageKey}
                 disabled={testingKey}
-                className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl border border-violet-500/40 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/40 disabled:opacity-50"
+                className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl border border-dw-blue/40 text-dw-blue dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 disabled:opacity-50"
               >
                 {testingKey ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
                 {testingKey ? 'Testing...' : 'Test Key'}
               </button>
               <button
                 onClick={saveConfig}
-                className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-50"
+                className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl bg-dw-blue hover:bg-dw-blue-700 text-white disabled:opacity-50"
               >
                 <Check className="w-3.5 h-3.5" /> Save
               </button>

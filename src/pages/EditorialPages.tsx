@@ -161,7 +161,7 @@ export const BuyingGuidesPage: React.FC = () => {
             </a>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-3xl border border-blue-200 dark:border-blue-800/40 p-6 flex flex-col justify-between min-h-[220px]">
+          <div className="bg-gradient-to-br from-dw-blue/10 to-dw-orange/10 dark:from-blue-950/30 dark:to-orange-950/30 rounded-3xl border border-blue-200 dark:border-blue-800/40 p-6 flex flex-col justify-between min-h-[220px]">
             <div className="space-y-2">
               <span className="inline-block bg-blue-600 text-white text-[9px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full">How to Choose</span>
               <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">Buying Guides</h2>

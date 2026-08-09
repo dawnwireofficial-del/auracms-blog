@@ -197,7 +197,7 @@ function ImportedProductsTab({ token }: { token: string }) {
 
       {activeTab === 'setup' && (
         <div className="space-y-4">
-          <div className="bg-gradient-to-r from-blue-900/20 to-indigo-900/20 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-2xl border border-blue-200/50 dark:border-blue-800/30 p-6">
+          <div className="bg-gradient-to-r from-dw-blue/20 to-dw-orange/20 dark:from-blue-900/30 dark:to-orange-900/30 rounded-2xl border border-blue-200/50 dark:border-blue-800/30 p-6">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-xl bg-[#246BFF]/10 flex items-center justify-center shrink-0">
                 <Download className="h-5 w-5 text-[#246BFF]" />
@@ -267,8 +267,8 @@ function ImportedProductsTab({ token }: { token: string }) {
 
           <div className="bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 shadow-sm p-5 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                <Smartphone className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+              <div className="w-8 h-8 rounded-lg bg-dw-blue/10 dark:bg-blue-900/30 flex items-center justify-center">
+                <Smartphone className="h-4 w-4 text-dw-blue dark:text-blue-400" />
               </div>
               <span className="text-xs font-bold text-slate-700 dark:text-zinc-200">Step 4: Start Importing</span>
             </div>

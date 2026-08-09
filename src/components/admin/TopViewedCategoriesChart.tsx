@@ -12,9 +12,9 @@ import {
 import { Category } from '../../types';
 
 const CATEGORY_COLORS = [
-  '#2563eb', '#0d9488', '#7c3aed', '#ea580c',
+  '#246BFF', '#0d9488', '#FF8A00', '#ea580c',
   '#e11d48', '#16a34a', '#0284c7', '#ca8a04',
-  '#a855f7', '#14b8a6',
+  '#0A1F44', '#14b8a6',
 ];
 
 interface CategoryViewData {
@@ -128,7 +128,7 @@ export const TopViewedCategoriesChart: React.FC<TopViewedCategoriesChartProps> =
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 font-extrabold text-[11px] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+            <span className="bg-dw-blue/10 text-dw-blue dark:text-blue-400 font-extrabold text-[11px] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
               Editorial Insights
             </span>
             <span className="text-xs font-bold text-slate-500">
@@ -243,8 +243,8 @@ export const TopViewedCategoriesChart: React.FC<TopViewedCategoriesChartProps> =
           </div>
 
           {topCategory && (
-          <div className="p-4 bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-900/50 rounded-2xl text-xs space-y-2">
-            <div className="font-extrabold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
+          <div className="p-4 bg-dw-blue/10 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/50 rounded-2xl text-xs space-y-2">
+            <div className="font-extrabold text-dw-blue dark:text-blue-300 flex items-center gap-1.5">
               <span>✍️ AI Editorial Recommendation:</span>
             </div>
             <p className="text-slate-700 dark:text-slate-300 leading-relaxed">

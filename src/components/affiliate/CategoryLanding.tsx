@@ -174,7 +174,7 @@ export default function CategoryLanding({ category, allProducts, allCategories, 
         const editorsPick = products.filter(p => (p as any).isFeatured || p.bestFor);
         if (editorsPick.length === 0) return null;
         return (
-          <div key={section.id} className="mb-10 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-zinc-800 dark:to-zinc-800/50 rounded-xl border border-blue-100 dark:border-zinc-700">
+          <div key={section.id} className="mb-10 p-6 bg-gradient-to-br from-dw-blue/10 to-dw-orange/10 dark:from-zinc-800 dark:to-zinc-800/50 rounded-xl border border-blue-100 dark:border-zinc-700">
             <h2 className="text-lg font-bold text-slate-800 dark:text-zinc-100 mb-4">{section.title || "Editor's Picks"}</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {editorsPick.slice(0, (settings as any).limit || 4).map(p => (

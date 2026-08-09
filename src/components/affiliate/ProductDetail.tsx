@@ -379,7 +379,7 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
 
         {/* Editor's Verdict */}
         {product.finalVerdict && (
-          <div className="mt-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-zinc-800 dark:to-zinc-800/50 rounded-xl border border-blue-100 dark:border-zinc-700">
+          <div className="mt-6 p-5 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-zinc-800 dark:to-zinc-800/50 rounded-xl border border-blue-100 dark:border-zinc-700">
             <h2 className="text-sm font-bold text-slate-800 dark:text-zinc-100 mb-2">
               <Award className="h-4 w-4 inline mr-1 text-[#0c5adb]" />
               Editor's Verdict

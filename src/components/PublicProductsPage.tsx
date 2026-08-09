@@ -520,7 +520,7 @@ export default function PublicProductsPage({ onNavigate }: PublicProductsPagePro
                         {review.stockStatus && review.stockStatus !== 'in_stock' && (
                           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
                             review.stockStatus === 'low_stock' ? 'bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-300' :
-                            review.stockStatus === 'limited' ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-300' :
+                            review.stockStatus === 'limited' ? 'bg-dw-blue/10 text-dw-blue dark:text-blue-300' :
                             'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-300'
                           }`}>{review.stockStatus.replace('_', ' ')}</span>
                         )}

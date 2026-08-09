@@ -55,7 +55,7 @@ export default function SeoAssistant({ token, postTitle, postContent, currentFoc
     return (
       <button
         onClick={() => setShowPanel(true)}
-        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-dashed border-blue-200 dark:border-blue-800 rounded-xl p-4 text-xs font-semibold text-blue-700 dark:text-blue-300 hover:from-blue-100 hover:to-purple-100 dark:hover:from-blue-900/30 dark:hover:to-purple-900/30 transition-all cursor-pointer"
+        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-dw-blue/10 to-dw-orange/10 dark:from-blue-900/20 dark:to-orange-900/20 border border-dashed border-dw-blue/40 dark:border-blue-800 rounded-xl p-4 text-xs font-semibold text-blue-700 dark:text-blue-300 hover:from-blue-100 hover:to-orange-100 dark:hover:from-blue-900/30 dark:hover:to-orange-900/30 transition-all cursor-pointer"
       >
         <Sparkles className="h-4 w-4" />
         Open AI SEO Assistant
@@ -64,7 +64,7 @@ export default function SeoAssistant({ token, postTitle, postContent, currentFoc
   }
 
   return (
-    <div className="bg-gradient-to-br from-blue-50/80 to-purple-50/80 dark:from-blue-900/15 dark:to-purple-900/15 border border-blue-100 dark:border-blue-800/50 rounded-xl p-4 space-y-3">
+    <div className="bg-gradient-to-br from-dw-blue/10 to-dw-orange/10 dark:from-blue-900/15 dark:to-orange-900/15 border border-blue-100 dark:border-blue-800/50 rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
         <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 flex items-center gap-1.5">
           <Sparkles className="h-3.5 w-3.5" />

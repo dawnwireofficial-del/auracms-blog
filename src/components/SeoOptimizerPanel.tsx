@@ -209,8 +209,8 @@ export default function SeoOptimizerPanel({ token, baseUrl }: SeoOptimizerPanelP
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-900/20">
-            <Zap className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+          <div className="p-2.5 rounded-xl bg-dw-blue/10 dark:bg-blue-900/20">
+            <Zap className="w-5 h-5 text-dw-blue dark:text-blue-400" />
           </div>
           <div>
             <h3 className="font-display text-lg font-bold text-slate-900 dark:text-white">AI SEO Optimizer</h3>
@@ -226,7 +226,7 @@ export default function SeoOptimizerPanel({ token, baseUrl }: SeoOptimizerPanelP
             { label: 'Total Content', value: stats.totalItems, icon: Layers, color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' },
             { label: 'Avg SEO Score', value: `${stats.averageScore}%`, icon: Target, color: stats.averageScore >= 70 ? 'text-green-600 bg-green-50 dark:bg-green-900/20' : 'text-amber-600 bg-amber-50 dark:bg-amber-900/20' },
             { label: 'Needs Optimization', value: stats.belowThreshold, icon: AlertTriangle, color: stats.belowThreshold > 0 ? 'text-red-600 bg-red-50 dark:bg-red-900/20' : 'text-green-600 bg-green-50 dark:bg-green-900/20' },
-            { label: 'Est. AI Cost', value: `$${stats.estimatedCostUsd}`, icon: DollarSign, color: 'text-purple-600 bg-purple-50 dark:bg-purple-900/20' },
+            { label: 'Est. AI Cost', value: `$${stats.estimatedCostUsd}`, icon: DollarSign, color: 'text-dw-blue bg-dw-blue/10 dark:bg-blue-900/20' },
           ].map(s => (
             <div key={s.label} className="bg-white dark:bg-zinc-800/50 border border-slate-200 dark:border-zinc-700 rounded-2xl p-5">
               <div className={`inline-flex p-2.5 rounded-xl ${s.color} mb-3`}>
@@ -447,8 +447,8 @@ export default function SeoOptimizerPanel({ token, baseUrl }: SeoOptimizerPanelP
           <div className="w-full max-w-3xl max-h-[80vh] overflow-y-auto bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-700 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-700 p-4 flex items-center justify-between z-10">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20">
-                  <Eye className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                <div className="p-2 rounded-lg bg-dw-blue/10 dark:bg-blue-900/20">
+                  <Eye className="w-4 h-4 text-dw-blue dark:text-blue-400" />
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white">Preview Optimization</h4>

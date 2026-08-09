@@ -92,7 +92,7 @@ export default function BrandsPage({ onNavigate }: { onNavigate: (r: string, p?:
                   {brand.logo_url ? (
                     <img src={proxyImageUrl(brand.logo_url)} alt={brand.name} referrerPolicy="no-referrer" className="h-20 w-20 object-contain mb-4 group-hover:scale-110 transition-transform" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   ) : (
-                    <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 flex items-center justify-center mb-4">
+                    <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-dw-blue/10 to-dw-orange/10 flex items-center justify-center mb-4">
                       <Building2 className="h-10 w-10 text-blue-500" />
                     </div>
                   )}

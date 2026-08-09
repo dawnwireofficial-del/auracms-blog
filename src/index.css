@@ -10,8 +10,6 @@
   --gravity-surface-blue: #15345f;
   --gravity-dawn-blue: #4c82ff;
   --gravity-signal-cyan: #2ad7f7;
-  --gravity-aurora-violet: #8c6cff;
-  --gravity-electric-indigo: #665cff;
   --gravity-dawn-amber: #ffb45b;
   --gravity-bg-primary: #030712;
   --gravity-bg-secondary: #071426;
@@ -21,7 +19,6 @@
   --gravity-text-secondary: #b4c0d4;
   --gravity-text-muted: #7d8aa2;
   --gravity-accent-primary: #4c82ff;
-  --gravity-accent-violet: #8c6cff;
   --gravity-accent-cyan: #22d3ee;
   --gravity-border: rgba(255, 255, 255, 0.09);
   --gravity-border-hover: rgba(116, 150, 255, 0.3);
@@ -72,8 +69,6 @@
   --color-dw-blue-700: #164EE8;
   --color-dw-blue-600: #2463FF;
   --color-dw-blue-500: #3C7BFF;
-  --color-dw-indigo-600: #5B4BFF;
-  --color-dw-violet-500: #8A5CFF;
   --color-dw-magenta-400: #D45EFF;
   --color-dw-cyan-400: #55E6FF;
   --color-dw-mint-400: #28E4BA;

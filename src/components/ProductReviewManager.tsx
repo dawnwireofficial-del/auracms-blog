@@ -238,7 +238,7 @@ export default function ProductReviewManager({ token, categories = [] }: { token
       in_stock: 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300',
       low_stock: 'bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300',
       out_of_stock: 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300',
-      limited: 'bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300',
+      limited: 'bg-dw-blue/10 text-dw-blue dark:text-blue-300',
     };
     if (!s || s === 'in_stock') return null;
     return <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${styles[s] || styles.in_stock}`}>{s.replace('_', ' ')}</span>;
@@ -286,7 +286,7 @@ export default function ProductReviewManager({ token, categories = [] }: { token
       </div>
 
       {/* Chrome Extension Integration Box */}
-      <div className="p-4 bg-gradient-to-r from-blue-900/40 via-indigo-900/30 to-slate-900 rounded-2xl border border-blue-500/30 text-white shadow-lg space-y-3">
+      <div className="p-4 bg-gradient-to-r from-blue-900/40 via-blue-900/30 to-slate-900 rounded-2xl border border-blue-500/30 text-white shadow-lg space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-cyan-400" />

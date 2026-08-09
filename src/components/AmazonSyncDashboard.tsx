@@ -200,7 +200,7 @@ export default function AmazonSyncDashboard({ token }: Props) {
         <StatCard icon={Clock} label="Pending" value={stats?.pending || 0} color="bg-amber-500" />
         <StatCard icon={AlertTriangle} label="Missing ASIN" value={stats?.missingAsin || 0} color="bg-orange-500" />
         <StatCard icon={XCircle} label="Invalid ASIN" value={stats?.invalidAsin || 0} color="bg-red-500" />
-        <StatCard icon={BarChart3} label="Duplicate ASINs" value={stats?.duplicateAsins || 0} color="bg-purple-500" />
+        <StatCard icon={BarChart3} label="Duplicate ASINs" value={stats?.duplicateAsins || 0} color="bg-dw-blue" />
         <StatCard icon={XCircle} label="Unavailable" value={stats?.unavailableProducts || 0} color="bg-red-500" />
         <StatCard icon={TrendingUp} label="Price Changes" value={stats?.changedPrices || 0} color="bg-emerald-500" />
         <StatCard icon={Activity} label="Expired Deals" value={stats?.expiredDeals || 0} color="bg-pink-500" />

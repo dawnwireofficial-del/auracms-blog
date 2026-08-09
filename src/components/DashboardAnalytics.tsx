@@ -67,7 +67,7 @@ interface RecentActivityData {
   messages: { name: string; subject: string; time: string }[];
 }
 
-const COLORS = ['#246BFF', '#f97316', '#10b981', '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#6366f1'];
+const COLORS = ['#246BFF', '#f97316', '#10b981', '#FF8A00', '#ec4899', '#14b8a6', '#f59e0b', '#0A1F44'];
 
 type SortField = 'title' | 'views' | 'visitors' | 'lastViewed';
 type SortDir = 'asc' | 'desc';
@@ -234,7 +234,7 @@ export default function DashboardAnalytics({ token }: { token: string }) {
       activityItems.push({ icon: <MessageSquare className="h-3 w-3" />, text: `Comment by ${c.author}`, time: c.time, color: 'text-emerald-500' });
     }
     for (const s of subscriptions.slice(0, 5)) {
-      activityItems.push({ icon: <Mail className="h-3 w-3" />, text: `New subscriber: ${s.email}`, time: s.time, color: 'text-violet-500' });
+      activityItems.push({ icon: <Mail className="h-3 w-3" />, text: `New subscriber: ${s.email}`, time: s.time, color: 'text-dw-blue' });
     }
     for (const m of messages.slice(0, 5)) {
       activityItems.push({ icon: <MessageSquare className="h-3 w-3" />, text: `Contact: ${m.name} - ${m.subject}`, time: m.time, color: 'text-amber-500' });
@@ -317,7 +317,7 @@ export default function DashboardAnalytics({ token }: { token: string }) {
           label="Engagement"
           value={`${(engagement?.totalComments || 0) + (engagement?.totalSubscribers || 0)}`}
           sub={`${engagement?.totalComments || 0} comments, ${engagement?.totalSubscribers || 0} subs`}
-          color="bg-violet-50 dark:bg-violet-900/30 text-violet-600"
+          color="bg-dw-blue/10 dark:bg-blue-900/30 text-dw-blue"
         />
       </div>
 

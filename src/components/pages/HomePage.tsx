@@ -225,7 +225,7 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
               { value: '2,000+', label: 'Creators & Brands', icon: Users, color: 'from-blue-500 to-cyan-400' },
               { value: '4.9', label: 'Average Rating', icon: Star, suffix: '★', color: 'from-amber-500 to-orange-400' },
               { value: '50+', label: 'In-Depth Reviews', icon: ShoppingBag, color: 'from-emerald-500 to-teal-400' },
-              { value: '15+', label: 'Categories Covered', icon: LayoutGrid, color: 'from-purple-500 to-pink-400' },
+              { value: '15+', label: 'Categories Covered', icon: LayoutGrid, color: 'from-dw-blue to-dw-orange' },
             ].map((stat, i) => (
               <StaggerItem key={i} className="group bg-white dark:bg-[#071426] rounded-2xl border border-slate-200/80 dark:border-blue-500/20 p-4 md:p-5 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-500/40 transition-all duration-300">
                 <div className="flex items-center gap-3">
