@@ -169,7 +169,7 @@ app.use((_req, res, next) => {
     "img-src 'self' data: blob: https: *",
     "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
     "frame-src 'self' https://www.googletagmanager.com https://www.youtube.com https://connect.facebook.net",
-    "connect-src 'self' https://api.cohere.com https://www.google-analytics.com https://analytics.google.com https://m.media-amazon.com https://images-na.ssl-images-amazon.com https://api.imgbb.com",
+    "connect-src 'self' https://api.cohere.com https://www.google-analytics.com https://analytics.google.com https://m.media-amazon.com https://images-na.ssl-images-amazon.com https://api.imgbb.com https://api.knock.app",
     "media-src 'self' https: blob:",
   ].join('; '));
   next();
