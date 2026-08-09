@@ -17,16 +17,11 @@ jobs:
         with:
           node-version: 20
 
-      - name: Restore upload manifest
-        uses: actions/cache@v4
-        with:
-          path: .vercel-deploy-manifest.json
-          key: vercel-upload-manifest-${{ github.ref }}
-
       - name: Deploy to production
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: team_XBNSPwcit0xkWNJb8CpPq6na
           VERCEL_PROJECT_ID: prj_St3lzIAB1KNKuzhloL6Sah078ScG
           VERCEL_PROJECT_NAME: auracms-blog
+          VERCEL_GIT_REPO_ID: "1310817594"
         run: node scripts/vercel-deploy.mjs
