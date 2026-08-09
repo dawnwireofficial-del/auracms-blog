@@ -7,68 +7,66 @@
       "includeFiles": "dist/**"
     }
   },
-  "redirects": [
+  "routes": [
     {
-      "source": "/review",
-      "destination": "/products",
-      "permanent": true
+      "src": "^/api/(.*)",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS"
+      },
+      "continue": true
     },
     {
-      "source": "/review/",
-      "destination": "/products",
-      "permanent": true
+      "src": "^/assets/(.*)",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      },
+      "continue": true
     },
     {
-      "source": "/product",
-      "destination": "/products",
-      "permanent": true
+      "src": "^/review$",
+      "dest": "/products",
+      "status": 308
     },
     {
-      "source": "/product/",
-      "destination": "/products",
-      "permanent": true
+      "src": "^/review/$",
+      "dest": "/products",
+      "status": 308
     },
     {
-      "source": "/product/:slug",
-      "destination": "/products/:slug",
-      "permanent": true
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/api/index.js"
+      "src": "^/product$",
+      "dest": "/products",
+      "status": 308
     },
     {
-      "source": "/(sitemap.xml|image-sitemap.xml|robots.txt|rss.xml|llms.txt)",
-      "destination": "/api/index.js"
+      "src": "^/product/$",
+      "dest": "/products",
+      "status": 308
     },
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.js"
+      "src": "^/product/([^/]+)",
+      "dest": "/products/$1",
+      "status": 308
+    },
+    {
+      "src": "^/$",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "^/(sitemap.xml|image-sitemap.xml|robots.txt|rss.xml|llms.txt)$",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "^/api/(.*)$",
+      "dest": "/api/index.js"
     },
     {
       "handle": "filesystem"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Headers", "value": "Origin, X-Requested-With, Content-Type, Accept, Authorization" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" }
-      ]
-    },
-    {
-      "source": "/assets/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
