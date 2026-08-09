@@ -13,6 +13,17 @@ Complete Vike SSR migration, deploy to Vercel, and maintain the production site 
 - **Verified end-to-end**: push `master` (commit `4a13cec`) triggered CI → deploy `dpl_2yxjXPb2xMWXCwNCTnzJY2wAe1fE` → READY, aliases `www.dawnwire.com` + `dawnwire.com` + `auracms-blog-git-master-dawn-wire.vercel.app`. Live site serves `/assets/index-Dt7POqO8.js`.
 - Deprecated (still in git history): the `/v2/files` upload-based deploy, the `.vercel-deploy-manifest.json` incremental scheme (gitignore entry is harmless). Deploying now = push to `master`.
 
+### Session — Homepage SSR Fix: `/` now server-renders in production (this session)
+- **Root cause**: `vercel.json`'s catch-all rewrite `/(.*)` → `/index.html` served the static SPA shell (`<div id="root">` empty, 8,738 B, `Cache-Control: max-age=0`) for the homepage, so the Express SSR handler (`server.ts:21` → `renderHomePageHtml()` in `server/ssr/home.ts`) never executed in production — despite the handler being present and working locally (16,331 B with H1). Crawlers/users got a blank page → defeats loading-time/SEO goals.
+- **First attempt failed (commit `72f6cbe`)**: added `{ "handle": "filesystem" }` inside the modern `rewrites` array → Vercel deploy `ERROR` — the modern `rewrites` schema has `additionalProperties: false` and rejects `handle` ("`rewrites[3]` should NOT have additional property `handle`"). Verified against the CLI schema at `node_modules/@vercel/cli-config` + `@vercel/build-utils`.
+- **Permanent fix (commit `ff88856`)**: rewrote `vercel.json` routing to the **legacy `routes` array** (Vercel's own framework builders use this; it supports `handle: filesystem` ordering):
+  1. CORS headers for `^/api/(.*)` and immutable `Cache-Control` for `^/assets/(.*)` as `{headers, continue:true}` rules
+  2. `/review*`, `/product*` → `/products*` 308 redirects as `{src,dest,status}` rules
+  3. `^/$` + `^/(sitemap.xml|image-sitemap.xml|robots.txt|rss.xml|llms.txt)$` + `^/api/(.*)$` → `/api/index.js` (SSR/function) **BEFORE** the filesystem check
+  4. `{ "handle": "filesystem" }` — static assets still served from CDN edge
+  5. `/(.*)` → `/index.html` SPA fallback last
+- **Verified on `www.dawnwire.com`**: `/` → 200, **16,180 B**, SSR H1 ("Amazon Product Reviews, Buying Guides & AI-Powered Deals"), `Cache-Control: public, max-age=300`, links populated from live DB (12 categories, 6 top products, 4 buying guides); `/assets/*` still `X-Vercel-Cache: HIT` + immutable; `/api/*` CORS intact; `/product/:slug` → 308 intact. Deployed via push to `master` (gitSource pipeline).
+
 ### Session — API-Build Deploy (superseded above, history only)
 - **Perf: cut initial JS 2.1 MB → ~556 KB raw** (commit `4b70e54`): `React.lazy()` + `Suspense` in `src/App.tsx` for ProductCatalogPage, BestCategoryPage, ProductDetailPage, DealsPage, ComparisonPage, ReviewsPage, BuyingGuidesPage, PostDetailPage, AdminDashboardPage, BrandsPage, ChatbotDrawer, AIProductFinderModal; vendored `manualChunks` in `vite.config.ts` (charts/video/firebase/knock/motion/markdown/icons/supabase/ai/react); lazy-loaded `ProductSparkline` (recharts) + `NotificationBell` (knock) out of the entry. Live entry is now `/assets/index-*.js` ~180 KB + preloads react/motion/icons.
 - **CI deploy variance** (now replaced by gitSource, above): CLI tokens were machine-bound/team-inop, so direct-API upload path was used until the Hobby upload quota complaint kill it.
