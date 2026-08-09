@@ -13,16 +13,16 @@ export const DawnWireLogoMark: React.FC<{ className?: string }> = ({ className =
 };
 
 // DawnWire Brand Logo Component (full logo from official kit)
-export const DawnWireLogo: React.FC<{ className?: string; iconOnly?: boolean; tagline?: boolean }> = ({ className = 'h-14', iconOnly = false, tagline = false }) => {
+export const DawnWireLogo: React.FC<{ className?: string; iconOnly?: boolean; tagline?: boolean }> = ({ className = 'w-[184px] h-[156px]', iconOnly = false, tagline = false }) => {
   return (
     <a href="/" className={`flex items-center gap-2.5 select-none cursor-pointer group ${className}`}>
       {iconOnly ? (
-        <DawnWireLogoMark className="h-14 w-14 shrink-0 group-hover:scale-105 transition-transform duration-300" />
+        <DawnWireLogoMark className="w-[184px] h-[156px] shrink-0 group-hover:scale-105 transition-transform duration-300" />
       ) : (
         <img
           src="/logo/logo-transparent.png"
           alt="DawnWire"
-          className="h-14 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform duration-300"
+          className="w-[184px] h-[156px] object-contain shrink-0 group-hover:scale-105 transition-transform duration-300"
           draggable={false}
         />
       )}

@@ -240,7 +240,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
       <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
         {/* Logo */}
         <div className="shrink-0">
-          <DawnWireLogo className="h-14 md:h-16" />
+          <DawnWireLogo className="w-[184px] h-[156px]" />
         </div>
 
         {/* Search Bar with Category Selector & Live Search Autocomplete */}
