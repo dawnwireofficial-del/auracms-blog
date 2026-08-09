@@ -36,12 +36,19 @@
   ],
   "rewrites": [
     {
+      "source": "/",
+      "destination": "/api/index.js"
+    },
+    {
       "source": "/(sitemap.xml|image-sitemap.xml|robots.txt|rss.xml|llms.txt)",
       "destination": "/api/index.js"
     },
     {
       "source": "/api/(.*)",
       "destination": "/api/index.js"
+    },
+    {
+      "handle": "filesystem"
     },
     {
       "source": "/(.*)",
