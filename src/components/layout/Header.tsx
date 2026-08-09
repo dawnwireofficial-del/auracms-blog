@@ -482,12 +482,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
           {onOpenAiFinder && (
             <button
               onClick={onOpenAiFinder}
-              className="hidden sm:flex items-center gap-1.5 bg-gradient-to-r from-dw-navy to-dw-blue hover:from-dw-blue-700 hover:to-dw-blue-600 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md shadow-dw-blue/30 border border-dw-blue/40"
+              className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-dw-navy via-dw-blue to-dw-blue text-white px-4 py-2.5 rounded-full text-xs font-semibold shadow-lg shadow-dw-blue/30 hover:shadow-xl hover:shadow-dw-blue/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dw-blue/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900 relative overflow-hidden"
             >
-              <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              <span>AI Product Finder</span>
+              <span className="relative z-10 whitespace-nowrap">
+                <svg className="w-4 h-4 text-amber-300 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                AI Product Finder
+              </span>
+              <span className="absolute inset-0 bg-gradient-to-r from-dw-blue via-dw-blue-600 to-dw-orange opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-full" aria-hidden="true" />
             </button>
           )}
 
@@ -495,12 +498,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
           {onOpenChatbot && (
             <button
               onClick={onOpenChatbot}
-              className="flex items-center gap-1.5 bg-gradient-to-r from-dw-blue to-dw-orange hover:from-dw-blue-600 hover:to-orange-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md shadow-dw-orange/25"
+              className="flex items-center gap-2 bg-gradient-to-r from-dw-blue via-dw-orange to-dw-orange text-white px-4 py-2.5 rounded-full text-xs font-semibold shadow-lg shadow-dw-orange/30 hover:shadow-xl hover:shadow-dw-orange/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dw-orange/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900 relative overflow-hidden"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
-              <span className="hidden md:inline">Ask Dawnwire AI</span>
+              <span className="relative z-10 whitespace-nowrap">
+                <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                <span className="hidden md:inline">Ask Dawnwire AI</span>
+              </span>
+              <span className="absolute inset-0 bg-gradient-to-r from-dw-orange via-dw-orange to-dw-blue opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-full" aria-hidden="true" />
             </button>
           )}
 
