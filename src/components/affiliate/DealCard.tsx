@@ -3,6 +3,7 @@ import { Clock, Flame, Tag, Zap } from 'lucide-react';
 import { ProductReview } from '../../types';
 import DealEnergyStream from '../motion/DealEnergyStream';
 import { proxyImageUrl } from '../../utils/safeRender';
+import { cloakHref } from '../../lib/cloak';
 
 interface DealCardProps {
   product: ProductReview & { deal?: { salePrice: number; regularPrice: number; discountPercentage: number; endDate: string; dealType: string } };
@@ -82,7 +83,7 @@ export default function DealCard({ product }: DealCardProps) {
         )}
         {/* CTA */}
         <a
-          href={product.affiliateUrl || '#'}
+          href={cloakHref(product.slug, 'deal_card') || product.affiliateUrl || '#'}
           target="_blank" rel="sponsored noopener noreferrer"
           onClick={handleClick}
           className={`mt-3 block text-center text-white text-[10px] font-bold py-2.5 rounded-lg transition-all hover:-translate-y-0.5 ${isFlash ? 'bg-red-500 hover:bg-red-600 shadow-[0_0_15px_rgba(239,68,68,0.3)] hover:shadow-[0_0_20px_rgba(239,68,68,0.5)]' : 'bg-brand-secondary hover:bg-brand-accent shadow-[0_0_15px_rgba(0,210,255,0.3)] hover:shadow-[0_0_20px_rgba(0,210,255,0.5)]'}`}

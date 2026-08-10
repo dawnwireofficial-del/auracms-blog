@@ -641,23 +641,36 @@ router.get('/knock-config', async (_req, res) => {
   res.json({ enabled: !!publicKey, publicKey, feedId });
 });
 
-// ====== Product cloak redirect (applies Amazon tag + tracks click, no pre-created rows needed) ======
+// ====== Product cloak redirect (manual-only: outbound traffic goes ONLY to the
+// manually-pasted affiliate_url; otherwise redirects to the clean public URL).
+// ASIN is never used to build an outbound link. Tracks the click first. ======
 router.get('/go/product/:slug', async (req, res) => {
   try {
     const slug = req.params.slug;
     const reviews = await seo.getPublishedProductReviews();
     const product = reviews.find((r: any) => r.slug === slug || r.product_name === slug);
     if (!product) return res.status(404).json({ error: 'Product not found' });
-    const asin = product.asin || (product.amazon_url ? (product.amazon_url.match(/\/dp\/([A-Z0-9]{10})/i) || [])[1] : null) || null;
-    const tag = process.env.AMAZON_PARTNER_TAG || 'dawnwire-20';
-    let destination = product.affiliate_url || product.amazon_url || '';
-    if (destination) {
-      if (asin && !destination.includes('tag=')) destination = destination + (destination.includes('?') ? '&' : '?') + 'tag=' + encodeURIComponent(tag);
-      else if (asin && !destination.includes('dawnwire')) destination = destination.replace(/([?&])tag=[^&]*/, `$1tag=${encodeURIComponent(tag)}`);
-    }
-    if (!destination && asin) destination = `https://www.amazon.com/dp/${asin}?tag=${encodeURIComponent(tag)}`;
+
+    const src = typeof req.query.src === 'string' ? req.query.src.substring(0, 120) : '';
+    const placement = typeof req.query.placement === 'string' ? req.query.placement.substring(0, 120) : '';
+    const pageUrl = `/products/${product.slug}${src ? `?src=${encodeURIComponent(src)}` : ''}`;
+    await dbInstance.logAffiliateClick({
+      productId: product.id,
+      ctaPosition: placement || 'go_cloak',
+      pageUrl,
+      pageType: 'go_cloak',
+      campaign: src || undefined,
+      deviceType: 'desktop',
+    });
+
+    const { isAmazonDomain, cleanPublicUrl } = await import('../../server/affiliate-health');
+    // Manual link is the ONLY outbound destination. Fallbacks are clean, untagged.
+    let destination: string | null = null;
+    if (product.affiliate_url && isAmazonDomain(product.affiliate_url)) destination = product.affiliate_url;
+    if (!destination && product.amazon_url && isAmazonDomain(product.amazon_url)) destination = cleanPublicUrl(product.amazon_url);
+    if (!destination && product.affiliate_url && isAmazonDomain(product.affiliate_url)) destination = cleanPublicUrl(product.affiliate_url);
+    if (!destination && product.amazon_url) destination = product.amazon_url;
     if (!destination) return res.status(404).json({ error: 'No destination URL' });
-    await dbInstance.logAffiliateClick({ productId: product.id, ctaPosition: 'go_cloak', pageUrl: `/products/${product.slug}`, deviceType: 'desktop' });
     return res.redirect(302, destination);
   } catch (e: any) {
     return res.status(500).json({ error: e.message });

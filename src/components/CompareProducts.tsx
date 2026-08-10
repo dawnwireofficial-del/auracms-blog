@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useReducedMotion } from './useReducedMotion';
 import ComparisonScanner from './motion/ComparisonScanner';
 import { proxyImageUrl } from '../utils/safeRender';
+import { cloakHref } from '../lib/cloak';
 
 interface CompareProduct {
   id: string;
@@ -208,9 +209,9 @@ function CompareTable({ products, highlightId, onNavigate }: CompareProductsProp
               <Cell key={p.id} isHighlight={highlightId === p.id}>
                 <div className="flex flex-col gap-1.5">
                   <motion.a
-                    href={p.affiliate_url || '#'}
-                    target={p.affiliate_url ? '_blank' : undefined}
-                    rel={p.affiliate_url ? 'noopener noreferrer sponsored' : undefined}
+                    href={cloakHref(p.slug, 'comparison') || p.affiliate_url || '#'}
+                    target={cloakHref(p.slug, 'comparison') || p.affiliate_url ? '_blank' : undefined}
+                    rel="noopener noreferrer sponsored"
                     className="inline-flex items-center justify-center gap-1 bg-[#246BFF] hover:bg-[#1A5AD6] text-white text-[10px] font-bold px-3 py-2 rounded-lg transition-all cursor-pointer"
                     whileHover={prefersReduced ? {} : { scale: 1.03 }}
                     whileTap={prefersReduced ? {} : { scale: 0.97 }}

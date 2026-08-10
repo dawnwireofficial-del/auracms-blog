@@ -3,6 +3,7 @@ import { Head } from 'vike-react/Head';
 import { Star, ShoppingBag, ArrowRight, Filter, ChevronDown } from 'lucide-react';
 import SeoHelmet from './SeoHelmet';
 import { proxyImageUrl } from '../utils/safeRender';
+import { cloakHref } from '../lib/cloak';
 
 interface BuyerGuideProduct {
   id: string;
@@ -160,7 +161,7 @@ export default function BuyerGuidePage({ category, onNavigate }: BuyerGuidePageP
                       Read Review
                     </button>
                     <a
-                      href={p.affiliate_url || '#'}
+                      href={cloakHref(p.slug, 'buyers_guide') || p.affiliate_url || '#'}
                       target="_blank"
                       rel="noopener noreferrer sponsored"
                       className="flex-1 px-3 py-2 rounded-lg bg-[#246BFF] text-white text-[11px] font-semibold hover:bg-[#1a5ae0] transition-all text-center inline-flex items-center justify-center gap-1"

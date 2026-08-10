@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ProductReview } from '../../types';
 import { useMotion } from '../motion/MotionProvider';
 import { proxyImageUrl } from '../../utils/safeRender';
+import { cloakHref } from '../../lib/cloak';
 
 interface ProductCardProps {
   product: ProductReview & { isFeatured?: boolean; isDeal?: boolean; discountPercentage?: number };
@@ -129,16 +130,16 @@ export default function ProductCard({
        </div>
        {/* Stock */}
        {renderStockBadge() && <div className="mt-1">{renderStockBadge()}</div>}
-       {/* Actions */}
-       <div className="mt-2 flex items-center gap-2">
-         <a
-           href={product.affiliateUrl || '#'}
-           target="_blank" rel="sponsored noopener noreferrer"
-           onClick={handleAffiliateClick}
-           className="flex-1 text-center amazon-btn !py-2 !text-[10px]"
-         >
-           {product.ctaText || 'Check Price on Amazon'}
-         </a>
+        {/* Actions */}
+        <div className="mt-2 flex items-center gap-2">
+          <a
+            href={cloakHref(product.slug, viewMode === 'list' ? 'list_card' : 'grid_card') || product.affiliateUrl || '#'}
+            target="_blank" rel="sponsored noopener noreferrer"
+            onClick={handleAffiliateClick}
+            className="flex-1 text-center amazon-btn !py-2 !text-[10px]"
+          >
+            {product.ctaText || 'Check Price on Amazon'}
+          </a>
          {onCompare && (
            <button onClick={(e) => { e.preventDefault(); onCompare(product.id); }} className={`p-2 rounded-lg border text-[10px] font-semibold transition-colors ${compareSelected ? 'bg-primary text-white border-primary' : 'border-dw-border-soft text-dw-text-muted hover:border-primary hover:text-primary'}`}>
              Compare
@@ -187,7 +188,7 @@ export default function ProductCard({
         {renderStockBadge()}
         <div className="mt-2 flex items-center gap-2">
           <a
-            href={product.affiliateUrl || '#'}
+            href={cloakHref(product.slug, viewMode === 'list' ? 'list_card' : 'grid_card') || product.affiliateUrl || '#'}
             target="_blank" rel="sponsored noopener noreferrer"
             onClick={handleAffiliateClick}
             className="amazon-btn !py-2 !px-4 !text-[10px]"

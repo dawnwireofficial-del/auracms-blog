@@ -1269,6 +1269,105 @@
     setTimeout(() => toast.remove(), 5000);
   }
 
+  // Affiliate link recheck banner — click-only. Detects the current product in
+  // the DB (by ASIN) and shows its affiliate-link status + a paste box so the
+  // user can update ONLY the affiliate_url manually. Never auto-writes.
+  function createAffiliateBanner() {
+    const existing = document.getElementById('dw-affiliate-banner');
+    if (existing) existing.remove();
+
+    let data = {};
+    try { data = extractProductData(); } catch (e) { data = {}; }
+    const asin = data.asin;
+    const title = data.product_name?.substring(0, 60)
+      || document.getElementById('productTitle')?.textContent?.trim()?.substring(0, 60) || 'Product';
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+    async function init() {
+      const { apiUrl, apiToken } = await chromeStorageGet();
+      if (!apiToken) return;
+      const baseUrl = (apiUrl || 'https://www.dawnwire.com').replace(/\/$/, '');
+      const headers = { 'Authorization': 'Bearer ' + apiToken };
+
+      let product = null;
+      try {
+        const dupRes = await fetch(baseUrl + '/api/admin/seo/product-reviews/check-duplicate?asin=' + encodeURIComponent(asin), { headers });
+        const dupData = await dupRes.json();
+        if (dupData && dupData.duplicate && dupData.id) {
+          const hp = await fetch(baseUrl + '/api/admin/affiliate/product/' + dupData.id, { headers });
+          if (hp.ok) product = await hp.json();
+        }
+      } catch (e) { console.error('[DawnWire] affiliate recheck failed:', e); }
+
+      if (!product) return; // New product, not yet in DB — no recheck banner.
+
+      const STATUS_LABEL = {
+        healthy: '✅ Healthy (manual link with tag)',
+        fixable: '⚠️ Needs fix (link missing or untagged)',
+        system_generated: '🔵 System generated (no manual link)',
+        broken: '🔴 Broken (no ASIN / invalid URL)',
+        unavailable: '⚫ Unavailable',
+        pending: '⚪ Not checked yet',
+      };
+
+      const banner = document.createElement('div');
+      banner.id = 'dw-affiliate-banner';
+      banner.className = 'dw-banner';
+      banner.innerHTML = `
+        <div class="dw-banner-content">
+          <span class="dw-banner-icon">🔗</span>
+          <div class="dw-banner-preview">
+            <span class="dw-banner-title">${esc(title)}</span>
+            <div class="dw-banner-row">
+              <span class="dw-badge-variation">ASIN: ${esc(product.asin || '—')}</span>
+              <span class="dw-badge-variation">${esc(STATUS_LABEL[product.validation_status] || product.validation_status)}</span>
+              ${product.status === 'draft' ? '<span class="dw-badge-savings">📄 Draft until affiliate link is updated</span>' : ''}
+            </div>
+            ${product.generated_url ? '<div class="dw-banner-row"><span class="dw-badge-price" style="word-break:break-all;font-size:10px">' + esc(product.generated_url) + '</span></div>' : ''}
+            <div class="dw-banner-row">
+              <input id="dw-aff-url" type="url" placeholder="Paste your Amazon affiliate link (tag=...)…" value="${esc(product.affiliate_url || '')}"
+                style="flex:1;min-width:200px;padding:8px 10px;border:1px solid #4b5563;border-radius:8px;background:#111827;color:#f9fafb;font-size:12px;font-family:monospace" />
+            </div>
+          </div>
+          <div class="dw-btn-row">
+            <button id="dw-aff-save" class="dw-btn dw-btn-primary">Update affiliate link only</button>
+            <button id="dw-aff-dismiss" class="dw-btn dw-btn-outline">Dismiss</button>
+          </div>
+        </div>
+      `;
+      document.body.prepend(banner);
+
+      document.getElementById('dw-aff-save')?.addEventListener('click', async () => {
+        const input = document.getElementById('dw-aff-url');
+        const url = (input?.value || '').trim();
+        if (!url) { showToast('❌ Paste the affiliate URL first', 'error'); return; }
+        const btn = document.getElementById('dw-aff-save');
+        if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
+        try {
+          const res = await fetch(baseUrl + '/api/admin/affiliate/link/' + product.id, {
+            method: 'PUT',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ affiliateUrl: url }),
+          });
+          const result = await res.json();
+          if (res.ok) {
+            showToast('✅ Affiliate link updated & product published', 'success');
+            banner.remove();
+          } else {
+            showToast('❌ ' + (result.error || 'Update failed'), 'error');
+            if (btn) { btn.textContent = 'Update affiliate link only'; btn.disabled = false; }
+          }
+        } catch (e) {
+          showToast('❌ ' + e.message, 'error');
+          if (btn) { btn.textContent = 'Update affiliate link only'; btn.disabled = false; }
+        }
+      });
+      document.getElementById('dw-aff-dismiss')?.addEventListener('click', () => banner.remove());
+    }
+    if (asin) init();
+  }
+
   // Bulk import: open each product in a background tab and extract with the SAME
   // live-DOM extractor single-product import uses (full data + video). Falls back
   // to fetch+DOMParser when chrome.runtime is unavailable (safe mode).
@@ -1584,6 +1683,7 @@
       if (isBestBuy() && !document.querySelector('.sku-title')) return;
       clearInterval(waitForInterstitial);
       setTimeout(createBanner, 1500);
+      setTimeout(createAffiliateBanner, 2200);
     }, 500);
     setTimeout(() => clearInterval(waitForInterstitial), 15000);
   } else if (isBrandStorePage()) {

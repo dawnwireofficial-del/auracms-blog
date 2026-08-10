@@ -11,6 +11,7 @@ import TrendWave from '../motion/TrendWave';
 import { Suspense, lazy } from 'react';
 import MascotAnimation from '../MascotAnimation';
 import { proxyImageUrl } from '../../utils/safeRender';
+import { cloakHref } from '../../lib/cloak';
 import { useAppStore } from '../../lib/store';
 import { CategoryConstellationCanvas } from '../experience/CategoryConstellationCanvas';
 const ParticleCanvas = lazy(() => import('../ParticleCanvas'));
@@ -375,7 +376,7 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
                               {product.original_price && <span className="text-xs text-text line-through">{product.original_price}</span>}
                             </div>
                             <div className="flex gap-2">
-                              <a href={product.affiliate_url || '#'} target={product.affiliate_url ? '_blank' : undefined} rel={product.affiliate_url ? 'noopener noreferrer sponsored' : undefined} className="flex-1 inline-flex items-center justify-center bg-primary2 hover:bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-2.5 rounded-lg transition-all cursor-pointer" onClick={() => { if (product.affiliate_url) { fetch('/api/public/track/affiliate-click', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: product.id, pageUrl: window.location.pathname }) }).catch(() => {}); } }}>
+                              <a href={cloakHref(product.slug, 'homepage_card') || product.affiliate_url || '#'} target={cloakHref(product.slug, 'homepage_card') || product.affiliate_url ? '_blank' : undefined} rel={product.affiliate_url ? 'noopener noreferrer sponsored' : undefined} className="flex-1 inline-flex items-center justify-center bg-primary2 hover:bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-2.5 rounded-lg transition-all cursor-pointer" onClick={() => { if (product.affiliate_url) { fetch('/api/public/track/affiliate-click', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: product.id, pageUrl: window.location.pathname }) }).catch(() => {}); } }}>
                                 {product.ctaText || 'Buy Now'}
                               </a>
                               <button onClick={() => onNavigate('review', product.slug || product.id)} className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center hover:border-primary hover:text-primary transition-all cursor-pointer shrink-0">
@@ -511,7 +512,7 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
                                 </div>
                               )}
                               <div className="flex gap-2 mt-auto pt-1">
-                                <a href={product.affiliate_url || '#'} target={product.affiliate_url ? '_blank' : undefined} rel={product.affiliate_url ? 'noopener noreferrer sponsored' : undefined} className="flex-1 inline-flex items-center justify-center bg-primary2 hover:bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-2.5 rounded-lg transition-all cursor-pointer" onClick={() => { if (product.affiliate_url) { fetch('/api/public/track/affiliate-click', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: product.id, pageUrl: window.location.pathname }) }).catch(() => {}); } }}>
+                              <a href={cloakHref(product.slug, 'homepage_trending') || product.affiliate_url || '#'} target={cloakHref(product.slug, 'homepage_trending') || product.affiliate_url ? '_blank' : undefined} rel={product.affiliate_url ? 'noopener noreferrer sponsored' : undefined} className="flex-1 inline-flex items-center justify-center bg-primary2 hover:bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-2.5 rounded-lg transition-all cursor-pointer" onClick={() => { if (product.affiliate_url) { fetch('/api/public/track/affiliate-click', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: product.id, pageUrl: window.location.pathname }) }).catch(() => {}); } }}>
                                   {product.ctaText || 'Buy Now'}
                                 </a>
                                 <button onClick={() => onNavigate('review', product.slug || product.id)} className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center hover:border-primary hover:text-primary transition-all cursor-pointer shrink-0">
@@ -692,7 +693,7 @@ export default function HomePage({ posts, categories, settings, onNavigate }: Ho
                         {product.original_price && <span className="text-[10px] text-text line-through">{product.original_price}</span>}
                       </div>
                       <div className="flex gap-1.5 pt-1">
-                        <a href={product.affiliate_url || '#'} target={product.affiliate_url ? '_blank' : undefined} rel={product.affiliate_url ? 'noopener noreferrer sponsored' : undefined} className="flex-1 inline-flex items-center justify-center bg-primary2 hover:bg-blue-600 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-1.5 rounded-lg transition-all cursor-pointer" onClick={() => { if (product.affiliate_url) { fetch('/api/public/track/affiliate-click', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: product.id, pageUrl: window.location.pathname }) }).catch(() => {}); } }}>
+                        <a href={cloakHref(product.slug, 'homepage_sidebar') || product.affiliate_url || '#'} target={cloakHref(product.slug, 'homepage_sidebar') || product.affiliate_url ? '_blank' : undefined} rel={product.affiliate_url ? 'noopener noreferrer sponsored' : undefined} className="flex-1 inline-flex items-center justify-center bg-primary2 hover:bg-blue-600 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-1.5 rounded-lg transition-all cursor-pointer" onClick={() => { if (product.affiliate_url) { fetch('/api/public/track/affiliate-click', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: product.id, pageUrl: window.location.pathname }) }).catch(() => {}); } }}>
                           Buy Now
                         </a>
                         <button onClick={() => onNavigate('review', product.slug || product.id)} className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center hover:border-primary hover:text-primary transition-all cursor-pointer shrink-0">

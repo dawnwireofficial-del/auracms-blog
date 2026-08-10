@@ -12,6 +12,7 @@ import ProductSpotlight from '../motion/ProductSpotlight';
 import TechGrid from '../motion/TechGrid';
 import DiscoveryTrail from '../motion/DiscoveryTrail';
 import { safeText, proxyImageUrl } from '../../utils/safeRender';
+import { cloakHref } from '../../lib/cloak';
 import { sanitizeHtml } from '../../lib/sanitize';
 
 interface ProductDetailProps {
@@ -50,7 +51,7 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
   const cons = product.cons || [];
 
   const pageUrl = window.location.href;
-  const productUrl = product.affiliateUrl || product.amazonUrl || '#';
+  const productUrl = cloakHref(product.slug, 'product_detail') || product.affiliateUrl || product.amazonUrl || '#';
 
   const handleAffiliateClick = (position: string) => {
     fetch('/api/public/track/affiliate-click', {

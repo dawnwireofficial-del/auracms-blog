@@ -10,6 +10,7 @@ import ImageZoom from './ImageZoom';
 import SocialShareButtons from './SocialShareButtons';
 import CrossSellCarousel from './CrossSellCarousel';
 import { safeText } from '../utils/safeRender';
+import { cloakHref } from '../lib/cloak';
 import { proxyImageUrl } from '../utils/safeRender';
 import { sanitizeHtml as sanitizeHtmlFromLib } from '../lib/sanitize';
 
@@ -502,9 +503,9 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
                 </div>
                 <div className="flex items-center gap-3 mt-2">
                 <motion.a
-                  href={review.affiliate_url || '#'}
-                  target={review.affiliate_url ? '_blank' : undefined}
-                  rel={review.affiliate_url ? 'noopener noreferrer sponsored' : undefined}
+                  href={cloakHref(review.slug, 'product_hero') || review.affiliate_url || '#'}
+                  target={cloakHref(review.slug, 'product_hero') || review.affiliate_url ? '_blank' : undefined}
+                  rel="noopener noreferrer sponsored"
                   className="inline-flex items-center gap-2 bg-[#7C3AED] hover:bg-amber-500 text-slate-900 dark:text-white font-bold text-sm px-8 py-4 rounded-lg shadow-lg shrink-0 self-start cursor-pointer"
                   whileHover={prefersReduced ? {} : { scale: 1.05, boxShadow: '0 8px 30px rgba(251,191,36,0.4)' }}
                   whileTap={prefersReduced ? {} : { scale: 0.97 }}
@@ -1120,9 +1121,9 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
           <div className="flex items-center gap-3 shrink-0">
             {review.price && <span className="text-lg font-bold text-slate-900 dark:text-white">{review.price}</span>}
             <motion.a
-              href={review.affiliate_url || '#'}
-              target={review.affiliate_url ? '_blank' : undefined}
-              rel={review.affiliate_url ? 'noopener noreferrer sponsored' : undefined}
+              href={cloakHref(review.slug, 'product_sticky') || review.affiliate_url || '#'}
+              target={cloakHref(review.slug, 'product_sticky') || review.affiliate_url ? '_blank' : undefined}
+              rel="noopener noreferrer sponsored"
               className="inline-flex items-center gap-1.5 bg-[#246BFF] hover:bg-[#1A5AD6] text-white text-sm font-bold px-6 py-3 rounded-lg shadow-lg cursor-pointer"
               whileHover={prefersReduced ? {} : { scale: 1.03, boxShadow: '0 4px 20px rgba(36,107,255,0.4)' }}
               whileTap={prefersReduced ? {} : { scale: 0.97 }}

@@ -46,9 +46,9 @@ export const AffiliateCTA: React.FC<AffiliateCTAProps> = ({
     });
   };
 
-  // Cloaked redirect: routes through /api/public/go/product/:slug which applies
-  // the Amazon tag server-side and logs the click into affiliate_clicks.
-  const cloakHref = productSlug ? `/api/public/go/product/${encodeURIComponent(productSlug)}` : '';
+  // Cloaked redirect: routes through /api/public/go/product/:slug which only
+  // ever redirects to the manually-pasted affiliate URL (or a clean public URL).
+  const cloakHref = productSlug ? `/api/public/go/product/${encodeURIComponent(productSlug)}${position && position !== 'product_card' ? `?placement=${encodeURIComponent(position)}` : ''}` : '';
 
   const getVariantStyles = () => {
     switch (variant) {
@@ -79,7 +79,7 @@ export const AffiliateCTA: React.FC<AffiliateCTAProps> = ({
 
   return (
     <a
-      href={cloakHref || affiliateUrl || `https://www.amazon.com/dp/${asin}?tag=dawnwire-20`}
+      href={cloakHref || affiliateUrl || '#'}
       target="_blank"
       rel="sponsored noopener noreferrer"
       onClick={handleClick}

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import SeoHelmet from './SeoHelmet';
 import { CompareTable, CompareDrawer } from './CompareProducts';
 import { proxyImageUrl } from '../utils/safeRender';
+import { cloakHref } from '../lib/cloak';
 import { normalizeProducts } from '../utils/productMapper';
 
 interface PublicProductsPageProps {
@@ -531,7 +532,7 @@ export default function PublicProductsPage({ onNavigate }: PublicProductsPagePro
                     <div className="flex flex-col gap-2 mt-2">
                       <div className="flex gap-2">
                         <motion.a
-                          href={review.affiliateUrl ? (review.affiliateUrl.includes('tag=') ? review.affiliateUrl : `${review.affiliateUrl}${review.affiliateUrl.includes('?') ? '&' : '?'}tag=dawnwire-20`) : '#'}
+                          href={cloakHref(review.slug, 'products_listing') || review.affiliateUrl || '#'}
                           target={review.affiliateUrl ? '_blank' : undefined}
                           rel={review.affiliateUrl ? 'noopener noreferrer sponsored' : undefined}
                           className="flex-1 inline-flex items-center justify-center gap-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 text-[11px] font-extrabold px-3 py-2.5 rounded-lg shadow-sm transition-all duration-200 cursor-pointer uppercase tracking-wider"

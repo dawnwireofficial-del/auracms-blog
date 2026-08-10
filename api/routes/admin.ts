@@ -517,6 +517,215 @@ router.post('/amazon-sync/trigger-cycle', authenticate, requireRole(['super_admi
   try { const m = await sync(); const result = await m.processSyncCycle(); res.json(result); } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
+// ====== Affiliate Link Health & Manual Updates ======
+const affiliateHealth = () => import('../../server/affiliate-health');
+
+// Current tag (for extension + UI)
+router.get('/affiliate/config', authenticate, async (_req, res) => {
+  try {
+    const m = await affiliateHealth();
+    res.json({ affiliateTag: m.getAffiliateTag(), amazonDomains: m.AMAZON_DOMAINS });
+  } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+// KPI + filterable list
+router.get('/affiliate/health', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const m = await affiliateHealth();
+    const sb = await getSupabaseAdmin();
+    const all = await seo.getProductReviews();
+    const cats = await dbInstance.getCategories();
+    const catNameById = new Map(cats.map((c: any) => [c.id, c.name]));
+    const limit = Math.min(parseInt(req.query.limit as string) || 100, 1000);
+    const offset = parseInt(req.query.offset as string) || 0;
+    const filter = (req.query.filter as string) || '';
+    const search = (req.query.search as string || '').toLowerCase();
+
+    const evaluated = all.map((p: any) => {
+      const r = m.evaluateLink(p);
+      return {
+        id: p.id,
+        product_name: p.product_name,
+        slug: p.slug,
+        status: p.status,
+        category_id: p.category_id,
+        category_name: catNameById.get(p.category_id) || '',
+        asin: r.asin || p.asin || (p.specs && p.specs.asin) || null,
+        affiliate_url: p.affiliate_url || null,
+        amazon_url: p.amazon_url || null,
+        public_url: m.cleanPublicUrl(p.affiliate_url || p.amazon_url),
+        generated_url: r.asin ? m.generateAffiliateUrl(r.asin) : null,
+        validation_status: r.status,
+        note: r.note || '',
+        product_image: p.product_image || null,
+        rating: p.rating,
+        editor_score: p.editor_score,
+        brand: p.brand,
+        created_at: p.created_at,
+        updated_at: p.updated_at,
+        click_count: p.click_count || 0,
+      };
+    });
+
+    // Merge health flags from affiliate_health
+    const { data: healthRows } = await sb.from('affiliate_health').select('product_id, marked_for_update, manual_note, marked_by, marked_at, last_checked_at, checked_by');
+    const healthMap = new Map((healthRows || []).map((h: any) => [h.product_id, h]));
+    evaluated.forEach((row: any) => {
+      const h = healthMap.get(row.id);
+      row.marked_for_update = !!(h && h.marked_for_update);
+      row.manual_note = (h && h.manual_note) || '';
+      row.marked_by = (h && h.marked_by) || null;
+      row.marked_at = (h && h.marked_at) || null;
+      row.last_checked_at = (h && h.last_checked_at) || null;
+      row.checked_by = (h && h.checked_by) || null;
+    });
+
+    let filtered = evaluated;
+    if (filter === 'needs-update') filtered = filtered.filter((r: any) => r.validation_status === 'fixable' || r.validation_status === 'system_generated' || r.validation_status === 'broken');
+    else if (filter === 'fixable') filtered = filtered.filter((r: any) => r.validation_status === 'fixable');
+    else if (filter === 'system-generated') filtered = filtered.filter((r: any) => r.validation_status === 'system_generated');
+    else if (filter === 'broken') filtered = filtered.filter((r: any) => r.validation_status === 'broken');
+    else if (filter === 'healthy') filtered = filtered.filter((r: any) => r.validation_status === 'healthy');
+    else if (filter === 'no-asin') filtered = filtered.filter((r: any) => !r.asin);
+    else if (filter === 'marked') filtered = filtered.filter((r: any) => r.marked_for_update);
+    else if (filter === 'draft') filtered = filtered.filter((r: any) => r.status === 'draft');
+    else if (filter === 'recent') filtered = filtered.filter((r: any) => r.created_at && Date.now() - new Date(r.created_at).getTime() < 7 * 86400000);
+    else if (filter === 'not-checked') filtered = filtered.filter((r: any) => !r.last_checked_at);
+    if (search) filtered = filtered.filter((r: any) => (r.product_name || '').toLowerCase().includes(search) || (r.asin || '').toLowerCase().includes(search) || (r.brand || '').toLowerCase().includes(search));
+
+    const total = filtered.length;
+    const data = filtered.slice(offset, offset + limit);
+    const counts: any = {};
+    evaluated.forEach((r: any) => { counts[r.validation_status] = (counts[r.validation_status] || 0) + 1; });
+    counts.total = evaluated.length;
+    counts.healthy_pct = evaluated.length ? Math.round(((counts.healthy || 0) / evaluated.length) * 100) : 0;
+    counts.missing_links = (counts.fixable || 0) + (counts.system_generated || 0) + (counts.broken || 0);
+    counts.missing_asins = evaluated.filter((r: any) => !r.asin).length;
+    counts.marked = evaluated.filter((r: any) => r.marked_for_update).length;
+    counts.draft = evaluated.filter((r: any) => r.status === 'draft').length;
+    counts.published = evaluated.filter((r: any) => r.status === 'published').length;
+    const lastAudit = healthRows && healthRows.length ? Math.max(...healthRows.map((h: any) => new Date(h.last_checked_at || 0).getTime())) : 0;
+    counts.last_audit = lastAudit ? new Date(lastAudit).toISOString() : null;
+    counts.affiliate_tag = m.getAffiliateTag();
+
+    res.json({ data, total, limit, offset, counts });
+  } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+// Run a full audit now (report-only) + optional auto-draft
+router.post('/affiliate/audit', authenticate, requireRole(['super_admin', 'admin']), async (req, res) => {
+  try {
+    const u = (req as any).user;
+    const m = await affiliateHealth();
+    const result = await m.runAudit({ checkedBy: `admin:${u.name || u.id}` });
+    const draft = req.body?.applyDraft === true;
+    let draftResult = null;
+    if (draft) draftResult = await m.markDraftUntilLinked();
+    res.json({ ...result, draftApplied: draft, draftResult });
+  } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+// Manual affiliate-link save (paste box). Writes ONLY affiliate_url + status flip.
+router.put('/affiliate/link/:id', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const u = (req as any).user;
+    const { affiliateUrl } = req.body;
+    if (!affiliateUrl || typeof affiliateUrl !== 'string') return res.status(400).json({ error: 'affiliateUrl required' });
+    const m = await affiliateHealth();
+    if (!m.isAmazonDomain(affiliateUrl)) return res.status(400).json({ error: 'Only Amazon affiliate links are allowed' });
+
+    const existing = await seo.getProductReviewById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Product not found' });
+
+    const oldUrl = existing.affiliate_url || null;
+    const updated = await seo.updateProductReview(req.params.id, { affiliate_url: affiliateUrl.trim() });
+
+    const sb = await getSupabaseAdmin();
+    await sb.from('affiliate_link_log').insert({
+      id: crypto.randomUUID(),
+      product_id: req.params.id,
+      old_url: oldUrl,
+      new_url: affiliateUrl.trim(),
+      updated_by: u.name || u.id,
+      source: 'admin',
+    });
+    // Clear marked-for-update + refresh health for this product
+    const evalResult = m.evaluateLink({ ...existing, affiliate_url: affiliateUrl.trim() });
+    await sb.from('affiliate_health').upsert({
+      product_id: req.params.id,
+      asin: evalResult.asin,
+      affiliate_tag: m.getAffiliateTag(),
+      validation_status: evalResult.status,
+      marked_for_update: false,
+      last_checked_at: new Date().toISOString(),
+      checked_by: `admin:${u.name || u.id}`,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'product_id' });
+    // Publish the product now that it has an authorized link
+    if (existing.status === 'draft' || existing.status == null) {
+      await seo.updateProductReview(req.params.id, { status: 'published' });
+    }
+    res.json({ success: true, product: updated, oldUrl });
+  } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+// Mark / unmark for manual update
+router.post('/affiliate/mark/:id', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const u = (req as any).user;
+    const sb = await getSupabaseAdmin();
+    const existing = await seo.getProductReviewById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Product not found' });
+    await sb.from('affiliate_health').upsert({
+      product_id: req.params.id,
+      asin: existing.asin || (existing.specs && existing.specs.asin) || null,
+      affiliate_tag: (await affiliateHealth()).getAffiliateTag(),
+      validation_status: (await affiliateHealth()).evaluateLink(existing).status,
+      marked_for_update: req.body.mark !== false,
+      manual_note: req.body.note || null,
+      marked_by: u.name || u.id,
+      marked_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'product_id' });
+    res.json({ success: true, marked: req.body.mark !== false });
+  } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+// Link change history for a product
+router.get('/affiliate/history/:id', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const sb = await getSupabaseAdmin();
+    const { data } = await sb.from('affiliate_link_log').select('*').eq('product_id', req.params.id).order('updated_at', { ascending: false }).limit(20);
+    res.json(data || []);
+  } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+// Single-product health (used by the browser extension recheck banner)
+router.get('/affiliate/product/:id', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const m = await affiliateHealth();
+    const p = await seo.getProductReviewById(req.params.id);
+    if (!p) return res.status(404).json({ error: 'Product not found' });
+    const sb = await getSupabaseAdmin();
+    const { data: h } = await sb.from('affiliate_health').select('*').eq('product_id', req.params.id).maybeSingle();
+    const r = m.evaluateLink(p);
+    res.json({
+      id: p.id,
+      product_name: p.product_name,
+      slug: p.slug,
+      status: p.status,
+      asin: r.asin || p.asin || (p.specs && p.specs.asin) || null,
+      affiliate_url: p.affiliate_url || null,
+      public_url: m.cleanPublicUrl(p.affiliate_url || p.amazon_url),
+      generated_url: r.asin ? m.generateAffiliateUrl(r.asin) : null,
+      validation_status: r.status,
+      note: r.note || '',
+      affiliate_tag: m.getAffiliateTag(),
+      marked_for_update: !!(h && h.marked_for_update),
+    });
+  } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
 // Product Reviews — list all (including drafts)
 router.get('/product-reviews', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
   try {

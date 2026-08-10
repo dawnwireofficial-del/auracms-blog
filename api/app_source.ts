@@ -182,6 +182,7 @@ let lastSchedulerRun = 0;
 let lastAmazonSyncRun = 0;
 let lastAutoImportRun = 0;
 let lastAutoArticleRun = 0;
+let lastAffiliateAuditRun = 0;
 app.use((_req, _res, next) => {
   const now = Date.now();
   if (now - lastSchedulerRun > 60_000) {
@@ -262,6 +263,16 @@ app.use((_req, _res, next) => {
       console.error('[Auto Articles] Scheduler error:', e);
     }
   })();
+  // Nightly affiliate health audit (~ every 24h). Report-only: recomputes health
+  // status and refreshes affiliate_health. Never rewrites product data.
+  if (now - lastAffiliateAuditRun > 86_400_000) {
+    lastAffiliateAuditRun = now;
+    import('../server/affiliate-health').then(({ runAudit }) =>
+      runAudit({ checkedBy: 'scheduler' }).then((result: any) => {
+        console.log(`[Affiliate Audit] Checked ${result.checked} products`);
+      }).catch((e: any) => console.error('[Affiliate Audit] Error:', e))
+    ).catch((e: any) => console.error('[Affiliate Audit] Error:', e));
+  }
   next();
 });
 

@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, Star, ShoppingBag } from 'lucide-react';
 import ScrollReveal from './ScrollReveal';
 import { proxyImageUrl } from '../utils/safeRender';
+import { cloakHref } from '../lib/cloak';
 
 interface CrossSellProduct {
   id: string;
@@ -96,7 +97,7 @@ export default function CrossSellCarousel({ products, currentId, onNavigate }: C
                   View
                 </button>
                 <a
-                  href={p.affiliate_url || '#'}
+                  href={cloakHref(p.slug, 'cross_sell') || p.affiliate_url || '#'}
                   target="_blank"
                   rel="noopener noreferrer sponsored"
                   className="flex-1 px-2.5 py-1.5 rounded-lg bg-[#246BFF] text-white text-[10px] font-semibold hover:bg-[#1a5ae0] transition-all text-center"
