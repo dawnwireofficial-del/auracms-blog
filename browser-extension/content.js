@@ -408,14 +408,19 @@
   function extractReviewHighlights(doc) {
     doc = doc || document;
     try {
+      const cleanText = (el) => {
+        const clone = el.cloneNode(true);
+        clone.querySelectorAll('script, style').forEach(n => n.remove());
+        return (clone.textContent || '').trim().substring(0, 1000);
+      };
       if (isAmazon()) {
         const summaryEl = doc.querySelector('#cm-cr-dp-review-summary, [data-hook="cr-insights-widget"]');
-        if (summaryEl) return summaryEl.textContent.trim().substring(0, 1000);
+        if (summaryEl) return cleanText(summaryEl);
         const highlights = doc.querySelectorAll('.cr-insights-widget, [class*="reviewHighlights"], [class*="cr-widget"]');
         for (const el of highlights) {
-          const text = el.textContent.trim();
+          const text = cleanText(el);
           if (text.length > 50 && (text.toLowerCase().includes('customer') || text.toLowerCase().includes('review'))) {
-            return text.substring(0, 1000);
+            return text;
           }
         }
       }

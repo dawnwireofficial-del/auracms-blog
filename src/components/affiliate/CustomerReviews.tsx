@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Star, ChevronDown, ChevronUp, ThumbsUp, ShieldCheck, Image as ImageIcon } from 'lucide-react';
-import { sanitizeHtml } from '../../lib/sanitize';
+import { sanitizeHtml, cleanReviewHighlights } from '../../lib/sanitize';
 import { proxyImageUrl } from '../../utils/safeRender';
 
 interface Review {
@@ -46,9 +46,19 @@ export default function CustomerReviews({ reviews, reviewStats, reviewHighlights
 
   if (!reviews || reviews.length === 0) return null;
 
-  const displayReviews = showAll ? reviews : reviews.slice(0, 5);
-  const averageRating = reviewStats?.average || reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length || 0;
-  const totalReviews = reviewStats?.total || reviews.length;
+  const cleanHighlights = cleanReviewHighlights(reviewHighlights);
+
+  const meaningful = reviews.filter(r => {
+    const name = (r.name || '').trim();
+    if (!name || /^placeholder$/i.test(name) || /^unknown$/i.test(name) || name === '?') return false;
+    if (!(r.body || '').trim() && !(r.title || '').trim()) return false;
+    return true;
+  });
+  if (meaningful.length === 0 && !cleanHighlights) return null;
+
+  const displayReviews = showAll ? meaningful : meaningful.slice(0, 5);
+  const averageRating = reviewStats?.average || meaningful.reduce((sum, r) => sum + r.rating, 0) / meaningful.length || 0;
+  const totalReviews = reviewStats?.total || meaningful.length;
 
   const toggleExpand = (idx: number) => {
     const next = new Set(expandedReviews);
@@ -65,17 +75,17 @@ export default function CustomerReviews({ reviews, reviewStats, reviewHighlights
         <span className="text-xs text-slate-400 dark:text-zinc-500">({totalReviews.toLocaleString()})</span>
       </div>
 
-      {reviewHighlights && (
+      {cleanHighlights && (
         <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/20 rounded-2xl border border-blue-200/50 dark:border-blue-800/30 p-4">
           <div className="flex items-center gap-2 mb-2">
             <ThumbsUp className="h-4 w-4 text-blue-500" />
             <span className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase">Customers say</span>
           </div>
-          <p className="text-sm text-slate-600 dark:text-zinc-300 leading-relaxed">{sanitizeHtml(reviewHighlights)}</p>
+          <p className="text-sm text-slate-600 dark:text-zinc-300 leading-relaxed">{cleanHighlights}</p>
         </div>
       )}
 
-      {(reviewStats || reviews.length > 0) && (
+      {(reviewStats || meaningful.length > 0) && (
         <div className="flex flex-col sm:flex-row gap-6 bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 p-5">
           <div className="flex flex-col items-center justify-center min-w-[120px]">
             <span className="text-4xl font-bold text-slate-800 dark:text-zinc-100">{averageRating.toFixed(1)}</span>
@@ -165,21 +175,21 @@ export default function CustomerReviews({ reviews, reviewStats, reviewHighlights
         })}
       </div>
 
-      {reviews.length > 5 && (
+      {meaningful.length > 5 && (
         <div className="text-center">
           <button
             onClick={() => setShowAll(!showAll)}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-xs font-bold text-slate-600 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-700/50 transition-all"
           >
             {showAll ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-            {showAll ? 'Show fewer' : `Show all ${reviews.length} reviews`}
+            {showAll ? 'Show fewer' : `Show all ${meaningful.length} reviews`}
           </button>
         </div>
       )}
 
-      {totalReviews > reviews.length && (
+      {totalReviews > meaningful.length && (
         <p className="text-center text-[10px] text-slate-400 dark:text-zinc-500">
-          Showing {reviews.length} of {totalReviews.toLocaleString()} total reviews. Install the DawnWire extension to import more.
+          Showing {meaningful.length} of {totalReviews.toLocaleString()} total reviews. Install the DawnWire extension to import more.
         </p>
       )}
     </div>

@@ -420,7 +420,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
             }`}
           >
-            <span>ðŸ“· All Imported Images</span>
+            <span>📷 All Imported Images</span>
             <span className="bg-blue-500/20 text-blue-300 text-[10px] px-1.5 py-0.5 rounded-full font-black">
               {allImportedImages.length}
             </span>
@@ -435,7 +435,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             }`}
           >
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-            <span>ðŸŽ¬ Videos & Unboxing</span>
+            <span>🎬 Videos & Unboxing</span>
             <span className="bg-red-500/20 text-red-400 text-[10px] px-1.5 py-0.5 rounded-full font-black">
               {productVideos.length}
             </span>
@@ -449,7 +449,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
             }`}
           >
-            âš™ï¸ Specifications & Pros/Cons
+            ⚙️ Specifications & Pros/Cons
           </button>
         </div>
       </div>
@@ -543,11 +543,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="text-xs font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
-                {product.brand} â€¢ {product.subcategory}
+                {product.brand} • {product.subcategory}
               </span>
               {product.bestFor && (
                 <span className="text-xs font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-200 px-2.5 py-0.5 rounded-full border border-amber-300/60">
-                  ðŸ† {product.bestFor}
+                  🏆 {product.bestFor}
                 </span>
               )}
             </div>
@@ -565,7 +565,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
               <div className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400">
                 <div className="flex text-amber-400">
-                  {'â˜…'.repeat(Math.round(product.rating || 4.5))}
+                  {'★'.repeat(Math.round(product.rating || 4.5))}
                 </div>
                 <span className="font-bold">{product.rating}</span>
                 <span>({product.reviewCount?.toLocaleString()} Amazon reviews)</span>
@@ -649,7 +649,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               <ul className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
                 {product.mainFeatures.map((feat, idx) => (
                   <li key={idx} className="flex items-start gap-2">
-                    <span className="text-blue-600 dark:text-blue-400 font-bold">â€¢</span>
+                    <span className="text-blue-600 dark:text-blue-400 font-bold">•</span>
                     <span>{feat}</span>
                   </li>
                 ))}
@@ -664,7 +664,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-extrabold uppercase mb-1">
-              ðŸ“¸ High-Resolution Visual Inspection
+              📸 High-Resolution Visual Inspection
             </div>
             <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100">
               All Imported Product Images ({allImportedImages.length})
@@ -757,7 +757,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             </div>
 
             <div className="flex items-center gap-2 text-xs font-bold bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700">
-              <span className="text-amber-400">â˜… {product.editorScore}</span>
+              <span className="text-amber-400">★ {product.editorScore}</span>
               {productVideos.length > 0 && <span className="text-slate-400">| {productVideos.length} Video Reviews Available</span>}
             </div>
           </div>
@@ -784,7 +784,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                       [{activeVideo.type.toUpperCase()}]
                     </span>
                     <span>By {activeVideo.author}</span>
-                    <span>â€¢</span>
+                    <span>•</span>
                     <span>Duration: {activeVideo.duration}</span>
                   </div>
                   <h3 className="text-base font-bold text-white leading-snug">
@@ -874,11 +874,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-6">
               <span className="text-[10px] font-black bg-amber-400 text-slate-950 px-2.5 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1 mb-3">
-                ðŸ’¸ Deals & Price Alerts
+                💸 Deals & Price Alerts
               </span>
               <h3 className="text-xl sm:text-2xl font-extrabold">Never overpay for {product.title}</h3>
               <p className="text-sm text-blue-200 mt-2 leading-relaxed">
-                Get an instant email when the price {captureAlertType === 'price_increase' ? 'rises above' : 'drops below'} your target, plus our best daily {product.mainCategory} deals and exclusive coupon codes â€” straight to your inbox.
+                Get an instant email when the price {captureAlertType === 'price_increase' ? 'rises above' : 'drops below'} your target, plus our best daily {product.mainCategory} deals and exclusive coupon codes — straight to your inbox.
               </p>
             </div>
             <div className="lg:col-span-6 space-y-3">
@@ -921,7 +921,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                       className="bg-white/10 backdrop-blur border border-white/25 rounded-lg px-3 py-1.5 text-sm text-white w-28 outline-none focus:ring-2 focus:ring-amber-400/60"
                     />
                     <span className="text-blue-300/80">
-                      (current ${product.currentPrice && !isNaN(Number(product.currentPrice)) ? Number(product.currentPrice).toFixed(2) : 'â€”'})
+                      (current ${product.currentPrice && !isNaN(Number(product.currentPrice)) ? Number(product.currentPrice).toFixed(2) : '—'})
                     </span>
                   </div>
                   <button
@@ -929,7 +929,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     disabled={captureSaving}
                     className="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3 rounded-xl text-sm shadow-lg shadow-amber-500/25 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
                   >
-                    {captureSaving ? 'Saving...' : `ðŸ”” Notify Me When Price ${captureAlertType === 'price_increase' ? 'Rises' : 'Drops'} + Get Deals`}
+                    {captureSaving ? 'Saving...' : `🔔 Notify Me When Price ${captureAlertType === 'price_increase' ? 'Rises' : 'Drops'} + Get Deals`}
                   </button>
                   <p className="text-[10px] text-blue-300/70 text-center">
                     No spam. Unsubscribe anytime. We may earn a commission on qualifying purchases.
@@ -955,7 +955,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               <div>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100">Full {product.title} Review & Buying Guide</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  In-depth analysis, tested verdicts and the best price on Amazon â€” updated {product.lastSyncedAt ? new Date(product.lastSyncedAt).toLocaleDateString() : 'recently'}.
+                  In-depth analysis, tested verdicts and the best price on Amazon — updated {product.lastSyncedAt ? new Date(product.lastSyncedAt).toLocaleDateString() : 'recently'}.
                 </p>
               </div>
             </div>
@@ -1007,15 +1007,33 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         {/* Left: Specifications */}
         <div className="lg:col-span-7 bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
           <h3 className="text-xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <span>âš™ï¸ Technical Specifications & Build Specs</span>
+            <span>⚙️ Technical Specifications & Build Specs</span>
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {(() => {
-              const EXCLUDED = ['gallery', 'video_url', 'videoUrl', 'asin', 'source', 'reviews', 'review_stats', 'review_highlights', 'best_sellers_rank_detail', 'variations', 'ingredients'];
+              const EXCLUDED = ['gallery', 'video_url', 'videoUrl', 'asin', 'source', 'reviews', 'review_stats', 'review_highlights', 'best_sellers_rank_detail', 'variations', 'ingredients', 'unit_price', 'unit_size', 'listPrice', 'savings', 'upc', 'customer_reviews'];
               const entries: [string, unknown][] = [];
               const raw = product.specifications || {};
+              const seen = new Set<string>();
+              const normalizeLabel = (l: string) => l.toLowerCase().replace(/[^a-z0-9]/g, '');
               for (const [k, v] of Object.entries(raw)) {
                 if (EXCLUDED.includes(k)) continue;
+                if (k === 'detail_bullets' || k === 'details') {
+                  if (v && typeof v === 'object' && !Array.isArray(v)) {
+                    for (const [sk, sv] of Object.entries(v as any)) {
+                      const clean = sk.replace(/[\u200E\u200F\u202A\u202B\u202C\u202D]/g, '').replace(/[:：]/g, '').trim();
+                      if (typeof sv !== 'string' && typeof sv !== 'number') continue;
+                      if (!sv) continue;
+                      const norm = normalizeLabel(clean);
+                      if (!norm || seen.has(norm)) continue;
+                      seen.add(norm);
+                      const inner = String(sv);
+                      if (inner.length < 60 && /^\d+(\.\d+)?$/.test(inner) && !clean.toLowerCase().includes('asin') && !clean.toLowerCase().includes('upc')) continue;
+                      entries.push([`details.${clean}`, sv]);
+                    }
+                  }
+                  continue;
+                }
                 if (v && typeof v === 'object' && !Array.isArray(v)) {
                   for (const [sk, sv] of Object.entries(v as any)) {
                     if (typeof sv === 'string' || typeof sv === 'number') entries.push([`${k}.${sk}`, sv]);
@@ -1027,9 +1045,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               return entries.map(([key, val]) => {
                 const { display, isLong } = safeSpecValue(val);
                 if (!display) return null;
-                const label = key === 'listPrice' ? 'List Price'
-                  : key === 'savings' ? 'Savings'
-                  : key === 'details.manufacturer' ? 'Manufacturer'
+                const label = key === 'details.manufacturer' ? 'Manufacturer'
                   : key === 'details.bestSellersRank' ? 'Best Sellers Rank'
                   : key === 'details.item_model_number' ? 'Item Model Number'
                   : key === 'details.product_dimensions' ? 'Product Dimensions'
@@ -1037,7 +1053,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 return (
                   <div key={key} className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/60 dark:border-slate-700/60">
                     <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block break-words">{label}</span>
-                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100 break-words">{isLong ? display.substring(0, 80) + 'â€¦' : display}</span>
+                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100 break-words">{isLong ? display.substring(0, 80) + '…' : display}</span>
                   </div>
                 );
               });
@@ -1076,7 +1092,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             <ul className="space-y-2 text-xs text-emerald-950 dark:text-emerald-300">
               {product.pros.map((pro, idx) => (
                 <li key={idx} className="flex items-start gap-2">
-                  <span className="font-extrabold text-emerald-600">âœ“</span>
+                  <span className="font-extrabold text-emerald-600">✓</span>
                   <span>{pro}</span>
                 </li>
               ))}
@@ -1091,7 +1107,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             <ul className="space-y-2 text-xs text-rose-950 dark:text-rose-300">
               {product.cons.map((con, idx) => (
                 <li key={idx} className="flex items-start gap-2">
-                  <span className="font-extrabold text-rose-600">âœ•</span>
+                  <span className="font-extrabold text-rose-600">✕</span>
                   <span>{con}</span>
                 </li>
               ))}
@@ -1150,7 +1166,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 <h3 className="text-sm font-extrabold truncate max-w-xs sm:max-w-md">{product.title}</h3>
                 <div className="flex items-center gap-3 text-xs text-slate-400 font-mono mt-0.5">
                   <span>Image {selectedImageIndex + 1} of {allImportedImages.length}</span>
-                  <span>â€¢</span>
+                  <span>•</span>
                   <span className="text-amber-400 font-bold">{lightboxZoom}x Zoom</span>
                 </div>
               </div>
@@ -1162,21 +1178,21 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   className="p-2 hover:bg-slate-800 rounded-xl text-slate-200 transition-colors font-bold text-xs"
                   title="Zoom In (+)"
                 >
-                  ðŸ”+
+                  🔍+
                 </button>
                 <button
                   onClick={() => setLightboxZoom((prev) => Math.max(prev - 0.5, 1))}
                   className="p-2 hover:bg-slate-800 rounded-xl text-slate-200 transition-colors font-bold text-xs"
                   title="Zoom Out (-)"
                 >
-                  ðŸ”-
+                  🔍-
                 </button>
                 <button
                   onClick={() => setLightboxRotation((prev) => (prev + 90) % 360)}
                   className="p-2 hover:bg-slate-800 rounded-xl text-slate-200 transition-colors font-bold text-xs"
-                  title="Rotate 90Â°"
+                  title="Rotate 90°"
                 >
-                  ðŸ”„
+                  🔄
                 </button>
                 {(lightboxZoom !== 1 || lightboxRotation !== 0) && (
                   <button
@@ -1211,7 +1227,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               <button
                 onClick={() => setSelectedImageIndex((prev) => (prev - 1 + allImportedImages.length) % allImportedImages.length)}
                 className="absolute left-2 sm:left-6 z-30 bg-slate-900/90 hover:bg-slate-900 text-white p-3 rounded-full border border-slate-700 shadow-2xl transition-all hover:scale-110"
-                title="Previous Image (â† Arrow Left)"
+                title="Previous Image (← Arrow Left)"
               >
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -1237,7 +1253,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   alt={`${product.title} angle ${selectedImageIndex + 1}`}
                   className="max-h-[70vh] max-w-full object-contain drop-shadow-2xl transition-transform duration-200"
                   referrerPolicy="no-referrer"
-                  onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#1e293b"/><text x="100" y="90" text-anchor="middle" fill="#94a3b8" font-size="32">ðŸ–¼ï¸</text><text x="100" y="120" text-anchor="middle" fill="#64748b" font-size="12" font-weight="bold">Image unavailable</text></svg>'); }}
+                  onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#1e293b"/><text x="100" y="90" text-anchor="middle" fill="#94a3b8" font-size="32">🖼️</text><text x="100" y="120" text-anchor="middle" fill="#64748b" font-size="12" font-weight="bold">Image unavailable</text></svg>'); }}
                 />
               </div>
 
@@ -1245,7 +1261,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               <button
                 onClick={() => setSelectedImageIndex((prev) => (prev + 1) % allImportedImages.length)}
                 className="absolute right-2 sm:right-6 z-30 bg-slate-900/90 hover:bg-slate-900 text-white p-3 rounded-full border border-slate-700 shadow-2xl transition-all hover:scale-110"
-                title="Next Image (â†’ Arrow Right)"
+                title="Next Image (→ Arrow Right)"
               >
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -1329,7 +1345,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             </div>
             <div className="flex items-center gap-3 shrink-0">
               <div className="hidden xl:flex items-center gap-2 text-xs font-bold text-slate-500">
-                <div className="flex text-amber-400">{'â˜…'.repeat(Math.round(product.rating || 4.5))}</div>
+                <div className="flex text-amber-400">{'★'.repeat(Math.round(product.rating || 4.5))}</div>
                 <span>{product.rating}</span>
                 <span className="text-slate-400">({product.reviewCount?.toLocaleString()})</span>
               </div>
