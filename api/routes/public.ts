@@ -663,13 +663,13 @@ router.get('/go/product/:slug', async (req, res) => {
       deviceType: 'desktop',
     });
 
-    const { isAmazonDomain, cleanPublicUrl } = await import('../../server/affiliate-health');
+    const { isAmazonDomain, cleanPublicUrl, isManualAffiliateLink } = await import('../../server/affiliate-health');
     // Manual link is the ONLY outbound destination. Fallbacks are clean, untagged.
     let destination: string | null = null;
-    if (product.affiliate_url && isAmazonDomain(product.affiliate_url)) destination = product.affiliate_url;
+    if (product.affiliate_url && isAmazonDomain(product.affiliate_url) && isManualAffiliateLink(product.affiliate_url)) destination = product.affiliate_url;
     if (!destination && product.amazon_url && isAmazonDomain(product.amazon_url)) destination = cleanPublicUrl(product.amazon_url);
     if (!destination && product.affiliate_url && isAmazonDomain(product.affiliate_url)) destination = cleanPublicUrl(product.affiliate_url);
-    if (!destination && product.amazon_url) destination = product.amazon_url;
+    if (!destination && product.amazon_url) destination = cleanPublicUrl(product.amazon_url);
     if (!destination) return res.status(404).json({ error: 'No destination URL' });
     return res.redirect(302, destination);
   } catch (e: any) {
