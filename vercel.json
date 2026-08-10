@@ -7,6 +7,12 @@
       "includeFiles": "dist/**"
     }
   },
+  "crons": [
+    {
+      "path": "/api/cron/jobs",
+      "schedule": "0 4 * * *"
+    }
+  ],
   "routes": [
     {
       "src": "^/api/(.*)",

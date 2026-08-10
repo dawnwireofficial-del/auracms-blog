@@ -718,10 +718,46 @@ export async function runScheduledSync(): Promise<{ processed: number; succeeded
 
 export async function getSyncDashboardStats(): Promise<any> {
   const sb = await (dbInstance as any).ready?.();
-  if (!sb) return null;
+  if (!sb) return {
+    totalConnected: 0,
+    successfullySynced: 0,
+    pending: 0,
+    missingAsin: 0,
+    invalidAsin: 0,
+    duplicateAsins: 0,
+    duplicateAsinList: [],
+    unavailableProducts: 0,
+    changedPrices: 0,
+    expiredDeals: 0,
+    apiErrors: 0,
+    lastSuccessfulSync: null,
+    nextScheduledSync: null,
+    apiRequestsToday: 0,
+    apiRequestLimit: 8640,
+    isPaused,
+    isRunning,
+  };
 
   const { data: all } = await sb.from('amazon_sync_status').select('*');
-  if (!all) return null;
+  if (!all) return {
+    totalConnected: 0,
+    successfullySynced: 0,
+    pending: 0,
+    missingAsin: 0,
+    invalidAsin: 0,
+    duplicateAsins: 0,
+    duplicateAsinList: [],
+    unavailableProducts: 0,
+    changedPrices: 0,
+    expiredDeals: 0,
+    apiErrors: 0,
+    lastSuccessfulSync: null,
+    nextScheduledSync: null,
+    apiRequestsToday: 0,
+    apiRequestLimit: 8640,
+    isPaused,
+    isRunning,
+  };
 
   const totalConnected = all.length;
   const synced = all.filter((s: any) => s.sync_status === 'success').length;

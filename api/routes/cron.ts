@@ -46,4 +46,98 @@ router.get('/sync-affiliates', async (req, res) => {
   }
 });
 
+// Heavy scheduled jobs. Triggered by Vercel Cron (POST /api/cron/jobs) so they
+// run OFF the user request path — a cold start can no longer starve a request.
+// Protected by the Vercel Cron secret to prevent open execution.
+function isCronAuthorized(req: express.Request): boolean {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return true; // Allow if no secret configured (non-Vercel envs)
+  const header = req.headers.authorization || req.headers['x-cron-secret'] || '';
+  return (
+    String(header) === `Bearer ${secret}` ||
+    String(req.headers['x-cron-secret'] || '') === secret
+  );
+}
+
+router.post('/jobs', async (req, res) => {
+  if (!isCronAuthorized(req)) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  const results: Record<string, any> = {};
+  const started = Date.now();
+
+  const run = async (name: string, fn: () => Promise<any>) => {
+    try {
+      results[name] = await fn();
+    } catch (e: any) {
+      results[name] = { error: e?.message || String(e) };
+    }
+  };
+
+  // 1. Scheduled posts
+  await run('posts', async () => {
+    const { processScheduledPosts } = await import('../../server/scheduler');
+    return processScheduledPosts();
+  });
+
+  // 2. Amazon product sync
+  await run('amazonSync', async () => {
+    const { runScheduledSync } = await import('../../server/amazon-sync-engine');
+    return runScheduledSync();
+  });
+
+  // 3. Auto-import from Amazon (24h cadence)
+  await run('autoImport', async () => {
+    const { scrapeAmazonSearch } = await import('../../server/amazon-search-scraper');
+    const { getProductReviews, importProductReview } = await import('../../server/seo-engine');
+    const cats = await dbInstance.getCategories();
+    const productCats = cats.filter((c: any) =>
+      c.status === 'active' &&
+      !['business', 'lifestyle', 'seo-marketing', 'technology'].includes(c.slug?.toLowerCase())
+    );
+    const existing = await getProductReviews();
+    let totalImported = 0;
+    for (const cat of productCats) {
+      try {
+        const productResults = await scrapeAmazonSearch(cat.name, 'US', 50);
+        for (const r of productResults) {
+          const exists = existing.find((x: any) => x.specs?.asin === r.asin);
+          if (exists) continue;
+          try {
+            await importProductReview({
+              product_name: r.title.substring(0, 200),
+              product_image: r.image,
+              price: r.price ? String(r.price) : undefined,
+              asin: r.asin,
+              amazon_url: r.url,
+              source: 'amazon',
+              best_for: cat.slug,
+              category_id: cat.id,
+              specs: { asin: r.asin, source: 'amazon' },
+            });
+            totalImported++;
+          } catch {}
+        }
+      } catch {}
+    }
+    return { categories: productCats.length, imported: totalImported };
+  });
+
+  // 4. Auto Article Factory
+  await run('autoArticles', async () => {
+    const { getConfig, autoGenerateArticles } = await import('../../server/auto-articles');
+    const cfg = await getConfig();
+    if (!cfg.enabled) return { skipped: true, reason: 'disabled' };
+    return autoGenerateArticles();
+  });
+
+  // 5. Affiliate health audit (report-only)
+  await run('affiliateAudit', async () => {
+    const { runAudit } = await import('../../server/affiliate-health');
+    return runAudit({ checkedBy: 'cron' });
+  });
+
+  res.json({ success: true, durationMs: Date.now() - started, results });
+});
+
 export default router;

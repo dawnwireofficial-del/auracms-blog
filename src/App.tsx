@@ -15,6 +15,7 @@ import GravityCursor from './components/common/GravityCursor';
 import ErrorBoundary from './components/ErrorBoundary';
 import { GlobalGravityCanvas } from './components/experience/GlobalGravityCanvas';
 import { CanvasPerformanceManager } from './components/experience/CanvasPerformanceManager';
+import { installGlobalAuthInterceptor } from './lib/sessionGuard';
 
 const ProductCatalogPage = lazy(() => import('./pages/ProductCatalogPage').then(m => ({ default: m.ProductCatalogPage })));
 const BestCategoryPage = lazy(() => import('./pages/BestCategoryPage').then(m => ({ default: m.BestCategoryPage })));
@@ -89,6 +90,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    installGlobalAuthInterceptor();
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsAiFinderOpen(false);

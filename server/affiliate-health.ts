@@ -123,26 +123,25 @@ export async function runAudit(opts: { checkedBy?: string; products?: any[] } = 
   const checkedBy = opts.checkedBy || 'scheduler';
   const now = new Date().toISOString();
 
-  for (const product of products) {
+  const tag = getAffiliateTag();
+  const rows = products.map((product) => {
     const evalResult = evaluateLink(product);
     counts[evalResult.status] = (counts[evalResult.status] || 0) + 1;
-    try {
-      await sb.from('affiliate_health').upsert(
-        {
-          product_id: product.id,
-          asin: evalResult.asin,
-          affiliate_tag: getAffiliateTag(),
-          validation_status: evalResult.status,
-          last_checked_at: now,
-          last_error: evalResult.note || null,
-          checked_by: checkedBy,
-          updated_at: now,
-        },
-        { onConflict: 'product_id' }
-      );
-    } catch (e: any) {
-      console.warn(`[AffiliateHealth] upsert failed for ${product.id}:`, e?.message);
-    }
+    return {
+      product_id: product.id,
+      asin: evalResult.asin,
+      affiliate_tag: tag,
+      validation_status: evalResult.status,
+      last_checked_at: now,
+      last_error: evalResult.note || null,
+      checked_by: checkedBy,
+      updated_at: now,
+    };
+  });
+
+  if (rows.length > 0) {
+    const { error } = await sb.from('affiliate_health').upsert(rows, { onConflict: 'product_id' });
+    if (error) console.warn(`[AffiliateHealth] batch upsert failed:`, error.message);
   }
 
   return { checked: products.length, counts, lastAudit: now };
@@ -154,18 +153,21 @@ export async function markDraftUntilLinked(products?: any[]): Promise<{ flipped:
   const sb = await getSupabaseAdmin();
   const { getPublishedProductReviews } = await import('./seo-engine');
   const all = products || (await getPublishedProductReviews());
-  let flipped = 0;
+  const toDraft: string[] = [];
   let skipped = 0;
 
   for (const product of all) {
     const { status } = evaluateLink(product);
     const isManualOk = status === 'healthy';
     if (isManualOk) { skipped++; continue; }
-    try {
-      const { error } = await sb.from('product_reviews').update({ status: 'draft' }).eq('id', product.id);
-      if (!error) flipped++;
-      else skipped++;
-    } catch { skipped++; }
+    toDraft.push(product.id);
+  }
+
+  let flipped = 0;
+  if (toDraft.length > 0) {
+    const { error } = await sb.from('product_reviews').update({ status: 'draft' }).in('id', toDraft);
+    if (!error) flipped = toDraft.length;
+    else skipped = all.length;
   }
   return { flipped, skipped };
 }

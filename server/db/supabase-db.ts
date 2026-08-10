@@ -1222,10 +1222,26 @@ export class SupabaseDatabase {
     if (filter?.is_available !== undefined) q = q.eq('is_available', filter.is_available);
     if (filter?.is_deal !== undefined) q = q.eq('is_deal', filter.is_deal);
     if (filter?.asin_flagged !== undefined) q = q.eq('asin_flagged', filter.asin_flagged);
-    if (filter?.search) q = q.or(`product_reviews.product_name.ilike.%${filter.search}%,asin.ilike.%${filter.search}%`);
+    if (filter?.search) {
+      const search = `%${filter.search}%`;
+      const ids = await this.searchProductIdsBySyncQuery(filter.search);
+      if (ids.length > 0) {
+        q = q.or(`asin.ilike.${search},product_id.in.(${ids.join(',')})`);
+      } else {
+        q = q.or(`asin.ilike.${search}`);
+      }
+    }
     const { data, count, error } = await q.order('priority', { ascending: false }).order('updated_at', { ascending: false }).range(offset, offset + limit - 1);
     if (error) return { data: [], total: 0 };
     return { data: (data || []).map(r => mapRow<any>(r)), total: count || 0 };
+  }
+  private async searchProductIdsBySyncQuery(search: string): Promise<string[]> {
+    const sb = await this.ready();
+    const { data } = await sb.from('product_reviews')
+      .select('id')
+      .or(`product_name.ilike.%${search}%`)
+      .limit(1000);
+    return (data || []).map((r: any) => r.id);
   }
   async updateAmazonSyncStatus(productId: string, updates: Record<string, any>): Promise<boolean> {
     const sb = await this.ready();

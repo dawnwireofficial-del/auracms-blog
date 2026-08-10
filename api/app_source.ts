@@ -169,24 +169,25 @@ app.use((_req, res, next) => {
     "img-src 'self' data: blob: https: *",
     "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
     "frame-src 'self' https://www.googletagmanager.com https://www.youtube.com https://connect.facebook.net",
-    "connect-src 'self' https://api.cohere.com https://www.google-analytics.com https://analytics.google.com https://m.media-amazon.com https://images-na.ssl-images-amazon.com https://api.imgbb.com https://api.knock.app",
+    "connect-src 'self' https://api.cohere.com https://www.google-analytics.com https://analytics.google.com https://m.media-amazon.com https://images-na.ssl-images-amazon.com https://api.imgbb.com https://api.knock.app wss://api.knock.app",
     "media-src 'self' https: blob:",
   ].join('; '));
   next();
 });
 
-// Scheduled jobs — checks every 60s but NEVER blocks the request.
-// Heavy work (amazon sync, auto-import) runs fire-and-forget so a cold
-// start can't 504 user requests (Vercel function timeout is 60s).
-let lastSchedulerRun = 0;
-let lastAmazonSyncRun = 0;
-let lastAutoImportRun = 0;
-let lastAutoArticleRun = 0;
-let lastAffiliateAuditRun = 0;
+// Scheduled jobs — kept OFF the request critical path as much as possible.
+// Heavy work (amazon sync, auto-import, auto-articles, affiliate audit) runs
+// from POST /api/cron/jobs (Vercel Cron). Only lightweight scheduled-post
+// publishing runs inline, and only after a short warm-up window so a cold
+// start can never 504 a user request (Vercel function timeout is 60s).
+const moduleStart = Date.now();
+let lastPostPublishRun = 0;
 app.use((_req, _res, next) => {
   const now = Date.now();
-  if (now - lastSchedulerRun > 60_000) {
-    lastSchedulerRun = now;
+  // Cold-start guard: give the first request the full function budget.
+  if (now - moduleStart < 30_000) return next();
+  if (now - lastPostPublishRun > 60_000) {
+    lastPostPublishRun = now;
     import('../server/scheduler').then(({ processScheduledPosts }) =>
       processScheduledPosts().then((result: any) => {
         if (result.published > 0) {
@@ -194,84 +195,6 @@ app.use((_req, _res, next) => {
         }
       }).catch((e: any) => console.error(e))
     ).catch((e: any) => console.error(e));
-  }
-  if (now - lastAmazonSyncRun > 120_000) {
-    lastAmazonSyncRun = now;
-    import('../server/amazon-sync-engine').then(({ runScheduledSync }) =>
-      runScheduledSync().then((result: any) => {
-        if (result.processed > 0) {
-          console.log(`[Amazon Sync] Synced ${result.succeeded}/${result.processed} products`);
-        }
-      }).catch((e: any) => console.error(e))
-    ).catch((e: any) => console.error(e));
-  }
-  // Auto-import from Amazon every 24 hours (86400000 ms)
-  if (now - lastAutoImportRun > 86_400_000) {
-    lastAutoImportRun = now;
-    import('../server/amazon-search-scraper').then(async ({ scrapeAmazonSearch }) => {
-      const { getProductReviews, importProductReview } = await import('../server/seo-engine');
-      const { dbInstance } = await import('../server/db');
-      const cats = await dbInstance.getCategories();
-      const productCats = cats.filter((c: any) =>
-        c.status === 'active' &&
-        !['business', 'lifestyle', 'seo-marketing', 'technology'].includes(c.slug?.toLowerCase())
-      );
-      const existing = await getProductReviews();
-      let totalImported = 0;
-      for (const cat of productCats) {
-        try {
-          const results = await scrapeAmazonSearch(cat.name, 'US', 50);
-          for (const r of results) {
-            const exists = existing.find((x: any) => x.specs?.asin === r.asin);
-            if (exists) continue;
-            try {
-              await importProductReview({
-                product_name: r.title.substring(0, 200),
-                product_image: r.image,
-                price: r.price ? String(r.price) : undefined,
-                asin: r.asin,
-                amazon_url: r.url,
-                source: 'amazon',
-                best_for: cat.slug,
-                category_id: cat.id,
-                specs: { asin: r.asin, source: 'amazon' },
-              });
-              totalImported++;
-            } catch {}
-          }
-        } catch {}
-      }
-      if (totalImported > 0) console.log(`[Auto-Import] Imported ${totalImported} products from ${productCats.length} categories`);
-    }).catch((e: any) => console.error('[Auto-Import] Error:', e));
-  }
-  // Auto Article Factory — generates AI articles (+ design images) for published
-  // products missing an article. Interval + batch come from the admin config.
-  (async () => {
-    try {
-      const { getConfig, autoGenerateArticles } = await import('../server/auto-articles');
-      const cfg = await getConfig();
-      const intervalMs = Math.max(5, cfg.intervalMinutes || 30) * 60_000;
-      if (cfg.enabled && now - lastAutoArticleRun > intervalMs) {
-        lastAutoArticleRun = now;
-        autoGenerateArticles().then((result: any) => {
-          if (result.processed > 0) {
-            console.log(`[Auto Articles] Generated ${result.processed} articles`);
-          }
-        }).catch((e: any) => console.error('[Auto Articles] Error:', e));
-      }
-    } catch (e: any) {
-      console.error('[Auto Articles] Scheduler error:', e);
-    }
-  })();
-  // Nightly affiliate health audit (~ every 24h). Report-only: recomputes health
-  // status and refreshes affiliate_health. Never rewrites product data.
-  if (now - lastAffiliateAuditRun > 86_400_000) {
-    lastAffiliateAuditRun = now;
-    import('../server/affiliate-health').then(({ runAudit }) =>
-      runAudit({ checkedBy: 'scheduler' }).then((result: any) => {
-        console.log(`[Affiliate Audit] Checked ${result.checked} products`);
-      }).catch((e: any) => console.error('[Affiliate Audit] Error:', e))
-    ).catch((e: any) => console.error('[Affiliate Audit] Error:', e));
   }
   next();
 });
