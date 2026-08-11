@@ -120,7 +120,7 @@ export const SideBySideComparisonModal: React.FC<SideBySideComparisonProps> = ({
   const content = (
     <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden max-w-6xl w-full max-h-[90vh] flex flex-col">
       {/* Top Header Bar */}
-      <div className="bg-[#0A1F44] text-white p-5 sm:p-6 flex items-center justify-between border-b border-blue-900 shrink-0">
+      <div className="bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] text-white p-5 sm:p-6 flex items-center justify-between border-b border-blue-900 shrink-0">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-xl">⚔️</span>

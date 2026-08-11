@@ -67,8 +67,8 @@ export default function WishlistPage({ onNavigate, user }: { onNavigate: (r: str
   return (
     <div className="min-h-screen bg-white dark:bg-[#030712] text-slate-900 dark:text-white pb-20">
       {/* Hero Header */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#050B18] via-[#0A1F44] to-[#050B18] text-white py-14 px-4 border-b border-blue-500/20 shadow-2xl mb-12">
-        <TechnicalGrid opacity={0.05} />
+      <div className="relative overflow-hidden bg-gradient-to-r from-[#EEF4FF] via-white to-[#FFF7ED] text-slate-900 py-14 px-4 border-b border-[#E2E8F0] shadow-[0_10px_40px_-20px_rgba(36,107,255,0.25)] mb-12">
+        <TechnicalGrid opacity={0.04} />
         <AmbientGlow color="blue" position="top-right" size="lg" />
         <AmbientGlow color="blue" position="bottom-left" size="lg" />
         <div className="relative z-10 max-w-7xl mx-auto text-center">
@@ -76,17 +76,17 @@ export default function WishlistPage({ onNavigate, user }: { onNavigate: (r: str
             <Heart className="h-4 w-4 fill-pink-500 text-pink-500" />
             Your Saved Items
           </div>
-          <h1 className="text-4xl md:text-5xl font-display font-black text-white tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-100 to-blue-200">
+          <h1 className="text-4xl md:text-5xl font-display font-black text-[#111827] tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#111827] via-[#246BFF] to-[#FF8A00]">
             My Wishlist
           </h1>
-          <p className="text-sm md:text-base text-slate-300 max-w-2xl mx-auto mb-4 font-medium">
+          <p className="text-sm md:text-base text-slate-600 max-w-2xl mx-auto mb-4 font-medium">
             Products you're keeping an eye on. Come back when you're ready to buy!
           </p>
 
           {wishlistItems.length > 0 && (
             <button
               onClick={clearAllWishlist}
-              className="text-xs font-bold text-red-400 hover:text-red-300 hover:underline inline-flex items-center gap-1 cursor-pointer transition-colors"
+              className="text-xs font-bold text-[#FF8A00] hover:text-[#e67b00] hover:underline inline-flex items-center gap-1 cursor-pointer transition-colors"
             >
               <Trash2 className="w-3.5 h-3.5" /> Clear all wishlist items
             </button>
@@ -100,7 +100,7 @@ export default function WishlistPage({ onNavigate, user }: { onNavigate: (r: str
             <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : error ? (
-          <div className="text-center py-16 bg-white dark:bg-[#071426] rounded-3xl border border-red-500/30 p-8 shadow-xl">
+          <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-red-500/30 p-8 shadow-xl">
             <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-3" />
             <p className="text-slate-800 dark:text-white font-bold mb-4">{error}</p>
             <button onClick={loadData} className="px-5 py-2.5 bg-blue-600 text-white font-bold rounded-xl text-xs hover:bg-blue-500 transition-colors">
@@ -108,8 +108,8 @@ export default function WishlistPage({ onNavigate, user }: { onNavigate: (r: str
             </button>
           </div>
         ) : wishlistItems.length === 0 ? (
-          <div className="text-center py-24 bg-white dark:bg-[#071426] rounded-3xl border border-slate-200 dark:border-blue-500/20 shadow-xl">
-            <div className="w-16 h-16 bg-slate-100 dark:bg-[#050B18] rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
+          <div className="text-center py-24 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-blue-500/20 shadow-xl">
+            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-950 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
               <AlertCircle className="h-8 w-8 text-slate-400 dark:text-blue-400" />
             </div>
             <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Your wishlist is empty</h3>
@@ -141,7 +141,7 @@ export default function WishlistPage({ onNavigate, user }: { onNavigate: (r: str
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  className="bg-white dark:bg-[#071426] rounded-3xl border border-slate-200/80 dark:border-blue-500/20 overflow-hidden hover:shadow-2xl hover:shadow-blue-600/10 hover:border-blue-500/50 transition-all duration-300 group flex flex-col relative"
+                  className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-blue-500/20 overflow-hidden hover:shadow-2xl hover:shadow-blue-600/10 hover:border-blue-500/50 transition-all duration-300 group flex flex-col relative"
                 >
                   <button
                     onClick={(e) => removeFromWishlist(item.id, e)}

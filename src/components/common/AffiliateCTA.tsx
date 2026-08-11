@@ -57,11 +57,11 @@ export const AffiliateCTA: React.FC<AffiliateCTAProps> = ({
       case 'sticky_mobile':
         return 'w-full bg-gradient-to-r from-dw-blue to-dw-orange hover:opacity-90 text-white font-bold py-3 px-6 shadow-xl text-center rounded-xl text-base flex items-center justify-center gap-2';
       case 'secondary':
-        return 'bg-dw-navy hover:bg-dw-blue-700 text-white shadow-md font-bold';
+        return 'bg-[#246BFF] hover:bg-[#164EE8] text-white shadow-md font-bold';
       case 'outline':
         return 'border-2 border-dw-orange/80 hover:border-dw-orange text-dw-orange hover:bg-orange-50 dark:hover:bg-orange-950/30 font-bold';
       default:
-        return 'bg-gradient-to-r from-dw-navy to-dw-blue hover:from-dw-blue-700 hover:to-dw-blue-600 text-white font-extrabold shadow-md shadow-dw-blue/25';
+        return 'bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] hover:from-dw-blue-700 hover:to-dw-blue-600 text-white font-extrabold shadow-md shadow-dw-blue/25';
     }
   };
 

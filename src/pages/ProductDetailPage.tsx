@@ -406,7 +406,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             onClick={() => { setActiveTab('overview'); document.getElementById('section-overview')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
             className={`px-4 py-2 rounded-xl transition-all ${
               activeTab === 'overview'
-                ? 'bg-[#0A1F44] text-white shadow-md'
+                ? 'bg-[#246BFF] text-white shadow-md'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
             }`}
           >
@@ -416,7 +416,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             onClick={() => { setActiveTab('gallery'); document.getElementById('section-gallery')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
             className={`px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
               activeTab === 'gallery'
-                ? 'bg-[#0A1F44] text-white shadow-md'
+                ? 'bg-[#246BFF] text-white shadow-md'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
             }`}
           >
@@ -430,7 +430,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             onClick={() => { setActiveTab('videos'); document.getElementById('section-video')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
             className={`px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
               activeTab === 'videos'
-                ? 'bg-[#0A1F44] text-white shadow-md'
+                ? 'bg-[#246BFF] text-white shadow-md'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
             }`}
           >
@@ -445,7 +445,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             onClick={() => { setActiveTab('specs'); document.getElementById('section-specs')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
             className={`px-4 py-2 rounded-xl transition-all ${
               activeTab === 'specs'
-                ? 'bg-[#0A1F44] text-white shadow-md'
+                ? 'bg-[#246BFF] text-white shadow-md'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
             }`}
           >
@@ -518,7 +518,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
           {/* AI Assistant Callout */}
           {onOpenChatbotForProduct && (
-            <div className="p-4 bg-gradient-to-r from-dw-navy to-dw-blue text-white rounded-2xl border border-dw-orange/40 shadow-lg flex items-center justify-between gap-3">
+            <div className="p-4 bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] text-white rounded-2xl border border-[#FF8A00]/40 shadow-lg flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-amber-400 text-slate-950 rounded-xl font-black text-xs shrink-0 shadow">
                   AI
@@ -558,7 +558,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
             {/* Score & Rating Bar */}
             <div className="flex flex-wrap items-center gap-4 mt-3 pb-4 border-b border-slate-200/80 dark:border-slate-800">
-              <div className="flex items-center gap-1.5 bg-[#0A1F44] text-amber-400 font-black text-xs px-3 py-1.5 rounded-xl shadow-md">
+              <div className="flex items-center gap-1.5 bg-[#246BFF] text-white font-black text-xs px-3 py-1.5 rounded-xl shadow-md">
                 <span>DawnWire Score:</span>
                 <span className="text-sm font-black">{product.editorScore} / 10</span>
               </div>
@@ -676,7 +676,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
           <button
             onClick={() => setIsLightboxOpen(true)}
-            className="bg-[#0A1F44] hover:bg-blue-950 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs shadow-md transition-all flex items-center gap-2"
+            className="bg-[#246BFF] hover:bg-[#164EE8] text-white font-extrabold px-5 py-2.5 rounded-xl text-xs shadow-md transition-all flex items-center gap-2"
           >
             <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
@@ -870,20 +870,20 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
       {/* NEWSLETTER + PRICE DROP LEAD CAPTURE */}
       <section className="max-w-7xl mx-auto px-4 mt-16">
-        <div className="bg-gradient-to-br from-[#0A1F44] via-[#12307a] to-[#1a3f9e] text-white rounded-3xl p-6 sm:p-10 border border-blue-500/30 shadow-2xl">
+        <div className="bg-gradient-to-br from-[#EEF4FF] via-white to-[#FFF7ED] text-slate-900 rounded-3xl p-6 sm:p-10 border border-[#E2E8F0] shadow-[0_12px_40px_-18px_rgba(36,107,255,0.28)]">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-6">
-              <span className="text-[10px] font-black bg-amber-400 text-slate-950 px-2.5 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1 mb-3">
+              <span className="text-[10px] font-black bg-[#FF8A00] text-white px-2.5 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1 mb-3">
                 💸 Deals & Price Alerts
               </span>
               <h3 className="text-xl sm:text-2xl font-extrabold">Never overpay for {product.title}</h3>
-              <p className="text-sm text-blue-200 mt-2 leading-relaxed">
+              <p className="text-sm text-slate-600 mt-2 leading-relaxed">
                 Get an instant email when the price {captureAlertType === 'price_increase' ? 'rises above' : 'drops below'} your target, plus our best daily {product.mainCategory} deals and exclusive coupon codes — straight to your inbox.
               </p>
             </div>
             <div className="lg:col-span-6 space-y-3">
               {captureMsg ? (
-                <div className={`p-4 rounded-2xl text-sm font-bold ${captureType === 'error' ? 'bg-red-500/20 text-red-200 border border-red-400/40' : 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/40'}`}>
+                <div className={`p-4 rounded-2xl text-sm font-bold ${captureType === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>
                   {captureMsg}
                 </div>
               ) : (
@@ -894,21 +894,21 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     onChange={(e) => setCaptureEmail(e.target.value)}
                     placeholder="you@example.com"
                     required
-                    className="w-full bg-white/10 backdrop-blur border border-white/25 rounded-xl px-4 py-3 text-sm text-white placeholder-blue-200/60 outline-none focus:ring-2 focus:ring-amber-400/60"
+                    className="w-full bg-white border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:ring-2 focus:ring-[#FF8A00]/40 focus:border-[#FF8A00]"
                   />
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-blue-200">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
                     <span className="shrink-0 font-bold">Notify when:</span>
                     <button
                       type="button"
                       onClick={() => setCaptureAlertType('price_drop')}
-                      className={`px-3 py-1.5 rounded-lg font-semibold border transition-colors ${captureAlertType === 'price_drop' ? 'bg-amber-400/20 border-amber-400/60 text-amber-300' : 'bg-white/10 border-white/25 text-blue-200 hover:bg-white/20'}`}
+                      className={`px-3 py-1.5 rounded-lg font-semibold border transition-colors ${captureAlertType === 'price_drop' ? 'bg-[#FFF3E6] border-[#FF8A00]/50 text-[#e67b00]' : 'bg-white border-[#E2E8F0] text-slate-600 hover:bg-slate-50'}`}
                     >
                       Price drops to
                     </button>
                     <button
                       type="button"
                       onClick={() => setCaptureAlertType('price_increase')}
-                      className={`px-3 py-1.5 rounded-lg font-semibold border transition-colors ${captureAlertType === 'price_increase' ? 'bg-amber-400/20 border-amber-400/60 text-amber-300' : 'bg-white/10 border-white/25 text-blue-200 hover:bg-white/20'}`}
+                      className={`px-3 py-1.5 rounded-lg font-semibold border transition-colors ${captureAlertType === 'price_increase' ? 'bg-[#FFF3E6] border-[#FF8A00]/50 text-[#e67b00]' : 'bg-white border-[#E2E8F0] text-slate-600 hover:bg-slate-50'}`}
                     >
                       Price rises to
                     </button>
@@ -918,20 +918,20 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                       step="0.01"
                       value={captureTargetPrice}
                       onChange={(e) => setCaptureTargetPrice(e.target.value)}
-                      className="bg-white/10 backdrop-blur border border-white/25 rounded-lg px-3 py-1.5 text-sm text-white w-28 outline-none focus:ring-2 focus:ring-amber-400/60"
+                      className="bg-white border border-[#E2E8F0] rounded-lg px-3 py-1.5 text-sm text-slate-800 w-28 outline-none focus:ring-2 focus:ring-[#FF8A00]/40"
                     />
-                    <span className="text-blue-300/80">
+                    <span className="text-slate-500">
                       (current ${product.currentPrice && !isNaN(Number(product.currentPrice)) ? Number(product.currentPrice).toFixed(2) : '—'})
                     </span>
                   </div>
                   <button
                     type="submit"
                     disabled={captureSaving}
-                    className="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black py-3 rounded-xl text-sm shadow-lg shadow-amber-500/25 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+                    className="w-full bg-[#FF8A00] hover:bg-[#e67b00] text-white font-black py-3 rounded-xl text-sm shadow-lg shadow-[#FF8A00]/25 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
                   >
                     {captureSaving ? 'Saving...' : `🔔 Notify Me When Price ${captureAlertType === 'price_increase' ? 'Rises' : 'Drops'} + Get Deals`}
                   </button>
-                  <p className="text-[10px] text-blue-300/70 text-center">
+                  <p className="text-[10px] text-slate-500 text-center">
                     No spam. Unsubscribe anytime. We may earn a commission on qualifying purchases.
                   </p>
                 </form>
@@ -951,7 +951,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         <section id="section-article" className="max-w-7xl mx-auto px-4 mt-16">
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-10 border border-slate-200/80 dark:border-slate-800 shadow-sm">
             <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-200 dark:border-slate-800">
-              <div className="p-2.5 bg-[#0A1F44] text-amber-400 rounded-xl font-black text-xs shadow-md">DAWNWIRE</div>
+              <div className="p-2.5 bg-[#246BFF] text-white rounded-xl font-black text-xs shadow-md">DAWNWIRE</div>
               <div>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100">Full {product.title} Review & Buying Guide</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">

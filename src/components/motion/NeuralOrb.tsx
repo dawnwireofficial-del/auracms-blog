@@ -86,7 +86,7 @@ export default function NeuralOrb({
 
       {/* Main Core Orb */}
       <motion.div
-        className="w-3/4 h-3/4 rounded-full bg-gradient-to-tr from-[#0A1F44] via-[#246BFF] to-[#FF8A00] shadow-lg shadow-[#246BFF]/40 flex items-center justify-center relative overflow-hidden"
+        className="w-3/4 h-3/4 rounded-full bg-gradient-to-tr from-[#246BFF] via-[#4F7CFF] to-[#FF8A00] shadow-lg shadow-[#246BFF]/40 flex items-center justify-center relative overflow-hidden"
         animate={{
           scale: state === 'idle' ? [0.95, 1, 0.95] : 1,
         }}

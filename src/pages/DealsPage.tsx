@@ -42,19 +42,19 @@ export const DealsPage: React.FC = () => {
       <DisclosureBanner />
 
       {/* Hero Header */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#050B18] via-[#1E0B00] to-[#050B18] text-white py-16 px-4 border-b border-orange-500/30 shadow-2xl">
-        <TechnicalGrid opacity={0.06} />
+      <div className="relative overflow-hidden bg-gradient-to-r from-[#FFF7ED] via-white to-[#EAF2FF] text-slate-900 py-16 px-4 border-b border-[#E2E8F0] shadow-[0_10px_40px_-20px_rgba(255,138,0,0.3)]">
+        <TechnicalGrid opacity={0.04} />
         <AmbientGlow color="orange" position="top-right" size="lg" />
         <AmbientGlow color="orange" position="bottom-left" size="xl" />
         <div className="relative z-10 max-w-7xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 bg-orange-500/20 border border-orange-500/30 backdrop-blur-md px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-amber-300">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+          <div className="inline-flex items-center gap-2 bg-[#FF8A00]/15 border border-[#FF8A00]/30 backdrop-blur-md px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-[#e67b00]">
+            <span className="w-2 h-2 rounded-full bg-[#FF8A00] animate-ping" />
             24/7 Price Tracker Active
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-amber-100 to-orange-300">
+          <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#111827] via-[#e67b00] to-[#FF8A00]">
             Amazon Deals & Instant Price Drops
           </h1>
-          <p className="text-sm text-amber-100 max-w-2xl font-medium">
+          <p className="text-sm text-slate-600 max-w-2xl font-medium">
             Handpicked, verified price drops on top-rated electronics, coffee makers, smart home equipment, and lifestyle products on Amazon US.
           </p>
         </div>

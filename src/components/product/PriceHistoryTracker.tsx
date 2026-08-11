@@ -188,7 +188,7 @@ export const PriceHistoryTracker: React.FC<PriceHistoryTrackerProps> = ({ produc
                         onClick={() => setTargetPrice(priceVal)}
                         className={`py-1.5 px-2 rounded-xl text-xs font-bold border transition-all ${
                           targetPrice === priceVal
-                            ? 'bg-[#0A1F44] text-white border-[#0A1F44]'
+                            ? 'bg-[#246BFF] text-white border-[#246BFF]'
                             : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
                         }`}
                       >

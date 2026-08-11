@@ -223,7 +223,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   // Grid View
   return (
-    <div data-gravity-cursor="view" className="group relative flex flex-col bg-white dark:bg-[#071426]/90 rounded-3xl border border-slate-200/80 dark:border-blue-500/20 shadow-lg hover:shadow-2xl hover:shadow-blue-600/10 hover:border-blue-500/50 transition-all duration-300 overflow-hidden">
+    <div data-gravity-cursor="view" className="group relative flex flex-col bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-lg hover:shadow-2xl hover:shadow-blue-600/10 hover:border-blue-500/50 transition-all duration-300 overflow-hidden">
       {/* Top Badges */}
       <div className="absolute top-3 left-3 right-3 z-10 flex items-start justify-between pointer-events-none">
         <div className="flex flex-col items-start gap-1">

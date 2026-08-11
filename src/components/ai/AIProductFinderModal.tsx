@@ -70,9 +70,9 @@ export const AIProductFinderModal: React.FC<AIProductFinderModalProps> = ({ isOp
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200">
       <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh]">
         {/* Modal Header */}
-        <div className="bg-[#0A1F44] text-white p-6 flex items-center justify-between border-b border-blue-900">
+        <div className="bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] text-white p-6 flex items-center justify-between border-b border-blue-900">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-blue-900 p-2 text-amber-400 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-white/15 p-2 text-amber-300 flex items-center justify-center font-bold">
               ⚡
             </div>
             <div>
@@ -309,7 +309,7 @@ export const AIProductFinderModal: React.FC<AIProductFinderModalProps> = ({ isOp
             {step === 4 && (
               <button
                 onClick={onClose}
-                className="bg-[#0A1F44] text-white font-bold px-6 py-2.5 rounded-xl text-xs"
+                className="bg-[#246BFF] hover:bg-[#164EE8] text-white font-bold px-6 py-2.5 rounded-xl text-xs"
               >
                 Close Finder
               </button>

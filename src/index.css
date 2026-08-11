@@ -3,30 +3,31 @@
 @variant dark (&:where(.dark, .dark *));
 
 :root {
-  --gravity-void-navy: #030712;
-  --gravity-dawn-navy: #071426;
-  --gravity-brand-navy: #0a1f44;
-  --gravity-elevated-navy: #102b52;
-  --gravity-surface-blue: #15345f;
-  --gravity-dawn-blue: #4c82ff;
-  --gravity-signal-cyan: #2ad7f7;
-  --gravity-dawn-amber: #ffb45b;
-  --gravity-bg-primary: #030712;
-  --gravity-bg-secondary: #071426;
-  --gravity-surface: rgba(16, 43, 82, 0.72);
-  --gravity-surface-solid: #102b52;
-  --gravity-text-primary: #f7faff;
-  --gravity-text-secondary: #b4c0d4;
-  --gravity-text-muted: #7d8aa2;
-  --gravity-accent-primary: #4c82ff;
-  --gravity-accent-cyan: #22d3ee;
-  --gravity-border: rgba(255, 255, 255, 0.09);
-  --gravity-border-hover: rgba(116, 150, 255, 0.3);
+  /* DawnWire bright retail palette (no dark navy anywhere) */
+  --gravity-void-navy: #f8fafc;
+  --gravity-dawn-navy: #f4f8ff;
+  --gravity-brand-navy: #246bff;
+  --gravity-elevated-navy: #eaf2ff;
+  --gravity-surface-blue: #f4f8ff;
+  --gravity-dawn-blue: #246bff;
+  --gravity-signal-cyan: #7cc4ff;
+  --gravity-dawn-amber: #ff8a00;
+  --gravity-bg-primary: #f8fafc;
+  --gravity-bg-secondary: #ffffff;
+  --gravity-surface: rgba(255, 255, 255, 0.72);
+  --gravity-surface-solid: #ffffff;
+  --gravity-text-primary: #111827;
+  --gravity-text-secondary: #475569;
+  --gravity-text-muted: #64748b;
+  --gravity-accent-primary: #246bff;
+  --gravity-accent-cyan: #4f7cff;
+  --gravity-border: rgba(226, 232, 240, 0.9);
+  --gravity-border-hover: rgba(36, 107, 255, 0.35);
   --gravity-radius-small: 12px;
   --gravity-radius-medium: 18px;
   --gravity-radius-large: 26px;
-  --gravity-shadow-small: 0 10px 30px rgba(0, 0, 0, 0.22);
-  --gravity-shadow-large: 0 24px 80px rgba(0, 0, 0, 0.45);
+  --gravity-shadow-small: 0 10px 30px rgba(30, 41, 59, 0.08);
+  --gravity-shadow-large: 0 24px 80px rgba(30, 41, 59, 0.12);
   --gravity-transition-fast: 180ms;
   --gravity-transition-normal: 320ms;
   --gravity-transition-slow: 700ms;
@@ -40,41 +41,41 @@
 }
 
 @theme {
-  --color-primary: #0866FF;
-  --color-primary2: #199BFF;
-  --color-primary3: #2CECFD;
-  --color-cyan: #2CECFD;
-  --color-cyan-soft: #89E5FF;
-  --color-brand-secondary: #0866FF;
-  --color-brand-accent: #2CECFD;
+  --color-primary: #246BFF;
+  --color-primary2: #4F7CFF;
+  --color-primary3: #7CC4FF;
+  --color-cyan: #4F7CFF;
+  --color-cyan-soft: #B9D6FF;
+  --color-brand-secondary: #246BFF;
+  --color-brand-accent: #FF8A00;
   --color-amazon-orange: #FF9900;
   --color-deal-red: #FF334F;
-  --color-dw-success: #16E6A1;
-  --color-dw-page: #020617;
-  --color-dw-header: #06142F;
-  --color-dw-section: #091A3A;
-  --color-dw-card: #10213E;
-  --color-dw-card-hover: #142B51;
-  --color-dw-border: #1D4F91;
-  --color-dw-border-soft: #233B61;
-  --color-dw-text: #F7FAFF;
-  --color-dw-text-muted: #9DB0CE;
-  --color-dw-navy: #0A1F44;
+  --color-dw-success: #16A34A;
+  --color-dw-page: #F8FAFC;
+  --color-dw-header: #FFFFFF;
+  --color-dw-section: #F4F8FF;
+  --color-dw-card: #FFFFFF;
+  --color-dw-card-hover: #EAF2FF;
+  --color-dw-border: #E2E8F0;
+  --color-dw-border-soft: #EAF2FF;
+  --color-dw-text: #111827;
+  --color-dw-text-muted: #64748B;
+  --color-dw-navy: #246BFF;
   --color-dw-blue: #246BFF;
   --color-dw-orange: #FF8A00;
   --color-dw-bg: #FFFFFF;
-  --color-dw-navy-950: #061438;
-  --color-dw-navy-900: #0A1F44;
-  --color-dw-navy-800: #12316A;
+  --color-dw-navy-950: #164EE8;
+  --color-dw-navy-900: #246BFF;
+  --color-dw-navy-800: #4F7CFF;
   --color-dw-blue-700: #164EE8;
   --color-dw-blue-600: #2463FF;
   --color-dw-blue-500: #3C7BFF;
   --color-dw-magenta-400: #D45EFF;
   --color-dw-cyan-400: #55E6FF;
-  --color-dw-mint-400: #28E4BA;
+  --color-dw-mint-400: #16C784;
   --color-dw-orange-500: #FF6A00;
-  --color-dw-ink-700: #41577F;
-  --color-dw-ink-500: #6E7FA2;
+  --color-dw-ink-700: #475569;
+  --color-dw-ink-500: #64748B;
 
   /* IT Tech template theme tokens (light-mode defaults; dark: variants handle dark) */
   --color-body-bg: #FFFFFF;
@@ -115,11 +116,11 @@
 }
 
 .ghost-btn {
-  @apply bg-[#102B5B] border border-cyan text-white font-semibold rounded-[14px] px-6 py-3 transition-all duration-300 cursor-pointer inline-flex items-center justify-center gap-2;
+  @apply bg-white border border-dw-blue-500 text-blue-700 font-semibold rounded-[14px] px-6 py-3 transition-all duration-300 cursor-pointer inline-flex items-center justify-center gap-2;
 }
 .ghost-btn:hover {
-  background: rgba(44, 236, 253, 0.1);
-  box-shadow: 0 0 20px rgba(44, 236, 253, 0.15);
+  background: rgba(36, 107, 255, 0.08);
+  box-shadow: 0 0 20px rgba(36, 107, 255, 0.12);
 }
 
 .dw-gradient-text {
@@ -130,7 +131,7 @@
 }
 
 .dw-gradient-primary {
-  background: linear-gradient(135deg, #0A1F44 0%, #246BFF 100%);
+  background: linear-gradient(135deg, #164EE8 0%, #246BFF 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -269,7 +270,7 @@
 
 .dw-btn--primary {
   color: #fff;
-  background: linear-gradient(135deg, #0A1F44 0%, #246BFF 100%);
+  background: linear-gradient(135deg, #246BFF 0%, #4F7CFF 100%);
   box-shadow: 0 18px 50px rgba(36, 107, 255, 0.30);
 }
 
@@ -409,7 +410,7 @@
   background: rgba(239,244,255,0.95);
 }
 
-.dw-proof strong { display: block; color: #0A1F44; font-size: 14px; }
+.dw-proof strong { display: block; color: #111827; font-size: 14px; }
 .dw-proof small { display: block; margin-top: 3px; color: #6E7FA2; font-size: 12px; }
 
 @keyframes dwMascotFloat {
@@ -481,9 +482,18 @@
    DAWNWIRE COMMERCE DESIGN SYSTEM  (light-first, premium retail)
    ============================================================ */
 @layer components {
-  /* Page container — 1280px content core */
+  /* Page container — 1380px content core, 24px+ gutters */
   .commerce-container {
-    @apply w-full max-w-[1320px] mx-auto px-4 md:px-6 xl:px-8;
+    @apply w-full mx-auto;
+    width: calc(100% - 48px);
+    max-width: 1380px;
+    padding-inline: 20px;
+  }
+  @media (min-width: 768px) {
+    .commerce-container { padding-inline: 24px; }
+  }
+  @media (min-width: 1440px) {
+    .commerce-container { max-width: 1440px; padding-inline: 36px; }
   }
 
   /* Section rhythm */
@@ -527,7 +537,7 @@
     @apply inline-flex items-center justify-center gap-2 rounded-xl bg-[#FF8A00] hover:bg-[#e67b00] active:bg-[#d16f00] text-white font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A00]/40 focus-visible:ring-offset-2 shadow-[0_6px_18px_-6px_rgba(255,138,0,0.55)];
   }
   .btn-royal {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-[#0A1F44] hover:bg-[#12316A] text-white font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#246BFF]/40 shadow-[0_6px_18px_-8px_rgba(10,31,68,0.5)];
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-[#246BFF] hover:bg-[#164EE8] text-white font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#246BFF]/40 shadow-[0_6px_18px_-8px_rgba(36,107,255,0.5)];
   }
   .btn-royal-blue {
     @apply inline-flex items-center justify-center gap-2 rounded-xl bg-[#246BFF] hover:bg-[#164EE8] text-white font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#246BFF]/40 shadow-[0_6px_18px_-8px_rgba(36,107,255,0.5)];
@@ -564,9 +574,10 @@
   }
   .commerce-img-stage img { @apply max-w-full max-h-full object-contain; }
 
-  /* Dark navy feature panel (comparisons etc.) */
+  /* Light feature panel (comparisons, promos) — bright soft-blue wash, NO dark navy */
   .commerce-navy {
-    background: linear-gradient(135deg, #0A1F44 0%, #0d2a5e 55%, #12316A 100%);
+    background: linear-gradient(135deg, #EEF4FF 0%, #FFFFFF 50%, #FFF7ED 100%);
+    border: 1px solid rgba(36, 107, 255, 0.12);
   }
 
   /* Skeleton shimmer for banners/cards */
@@ -606,9 +617,101 @@
   }
 }
 
+/* ============================================================
+   FLOATING PAGE DECOR  (ambient edge objects, cursor parallax)
+   ============================================================ */
+@layer components {
+  .dw-decor-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    overflow-x: clip;
+    contain: layout paint;
+  }
+  .dw-decor-object {
+    position: fixed;
+    pointer-events: none;
+    will-change: transform;
+    transform: translateZ(0);
+    user-select: none;
+  }
+  /* Ambient keyframes — slow, gentle, inputs-driven variants get desynced */
+  @keyframes decorFloatY {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50% { transform: translate3d(0, 9px, 0); }
+  }
+  @keyframes decorFloatY2 {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50% { transform: translate3d(0, -7px, 0); }
+  }
+  @keyframes decorFloatX {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50% { transform: translate3d(6px, 0, 0); }
+  }
+  @keyframes decorRotateSlow {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  @keyframes decorPulseSoft {
+    0%, 100% { opacity: 0.55; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.06); }
+  }
+  @keyframes decorDrift {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(-1.2deg); }
+    50% { transform: translate3d(0, -6px, 0) rotate(1.2deg); }
+  }
+  @keyframes decorOrbitA {
+    0% { transform: rotate(0deg) translateX(4px) rotate(0deg); }
+    100% { transform: rotate(360deg) translateX(4px) rotate(-360deg); }
+  }
+
+  /* Scroll-driven rotation wrapper (driven via JS inline style too) */
+  .dw-decor-scroll {
+    transition: transform 120ms linear;
+  }
+
+  /* Desktop cursor glow (behind page, extremely subtle) */
+  body.dw-cursor-glow::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(300px circle at var(--mouse-x, 50%) var(--mouse-y, 40%), rgba(36,107,255,0.06), transparent 70%),
+      radial-gradient(420px circle at var(--mouse-x, 50%) var(--mouse-y, 40%), rgba(255,138,0,0.035), transparent 72%);
+  }
+
+  /* Tablet: trim object count by hiding the dedicated tail classes */
+  @media (max-width: 1024px) {
+    .dw-decor-hide-md { display: none !important; }
+  }
+  /* Mobile: hide nearly everything */
+  @media (max-width: 640px) {
+    .dw-decor-hide-sm { display: none !important; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dw-decor-object {
+    animation: none !important;
+    opacity: 0.6 !important;
+  }
+  body.dw-cursor-glow::before,
+  .dw-decor-layer {
+    display: none !important;
+  }
+}
+@media (pointer: coarse), (hover: none) {
+  body.dw-cursor-glow::before {
+    display: none !important;
+  }
+}
+
 @layer base {
   body {
-    @apply bg-[#F8FAFC] text-slate-900 dark:bg-dw-page dark:text-dw-text transition-colors duration-200;
+    @apply bg-[#F8FAFC] text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;

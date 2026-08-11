@@ -91,7 +91,7 @@ export const ProductSentimentCard: React.FC<ProductSentimentCardProps> = ({ prod
     return (
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-2xl bg-gradient-to-br from-dw-navy to-dw-blue text-white shadow-md font-bold text-xs">📊 Dawnwire AI</div>
+          <div className="p-2.5 rounded-2xl bg-gradient-to-br from-[#246BFF] to-[#4F7CFF] text-white shadow-md font-bold text-xs">📊 Dawnwire AI</div>
           <div>
             <h3 className="text-lg font-black text-slate-900 dark:text-slate-100">AI Customer Sentiment Summary</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">Synthesized from customer reviews via Gemini 3.6 Flash</p>
@@ -147,7 +147,7 @@ export const ProductSentimentCard: React.FC<ProductSentimentCardProps> = ({ prod
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-2xl bg-gradient-to-br from-dw-navy to-dw-blue text-white shadow-md font-bold text-xs">
+          <div className="p-2.5 rounded-2xl bg-gradient-to-br from-[#246BFF] to-[#4F7CFF] text-white shadow-md font-bold text-xs">
             📊 Dawnwire AI
           </div>
           <div>

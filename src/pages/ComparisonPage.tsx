@@ -19,15 +19,15 @@ export const ComparisonPage: React.FC = () => {
     <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
       <DisclosureBanner />
 
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#050B18] via-[#0A1F44] to-[#050B18] text-white py-14 px-4 border-b border-blue-500/20 shadow-2xl">
-        <TechnicalGrid opacity={0.05} />
+      <div className="relative overflow-hidden bg-gradient-to-r from-[#EEF4FF] via-white to-[#FFF7ED] text-slate-900 py-14 px-4 border-b border-[#E2E8F0] shadow-[0_10px_40px_-20px_rgba(36,107,255,0.25)]">
+        <TechnicalGrid opacity={0.04} />
         <AmbientGlow color="cyan" position="top-right" size="lg" />
         <AmbientGlow color="blue" position="bottom-left" size="lg" />
         <div className="relative z-10 max-w-7xl mx-auto space-y-2">
-          <h1 className="text-3xl sm:text-4xl font-black font-display tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-cyan-100 to-blue-200">
+          <h1 className="text-3xl sm:text-4xl font-black font-display tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#111827] via-[#246BFF] to-[#4F7CFF]">
             Split-Screen Side-By-Side Product Comparisons
           </h1>
-          <p className="text-sm text-slate-300 max-w-2xl font-medium">
+          <p className="text-sm text-slate-600 max-w-2xl font-medium">
             Compare technical specs, Gemini AI sentiment scores, feature differences, and live Amazon pricing.
           </p>
         </div>

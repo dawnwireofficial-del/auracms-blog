@@ -214,24 +214,24 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
   const currentMegaCategory = categories.find((c) => c.id === activeMegaCat) || categories[0] || null;
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/90 dark:bg-[#050B18]/85 backdrop-blur-xl border-b border-slate-200/80 dark:border-blue-500/20 shadow-2xl shadow-blue-950/20 transition-all duration-300">
-      {/* Top Announcement Bar */}
-      <div className="bg-gradient-to-r from-[#050B18] via-[#0A1F44] to-[#050B18] text-white text-xs font-medium py-1 px-4 border-b border-blue-500/10">
+    <header className="sticky top-0 z-40 w-full bg-white/90 dark:bg-slate-900/85 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800 shadow-sm shadow-slate-900/5 dark:shadow-blue-950/20 transition-all duration-300">
+      {/* Top Announcement Bar — bright soft-blue wash (no navy) */}
+      <div className="bg-gradient-to-r from-[#EAF2FF] via-[#F4F8FF] to-[#FFF3E6] text-slate-800 text-xs font-medium py-1 px-4 border-b border-[#246BFF]/10">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="bg-orange-600 text-white font-black text-[10px] px-1.5 py-0.5 rounded uppercase">
+            <span className="bg-[#FF8A00] text-white font-black text-[10px] px-1.5 py-0.5 rounded uppercase">
               NEW
             </span>
-            <span className="truncate">
+            <span className="truncate text-slate-700">
               AI-Powered Amazon Deals & Independent Benchmarks for 2026
             </span>
           </div>
-          <div className="hidden sm:flex items-center gap-4 text-slate-300 text-[11px]">
-            <a href="/about" className="hover:text-amber-400 transition-colors">How We Review</a>
+          <div className="hidden sm:flex items-center gap-4 text-slate-600 text-[11px]">
+            <a href="/about" className="hover:text-[#246BFF] transition-colors">How We Review</a>
             <span>•</span>
-            <a href="/about" className="hover:text-amber-400 transition-colors">Editorial Policy</a>
+            <a href="/about" className="hover:text-[#246BFF] transition-colors">Editorial Policy</a>
             <span>•</span>
-            <a href="/affiliate-disclosure" className="hover:text-amber-400 transition-colors">Affiliate Disclosure</a>
+            <a href="/affiliate-disclosure" className="hover:text-[#246BFF] transition-colors">Affiliate Disclosure</a>
           </div>
         </div>
       </div>
@@ -245,12 +245,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
 
         {/* Search Bar with Category Selector & Live Search Autocomplete */}
         <div ref={searchWrapperRef} className="hidden lg:block relative flex-1 max-w-2xl">
-          <form onSubmit={handleSearchSubmit} className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+          <form onSubmit={handleSearchSubmit} className="flex items-center bg-white dark:bg-slate-800 rounded-2xl border border-[#246BFF]/25 dark:border-slate-700/80 overflow-hidden focus-within:ring-2 focus-within:ring-[#246BFF]/40 focus-within:border-[#246BFF] shadow-[0_4px_14px_-6px_rgba(36,107,255,0.18)] transition-all">
             <select
               value={selectedSearchCat}
               onChange={(e) => setSelectedSearchCat(e.target.value)}
               aria-label="Search category"
-              className="bg-slate-200/60 dark:bg-slate-700/60 text-xs font-bold text-slate-700 dark:text-slate-200 px-3 py-2.5 outline-none border-r border-slate-300 dark:border-slate-600 cursor-pointer"
+              className="bg-[#EAF2FF]/70 dark:bg-slate-700/60 text-xs font-bold text-slate-800 dark:text-slate-200 px-3 py-2.5 outline-none border-r border-[#246BFF]/15 dark:border-slate-600 cursor-pointer"
             >
               <option value="all">All Categories</option>
               {categories.map((c) => (
@@ -282,7 +282,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
             <kbd className="hidden xl:inline-block bg-slate-200/80 dark:bg-slate-700/80 text-slate-500 dark:text-slate-300 text-[10px] font-mono font-bold px-2 py-1 rounded-md border border-slate-300 dark:border-slate-600 shrink-0 mr-2 shadow-xs" title="Shortcut: Cmd+K or Ctrl+K">
               ⌘K
             </kbd>
-            <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 flex items-center gap-1.5 transition-colors font-semibold text-sm shrink-0">
+            <button type="submit" className="bg-[#246BFF] hover:bg-[#164EE8] text-white px-5 py-2.5 flex items-center gap-1.5 transition-colors font-semibold text-sm shrink-0">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -482,7 +482,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
           {onOpenAiFinder && (
             <button
               onClick={onOpenAiFinder}
-              className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-dw-navy to-dw-blue text-white px-3.5 py-1.5 rounded-full text-[11px] font-semibold shadow-md shadow-dw-blue/30 hover:shadow-lg hover:shadow-dw-blue/40 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dw-blue/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900"
+              className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] text-white px-3.5 py-1.5 rounded-full text-[11px] font-semibold shadow-md shadow-dw-blue/30 hover:shadow-lg hover:shadow-dw-blue/40 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dw-blue/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900"
             >
               <span className="whitespace-nowrap flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">

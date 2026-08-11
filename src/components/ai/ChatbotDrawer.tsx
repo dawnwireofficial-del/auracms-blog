@@ -103,9 +103,9 @@ export const ChatbotDrawer: React.FC<ChatbotDrawerProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-white dark:bg-[#050B18] h-full shadow-2xl flex flex-col border-l border-slate-200 dark:border-blue-500/20">
+      <div className="w-full max-w-lg bg-white dark:bg-slate-900 h-full shadow-2xl flex flex-col border-l border-slate-200 dark:border-slate-800">
         {/* Header */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-[#050B18] via-[#0A1F44] to-[#050B18] text-white p-4.5 flex items-center justify-between border-b border-blue-500/20 shadow-lg">
+        <div className="relative overflow-hidden bg-gradient-to-r from-[#246BFF] via-[#4F7CFF] to-[#246BFF] text-white p-4.5 flex items-center justify-between border-b border-blue-500/20 shadow-lg">
           <div className="flex items-center gap-3 relative z-10">
             <div className="w-10 h-10 rounded-xl bg-blue-900/80 p-1 flex items-center justify-center border border-blue-400/40 shadow-inner">
               <HeroChatbotIllustration className="w-8 h-8" />
@@ -148,8 +148,8 @@ export const ChatbotDrawer: React.FC<ChatbotDrawerProps> = ({
               <div
                 className={`max-w-[88%] p-3.5 rounded-2xl text-xs leading-relaxed shadow-md ${
                   msg.sender === 'user'
-                    ? 'bg-gradient-to-r from-dw-navy to-dw-blue text-white rounded-br-none shadow-dw-blue/20'
-                    : 'bg-white dark:bg-[#071426] text-slate-900 dark:text-slate-100 border border-slate-200/80 dark:border-blue-500/20 rounded-bl-none'
+                    ? 'bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] text-white rounded-br-none shadow-dw-blue/20'
+                    : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-200/80 dark:border-slate-800 rounded-bl-none'
                 }`}
               >
                 <p className="whitespace-pre-line">{msg.text}</p>

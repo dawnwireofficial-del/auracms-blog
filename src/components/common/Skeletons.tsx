@@ -62,10 +62,10 @@ export const ProductCatalogSkeleton: React.FC = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
       {/* Header Banner Skeleton */}
-      <div className="bg-[#0A1F44] py-12 px-4 border-b border-blue-900">
+      <div className="bg-gradient-to-r from-[#EAF2FF] via-white to-[#FFF3E6] py-12 px-4 border-b border-[#E2E8F0]">
         <div className="max-w-7xl mx-auto space-y-3">
-          <SkeletonBlock className="h-9 w-80 bg-blue-900/60" />
-          <SkeletonBlock className="h-4 w-full max-w-xl bg-blue-900/40" />
+          <SkeletonBlock className="h-9 w-80 bg-blue-100" />
+          <SkeletonBlock className="h-4 w-full max-w-xl bg-blue-50" />
         </div>
       </div>
 

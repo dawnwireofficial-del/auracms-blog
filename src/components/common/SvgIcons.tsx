@@ -54,7 +54,7 @@ export const HeroChatbotIllustration: React.FC<{ className?: string }> = ({ clas
 
         {/* Card 2 - Deal Badge */}
         <g className="animate-[bounce_7s_ease-in-out_infinite_1s]">
-          <rect x="270" y="180" width="110" height="54" rx="12" fill="#0A1F44" className="shadow-lg" />
+          <rect x="270" y="180" width="110" height="54" rx="12" fill="#246BFF" className="shadow-lg" />
           <rect x="280" y="192" width="40" height="18" rx="6" fill="#F97316" />
           <text x="286" y="204" fill="white" fontSize="9" fontWeight="bold">-25%</text>
           <text x="280" y="222" fill="#38BDF8" fontSize="11" fontWeight="bold">Check Deal</text>
@@ -63,7 +63,7 @@ export const HeroChatbotIllustration: React.FC<{ className?: string }> = ({ clas
         {/* Central Robot Character */}
         <g className="animate-[float_4s_ease-in-out_infinite]">
           {/* Head Outer Frame */}
-          <rect x="130" y="110" width="140" height="110" rx="36" fill="#0A1F44" stroke="#3B82F6" strokeWidth="4" />
+          <rect x="130" y="110" width="140" height="110" rx="36" fill="#246BFF" stroke="#3B82F6" strokeWidth="4" />
           {/* Antenna */}
           <line x1="200" y1="110" x2="200" y2="85" stroke="#3B82F6" strokeWidth="4" strokeLinecap="round" />
           <circle cx="200" cy="80" r="10" fill="#F97316" className="animate-ping" />
@@ -84,7 +84,7 @@ export const HeroChatbotIllustration: React.FC<{ className?: string }> = ({ clas
           {/* Bot Body Chassis */}
           <rect x="150" y="230" width="100" height="70" rx="24" fill="#1E293B" stroke="#3B82F6" strokeWidth="3" />
           {/* DawnWire Emblem on Chest */}
-          <circle cx="200" cy="265" r="14" fill="#0A1F44" stroke="#F97316" strokeWidth="2" />
+          <circle cx="200" cy="265" r="14" fill="#246BFF" stroke="#F97316" strokeWidth="2" />
           <polygon points="196,260 206,265 196,270" fill="#F97316" />
         </g>
 

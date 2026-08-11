@@ -34,11 +34,11 @@ export const BestCategoryPage: React.FC<BestCategoryPageProps> = ({ categorySlug
     return (
       <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-24">
         <DisclosureBanner />
-        <div className="bg-gradient-to-br from-[#0A1F44] via-[#12307a] to-[#1a3f9e] text-white">
+        <div className="bg-gradient-to-br from-[#EAF2FF] via-[#F4F8FF] to-[#FFF3E6] text-slate-900 border-b border-[#E2E8F0]">
           <div className="max-w-7xl mx-auto px-4 py-14">
-            <p className="text-xs font-bold text-amber-400 uppercase tracking-widest mb-2">DawnWire Roundups</p>
+            <p className="text-xs font-bold text-[#FF8A00] uppercase tracking-widest mb-2">DawnWire Roundups</p>
             <h1 className="text-3xl sm:text-5xl font-black">Best-of Category Rankings</h1>
-            <p className="text-blue-200 text-sm sm:text-base mt-3 max-w-2xl">Expert-ranked best products across every category we cover.</p>
+            <p className="text-slate-600 text-sm sm:text-base mt-3 max-w-2xl">Expert-ranked best products across every category we cover.</p>
           </div>
         </div>
         <div className="max-w-7xl mx-auto px-4 mt-10">
@@ -120,11 +120,11 @@ export const BestCategoryPage: React.FC<BestCategoryPageProps> = ({ categorySlug
       />
 
       {/* Hero */}
-      <div className="bg-gradient-to-br from-[#0A1F44] via-[#12307a] to-[#1a3f9e] text-white">
+      <div className="bg-gradient-to-br from-[#EAF2FF] via-[#F4F8FF] to-[#FFF3E6] text-slate-900 border-b border-[#E2E8F0]">
         <div className="max-w-7xl mx-auto px-4 py-14 sm:py-18">
-          <p className="text-xs font-bold text-amber-400 uppercase tracking-widest mb-2">DawnWire Roundup · {list.length} tested products</p>
+          <p className="text-xs font-bold text-[#FF8A00] uppercase tracking-widest mb-2">DawnWire Roundup · {list.length} tested products</p>
           <h1 className="text-3xl sm:text-5xl font-black leading-tight">Best {displayName}</h1>
-          <p className="text-blue-200 text-sm sm:text-base mt-3 max-w-2xl">
+          <p className="text-slate-600 text-sm sm:text-base mt-3 max-w-2xl">
             We compared the top {displayName.toLowerCase()} products on the market using verified ratings, prices and hands-on analysis to find the winners.
           </p>
         </div>
@@ -159,7 +159,7 @@ export const BestCategoryPage: React.FC<BestCategoryPageProps> = ({ categorySlug
                   {toPrice(winner.referencePrice) > toPrice(winner.currentPrice) && (
                     <span className="text-sm line-through text-slate-400">${toPrice(winner.referencePrice).toFixed(2)}</span>
                   )}
-                  <span className="inline-flex items-center gap-1 text-xs font-bold bg-[#0A1F44] text-amber-400 px-3 py-1.5 rounded-xl">
+                  <span className="inline-flex items-center gap-1 text-xs font-bold bg-[#246BFF] text-white px-3 py-1.5 rounded-xl">
                     ★ {toPrice(winner.editorScore) || (toPrice(winner.rating) * 2) || '—'} / 10
                   </span>
                   {toPrice(winner.rating) > 0 && <span className="text-xs font-bold text-slate-500 dark:text-slate-400">★ {toPrice(winner.rating)} ({toPrice(winner.reviewCount)} reviews)</span>}

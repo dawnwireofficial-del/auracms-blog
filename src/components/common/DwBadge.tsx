@@ -28,7 +28,7 @@ export const DwBadge: React.FC<DwBadgeProps> = ({ type, className = '' }) => {
   const meta = BADGE_META[type];
   return (
     <span
-      className={`inline-flex items-center gap-1 bg-dw-navy text-white font-black text-[11px] px-2.5 py-1 rounded-lg shadow-md border-l-2 border-dw-orange ${className}`}
+      className={`inline-flex items-center gap-1 bg-[#246BFF] text-white font-black text-[11px] px-2.5 py-1 rounded-lg shadow-md border-l-2 border-[#FF8A00] ${className}`}
     >
       <span className="text-dw-orange">{meta.icon}</span>
       {meta.label}
