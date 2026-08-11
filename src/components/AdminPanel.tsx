@@ -4,7 +4,8 @@ import {
   LayoutDashboard, BookOpen, FolderOpen, MessageSquare, Link2, 
   Settings as SettingsIcon, LogOut, Mail, List, Eye, 
   Image as ImageIcon, FileText, Search, Star, ShoppingBag, Layers, Timer,
-  Bell, RefreshCw, Download, Package, Sparkles, ExternalLink
+  Bell, RefreshCw, Download, Package, Sparkles, ExternalLink,
+  Palette
 } from 'lucide-react';
 
 import { Post, Category, Comment, AffiliateLink, Page, SiteSettings, User, ContactMessage, NewsletterSubscriber, ActivityLog, MediaItem } from '../types';
@@ -44,6 +45,7 @@ import AsinScraperPanel from './admin/AsinScraperPanel';
 import FirebasePanel from './admin/FirebasePanel';
 import AdminProfilePanel from './admin/AdminProfilePanel';
 import SeoSitemapPanel from './admin/SeoSitemapPanel';
+import CreativeAssetsPanel from './CreativeAssetsPanel';
 
 interface AdminPanelProps {
   token: string;
@@ -52,7 +54,7 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
-  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'posts' | 'categories' | 'comments' | 'products' | 'product-articles' | 'article-generator' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'seo' | 'ai' | 'clusters' | 'media' | 'brands' | 'banners' | 'deals' | 'homepage' | 'sections' | 'amazon-sync' | 'extension' | 'bulk-import' | 'auto-import' | 'activity' | 'auto-articles' | 'link-importer' | 'scraper' | 'seo-tools' | 'firebase' | 'profile'>('dashboard');
+  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'posts' | 'categories' | 'comments' | 'products' | 'product-articles' | 'article-generator' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'seo' | 'ai' | 'clusters' | 'media' | 'brands' | 'banners' | 'deals' | 'homepage' | 'sections' | 'amazon-sync' | 'extension' | 'bulk-import' | 'auto-import' | 'activity' | 'auto-articles' | 'link-importer' | 'scraper' | 'seo-tools' | 'firebase' | 'profile' | 'design-studio'>('dashboard');
   
   // Data States
   const [posts, setPosts] = useState<Post[]>([]);
@@ -189,6 +191,7 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
             { key: 'alerts', icon: Bell, label: 'Alerts' },
             { key: 'contact', icon: Mail, label: `Inquiries (${(messages || []).filter(m => m?.status === 'unread').length})` },
             { key: 'settings', icon: SettingsIcon, label: 'Settings' },
+            { key: 'design-studio', icon: Palette, label: 'Design Studio' },
             { key: 'seo', icon: Search, label: 'SEO Engine' },
             { key: 'seo-tools', icon: Search, label: 'SEO & Sitemap' },
             { key: 'firebase', icon: Package, label: 'Firebase & Backup' },
@@ -452,6 +455,13 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
           {/* I: GLOBAL SETTINGS VIEW */}
           {activeMenu === 'settings' && (
             <AdminSettings token={token} settings={settings} onRefresh={triggerRefresh} />
+          )}
+
+          {/* DESIGN STUDIO VIEW */}
+          {activeMenu === 'design-studio' && (
+            <div id="admin-workspace-design-studio">
+              <CreativeAssetsPanel token={token} categories={categories} onRefresh={triggerRefresh} />
+            </div>
           )}
 
           {/* I: SEO ENGINE VIEW */}

@@ -68,13 +68,25 @@ export function App() {
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const [chatbotContextProduct, setChatbotContextProduct] = useState<Product | undefined>(undefined);
 
+  const [designSettings, setDesignSettings] = useState<Record<string, any>>({});
+
   const { wishlist = [], products = [], currentUser, recentlyViewed = [] } = useAppStore();
 
   useEffect(() => {
     store.fetchProducts();
     store.fetchCategories();
     store.fetchBanners();
+    fetch('/api/public/settings')
+      .then(r => r.json())
+      .then(s => { if (s && typeof s === 'object') setDesignSettings(s.designSettings || {}); })
+      .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.catAnim = designSettings.defaultCategoryAnimation || 'none';
+    root.dataset.loaderStyle = designSettings.loaderStyle || 'default';
+  }, [designSettings]);
 
   useEffect(() => {
     const handleImageError = (e: Event) => {
@@ -575,8 +587,8 @@ export function App() {
       {/* Global Toast Notification System */}
       <ToastContainer />
       <BackToTop />
-      <GravityCursor />
-      <GlobalGravityCanvas />
+      {designSettings.cursorEnabled !== false && <GravityCursor />}
+      {designSettings.ambientCanvas !== false && <GlobalGravityCanvas />}
       <CanvasPerformanceManager />
       </div>
     </ErrorBoundary>

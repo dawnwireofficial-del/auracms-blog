@@ -130,6 +130,7 @@ export interface Category {
   status?: 'active' | 'inactive';
   image?: string;
   parentId?: string;
+  animationStyle?: string;
   sectionsBuilderConfig?: CategorySection[];
 }
 
@@ -474,6 +475,7 @@ export interface SiteSettings {
   searchConsoleVerification?: string;
   customHeadScripts?: string;
   customFooterScripts?: string;
+  designSettings?: Record<string, any>;
 }
 
 export interface User {

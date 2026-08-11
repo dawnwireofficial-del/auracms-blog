@@ -216,7 +216,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 dark:bg-[#050B18]/85 backdrop-blur-xl border-b border-slate-200/80 dark:border-blue-500/20 shadow-2xl shadow-blue-950/20 transition-all duration-300">
       {/* Top Announcement Bar */}
-      <div className="bg-gradient-to-r from-[#050B18] via-[#0A1F44] to-[#050B18] text-white text-xs font-medium py-1.5 px-4 border-b border-blue-500/10">
+      <div className="bg-gradient-to-r from-[#050B18] via-[#0A1F44] to-[#050B18] text-white text-xs font-medium py-1 px-4 border-b border-blue-500/10">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="bg-orange-600 text-white font-black text-[10px] px-1.5 py-0.5 rounded uppercase">
@@ -237,10 +237,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
       </div>
 
       {/* Main Header Row */}
-      <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 py-1 flex items-center justify-between gap-4">
         {/* Logo */}
         <div className="shrink-0">
-          <DawnWireLogo className="w-[184px] h-[156px]" />
+          <DawnWireLogo className="w-[96px] h-[82px]" />
         </div>
 
         {/* Search Bar with Category Selector & Live Search Autocomplete */}
@@ -525,6 +525,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
             )}
           </a>
 
+          {/* Compare */}
+          <a href="/compare" aria-label="Compare products" title="Compare products"
+            className="relative p-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 13V7m0 6a4 4 0 004-4h6m-2-2l2 2-2 2M16 11v6m0 0a4 4 0 01-4 4H6m2-2l-2-2 2-2" />
+            </svg>
+          </a>
+
           {/* Account */}
           <a
             href={currentUser ? '/account' : '/login'}
@@ -592,9 +600,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
               onMouseLeave={() => setIsMegaMenuOpen(false)}
             >
               <button
-                className="flex items-center gap-2 bg-[#0A1F44] text-white py-2.5 px-4 rounded-t-xl font-bold hover:bg-blue-900 transition-colors"
+                className="flex items-center gap-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 py-2 px-4 rounded-xl font-bold hover:border-[#246BFF]/60 hover:text-[#246BFF] dark:hover:text-blue-300 transition-colors"
               >
-                <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
                 <span>Shop by Category</span>
@@ -602,8 +610,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-
-              {/* Mega Menu Dropdown */}
               {isMegaMenuOpen && (
                 <div className="absolute top-full left-0 w-[900px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl rounded-b-2xl rounded-tr-2xl overflow-hidden grid grid-cols-12 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                   {/* Category Sidebar List */}
@@ -624,6 +630,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
                           <AnimatedCategoryIcon
                             slug={cat.slug}
                             icon={cat.icon || 'tag'}
+                            image={cat.image}
+                            animationStyle={cat.animationStyle}
                             className="w-4 h-4 text-blue-500"
                             imgClassName="w-8 h-8 drop-shadow-md shrink-0"
                           />

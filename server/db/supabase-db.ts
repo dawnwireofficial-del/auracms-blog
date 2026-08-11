@@ -304,12 +304,16 @@ export class SupabaseDatabase {
 
   async createCategory(cat: Omit<Category, 'id'>): Promise<Category> {
     const sb = await this.ready();
-    // NOTE: categories table has no `image` column; insert core fields only.
     const payload: Record<string, any> = {
       id: crypto.randomUUID(),
       name: cat.name, slug: cat.slug, description: cat.description || null,
       parent_id: cat.parentId || null, status: cat.status || 'active'
     };
+    if (cat.image !== undefined) payload.image = cat.image ?? null;
+    if (cat.icon !== undefined) payload.icon = cat.icon ?? null;
+    if (cat.desktopBanner !== undefined) payload.desktop_banner = cat.desktopBanner ?? null;
+    if (cat.mobileBanner !== undefined) payload.mobile_banner = cat.mobileBanner ?? null;
+    if ((cat as any).animationStyle !== undefined) payload.animation_style = (cat as any).animationStyle ?? null;
     const { data, error } = await sb.from('categories').insert(payload).select().single();
     if (error) throw new Error(error.message);
     this.log('Category Created', `Created category: "${data.name}"`);
@@ -324,6 +328,11 @@ export class SupabaseDatabase {
     if (updates.description !== undefined) payload.description = updates.description;
     if (updates.parentId !== undefined) payload.parent_id = updates.parentId;
     if (updates.status !== undefined) payload.status = updates.status;
+    if (updates.image !== undefined) payload.image = updates.image ?? null;
+    if (updates.icon !== undefined) payload.icon = updates.icon ?? null;
+    if (updates.desktopBanner !== undefined) payload.desktop_banner = updates.desktopBanner ?? null;
+    if (updates.mobileBanner !== undefined) payload.mobile_banner = updates.mobileBanner ?? null;
+    if ((updates as any).animationStyle !== undefined) payload.animation_style = (updates as any).animationStyle ?? null;
 
     const { data, error } = await sb.from('categories').update(payload).eq('id', id).select().single();
     if (error) return null;
@@ -553,6 +562,7 @@ export class SupabaseDatabase {
       metaPixelId: row.metaPixelId || '', searchConsoleVerification: row.searchConsoleVerification || '',
       customHeadScripts: row.customHeadScripts || '', customFooterScripts: row.customFooterScripts || '',
       robotsTxt: (row.robotsTxt || '').replace(/Disallow:\s*\/(review|products)\/?/gi, '').trim(),
+      designSettings: row.designSettings || {},
     };
   }
 
@@ -581,6 +591,7 @@ export class SupabaseDatabase {
     if (updates.customHeadScripts !== undefined) payload.custom_head_scripts = updates.customHeadScripts;
     if (updates.customFooterScripts !== undefined) payload.custom_footer_scripts = updates.customFooterScripts;
     if (updates.robotsTxt !== undefined) payload.robots_txt = updates.robotsTxt;
+    if (updates.designSettings !== undefined) payload.design_settings = updates.designSettings;
 
     const { data: existing } = await sb.from('settings').select('id').limit(1).maybeSingle();
     if (existing) {

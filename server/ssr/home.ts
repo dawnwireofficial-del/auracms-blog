@@ -108,10 +108,10 @@ export async function renderHomePageHtml(): Promise<string> {
     .join('\n');
 
   return `<article class="ssr-content" id="home-seo-content">
-  <h1>Amazon Product Reviews &amp; AI-Powered Buying Guides</h1>
-  <p>Discover. Compare. Buy Smart. — DawnWire is an independent product review site that helps you find the right gear before you buy. We test and
-  compare ${productCount > 0 ? `over ${productCount} products across ` : ''}${categoryCount > 0 ? `${categoryCount} categories` : 'popular categories'} including
-  beauty, personal care, tech, and home essentials, and we publish in-depth buying guides, head-to-head comparisons,
+  <h1>Done-For-You Shopping: Honest Product Scores &amp; Verified Amazon Deals</h1>
+  <p>DawnWire researches, price-checks, and scores the best products of 2026 — so you buy the right thing at the right price, in seconds instead of hours. Our AI-powered engine surfaces independent benchmarks, live price drops, and honest editor's verdicts across
+  ${productCount > 0 ? `over ${productCount} products across ` : ''}${categoryCount > 0 ? `${categoryCount} categories` : 'popular categories'} including
+  beauty, personal care, tech, and home essentials — alongside in-depth buying guides, head-to-head comparisons,
   and best-of roundup lists so you can shop with confidence.</p>
   <p>Every product review includes honest pros and cons, lab-style test notes, an editor's score out of ten, and a
   clear final verdict. We track Amazon prices daily and surface genuine price-drop deals, coupon codes, and stock
