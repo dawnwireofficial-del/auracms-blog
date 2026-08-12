@@ -4,6 +4,9 @@ import { DisclosureBanner } from '../components/common/DisclosureBanner';
 import { useAppStore } from '../lib/store';
 import { triggerPageLoadProgress } from '../lib/navigation';
 import { proxyImageUrl } from '../utils/safeRender';
+import { assignHomepageSlots } from '../lib/homepageSlots';
+import { AnimatedCategoryIcon } from '../components/common/AnimatedCategoryIcon';
+import MascotAnimation from '../components/MascotAnimation';
 import type { Post } from '../types';
 
 interface HomePageProps {
@@ -150,10 +153,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
   }, [categories]);
 
   const categoryImage = (cat: (typeof categories)[number]): string => {
-    const banner = cat.desktopBanner || cat.image;
+    const banner = cat.image || cat.desktopBanner;
     if (banner) return proxyImageUrl(banner) || NO_IMAGE;
-    const prod = sortedByScore.find(p => p.categoryId === cat.id || (p.mainCategory || '').toLowerCase().includes(cat.name.toLowerCase()));
-    return proxyImageUrl(prod?.images?.[0] || prod?.productImage) || NO_IMAGE;
+    return '';
   };
 
   const productCountFor = (catName: string) =>
@@ -194,26 +196,54 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
     window.location.href = q ? `/search?q=${encodeURIComponent(q)}` : '/products';
   };
 
+  /* Admin-managed banner slots → fall back to auto-generated designs */
+  const bannerSlots = useMemo(() => assignHomepageSlots(banners), [banners]);
+
   /* Promotional campaign banners — prefer admin banners, else themed with real product imagery */
   const promoBanners: { label: string; title: string; cta: string; href: string; image: string; tint: string }[] = (() => {
-    const adminBanners = (Array.isArray(banners) ? banners : []).filter(b => b.isActive !== false && b.desktopImage).slice(0, 3);
-    if (adminBanners.length === 3) {
-      return adminBanners.map((b, i) => ({
-        label: b.badgeText || (i === 0 ? 'Limited Time' : i === 1 ? 'Early Access' : 'Members Only'),
-        title: b.title || b.heading || 'Shop the Event',
-        cta: b.ctaText || 'Shop Now',
-        href: b.targetUrl || b.ctaLink || '/deals',
-        image: proxyImageUrl(b.desktopImage),
-        tint: i === 0 ? 'from-[#246BFF]/85' : i === 1 ? 'from-[#FF8A00]/85' : 'from-[#111827]/80',
-      }));
+    const fromAdmin = bannerSlots.promos.map((b, i) => b ? {
+      label: b.badgeText || b.subtitle || (i === 0 ? 'Limited Time' : i === 1 ? 'Early Access' : 'Members Only'),
+      title: b.heading || b.title || 'Shop the Event',
+      cta: b.ctaText || 'Shop Now',
+      href: b.targetUrl || b.ctaLink || '/deals',
+      image: proxyImageUrl(b.desktopImage),
+      tint: i === 0 ? 'from-[#246BFF]/85' : i === 1 ? 'from-[#FF8A00]/85' : 'from-[#111827]/80',
+    } : null);
+    if (fromAdmin.some(Boolean)) return fromAdmin.map((b, i) => b || defaultPromo(i));
+    return [0, 1, 2].map((i) => defaultPromo(i));
+
+    function defaultPromo(i: number) {
+      const img = (p?: (typeof products)[number]) => proxyImageUrl(p?.images?.[0] || p?.productImage) || NO_IMAGE;
+      const defs: { label: string; title: string; cta: string; href: string; image: string; tint: string }[] = [
+        { label: 'Prime Day Prep', title: 'Get Early Access to Prime Day Prices', cta: 'Explore Deals', href: '/deals', image: img(topDeals[0] || promoPool[0]), tint: 'from-[#246BFF]/85' },
+        { label: 'Back to School', title: 'Laptops, Noise-Cancelling & More', cta: 'Shop Now', href: '/products', image: img(topDeals[1] || promoPool[1]), tint: 'from-[#FF8A00]/85' },
+        { label: 'Beauty Event', title: 'Korean Skincare Up to 30% Off', cta: 'Shop Beauty', href: '/categories/beauty-personal-care', image: img(topDeals[2] || promoPool[2]), tint: 'from-[#111827]/80' },
+      ];
+      return defs[i];
     }
-    const img = (p?: (typeof products)[number]) => proxyImageUrl(p?.images?.[0] || p?.productImage) || NO_IMAGE;
-    return [
-      { label: 'Prime Day Prep', title: 'Get Early Access to Prime Day Prices', cta: 'Explore Deals', href: '/deals', image: img(topDeals[0] || promoPool[0]), tint: 'from-[#246BFF]/85' },
-      { label: 'Back to School', title: 'Laptops, Noise-Cancelling & More', cta: 'Shop Now', href: '/products', image: img(topDeals[1] || promoPool[1]), tint: 'from-[#FF8A00]/85' },
-      { label: 'Beauty Event', title: 'Korean Skincare Up to 30% Off', cta: 'Shop Beauty', href: '/categories/beauty-personal-care', image: img(topDeals[2] || promoPool[2]), tint: 'from-[#111827]/80' },
-    ];
   })();
+
+  /* 2×2 hero promo tiles — admin placements win, else product-driven */
+  const heroTiles = bannerSlots.heroTiles.map((b, i) => {
+    const defs = [
+      { label: '⚡ Flash Deals', sub: 'Up to 60% off', href: '/deals', img: promoPool[1] || topDeals[0], tint: 'from-[#FF8A00]/90' },
+      { label: '📉 Price Drops', sub: 'Tracked daily', href: '/deals', img: promoPool[0] || topDeals[1], tint: 'from-[#246BFF]/90' },
+      { label: '🏆 Best Sellers', sub: `${sortedByScore.length}+ top-rated`, href: '/products?sort=rating', img: sortedByScore[2], tint: 'from-[#111827]/85' },
+      { label: '🔥 Editors’ Picks', sub: 'Lab-verified winners', href: '/products', img: sortedByScore[3], tint: 'from-[#4F7CFF]/90' },
+    ];
+    const def = defs[i];
+    if (b && b.desktopImage) {
+      return {
+        label: b.badgeText || b.subtitle || def.label,
+        sub: b.heading || b.title || def.sub,
+        href: b.targetUrl || b.ctaLink || def.href,
+        img: undefined as (typeof products)[number] | undefined,
+        imageUrl: proxyImageUrl(b.desktopImage),
+        tint: def.tint,
+      };
+    }
+    return { ...def, imageUrl: '' };
+  });
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 overflow-x-clip">
@@ -246,17 +276,22 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#246BFF] opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-[#246BFF]" />
                   </span>
-                  AI-powered deals & independent benchmarks
+                  {bannerSlots.heroMain?.subtitle || 'AI-powered deals & independent benchmarks'}
                 </div>
                 <h1 className="mt-5 text-4xl sm:text-5xl xl:text-[58px] font-[900] tracking-tight leading-[1.02] text-slate-900 font-sans">
-                  Done-For-You Shopping.
-                  <span className="block mt-2 bg-gradient-to-r from-[#246BFF] via-[#1a57e0] to-[#FF8A00] bg-clip-text text-transparent">
-                    Honest Scores. Verified Deals.
-                  </span>
+                  {bannerSlots.heroMain?.heading ? (
+                    bannerSlots.heroMain.heading
+                  ) : (
+                    <>
+                      Done-For-You Shopping.
+                      <span className="block mt-2 bg-gradient-to-r from-[#246BFF] via-[#1a57e0] to-[#FF8A00] bg-clip-text text-transparent">
+                        Honest Scores. Verified Deals.
+                      </span>
+                    </>
+                  )}
                 </h1>
                 <p className="mt-5 max-w-lg text-[16px] leading-relaxed text-slate-600">
-                  DawnWire researches, price-checks and scores the best products of 2026 — so you buy
-                  the right thing, at the right price, in seconds instead of hours.
+                  {bannerSlots.heroMain?.description || 'DawnWire researches, price-checks and scores the best products of 2026 — so you buy the right thing, at the right price, in seconds instead of hours.'}
                 </p>
 
                 {/* Hero search */}
@@ -298,8 +333,35 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 </div>
               </div>
 
-              {/* Right: large product imagery */}
-              {heroItem && (
+              {/* Right: large product imagery (or admin hero banner) */}
+              {bannerSlots.heroMain?.desktopImage ? (
+                <div className="relative px-4 pb-2">
+                  <a
+                    href={bannerSlots.heroMain.targetUrl || bannerSlots.heroMain.ctaLink || '/deals'}
+                    className="block relative"
+                    data-gravity-cursor="view"
+                  >
+                    <div className="relative mx-auto max-w-[400px] aspect-[4/3] rounded-[24px] bg-white border border-slate-200/80 shadow-[0_24px_70px_-24px_rgba(36,107,255,0.4)] overflow-hidden">
+                      <img
+                        src={proxyImageUrl(bannerSlots.heroMain.desktopImage) || NO_IMAGE}
+                        alt={bannerSlots.heroMain.altText || bannerSlots.heroMain.heading || 'Featured banner'}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover"
+                        onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }}
+                      />
+                      {bannerSlots.heroMain.badgeText && (
+                        <span className="absolute top-3 right-3 bg-[#FF8A00] text-white text-[12px] font-black px-3 py-1 rounded-full shadow-lg">{bannerSlots.heroMain.badgeText}</span>
+                      )}
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent pt-10 px-5 pb-4">
+                        <p className="text-white text-lg font-[850] leading-tight">{bannerSlots.heroMain.heading || bannerSlots.heroMain.title}</p>
+                        {(bannerSlots.heroMain.subtitle || bannerSlots.heroMain.description) && (
+                          <p className="text-white/85 text-[13px] mt-1">{bannerSlots.heroMain.subtitle || bannerSlots.heroMain.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  </a>
+                </div>
+              ) : heroItem ? (
                 <div className="relative px-4 pb-2">
                   <a href={`/products/${heroItem.slug}`} className="block relative" data-gravity-cursor="view">
                     <div className="relative mx-auto max-w-[360px] aspect-square rounded-[24px] bg-white border border-slate-200/80 shadow-[0_24px_70px_-24px_rgba(36,107,255,0.4)] p-4">
@@ -330,7 +392,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                     ) : null)}
                   </div>
                 </div>
-              )}
+              ) : null}
             </div>
 
             {/* Bottom trust chips */}
@@ -350,14 +412,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
 
           {/* ── 2x2 promo tiles ── */}
           <div className="grid grid-cols-2 grid-rows-2 gap-[18px]">
-            {([
-              { label: '⚡ Flash Deals', sub: 'Up to 60% off', href: '/deals', img: promoPool[1] || topDeals[0], tint: 'from-[#FF8A00]/90' },
-              { label: '📉 Price Drops', sub: 'Tracked daily', href: '/deals', img: promoPool[0] || topDeals[1], tint: 'from-[#246BFF]/90' },
-              { label: '🏆 Best Sellers', sub: `${sortedByScore.length}+ top-rated`, href: '/products?sort=rating', img: sortedByScore[2], tint: 'from-[#111827]/85' },
-              { label: '🔥 Editors’ Picks', sub: 'Lab-verified winners', href: '/products', img: sortedByScore[3], tint: 'from-[#4F7CFF]/90' },
-            ] as { label: string; sub: string; href: string; img?: (typeof products)[number]; tint: string }[]).map((tile, i) => (
+            {heroTiles.map((tile, i) => (
               <motion.a
-                key={tile.label}
+                key={tile.label + i}
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.45, delay: 0.08 + i * 0.06 }}
@@ -365,7 +422,15 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 data-gravity-cursor="explore"
                 className={`group relative overflow-hidden rounded-2xl border border-white/80 shadow-[0_12px_36px_-16px_rgba(36,107,255,0.25)] min-h-[205px] bg-gradient-to-br ${tile.tint} to-transparent`}
               >
-                {tile.img && (
+                {tile.imageUrl ? (
+                  <img
+                    src={tile.imageUrl}
+                    alt={tile.label}
+                    referrerPolicy="no-referrer"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                ) : tile.img ? (
                   <img
                     src={proxyImageUrl(tile.img.images?.[0] || tile.img.productImage) || NO_IMAGE}
                     alt={tile.label}
@@ -373,7 +438,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                     className="absolute -right-6 -top-4 w-[64%] h-[68%] object-contain drop-shadow-xl transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-3"
                     onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
                   />
-                )}
+                ) : null}
                 <div className="absolute inset-0 bg-gradient-to-tr from-black/45 via-black/10 to-transparent" />
                 <div className="absolute bottom-4 left-4 right-4 z-10">
                   <p className="text-[13px] font-bold text-amber-300">{tile.label}</p>
@@ -418,15 +483,24 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
               return (
                 <a key={cat.id} href={`/categories/${cat.slug}`} data-gravity-cursor="explore"
                   className="snap-start shrink-0 flex flex-col items-center w-[104px] group">
-                  <div className="w-[104px] h-[104px] rounded-full overflow-hidden border-4 border-white shadow-[0_10px_28px_-10px_rgba(36,107,255,0.35)] bg-white group-hover:scale-105 transition-transform duration-300">
-                    <img
-                      src={img}
-                      alt={cat.name}
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover"
-                      onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }}
-                    />
+                  <div className="w-[104px] h-[104px] rounded-full overflow-hidden border-4 border-white shadow-[0_10px_28px_-10px_rgba(36,107,255,0.35)] bg-white group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
+                    {img ? (
+                      <img
+                        src={img}
+                        alt={cat.name}
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-contain p-2"
+                        onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }}
+                      />
+                    ) : (
+                      <AnimatedCategoryIcon
+                        slug={cat.slug}
+                        icon={cat.icon}
+                        image={cat.image}
+                        className="w-12 h-12"
+                      />
+                    )}
                   </div>
                   <p className="mt-2.5 text-[13px] font-bold text-slate-800 text-center leading-tight group-hover:text-[#246BFF] transition-colors line-clamp-1">{cat.name}</p>
                   <p className="text-[11px] text-slate-400 mt-0.5">{count} products</p>
@@ -447,7 +521,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 return (
                   <a key={p.id} href={`/products/${p.slug}`} data-gravity-cursor="view"
                     className="group flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-[0_18px_44px_-16px_rgba(36,107,255,0.3)] hover:-translate-y-1 hover:border-[#246BFF]/40 transition-all duration-300">
-                    <div className="relative bg-white h-[200px] flex items-center justify-center overflow-hidden p-4">
+                    <div className="relative bg-white h-[225px] flex items-center justify-center overflow-hidden p-4">
                       {disc > 0 && (
                         <span className="absolute top-2.5 left-2.5 z-10 bg-[#FF334F] text-white text-[12px] font-black px-2.5 py-1 rounded-lg shadow-md">−{disc}%</span>
                       )}
@@ -456,7 +530,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                       )}
                       <img src={proxyImageUrl(p.images?.[0] || p.productImage) || NO_IMAGE} alt={p.title} loading="lazy"
                         referrerPolicy="no-referrer"
-                        className="w-full h-full object-contain mix-blend-normal transition-transform duration-500 group-hover:scale-105"
+                        className="w-full h-full object-contain mix-blend-normal drop-shadow-[0_14px_20px_rgba(15,23,42,0.12)] transition-transform duration-500 group-hover:scale-108"
                         onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
                     </div>
                     <div className="flex flex-col flex-1 gap-1.5 px-3.5 pb-3.5 pt-1">
@@ -464,7 +538,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                       <h3 className="text-[13px] font-bold text-slate-900 line-clamp-2 leading-snug min-h-[36px]">{p.title}</h3>
                       <Stars rating={p.rating} count={p.reviewCount} size={13} />
                       <PriceBlock price={p.currentPrice || p.price} was={p.referencePrice} />
-                      <span className="mt-auto pt-1.5 w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#FF8A00] hover:bg-[#e67b00] text-white text-[13px] font-bold py-2.5 transition-colors">
+                      <span className="mt-auto pt-1.5 w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#FF8A00] to-[#FF9E33] hover:from-[#e67b00] hover:to-[#FF8A00] text-white text-[13px] font-bold py-3 shadow-[0_6px_16px_-6px_rgba(255,138,0,0.5)] transition-all group-hover:shadow-[0_10px_22px_-6px_rgba(255,138,0,0.6)]">
                         Check Price on Amazon
                       </span>
                     </div>
@@ -480,20 +554,20 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {promoBanners.map((banner, i) => (
               <a key={banner.title} href={banner.href} data-gravity-cursor="explore"
-                className={`relative overflow-hidden rounded-2xl min-h-[170px] flex items-end border border-white/80 bg-gradient-to-br ${banner.tint} to-transparent shadow-[0_14px_40px_-18px_rgba(36,107,255,0.3)] group`}>
+                className={`relative overflow-hidden rounded-2xl min-h-[190px] flex items-end border border-white/80 bg-gradient-to-br ${banner.tint} to-transparent shadow-[0_14px_40px_-18px_rgba(36,107,255,0.3)] group`}>
                 <img
                   src={banner.image}
                   alt={banner.title}
                   loading="lazy"
                   referrerPolicy="no-referrer"
-                  className="absolute -right-8 top-1/2 -translate-y-1/2 w-[52%] h-[85%] object-contain mix-blend-luminosity opacity-70 transition-transform duration-500 group-hover:scale-108 group-hover:-rotate-2"
+                  className="absolute -right-8 top-1/2 -translate-y-1/2 w-[55%] h-[88%] object-contain mix-blend-luminosity opacity-75 drop-shadow-[0_18px_28px_rgba(15,23,42,0.35)] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-2"
                   onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
                 <div className="relative z-10 p-5">
-                  <span className="inline-block bg-[#FF8A00] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full mb-2">{banner.label}</span>
-                  <h3 className="text-lg font-[800] text-white leading-tight max-w-[60%]">{banner.title}</h3>
-                  <span className="mt-2 inline-flex items-center gap-1 text-[12px] font-bold text-white">
+                  <span className="inline-block bg-[#FF8A00] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full mb-2 shadow-sm">{banner.label}</span>
+                  <h3 className="text-xl font-[850] text-white leading-tight max-w-[62%] drop-shadow-sm">{banner.title}</h3>
+                  <span className="mt-2.5 inline-flex items-center gap-1.5 text-[12px] font-bold text-white bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-3 py-1.5 transition-colors group-hover:bg-white/25">
                     {banner.cta}
                     <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -521,21 +595,32 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                   </a>
                 </div>
                 {prods.length > 0 ? (
-                  <div className="space-y-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {prods.map(p => (
                       <a key={p.id} href={`/products/${p.slug}`} data-gravity-cursor="view"
-                        className="group flex items-center gap-4 rounded-2xl border border-slate-100 hover:border-[#246BFF]/40 hover:bg-[#F8FAFC] p-2.5 transition-all">
-                        <div className="flex items-center justify-center bg-white border border-slate-200 rounded-xl w-[76px] h-[76px] shrink-0 overflow-hidden p-2">
+                        className="group flex items-center gap-3 rounded-2xl border border-slate-100 hover:border-[#246BFF]/40 hover:bg-[#F8FAFC] p-2.5 transition-all">
+                        <div className="flex items-center justify-center bg-white border border-slate-200 rounded-xl w-[92px] h-[92px] shrink-0 overflow-hidden p-2 group-hover:scale-[1.02] transition-transform">
                           <img src={proxyImageUrl(p.images?.[0] || p.productImage) || NO_IMAGE} alt={p.title} loading="lazy"
                             referrerPolicy="no-referrer" className="w-full h-full object-contain"
                             onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-[11px] font-bold text-[#246BFF] uppercase truncate">{p.brand}</p>
-                          <h3 className="text-[14px] font-bold text-slate-900 truncate group-hover:text-[#246BFF] transition-colors">{p.title}</h3>
-                          <div className="mt-1 flex items-center justify-between gap-2">
+                          <h3 className="text-[14px] font-bold text-slate-900 line-clamp-2 leading-snug group-hover:text-[#246BFF] transition-colors">{p.title}</h3>
+                          <div className="mt-1.5 flex items-center justify-between gap-2">
                             <Stars rating={p.rating} count={p.reviewCount} size={13} />
-                            <PriceBlock price={p.currentPrice || p.price} was={p.referencePrice} />
+                            <div className="text-right">
+                              {Number(p.currentPrice || p.price) > 0 ? (
+                                <>
+                                  <p className="text-[15px] font-[850] text-slate-900 leading-none">${Number(p.currentPrice || p.price).toFixed(2)}</p>
+                                  {Number(p.referencePrice) > Number(p.currentPrice || 0) && (
+                                    <p className="text-[10px] text-slate-400 line-through mt-0.5">${Number(p.referencePrice).toFixed(2)}</p>
+                                  )}
+                                </>
+                              ) : (
+                                <p className="text-[11px] font-semibold text-slate-500">Check price</p>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </a>
@@ -551,7 +636,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
 
         {/* ============================ COMPARISON + AI ============================ */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {/* Featured comparison — LIGHT gradient, NO navy */}
+          {/* Featured comparison — LIGHT gradient, NO navy, product cutouts */}
           <div className="relative overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#EAF2FF_0%,#F7FAFF_55%,#FFF3E6_100%)] border border-[#246BFF]/15 p-7 md:p-9 min-h-[320px] flex flex-col shadow-[0_16px_50px_-24px_rgba(36,107,255,0.35)]">
             <div className="absolute -right-12 -top-14 w-52 h-52 rounded-full bg-[#246BFF]/10 blur-2xl" />
             <div className="relative flex-1">
@@ -573,6 +658,31 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 </div>
               </div>
             </div>
+            {sortedByScore.length >= 2 && (
+              <div className="relative mt-6 flex items-center gap-3">
+                <div className="flex-1 flex items-center gap-3 rounded-2xl bg-white/90 border border-slate-100 p-3 shadow-sm">
+                  <div className="w-16 h-16 rounded-xl bg-white border border-slate-200 flex items-center justify-center p-1.5 shrink-0 overflow-hidden">
+                    <img src={proxyImageUrl(sortedByScore[0].images?.[0] || sortedByScore[0].productImage) || NO_IMAGE} alt={sortedByScore[0].title} referrerPolicy="no-referrer" className="w-full h-full object-contain" onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="inline-block bg-[#246BFF] text-white text-[9px] font-black px-1.5 py-0.5 rounded mb-1">A</span>
+                    <p className="text-[12px] font-bold text-slate-800 truncate">{sortedByScore[0].title}</p>
+                    <p className="text-[11px] text-slate-400">★ {(sortedByScore[0].rating || 0).toFixed(1)} · Score {(sortedByScore[0].editorScore || 0).toFixed(1)}</p>
+                  </div>
+                </div>
+                <span className="shrink-0 text-[11px] font-black text-slate-400 bg-slate-100 rounded-full w-7 h-7 grid place-items-center">VS</span>
+                <div className="flex-1 flex items-center gap-3 rounded-2xl bg-white/90 border border-slate-100 p-3 shadow-sm">
+                  <div className="w-16 h-16 rounded-xl bg-white border border-slate-200 flex items-center justify-center p-1.5 shrink-0 overflow-hidden">
+                    <img src={proxyImageUrl(sortedByScore[1].images?.[0] || sortedByScore[1].productImage) || NO_IMAGE} alt={sortedByScore[1].title} referrerPolicy="no-referrer" className="w-full h-full object-contain" onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="inline-block bg-[#FF8A00] text-white text-[9px] font-black px-1.5 py-0.5 rounded mb-1">B</span>
+                    <p className="text-[12px] font-bold text-slate-800 truncate">{sortedByScore[1].title}</p>
+                    <p className="text-[11px] text-slate-400">★ {(sortedByScore[1].rating || 0).toFixed(1)} · Score {(sortedByScore[1].editorScore || 0).toFixed(1)}</p>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="relative mt-6 flex flex-wrap gap-3">
               <a href="/compare" className="inline-flex items-center gap-2 rounded-xl bg-[#246BFF] hover:bg-[#164EE8] text-white font-bold px-6 py-3 text-sm shadow-[0_10px_26px_-10px_rgba(36,107,255,0.6)] transition-all hover:-translate-y-0.5">
                 Open the Compare Tool
@@ -584,35 +694,41 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             </div>
           </div>
 
-          {/* AI product finder — light lavender/white, NO navy */}
+          {/* AI product finder — light lavender/white, NO navy, mascot on the right */}
           <div className="relative overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#EAF2FF_0%,#FFFFFF_55%,#F3EEFF_100%)] border border-[#246BFF]/15 p-7 md:p-9 min-h-[320px] flex flex-col shadow-[0_16px_50px_-24px_rgba(36,107,255,0.35)]">
             <div className="absolute -right-12 -bottom-14 w-56 h-56 rounded-full bg-[#4F7CFF]/10 blur-2xl" />
-            <div className="relative flex-1">
-              <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#4F7CFF] to-[#246BFF] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-4">
-                ✨ AI Product Finder
-              </span>
-              <h2 className="text-2xl md:text-[26px] font-[850] text-slate-900 leading-tight">Can’t Decide? Ask the Research Bot.</h2>
-              <p className="mt-2.5 text-sm text-slate-600 max-w-md leading-relaxed">
-                Tell us your budget and needs — our AI compares the catalog, quotes real prices, and lands on a pick with an honest verdict.
-              </p>
-              <div className="mt-6 max-w-sm">
-                <div className="bg-white/85 border border-white/90 rounded-2xl px-4 py-3 shadow-sm backdrop-blur">
-                  <p className="text-[12px] font-bold text-slate-400 mb-1">
-                    <span className="inline-block w-5 h-5 rounded-full bg-[#246BFF] text-white text-center leading-5 text-[10px] mr-1">AI</span>
-                    Sample question
-                  </p>
-                  <p className="text-[13.5px] text-slate-700 leading-relaxed">“Which Korean moisturizer under $40 suits dry skin, with the highest editor score?”</p>
+            <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-6 items-center flex-1">
+              <div className="relative">
+                <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#4F7CFF] to-[#246BFF] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-4">
+                  ✨ AI Product Finder
+                </span>
+                <h2 className="text-2xl md:text-[26px] font-[850] text-slate-900 leading-tight">Can’t Decide? Ask the Research Bot.</h2>
+                <p className="mt-2.5 text-sm text-slate-600 max-w-md leading-relaxed">
+                  Tell us your budget and needs — our AI compares the catalog, quotes real prices, and lands on a pick with an honest verdict.
+                </p>
+                <div className="mt-5 max-w-sm">
+                  <div className="bg-white/85 border border-white/90 rounded-2xl px-4 py-3 shadow-sm backdrop-blur">
+                    <p className="text-[12px] font-bold text-slate-400 mb-1">
+                      <span className="inline-block w-5 h-5 rounded-full bg-[#246BFF] text-white text-center leading-5 text-[10px] mr-1">AI</span>
+                      Sample question
+                    </p>
+                    <p className="text-[13.5px] text-slate-700 leading-relaxed">“Which Korean moisturizer under $40 suits dry skin, with the highest editor score?”</p>
+                  </div>
+                </div>
+                <div className="relative mt-5 flex flex-wrap gap-3">
+                  <button onClick={onOpenAiFinder} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] hover:from-[#164EE8] hover:to-[#246BFF] text-white font-bold px-6 py-3 text-sm shadow-[0_10px_26px_-10px_rgba(36,107,255,0.6)] transition-all hover:-translate-y-0.5">
+                    Open Product Finder
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                  </button>
+                  <button onClick={onOpenChatbot} className="inline-flex items-center gap-2 rounded-xl border border-[#4F7CFF]/40 text-[#246BFF] hover:bg-[#246BFF]/5 font-bold px-6 py-3 text-sm transition-all">
+                    Ask DawnWire AI
+                  </button>
                 </div>
               </div>
-            </div>
-            <div className="relative mt-6 flex flex-wrap gap-3">
-              <button onClick={onOpenAiFinder} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] hover:from-[#164EE8] hover:to-[#246BFF] text-white font-bold px-6 py-3 text-sm shadow-[0_10px_26px_-10px_rgba(36,107,255,0.6)] transition-all hover:-translate-y-0.5">
-                Open Product Finder
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-              </button>
-              <button onClick={onOpenChatbot} className="inline-flex items-center gap-2 rounded-xl border border-[#4F7CFF]/40 text-[#246BFF] hover:bg-[#246BFF]/5 font-bold px-6 py-3 text-sm transition-all">
-                Ask DawnWire AI
-              </button>
+              <div className="relative hidden md:block">
+                <div className="absolute inset-0 bg-gradient-to-b from-[#4F7CFF]/10 to-transparent rounded-full blur-2xl" />
+                <MascotAnimation className="relative w-full max-w-[260px] mx-auto drop-shadow-[0_24px_40px_rgba(36,107,255,0.35)]" />
+              </div>
             </div>
           </div>
         </section>
@@ -626,11 +742,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 const cat = categories.find(c => c.id === post.categoryId);
                 const guideImg = post.featuredImage
                   ? proxyImageUrl(post.featuredImage)
-                  : (cat ? categoryImage(cat) : NO_IMAGE);
+                  : (cat ? categoryImage(cat) : NO_IMAGE) || NO_IMAGE;
                 return (
                   <a key={post.id} href={`/post/${post.slug}`} data-gravity-cursor="view"
                     className="group flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-[0_16px_40px_-18px_rgba(36,107,255,0.3)] hover:-translate-y-1 hover:border-[#246BFF]/40 transition-all duration-300">
-                    <div className="relative h-[130px] overflow-hidden bg-[#F1F6FF]">
+                    <div className="relative h-[165px] overflow-hidden bg-[#F1F6FF]">
                       <img src={guideImg} alt={post.title} loading="lazy" referrerPolicy="no-referrer"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
@@ -658,10 +774,17 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
               {brandsAll.map(brand => (
                 <a key={brand.id} href={`/products?brand=${encodeURIComponent(brand.name)}`} data-gravity-cursor="explore"
                   className="group flex flex-col items-center justify-center gap-2 bg-white rounded-2xl border border-slate-200 px-4 py-5 hover:border-[#246BFF]/40 hover:shadow-[0_12px_30px_-14px_rgba(36,107,255,0.3)] transition-all min-h-[104px]">
-                  {brand.logoUrl ? (
-                    <img src={proxyImageUrl(brand.logoUrl)} alt={brand.name} referrerPolicy="no-referrer"
-                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                      className="h-8 w-auto max-w-[110px] object-contain" />
+                  {brand.logoUrl || brand.logo ? (
+                    <span className="w-14 h-14 rounded-full bg-white border border-slate-100 shadow-sm flex items-center justify-center overflow-hidden p-1.5 group-hover:scale-105 transition-transform duration-300">
+                      <img
+                        src={proxyImageUrl(brand.logoUrl || brand.logo || '')}
+                        alt={brand.name}
+                        referrerPolicy="no-referrer"
+                        loading="lazy"
+                        onError={e => { (e.target as HTMLImageElement).parentElement!.classList.add('hidden'); }}
+                        className="w-full h-full object-contain"
+                      />
+                    </span>
                   ) : (
                     <span className="w-11 h-11 rounded-full bg-[#EAF2FF] text-[#246BFF] grid place-items-center text-base font-black shrink-0">
                       {brand.name?.[0]?.toUpperCase()}

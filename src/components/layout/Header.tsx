@@ -214,7 +214,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
   const currentMegaCategory = categories.find((c) => c.id === activeMegaCat) || categories[0] || null;
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/90 dark:bg-slate-900/85 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800 shadow-sm shadow-slate-900/5 dark:shadow-blue-950/20 transition-all duration-300">
+    <header className="sticky top-0 z-40 w-full bg-white/80 dark:bg-slate-900/75 backdrop-blur-xl border-b border-slate-200/70 dark:border-slate-800 shadow-sm shadow-slate-900/5 dark:shadow-blue-950/20 transition-all duration-300">
       {/* Top Announcement Bar — bright soft-blue wash (no navy) */}
       <div className="bg-gradient-to-r from-[#EAF2FF] via-[#F4F8FF] to-[#FFF3E6] text-slate-800 text-xs font-medium py-1 px-4 border-b border-[#246BFF]/10">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
@@ -476,13 +476,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2 sm:gap-3">
+{/* Action Buttons */}
+        <div className="flex items-center gap-2 sm:gap-2.5">
           {/* AI Product Finder Button */}
           {onOpenAiFinder && (
             <button
               onClick={onOpenAiFinder}
-              className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] text-white px-3.5 py-1.5 rounded-full text-[11px] font-semibold shadow-md shadow-dw-blue/30 hover:shadow-lg hover:shadow-dw-blue/40 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dw-blue/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900"
+              className="hw-glass-btn hw-glass-cta px-3.5 py-2 hidden sm:inline-flex"
             >
               <span className="whitespace-nowrap flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -497,7 +497,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
           {onOpenChatbot && (
             <button
               onClick={onOpenChatbot}
-              className="flex items-center gap-2 bg-gradient-to-r from-dw-blue to-dw-orange text-white px-3.5 py-1.5 rounded-full text-[11px] font-semibold shadow-md shadow-dw-orange/30 hover:shadow-lg hover:shadow-dw-orange/40 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dw-orange/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900"
+              className="hw-glass-btn hw-glass-cta px-3.5 py-2"
             >
               <span className="whitespace-nowrap flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -514,12 +514,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
           </Suspense>
 
           {/* Wishlist */}
-          <a href="/wishlist" aria-label="Wishlist" className="relative p-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <a href="/wishlist" aria-label="Wishlist" className="relative hw-glass-icon">
+            <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
             {wishlist.length > 0 && (
-              <span className="absolute top-1 right-1 bg-red-600 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+              <span className="absolute -top-0.5 -right-0.5 bg-red-600 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
                 {wishlist.length}
               </span>
             )}
@@ -527,8 +527,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
 
           {/* Compare */}
           <a href="/compare" aria-label="Compare products" title="Compare products"
-            className="relative p-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            className="relative hw-glass-icon">
+            <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 13V7m0 6a4 4 0 004-4h6m-2-2l2 2-2 2M16 11v6m0 0a4 4 0 01-4 4H6m2-2l-2-2 2-2" />
             </svg>
           </a>
@@ -536,7 +536,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
           {/* Account */}
           <a
             href={currentUser ? '/account' : '/login'}
-            className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 px-3 py-2 rounded-xl transition-colors border border-slate-200 dark:border-slate-700"
+            className="hw-glass-btn px-3.5 py-2"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -547,31 +547,29 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
           {/* High Contrast Accessibility Toggle */}
           <button
             onClick={toggleHighContrast}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 border ${
-              isHighContrast
-                ? 'bg-black text-white border-white ring-2 ring-white'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+            className={`hw-glass-btn px-3 py-2 ${
+              isHighContrast ? 'ring-2 ring-slate-900 dark:ring-white !border-slate-400' : ''
             }`}
             title={isHighContrast ? "Disable High Contrast" : "Enable High Contrast"}
             aria-label="Toggle High Contrast mode"
           >
-            <span className="text-sm">👁️</span>
+            <span className="text-sm leading-none">👁️</span>
             <span className="hidden xl:inline">{isHighContrast ? 'Contrast ON' : 'High Contrast'}</span>
           </button>
 
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+            className="hw-glass-icon"
             title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
             aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
             {isDarkMode ? (
-              <svg className="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-[18px] h-[18px] text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
             ) : (
-              <svg className="w-5 h-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-[18px] h-[18px] text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
               </svg>
             )}
@@ -580,9 +578,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden p-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
+            className="lg:hidden hw-glass-icon"
+            aria-label="Menu"
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
@@ -600,7 +599,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
               onMouseLeave={() => setIsMegaMenuOpen(false)}
             >
               <button
-                className="flex items-center gap-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 py-2 px-4 rounded-xl font-bold hover:border-[#246BFF]/60 hover:text-[#246BFF] dark:hover:text-blue-300 transition-colors"
+                className="hw-glass-btn px-4 py-2"
               >
 <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
@@ -611,7 +610,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
                 </svg>
               </button>
               {isMegaMenuOpen && (
-                <div className="absolute top-full left-0 w-[900px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl rounded-b-2xl rounded-tr-2xl overflow-hidden grid grid-cols-12 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute top-full left-0 w-[900px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-2xl rounded-b-2xl rounded-tr-2xl overflow-hidden grid grid-cols-12 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                   {/* Category Sidebar List */}
                   <div className="col-span-4 bg-slate-50 dark:bg-slate-800/60 border-r border-slate-200 dark:border-slate-800 py-3">
                     {categories.map((cat) => (

@@ -250,6 +250,8 @@ export interface BuyingGuide {
   metaDescription: string;
 }
 
+export type BannerPlacement = 'hero_main' | 'hero_tile_1' | 'hero_tile_2' | 'hero_tile_3' | 'hero_tile_4' | 'promo_1' | 'promo_2' | 'promo_3' | 'promo_mid';
+
 export interface CategoryBanner {
   id: string;
   categoryId: string;
@@ -276,6 +278,7 @@ export interface CategoryBanner {
   isActive?: boolean;
   isArchived?: boolean;
   imageOnly?: boolean;
+  placement?: BannerPlacement;
   impressions?: number;
   clicks?: number;
 }
@@ -636,6 +639,12 @@ export interface HomepageHeroSlide {
   sortOrder: number;
   isActive: boolean;
   imageOnly?: boolean;
+  placement?: BannerPlacement;
+  badgeText?: string;
+  title?: string;
+  subtitle?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface WishlistItem {

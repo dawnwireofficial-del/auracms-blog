@@ -283,12 +283,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </div>
 
       {/* Image */}
-      <a href={`/products/${product.slug}`} className="relative h-56 bg-white dark:bg-[#030712]/60 p-6 flex items-center justify-center overflow-hidden border-b border-slate-200/60 dark:border-blue-500/10">
+      <a href={`/products/${product.slug}`} className="relative h-64 bg-white dark:bg-[#030712]/60 p-5 flex items-center justify-center overflow-hidden border-b border-slate-200/60 dark:border-blue-500/10">
         <img
           src={proxyImageUrl(product.images?.[0] || product.productImage) || 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f1f5f9"/><text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">No image</text></svg>')}
           alt={product.title}
           referrerPolicy="no-referrer"
-          className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
+          className="max-h-full max-w-full object-contain drop-shadow-[0_10px_18px_rgba(15,23,42,0.10)] group-hover:scale-110 group-hover:-rotate-1 transition-transform duration-500"
           loading="lazy"
           onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f1f5f9"/><text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">No image</text></svg>'); }}
         />
@@ -320,12 +320,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <div>
               {(product.currentPrice || product.price) ? (
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-lg font-black text-slate-900 dark:text-slate-100">
+                  <span className="text-xl font-black text-slate-900 dark:text-slate-100">
                     ${Number(product.currentPrice || product.price || 0).toFixed(2)}
                   </span>
                   {product.referencePrice && Number(product.referencePrice) > Number(product.currentPrice || 0) && (
                     <span className="text-xs text-slate-400 line-through">
                       ${Number(product.referencePrice).toFixed(2)}
+                    </span>
+                  )}
+                  {product.referencePrice && Number(product.referencePrice) > Number(product.currentPrice || 0) && (
+                    <span className="ml-1 text-[11px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded-md">
+                      −{Math.round((1 - Number(product.currentPrice) / Number(product.referencePrice)) * 100)}%
                     </span>
                   )}
                 </div>
@@ -371,6 +376,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               brand={product.brand}
               label={product.isDeal ? 'View Deal on Amazon' : 'Check Price on Amazon'}
               variant={product.isDeal ? 'deal' : 'primary'}
+              size="lg"
               position="card_grid"
               className="w-full"
             />

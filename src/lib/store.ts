@@ -319,6 +319,7 @@ export const store = {
             isActive: s.is_active ?? s.isActive ?? true,
             overlayStrength: s.overlay_strength ?? s.overlayStrength ?? 50,
             imageOnly: s.image_only ?? s.imageOnly ?? false,
+            placement: s.placement ?? 'hero_main',
           }));
           notify();
         }
@@ -352,6 +353,12 @@ export const store = {
         sortOrder: banner.order ?? banner.sortOrder ?? 0,
         isActive: banner.isEnabled ?? banner.isActive ?? true,
         imageOnly: banner.imageOnly ?? false,
+        placement: banner.placement ?? 'hero_main',
+        badgeText: banner.badgeText || '',
+        title: banner.title || banner.heading || '',
+        subtitle: banner.subtitle || '',
+        startDate: banner.startDate || null,
+        endDate: banner.endDate || null,
       };
 
       let res;

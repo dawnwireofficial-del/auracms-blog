@@ -12,6 +12,7 @@ import { PageProgressBar } from './components/common/PageProgressBar';
 import { ToastContainer } from './components/common/ToastContainer';
 import { BackToTop } from './components/common/BackToTop';
 import GravityCursor from './components/common/GravityCursor';
+import FloatingPageDecor from './components/ambient/FloatingPageDecor';
 import ErrorBoundary from './components/ErrorBoundary';
 import { GlobalGravityCanvas } from './components/experience/GlobalGravityCanvas';
 import { CanvasPerformanceManager } from './components/experience/CanvasPerformanceManager';
@@ -589,6 +590,7 @@ export function App() {
       <BackToTop />
       {designSettings.cursorEnabled !== false && <GravityCursor />}
       {designSettings.ambientCanvas !== false && <GlobalGravityCanvas />}
+      {designSettings.ambientCanvas !== false && <FloatingPageDecor />}
       <CanvasPerformanceManager />
       </div>
     </ErrorBoundary>
