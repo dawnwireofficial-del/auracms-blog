@@ -320,6 +320,8 @@ export const store = {
             overlayStrength: s.overlay_strength ?? s.overlayStrength ?? 50,
             imageOnly: s.image_only ?? s.imageOnly ?? false,
             placement: s.placement ?? 'hero_main',
+            startDate: s.start_date || s.startDate || null,
+            endDate: s.end_date || s.endDate || null,
           }));
           notify();
         }

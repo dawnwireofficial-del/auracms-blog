@@ -7,6 +7,7 @@ import { proxyImageUrl } from '../utils/safeRender';
 import { assignHomepageSlots } from '../lib/homepageSlots';
 import { AnimatedCategoryIcon } from '../components/common/AnimatedCategoryIcon';
 import MascotAnimation from '../components/MascotAnimation';
+import BannerInlineEditor from '../components/admin/BannerInlineEditor';
 import type { Post } from '../types';
 
 interface HomePageProps {
@@ -334,6 +335,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
               </div>
 
               {/* Right: large product imagery (or admin hero banner) */}
+              <BannerInlineEditor placement="hero_main" banner={bannerSlots.heroMain}>
               {bannerSlots.heroMain?.desktopImage ? (
                 <div className="relative px-4 pb-2">
                   <a
@@ -393,6 +395,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                   </div>
                 </div>
               ) : null}
+              </BannerInlineEditor>
             </div>
 
             {/* Bottom trust chips */}
@@ -413,8 +416,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           {/* ── 2x2 promo tiles ── */}
           <div className="grid grid-cols-2 grid-rows-2 gap-[18px]">
             {heroTiles.map((tile, i) => (
-              <motion.a
+              <BannerInlineEditor
                 key={tile.label + i}
+                placement={(`hero_tile_${i + 1}`) as any}
+                banner={bannerSlots.heroTiles[i]}
+                align="left"
+              >
+              <motion.a
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.45, delay: 0.08 + i * 0.06 }}
@@ -451,6 +459,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                   </span>
                 </div>
               </motion.a>
+              </BannerInlineEditor>
             ))}
           </div>
         </div>
@@ -553,7 +562,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         <section>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {promoBanners.map((banner, i) => (
-              <a key={banner.title} href={banner.href} data-gravity-cursor="explore"
+              <BannerInlineEditor
+                key={banner.title + i}
+                placement={(`promo_${i + 1}`) as any}
+                banner={bannerSlots.promos[i]}
+                align="left"
+              >
+              <a href={banner.href} data-gravity-cursor="explore"
                 className={`relative overflow-hidden rounded-2xl min-h-[190px] flex items-end border border-white/80 bg-gradient-to-br ${banner.tint} to-transparent shadow-[0_14px_40px_-18px_rgba(36,107,255,0.3)] group`}>
                 <img
                   src={banner.image}
@@ -575,6 +590,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                   </span>
                 </div>
               </a>
+              </BannerInlineEditor>
             ))}
           </div>
         </section>

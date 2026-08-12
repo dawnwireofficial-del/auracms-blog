@@ -25,7 +25,7 @@ import AdminComments from './admin/AdminComments';
 import AdminAffiliate from './admin/AdminAffiliate';
 import AdminPages from './admin/AdminPages';
 import AdminBrands from './admin/AdminBrands';
-import AdminBanners from './admin/AdminBanners';
+import AdminBannerManager from './admin/AdminBannerManager';
 import AdminDeals from './admin/AdminDeals';
 import AdminHomepage from './admin/AdminHomepage';
 import AdminCategorySections from './admin/AdminCategorySections';
@@ -500,7 +500,7 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
           {/* BANNERS VIEW */}
           {activeMenu === 'banners' && (
             <div className="bg-white dark:bg-zinc-800/50 rounded-2xl br-card border border-slate-100 dark:border-zinc-700/50 shadow-sm p-6">
-              <AdminBanners token={token} categories={categories} />
+              <AdminBannerManager token={token} categories={categories} />
             </div>
           )}
 
