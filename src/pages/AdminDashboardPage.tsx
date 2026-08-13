@@ -33,7 +33,7 @@ import AdminContact from '../components/admin/AdminContact';
 import AdminSettings from '../components/admin/AdminSettings';
 import AdminLogs from '../components/admin/AdminLogs';
 import AdminBrands from '../components/admin/AdminBrands';
-import AdminBanners from '../components/admin/AdminBanners';
+import AdminBannerManager from '../components/admin/AdminBannerManager';
 import AdminDeals from '../components/admin/AdminDeals';
 import AdminHomepage from '../components/admin/AdminHomepage';
 import AdminCategorySections from '../components/admin/AdminCategorySections';
@@ -2230,6 +2230,13 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Tab: Banner Manager (per-placement + category banners) */}
+        {activeTab === 'banners' && (
+          <div className="bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 shadow-sm p-6">
+            <AdminBannerManager token={token} categories={categories} />
           </div>
         )}
 
