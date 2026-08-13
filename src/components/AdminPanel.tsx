@@ -46,6 +46,7 @@ import FirebasePanel from './admin/FirebasePanel';
 import AdminProfilePanel from './admin/AdminProfilePanel';
 import SeoSitemapPanel from './admin/SeoSitemapPanel';
 import CreativeAssetsPanel from './CreativeAssetsPanel';
+import WordPressImportTool from './admin/WordPressImportTool';
 
 interface AdminPanelProps {
   token: string;
@@ -54,7 +55,7 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
-  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'posts' | 'categories' | 'comments' | 'products' | 'product-articles' | 'article-generator' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'seo' | 'ai' | 'clusters' | 'media' | 'brands' | 'banners' | 'deals' | 'homepage' | 'sections' | 'amazon-sync' | 'extension' | 'bulk-import' | 'auto-import' | 'activity' | 'auto-articles' | 'link-importer' | 'scraper' | 'seo-tools' | 'firebase' | 'profile' | 'design-studio'>('dashboard');
+  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'posts' | 'categories' | 'comments' | 'products' | 'product-articles' | 'article-generator' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'seo' | 'ai' | 'clusters' | 'media' | 'brands' | 'banners' | 'deals' | 'homepage' | 'sections' | 'amazon-sync' | 'extension' | 'bulk-import' | 'auto-import' | 'activity' | 'auto-articles' | 'link-importer' | 'scraper' | 'seo-tools' | 'firebase' | 'profile' | 'design-studio' | 'wp-import'>('dashboard');
   
   // Data States
   const [posts, setPosts] = useState<Post[]>([]);
@@ -206,6 +207,7 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
             { key: 'extension', icon: Download, label: 'Extension' },
             { key: 'bulk-import', icon: Package, label: 'Bulk Import' },
             { key: 'auto-import', icon: ShoppingBag, label: 'Auto Import' },
+            { key: 'wp-import', icon: FileText, label: 'WP Import' },
             { key: 'media', icon: ImageIcon, label: `Media (${media.length})` },
             { key: 'clusters', icon: Layers, label: 'Clusters' },
           ].map(item => (
@@ -410,6 +412,13 @@ export default function AdminPanel({ token, user, onLogout }: AdminPanelProps) {
           {activeMenu === 'auto-import' && (
             <div id="admin-workspace-auto-import">
               <AutoImportPanel token={token} />
+            </div>
+          )}
+
+          {/* E0e: WORDPRESS IMPORT */}
+          {activeMenu === 'wp-import' && (
+            <div id="admin-workspace-wp-import">
+              <WordPressImportTool token={token} />
             </div>
           )}
 

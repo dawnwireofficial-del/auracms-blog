@@ -20,6 +20,7 @@ import SeoDashboard from '../components/SeoDashboard';
 import AnalyticsAlerts from '../components/AnalyticsAlerts';
 import AmazonSyncDashboard from '../components/AmazonSyncDashboard';
 import AutoImportPanel from '../components/admin/AutoImportPanel';
+import WordPressImportTool from '../components/admin/WordPressImportTool';
 import MediaGallery from '../components/MediaGallery';
 import AdminPosts from '../components/admin/AdminPosts';
 import AdminCategories from '../components/admin/AdminCategories';
@@ -125,7 +126,7 @@ export const AdminDashboardPage: React.FC = () => {
     if (tab === 'auto-articles') return 'auto-articles';
     return 'products';
   };
-  const [activeTab, setActiveTab] = useState<'products' | 'activity-feed' | 'link-importer' | 'scraper' | 'auto-articles' | 'reviews' | 'banners' | 'analytics' | 'seo' | 'firebase' | 'profile' | 'extension' | 'bulk-import' | 'dashboard' | 'posts' | 'categories' | 'comments' | 'product-review' | 'product-articles' | 'article-generator' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'brands' | 'deals' | 'homepage' | 'sections' | 'clusters' | 'amazon-sync' | 'media' | 'auto-import' | 'seo-engine'>(getInitialTab);
+  const [activeTab, setActiveTab] = useState<'products' | 'activity-feed' | 'link-importer' | 'scraper' | 'auto-articles' | 'reviews' | 'banners' | 'analytics' | 'seo' | 'firebase' | 'profile' | 'extension' | 'bulk-import' | 'dashboard' | 'posts' | 'categories' | 'comments' | 'product-review' | 'product-articles' | 'article-generator' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'brands' | 'deals' | 'homepage' | 'sections' | 'clusters' | 'amazon-sync' | 'media' | 'auto-import' | 'wp-import' | 'seo-engine'>(getInitialTab);
 
   // Form states
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
@@ -832,6 +833,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
             { id: 'amazon-sync', label: '🔄 Amazon Sync' },
             { id: 'bulk-import', label: '📦 Bulk Import' },
             { id: 'auto-import', label: '🤖 Auto Import' },
+            { id: 'wp-import', label: '📥 WP Import' },
             { id: 'activity-feed', label: '⚡ Activity Feed & Insights' },
             { id: 'testimonials', label: '⭐ Testimonials' },
             { id: 'affiliate', label: '🔗 Affiliate Slugs' },
@@ -2674,6 +2676,11 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
           <div className="bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 shadow-sm p-6">
             <AutoImportPanel token={token} />
           </div>
+        )}
+
+        {/* Tab: WordPress Import */}
+        {activeTab === 'wp-import' && (
+          <WordPressImportTool token={token} />
         )}
 
         {/* Tab: Testimonials */}
