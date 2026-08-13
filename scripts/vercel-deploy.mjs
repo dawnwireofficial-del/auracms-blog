@@ -31,7 +31,6 @@ const res = await fetch(`${API}/v13/deployments?teamId=${orgId}`, {
     name: process.env.VERCEL_PROJECT_NAME || 'auracms-blog',
     project: projectId,
     target: 'production',
-    forceNew: 1,
     gitSource: {
       type: 'github',
       repoId: Number(repoId),
