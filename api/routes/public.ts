@@ -333,7 +333,13 @@ router.get('/categories/:slug', async (req, res) => {
     subcategories: subcategories.filter((s: any) => s.parentId === cat.id && s.status === 'active'),
     products: reviews.filter((r: any) => {
       if (r.status !== 'published') return false;
-      if ((r.category_id || r.categoryId) === cat.id) return true;
+      const pid = r.category_id || r.categoryId;
+      if (pid) {
+        // Explicit category assigned: only show under that category (or its parent when assigned to a subcategory). Never rely on best_for overlap.
+        if (pid === cat.id) return true;
+        const assigned = cats.find((c: any) => c.id === pid);
+        return !!(assigned && assigned.parentId === cat.id && assigned.status === 'active');
+      }
       const bf = (r.best_for || r.bestFor || '').toLowerCase();
       const cn = (cat.name || '').toLowerCase();
       const pn = (r.product_name || '').toLowerCase();

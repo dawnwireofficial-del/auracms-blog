@@ -1236,6 +1236,11 @@ export default function PublicPages({
                     <span className="text-sm font-semibold text-slate-700 dark:text-zinc-200">{cat.name}</span>
                     <span className="text-[10px] text-slate-400 dark:text-zinc-500 mt-1">{(allProducts || []).filter((p: any) => {
                       if (p.categoryId === cat.id) return true;
+                      // Explicit category assigned: only count under that category (or its parent for subcategory-assigned products).
+                      if (p.categoryId) {
+                        const assigned = (categories || []).find((c: any) => c.id === p.categoryId);
+                        return !!(assigned && assigned.parentId === cat.id);
+                      }
                       const bf = (p.best_for || '').toLowerCase();
                       const cn = (cat.name || '').toLowerCase();
                       if (!bf) return false;

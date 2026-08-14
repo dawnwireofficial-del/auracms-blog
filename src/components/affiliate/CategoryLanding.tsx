@@ -24,6 +24,11 @@ export default function CategoryLanding({ category, allProducts, allCategories, 
   const products = category.products || allProducts?.filter(p => {
     if (p.status !== 'published') return false;
     if (p.categoryId === category.id) return true;
+    // Explicit category assigned: only show under that category (or its parent for subcategory-assigned products). Never fall back to best_for when a category is set.
+    if (p.categoryId) {
+      const assigned = allCategories?.find((c: any) => c.id === p.categoryId);
+      return !!(assigned && assigned.parentId === category.id);
+    }
     const bf = ((p as any).best_for || p.bestFor || '').toLowerCase();
     const cn = (category.name || '').toLowerCase();
     const pn = (p.productName || (p as any).product_name || '').toLowerCase();

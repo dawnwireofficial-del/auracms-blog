@@ -320,6 +320,7 @@ const KNOWN_PRODUCT_REVIEW_COLUMNS = new Set([
   'is_trending', 'is_top_rated', 'brand_id', 'subcategory_id',
   'status', 'created_at', 'updated_at',
   'review_article', 'faq', 'affiliate_disclosure',
+  'ai_verdict',
 ]);
 
 const PRODUCT_CAMEL_TO_SNAKE: Record<string, string> = {

@@ -5,7 +5,7 @@ import ProductCard from './ProductCard';
 
 interface ProductListProps {
   products: ProductReview[];
-  categories?: { id: string; name: string; slug: string }[];
+  categories?: { id: string; name: string; slug: string; parentId?: string | null }[];
   brands?: { id: string; name: string }[];
   showFilters?: boolean;
   title?: string;
@@ -43,6 +43,11 @@ export default function ProductList({ products, categories, brands, showFilters 
       const cat = categories?.find(c => c.id === selectedCategory);
       items = items.filter(p => {
         if (p.categoryId === selectedCategory) return true;
+        // Explicit category assigned: only show under that category (or its parent for subcategory-assigned products).
+        if (p.categoryId) {
+          const assigned = categories?.find(c => c.id === p.categoryId);
+          return !!(assigned && assigned.parentId === selectedCategory);
+        }
         const bf = ((p as any).best_for || p.bestFor || '').toLowerCase();
         const cn = (cat?.name || '').toLowerCase();
         if (!bf) return false;

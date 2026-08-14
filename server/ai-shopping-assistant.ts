@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import { dbInstance } from './db';
 import * as seo from './seo-engine';
 import { deepseekChat, isDeepSeekConfigured } from './deepseek-pool';
+import { cohereChat } from './ai';
 
 const AI_GATEWAY_API_KEY = process.env.AI_GATEWAY_API_KEY || '';
 const AI_GATEWAY_BASE_URL = process.env.AI_GATEWAY_BASE_URL || 'https://api.cohere.ai/v2';
@@ -330,12 +331,73 @@ const gatewayTools = {
   }),
 };
 
+async function fallbackAssistantChat(
+  userMessage: string,
+  context?: { pageType?: string; pageSlug?: string; category?: string; productSlug?: string }
+): Promise<{ response: string; tool_calls?: string[]; products?: any[]; productCards?: any[]; comparisonData?: any }> {
+  const all = await getPublishedProducts();
+  const q = userMessage.toLowerCase();
+
+  let ranked = all.slice().sort((a: any, b: any) => (b.rating || 0) - (a.rating || 0));
+  const words = q.split(/\s+/).filter((w: string) => w.length > 3);
+  if (words.length > 0) {
+    const scored = all.map((p: any) => {
+      const hay = `${p.product_name || ''} ${p.brand || ''} ${p.best_for || ''} ${p.category_id || ''}`.toLowerCase();
+      let score = 0;
+      for (const w of words) if (hay.includes(w)) score++;
+      return { p, score };
+    });
+    const topScored = scored.filter(s => s.score > 0).sort((a, b) => b.score - a.score).slice(0, 6).map(s => s.p);
+    if (topScored.length > 0) ranked = topScored;
+  }
+
+  const topProducts = ranked.slice(0, 5);
+  const productList = topProducts.length
+    ? topProducts.map((p: any) =>
+        `- ${p.product_name}${p.brand ? ` by ${p.brand}` : ''}${p.price ? ` (${p.price})` : ''}${p.rating ? ` rating ${p.rating}/5` : ''}${p.best_for ? ` best for ${p.best_for}` : ''}`
+      ).join('\n')
+    : 'There are currently no products matching your search in our catalog.';
+
+  const contextPrefix = context?.productSlug
+    ? `The user is viewing the product page for "${context.productSlug}".`
+    : context?.category
+      ? `The user is browsing the "${context.category}" category.`
+      : context?.pageType
+        ? `The user is on the ${context.pageType} page.`
+        : '';
+
+  const systemPrompt = `You are a helpful AI shopping assistant for DawnWire.com, a product review and comparison website.
+${contextPrefix}
+
+RULES:
+- ONLY recommend products listed in the user message below. Never invent products, prices, or ratings.
+- Keep responses concise and conversational. Use emojis sparingly.
+- Always include: "Prices and availability may change on Amazon. Please check Amazon for the latest information."
+- DawnWire may earn commissions from purchases made through affiliate links.
+- If no products match, suggest broadening their search criteria.`;
+
+  // Reuse the shared provider chain (Cloudflare -> AI Gateway/Cohere -> Gemini
+  // -> DeepSeek) that powers sentiment analysis and FAQ generation.
+  const response = await cohereChat(
+    `The user asked: "${userMessage}"\n\nAvailable DawnWire products:\n${productList}\n\nRecommend the best product(s) from this list for the user's needs, and explain why.`,
+    systemPrompt,
+    30000,
+    1200,
+  );
+
+  return {
+    response: response || 'I could not find a suitable match right now. Please try broadening your search.',
+    tool_calls: ['fallback:shared-provider'],
+    products: topProducts.map(formatProductShort),
+    productCards: topProducts.map((p: any) => ({ ...formatProductShort(p), reason: 'Recommended product' })),
+  };
+}
+
 export async function chat(
   sessionId: string,
   userMessage: string,
   context?: { pageType?: string; pageSlug?: string; category?: string; productSlug?: string }
 ): Promise<{ response: string; tool_calls?: string[]; products?: any[]; productCards?: any[]; comparisonData?: any }> {
-  if (!AI_GATEWAY_API_KEY) throw new Error('AI_GATEWAY_API_KEY not configured');
 
   if (!checkRateLimit(sessionId)) {
     return { response: 'I apologize, but the daily chat limit has been reached. Please try again tomorrow. For immediate assistance, feel free to browse our products directly.' };
@@ -416,7 +478,7 @@ RULES:
         clearTimeout(timeoutId);
         result = result2;
       }
-    } else {
+    } else if (AI_GATEWAY_API_KEY) {
       result = await generateText({
         model: getModel(),
         messages,
@@ -428,6 +490,8 @@ RULES:
         abortSignal: controller.signal,
       });
       clearTimeout(timeoutId);
+    } else {
+      return await fallbackAssistantChat(userMessage, session.context);
     }
 
     const responseText = result.text || '';
@@ -470,6 +534,13 @@ RULES:
     console.error('Chat error:', e);
     if (e.name === 'AbortError' || e.message?.includes('timed out')) {
       return { response: 'I took too long to respond. Could you please rephrase your question?' };
+    }
+    // No gateway/DeepSeek configured, or both failed -> fall back to the shared
+    // provider chain so the assistant still works with real product data.
+    try {
+      return await fallbackAssistantChat(userMessage, session.context);
+    } catch (fbErr: any) {
+      console.error('Chat fallback failed:', fbErr);
     }
     return { response: 'I encountered an error processing your request. Please try again or contact support.' };
   }
