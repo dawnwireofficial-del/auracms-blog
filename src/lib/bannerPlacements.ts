@@ -15,9 +15,9 @@ export const BANNER_PLACEMENTS: BannerPlacementMeta[] = [
   {
     key: 'hero_main',
     label: 'Hero Main',
-    description: 'Large left hero panel on the homepage. Strong product imagery + headline.',
+    description: 'Featured banner card beside the hero copy. Strong product imagery + headline.',
     recommended: '1200×700 (≈1.7:1)',
-    aspect: 'aspect-[1.7/1]',
+    aspect: 'aspect-[7/4]',
     slot: 'hero_main',
   },
   {

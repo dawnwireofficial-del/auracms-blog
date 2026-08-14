@@ -343,7 +343,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                     className="block relative"
                     data-gravity-cursor="view"
                   >
-                    <div className="relative mx-auto max-w-[400px] aspect-[4/3] rounded-[24px] bg-white border border-slate-200/80 shadow-[0_24px_70px_-24px_rgba(36,107,255,0.4)] overflow-hidden">
+                    <div className="relative mx-auto max-w-[460px] aspect-[7/4] rounded-[24px] bg-white border border-slate-200/80 shadow-[0_24px_70px_-24px_rgba(36,107,255,0.4)] overflow-hidden">
                       <img
                         src={proxyImageUrl(bannerSlots.heroMain.desktopImage) || NO_IMAGE}
                         alt={bannerSlots.heroMain.altText || bannerSlots.heroMain.heading || 'Featured banner'}
@@ -561,7 +561,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         {/* ============================ PROMOTIONAL BANNERS ============================ */}
         <section>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {promoBanners.map((banner, i) => (
+            {promoBanners.map((banner, i) => {
+              const isAdminPromo = !!bannerSlots.promos[i];
+              return (
               <BannerInlineEditor
                 key={banner.title + i}
                 placement={(`promo_${i + 1}`) as any}
@@ -570,18 +572,29 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
               >
               <a href={banner.href} data-gravity-cursor="explore"
                 className={`relative overflow-hidden rounded-2xl min-h-[190px] flex items-end border border-white/80 bg-gradient-to-br ${banner.tint} to-transparent shadow-[0_14px_40px_-18px_rgba(36,107,255,0.3)] group`}>
-                <img
-                  src={banner.image}
-                  alt={banner.title}
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
-                  className="absolute -right-8 top-1/2 -translate-y-1/2 w-[55%] h-[88%] object-contain mix-blend-luminosity opacity-75 drop-shadow-[0_18px_28px_rgba(15,23,42,0.35)] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-2"
-                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
+                {isAdminPromo ? (
+                  <img
+                    src={banner.image}
+                    alt={banner.title}
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                ) : (
+                  <img
+                    src={banner.image}
+                    alt={banner.title}
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    className="absolute -right-8 top-1/2 -translate-y-1/2 w-[55%] h-[88%] object-contain mix-blend-luminosity opacity-75 drop-shadow-[0_18px_28px_rgba(15,23,42,0.35)] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-2"
+                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                )}
+                <div className={`absolute inset-0 ${isAdminPromo ? 'bg-gradient-to-t from-black/80 via-black/40 to-transparent' : 'bg-gradient-to-t from-black/70 via-black/25 to-transparent'}`} />
                 <div className="relative z-10 p-5">
                   <span className="inline-block bg-[#FF8A00] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full mb-2 shadow-sm">{banner.label}</span>
-                  <h3 className="text-xl font-[850] text-white leading-tight max-w-[62%] drop-shadow-sm">{banner.title}</h3>
+                  <h3 className={`text-xl font-[850] text-white leading-tight drop-shadow-sm ${isAdminPromo ? '' : 'max-w-[62%]'}`}>{banner.title}</h3>
                   <span className="mt-2.5 inline-flex items-center gap-1.5 text-[12px] font-bold text-white bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-3 py-1.5 transition-colors group-hover:bg-white/25">
                     {banner.cta}
                     <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -591,7 +604,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 </div>
               </a>
               </BannerInlineEditor>
-            ))}
+              );
+            })}
           </div>
         </section>
 
