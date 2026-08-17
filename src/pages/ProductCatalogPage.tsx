@@ -147,27 +147,39 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
   const goToPage = (p: number) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
       <DisclosureBanner />
 
       {/* Header Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#EAF2FF] via-white to-[#FFF3E6] text-slate-900 py-14 px-4 border-b border-[#E2E8F0] shadow-[0_10px_40px_-20px_rgba(36,107,255,0.25)]">
+      <div className="relative overflow-hidden bg-gradient-to-r from-[#EAF2FF] via-white to-[#FFF3E6] text-slate-900 py-12 md:py-14 px-4 border-b border-[#E2E8F0] shadow-[0_10px_40px_-20px_rgba(36,107,255,0.25)]">
         <TechnicalGrid opacity={0.04} />
         <AmbientGlow color="blue" position="top-right" size="lg" />
         <AmbientGlow color="blue" position="bottom-left" size="lg" />
-        <div className="relative z-10 max-w-7xl mx-auto space-y-2">
+        <div className="relative z-10 max-w-7xl mx-auto space-y-3">
           <h1 className="text-3xl sm:text-4xl font-black font-display tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#111827] via-[#246BFF] to-[#4F7CFF]">
             {selectedCategory === 'all' ? 'All Products & Amazon Discovery' : `${categories.find(c => c.id === selectedCategory)?.name || ''} Products`}
           </h1>
           <p className="text-sm text-slate-600 max-w-2xl font-medium">
             Browse independently bench-marked products, verified Amazon buyer ratings, and current price drops.
           </p>
+          {/* Deals countdown strip — matches homepage Hot Deals module */}
+          {filtered.some(p => p.isDeal || p.discountPercentage || (Number(p.referencePrice) > Number(p.currentPrice))) && (
+            <div className="mt-4 inline-flex items-center gap-2.5 rounded-full bg-white/80 border border-[#FF8A00]/30 px-4 py-2 shadow-sm backdrop-blur">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF334F] opacity-70" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FF334F]" />
+              </span>
+              <span className="text-[12px] font-bold text-slate-700">
+                <span className="text-[#FF334F]">{filtered.filter(p => p.isDeal || p.discountPercentage || (Number(p.referencePrice) > Number(p.currentPrice))).length}</span> active deals — prices checked daily from Amazon
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Col: Filters Sidebar */}
-        <div className="lg:col-span-3 space-y-6">
+        <div className="lg:col-span-3 space-y-6 lg:sticky lg:top-24 lg:self-start max-h-[calc(100vh-120px)] overflow-y-auto pb-2">
           <div className="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-5">
             <h3 className="font-extrabold text-sm text-slate-900 dark:text-slate-100 uppercase tracking-wider">
               Filter Products

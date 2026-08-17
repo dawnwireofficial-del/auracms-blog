@@ -7,6 +7,7 @@ import { proxyImageUrl } from '../utils/safeRender';
 import { assignHomepageSlots } from '../lib/homepageSlots';
 import { AnimatedCategoryIcon } from '../components/common/AnimatedCategoryIcon';
 import MascotAnimation from '../components/MascotAnimation';
+import { useReducedMotion } from '../components/useReducedMotion';
 import BannerInlineEditor from '../components/admin/BannerInlineEditor';
 import type { Post } from '../types';
 
@@ -86,11 +87,43 @@ const TRUST_ITEMS = [
   { icon: 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z', label: 'AI research assistant' },
 ];
 
+/* Countdown timer to end of today — powers the "Hot Deals" module (reference so-deals timer) */
+function DealsCountdown() {
+  const [left, setLeft] = useState('00:00:00');
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      const end = new Date(now);
+      end.setHours(23, 59, 59, 999);
+      const d = Math.max(0, end.getTime() - now.getTime());
+      const h = Math.floor(d / 3600000);
+      const m = Math.floor((d % 3600000) / 60000);
+      const s = Math.floor((d % 60000) / 1000);
+      setLeft(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+  const [hh, mm, ss] = left.split(':');
+  return (
+    <div className="flex items-center gap-1.5 font-mono" aria-label="Deals end countdown">
+      {[hh, mm, ss].map((v, i) => (
+        <React.Fragment key={i}>
+          <span className="inline-flex items-center justify-center min-w-[42px] h-10 rounded-lg bg-gradient-to-b from-[#FF8A00] to-[#e67b00] text-white text-lg font-black shadow-[0_6px_14px_-6px_rgba(255,138,0,0.6)] tabular-nums">{v}</span>
+          {i < 2 && <span className="text-lg font-black text-slate-400">:</span>}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
 export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbot }) => {
   const { products, categories, deals, banners } = useAppStore();
   const [heroQuery, setHeroQuery] = useState('');
   const [brands, setBrands] = useState<{ id: string; name: string; slug: string; logoUrl?: string; logo?: string }[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
+  const prefersReduced = useReducedMotion();
 
   useEffect(() => {
     fetch('/api/public/brands?limit=20')
@@ -246,223 +279,343 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
     return { ...def, imageUrl: '' };
   });
 
+  /* ── Full-width hero slider slides ── */
+  const heroSlides = useMemo(() => {
+    const slides: { kind: 'banner'; image: string; heading: string; sub: string; cta: string; href: string; badge?: string }[] = [];
+    const pushBanner = (img?: string, heading?: string, sub?: string, cta?: string, href?: string, badge?: string) => {
+      if (img && img !== NO_IMAGE) {
+        slides.push({
+          kind: 'banner',
+          image: img,
+          heading: heading || 'Shop the Best Deals',
+          sub: sub || '',
+          cta: cta || 'Shop Now',
+          href: href || '/deals',
+          badge,
+        });
+      }
+    };
+    const hm = bannerSlots.heroMain;
+    pushBanner(hm?.desktopImage, hm?.heading || hm?.title, hm?.subtitle || hm?.description, hm?.ctaText, hm?.targetUrl || hm?.ctaLink, hm?.badgeText);
+    bannerSlots.heroTiles.forEach(t => {
+      pushBanner(t?.desktopImage, t?.heading || t?.title, t?.subtitle || t?.description, t?.ctaText, t?.targetUrl || t?.ctaLink, t?.badgeText);
+    });
+    return slides;
+  }, [bannerSlots]);
+
+  /* ── Tabbed category rails (reference listing-tabs) ── */
+  const tabCategories = useMemo(() => {
+    const withProducts = categories.filter(c =>
+      products.some(p => p.categoryId === c.id || (p.mainCategory || '').toLowerCase().includes(c.name.toLowerCase()))
+    );
+    const base = withProducts.length >= 2 ? withProducts : (rails.length ? rails.map(r => r.cat) : categories);
+    return base.slice(0, 4);
+  }, [categories, products, rails]);
+
+  const [activeTab, setActiveTab] = useState(0);
+  useEffect(() => { if (activeTab >= tabCategories.length && tabCategories.length > 0) setActiveTab(0); }, [activeTab, tabCategories.length]);
+
+  const tabProducts = useMemo(() => {
+    if (!tabCategories[activeTab]) return [];
+    const cat = tabCategories[activeTab];
+    return sortedByScore
+      .filter(p => p.categoryId === cat.id || (p.mainCategory || '').toLowerCase().includes(cat.name.toLowerCase()))
+      .slice(0, 8);
+  }, [tabCategories, activeTab, sortedByScore]);
+
+  /* ── Hero slider autoplay ── */
+  const [slideIdx, setSlideIdx] = useState(0);
+  const [hovering, setHovering] = useState(false);
+  const totalSlides = heroSlides.length + 1; // +1 copy slide
+  useEffect(() => {
+    if (prefersReduced || hovering || totalSlides <= 1) return;
+    const id = setInterval(() => setSlideIdx(i => (i + 1) % totalSlides), 5000);
+    return () => clearInterval(id);
+  }, [prefersReduced, hovering, totalSlides]);
+  useEffect(() => {
+    if (slideIdx >= totalSlides) setSlideIdx(0);
+  }, [slideIdx, totalSlides]);
+
+  const goSlide = (i: number) => setSlideIdx(((i % totalSlides) + totalSlides) % totalSlides);
+
+  /* ── Newsletter strip state ── */
+  const [nlEmail, setNlEmail] = useState('');
+  const [nlMsg, setNlMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [nlBusy, setNlBusy] = useState(false);
+  const submitNewsletter = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nlEmail.trim() || nlBusy) return;
+    setNlBusy(true);
+    setNlMsg(null);
+    try {
+      const res = await fetch('/api/public/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: nlEmail.trim() }),
+      });
+      setNlMsg(res.ok
+        ? { ok: true, text: 'You’re in! Watch your inbox for the hottest deals.' }
+        : { ok: false, text: 'Something went wrong — please try again.' });
+      if (res.ok) setNlEmail('');
+    } catch {
+      setNlMsg({ ok: false, text: 'Network error — please try again.' });
+    } finally {
+      setNlBusy(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 overflow-x-clip">
       <DisclosureBanner />
 
-      {/* ============================ HERO ============================ */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#FFFFFF] via-[#F1F6FF] to-[#FFF4E6]" />
-        <div className="absolute -top-32 -right-24 w-[520px] h-[520px] rounded-full bg-[#246BFF]/10 blur-3xl" />
-        <div className="absolute -bottom-40 -left-24 w-[460px] h-[460px] rounded-full bg-[#FF8A00]/10 blur-3xl" />
+      {/* ============================ FULL-WIDTH HERO SLIDER (reference so-homeslider) ============================ */}
+      <section
+        className="relative overflow-hidden"
+        onMouseEnter={() => setHovering(true)}
+        onMouseLeave={() => setHovering(false)}
+        aria-roledescription="carousel"
+        aria-label="Featured highlights"
+      >
+        {/* Slide track */}
         <div
-          className="absolute inset-0 opacity-[0.45]"
-          style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(100,116,139,0.30) 1px, transparent 0)', backgroundSize: '28px 28px' }}
-        />
-
-        <div className="relative commerce-container commerce-section grid grid-cols-1 lg:grid-cols-[minmax(0,1.8fr)_minmax(350px,1fr)] gap-[18px] items-stretch py-8 lg:py-12">
-          {/* ── Main hero ── */}
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="relative rounded-[24px] overflow-hidden border border-white/70 shadow-[0_20px_60px_-24px_rgba(36,107,255,0.28)] bg-gradient-to-br from-white via-[#F4F8FF] to-[#FFF3E6] min-h-[460px] flex flex-col"
-            data-gravity-cursor="explore"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-[1.05fr_0.95fr] gap-2 px-7 md:px-10 pt-8 md:pt-10 pb-0 items-center flex-1">
-              {/* Left: copy */}
-              <div className="pb-6">
-                <div className="inline-flex items-center gap-2 rounded-full border border-[#246BFF]/25 bg-white/80 px-3.5 py-1.5 text-[13px] font-bold text-[#246BFF] shadow-sm">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#246BFF] opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#246BFF]" />
-                  </span>
-                  {bannerSlots.heroMain?.subtitle || 'AI-powered deals & independent benchmarks'}
-                </div>
-                <h1 className="mt-5 text-4xl sm:text-5xl xl:text-[58px] font-[900] tracking-tight leading-[1.02] text-slate-900 font-sans">
-                  {bannerSlots.heroMain?.heading ? (
-                    bannerSlots.heroMain.heading
-                  ) : (
-                    <>
-                      Done-For-You Shopping.
-                      <span className="block mt-2 bg-gradient-to-r from-[#246BFF] via-[#1a57e0] to-[#FF8A00] bg-clip-text text-transparent">
-                        Honest Scores. Verified Deals.
-                      </span>
-                    </>
-                  )}
-                </h1>
-                <p className="mt-5 max-w-lg text-[16px] leading-relaxed text-slate-600">
-                  {bannerSlots.heroMain?.description || 'DawnWire researches, price-checks and scores the best products of 2026 — so you buy the right thing, at the right price, in seconds instead of hours.'}
-                </p>
-
-                {/* Hero search */}
-                <form onSubmit={submitHeroSearch} className="mt-7 max-w-xl">
-                  <div className="bg-white/80 backdrop-blur rounded-2xl p-1.5 flex items-stretch gap-1 border border-white/80 shadow-[0_10px_30px_-8px_rgba(36,107,255,0.18)]">
-                    <span className="hidden sm:flex items-center pl-3 text-slate-400">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    </span>
-                    <input
-                      value={heroQuery}
-                      onChange={e => setHeroQuery(e.target.value)}
-                      placeholder="Search products, deals, reviews or guides…"
-                      aria-label="Search DawnWire"
-                      className="flex-1 min-w-0 bg-transparent px-3 sm:px-2 py-3 text-[15px] text-slate-900 placeholder-slate-400 outline-none"
-                    />
-                    <button type="submit" className="bg-[#246BFF] hover:bg-[#164EE8] text-white font-bold px-6 py-2.5 rounded-xl shrink-0">Search</button>
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-slate-500">
-                    <span className="font-bold text-slate-600">Trending:</span>
-                    {['Wireless Headphones', 'Korean Skincare', 'Air Fryers'].map(t => (
-                      <button key={t} type="button" onClick={() => setHeroQuery(t)} className="hover:text-[#246BFF] font-semibold transition-colors">{t}</button>
-                    ))}
-                  </div>
-                </form>
-
-                {/* Hero CTAs */}
-                <div className="mt-6 flex flex-wrap items-center gap-3">
-                  <button onClick={onOpenAiFinder} className="inline-flex items-center gap-2 rounded-xl bg-[#FF8A00] hover:bg-[#e67b00] text-white font-bold px-6 py-3 text-[15px] shadow-[0_8px_22px_-8px_rgba(255,138,0,0.6)] transition-all hover:-translate-y-0.5">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                    Find My Perfect Product
-                  </button>
-                  <a href="/products?sort=rating" className="inline-flex items-center gap-2 rounded-xl border border-slate-300 text-slate-700 hover:border-[#246BFF] hover:text-[#246BFF] font-bold px-6 py-3 text-[15px] transition-all">
-                    Browse Best Sellers
-                  </a>
-                </div>
-              </div>
-
-              {/* Right: large product imagery (or admin hero banner) */}
-              <BannerInlineEditor placement="hero_main" banner={bannerSlots.heroMain}>
-              {bannerSlots.heroMain?.desktopImage ? (
-                <div className="relative px-4 pb-2">
-                  <a
-                    href={bannerSlots.heroMain.targetUrl || bannerSlots.heroMain.ctaLink || '/deals'}
-                    className="block relative"
-                    data-gravity-cursor="view"
-                  >
-                    <div className="relative mx-auto max-w-[460px] aspect-[7/4] rounded-[24px] bg-white border border-slate-200/80 shadow-[0_24px_70px_-24px_rgba(36,107,255,0.4)] overflow-hidden">
-                      <img
-                        src={proxyImageUrl(bannerSlots.heroMain.desktopImage) || NO_IMAGE}
-                        alt={bannerSlots.heroMain.altText || bannerSlots.heroMain.heading || 'Featured banner'}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover"
-                        onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }}
-                      />
-                      {bannerSlots.heroMain.badgeText && (
-                        <span className="absolute top-3 right-3 bg-[#FF8A00] text-white text-[12px] font-black px-3 py-1 rounded-full shadow-lg">{bannerSlots.heroMain.badgeText}</span>
-                      )}
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent pt-10 px-5 pb-4">
-                        <p className="text-white text-lg font-[850] leading-tight">{bannerSlots.heroMain.heading || bannerSlots.heroMain.title}</p>
-                        {(bannerSlots.heroMain.subtitle || bannerSlots.heroMain.description) && (
-                          <p className="text-white/85 text-[13px] mt-1">{bannerSlots.heroMain.subtitle || bannerSlots.heroMain.description}</p>
-                        )}
-                      </div>
-                    </div>
-                  </a>
-                </div>
-              ) : heroItem ? (
-                <div className="relative px-4 pb-2">
-                  <a href={`/products/${heroItem.slug}`} className="block relative" data-gravity-cursor="view">
-                    <div className="relative mx-auto max-w-[360px] aspect-square rounded-[24px] bg-white border border-slate-200/80 shadow-[0_24px_70px_-24px_rgba(36,107,255,0.4)] p-4">
-                      <img
-                        src={proxyImageUrl(heroItem.images?.[0] || heroItem.productImage) || NO_IMAGE}
-                        alt={heroItem.title}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-contain rounded-2xl"
-                        onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }}
-                      />
-                      {heroItem.discountPercentage ? (
-                        <span className="absolute -top-3 right-4 bg-[#FF334F] text-white text-[13px] font-black px-3 py-1 rounded-full shadow-lg rotate-3">
-                          −{heroItem.discountPercentage}%
-                        </span>
-                      ) : null}
-                      <div className="absolute -bottom-4 -left-4 bg-white rounded-2xl border border-slate-200 shadow-xl px-4 py-2.5">
-                        <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">DawnWire Score</p>
-                        <p className="text-xl font-[900] text-[#246BFF]">{(heroItem.editorScore || 0).toFixed(1)}<span className="text-sm text-slate-400"> /10</span></p>
-                      </div>
-                    </div>
-                  </a>
-                  <div className="hidden lg:flex items-center justify-center gap-4 mt-8">
-                    {topDeals.map((p, i) => i < 3 ? (
-                      <a key={p.id} href={`/products/${p.slug}`} className="w-14 h-14 rounded-xl bg-white border border-slate-200 shadow-sm overflow-hidden p-1" data-gravity-cursor="view">
-                        <img src={proxyImageUrl(p.images?.[0] || p.productImage) || NO_IMAGE} alt={p.title} referrerPolicy="no-referrer" className="w-full h-full object-contain"
-                          onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
-                      </a>
-                    ) : null)}
-                  </div>
-                </div>
-              ) : null}
-              </BannerInlineEditor>
-            </div>
-
-            {/* Bottom trust chips */}
-            <div className="mt-auto px-7 md:px-10 py-5 border-t border-[#246BFF]/10 bg-white/55">
-              <ul className="flex flex-wrap gap-x-6 gap-y-2">
-                {['1,200+ products scored', '45+ categories', 'Tracked daily from Amazon', 'Independent verdicts'].map(t => (
-                  <li key={t} className="flex items-center gap-1.5 text-[13px] font-semibold text-slate-600">
-                    <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                    </svg>
-                    {t}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </motion.div>
-
-          {/* ── 2x2 promo tiles ── */}
-          <div className="grid grid-cols-2 grid-rows-2 gap-[18px]">
-            {heroTiles.map((tile, i) => (
-              <BannerInlineEditor
-                key={tile.label + i}
-                placement={(`hero_tile_${i + 1}`) as any}
-                banner={bannerSlots.heroTiles[i]}
-                align="left"
-              >
-              <motion.a
+          className="flex transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+          style={{ transform: `translateX(-${slideIdx * 100}%)` }}
+        >
+          {/* ── Slide 1: copy + search ── */}
+          <div className="relative w-full shrink-0">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#FFFFFF] via-[#F1F6FF] to-[#FFF4E6]" />
+            <div className="absolute -top-32 -right-24 w-[520px] h-[520px] rounded-full bg-[#246BFF]/10 blur-3xl" />
+            <div className="absolute -bottom-40 -left-24 w-[460px] h-[460px] rounded-full bg-[#FF8A00]/10 blur-3xl" />
+            <div
+              className="absolute inset-0 opacity-[0.45]"
+              style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(100,116,139,0.30) 1px, transparent 0)', backgroundSize: '28px 28px' }}
+            />
+            <div className="relative commerce-container grid grid-cols-1 lg:grid-cols-[minmax(0,1.8fr)_minmax(350px,1fr)] gap-[18px] items-stretch py-10 lg:py-14">
+              <motion.div
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: 0.08 + i * 0.06 }}
-                href={tile.href}
+                transition={{ duration: 0.5 }}
+                className="relative rounded-[24px] overflow-hidden border border-white/70 shadow-[0_20px_60px_-24px_rgba(36,107,255,0.28)] bg-gradient-to-br from-white via-[#F4F8FF] to-[#FFF3E6] min-h-[460px] flex flex-col"
                 data-gravity-cursor="explore"
-                className={`group relative overflow-hidden rounded-2xl border border-white/80 shadow-[0_12px_36px_-16px_rgba(36,107,255,0.25)] min-h-[205px] bg-gradient-to-br ${tile.tint} to-transparent`}
               >
-                {tile.imageUrl ? (
-                  <img
-                    src={tile.imageUrl}
-                    alt={tile.label}
-                    referrerPolicy="no-referrer"
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                  />
-                ) : tile.img ? (
-                  <img
-                    src={proxyImageUrl(tile.img.images?.[0] || tile.img.productImage) || NO_IMAGE}
-                    alt={tile.label}
-                    referrerPolicy="no-referrer"
-                    className="absolute -right-6 -top-4 w-[64%] h-[68%] object-contain drop-shadow-xl transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-3"
-                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                  />
-                ) : null}
-                <div className="absolute inset-0 bg-gradient-to-tr from-black/45 via-black/10 to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4 z-10">
-                  <p className="text-[13px] font-bold text-amber-300">{tile.label}</p>
-                  <p className="text-[12px] text-white/85 mt-0.5">{tile.sub}</p>
-                  <span className="mt-2 inline-flex items-center gap-1 text-[12px] font-bold text-white">
-                    Shop now
-                    <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="grid grid-cols-1 md:grid-cols-[1.05fr_0.95fr] gap-2 px-7 md:px-10 pt-8 md:pt-10 pb-0 items-center flex-1">
+                  {/* Left: copy */}
+                  <div className="pb-6">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-[#246BFF]/25 bg-white/80 px-3.5 py-1.5 text-[13px] font-bold text-[#246BFF] shadow-sm">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#246BFF] opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#246BFF]" />
+                      </span>
+                      {bannerSlots.heroMain?.subtitle || 'AI-powered deals & independent benchmarks'}
+                    </div>
+                    <h1 className="mt-5 text-4xl sm:text-5xl xl:text-[58px] font-[900] tracking-tight leading-[1.02] text-slate-900 font-sans">
+                      {bannerSlots.heroMain?.heading ? (
+                        bannerSlots.heroMain.heading
+                      ) : (
+                        <>
+                          Done-For-You Shopping.
+                          <span className="block mt-2 bg-gradient-to-r from-[#246BFF] via-[#1a57e0] to-[#FF8A00] bg-clip-text text-transparent">
+                            Honest Scores. Verified Deals.
+                          </span>
+                        </>
+                      )}
+                    </h1>
+                    <p className="mt-5 max-w-lg text-[16px] leading-relaxed text-slate-600">
+                      {bannerSlots.heroMain?.description || 'DawnWire researches, price-checks and scores the best products of 2026 — so you buy the right thing, at the right price, in seconds instead of hours.'}
+                    </p>
+
+                    {/* Hero search */}
+                    <form onSubmit={submitHeroSearch} className="mt-7 max-w-xl">
+                      <div className="bg-white/80 backdrop-blur rounded-2xl p-1.5 flex items-stretch gap-1 border border-white/80 shadow-[0_10px_30px_-8px_rgba(36,107,255,0.18)]">
+                        <span className="hidden sm:flex items-center pl-3 text-slate-400">
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                        </span>
+                        <input
+                          value={heroQuery}
+                          onChange={e => setHeroQuery(e.target.value)}
+                          placeholder="Search products, deals, reviews or guides…"
+                          aria-label="Search DawnWire"
+                          className="flex-1 min-w-0 bg-transparent px-3 sm:px-2 py-3 text-[15px] text-slate-900 placeholder-slate-400 outline-none"
+                        />
+                        <button type="submit" className="bg-[#246BFF] hover:bg-[#164EE8] text-white font-bold px-6 py-2.5 rounded-xl shrink-0">Search</button>
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-slate-500">
+                        <span className="font-bold text-slate-600">Trending:</span>
+                        {['Wireless Headphones', 'Korean Skincare', 'Air Fryers'].map(t => (
+                          <button key={t} type="button" onClick={() => setHeroQuery(t)} className="hover:text-[#246BFF] font-semibold transition-colors">{t}</button>
+                        ))}
+                      </div>
+                    </form>
+
+                    {/* Hero CTAs */}
+                    <div className="mt-6 flex flex-wrap items-center gap-3">
+                      <button onClick={onOpenAiFinder} className="inline-flex items-center gap-2 rounded-xl bg-[#FF8A00] hover:bg-[#e67b00] text-white font-bold px-6 py-3 text-[15px] shadow-[0_8px_22px_-8px_rgba(255,138,0,0.6)] transition-all hover:-translate-y-0.5">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Find My Perfect Product
+                      </button>
+                      <a href="/products?sort=rating" className="inline-flex items-center gap-2 rounded-xl border border-slate-300 text-slate-700 hover:border-[#246BFF] hover:text-[#246BFF] font-bold px-6 py-3 text-[15px] transition-all">
+                        Browse Best Sellers
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Right: large product imagery (or admin hero banner) */}
+                  <BannerInlineEditor placement="hero_main" banner={bannerSlots.heroMain}>
+                  {bannerSlots.heroMain?.desktopImage ? (
+                    <div className="relative px-4 pb-2">
+                      <a
+                        href={bannerSlots.heroMain.targetUrl || bannerSlots.heroMain.ctaLink || '/deals'}
+                        className="block relative"
+                        data-gravity-cursor="view"
+                      >
+                        <div className="relative mx-auto max-w-[460px] aspect-[7/4] rounded-[24px] bg-white border border-slate-200/80 shadow-[0_24px_70px_-24px_rgba(36,107,255,0.4)] overflow-hidden">
+                          <img
+                            src={proxyImageUrl(bannerSlots.heroMain.desktopImage) || NO_IMAGE}
+                            alt={bannerSlots.heroMain.altText || bannerSlots.heroMain.heading || 'Featured banner'}
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover"
+                            onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }}
+                          />
+                          {bannerSlots.heroMain.badgeText && (
+                            <span className="absolute top-3 right-3 bg-[#FF8A00] text-white text-[12px] font-black px-3 py-1 rounded-full shadow-lg">{bannerSlots.heroMain.badgeText}</span>
+                          )}
+                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent pt-10 px-5 pb-4">
+                            <p className="text-white text-lg font-[850] leading-tight">{bannerSlots.heroMain.heading || bannerSlots.heroMain.title}</p>
+                            {(bannerSlots.heroMain.subtitle || bannerSlots.heroMain.description) && (
+                              <p className="text-white/85 text-[13px] mt-1">{bannerSlots.heroMain.subtitle || bannerSlots.heroMain.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      </a>
+                    </div>
+                  ) : heroItem ? (
+                    <div className="relative px-4 pb-2">
+                      <a href={`/products/${heroItem.slug}`} className="block relative" data-gravity-cursor="view">
+                        <div className="relative mx-auto max-w-[360px] aspect-square rounded-[24px] bg-white border border-slate-200/80 shadow-[0_24px_70px_-24px_rgba(36,107,255,0.4)] p-4">
+                          <img
+                            src={proxyImageUrl(heroItem.images?.[0] || heroItem.productImage) || NO_IMAGE}
+                            alt={heroItem.title}
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-contain rounded-2xl"
+                            onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }}
+                          />
+                          {heroItem.discountPercentage ? (
+                            <span className="absolute -top-3 right-4 bg-[#FF334F] text-white text-[13px] font-black px-3 py-1 rounded-full shadow-lg rotate-3">
+                              −{heroItem.discountPercentage}%
+                            </span>
+                          ) : null}
+                          <div className="absolute -bottom-4 -left-4 bg-white rounded-2xl border border-slate-200 shadow-xl px-4 py-2.5">
+                            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">DawnWire Score</p>
+                            <p className="text-xl font-[900] text-[#246BFF]">{(heroItem.editorScore || 0).toFixed(1)}<span className="text-sm text-slate-400"> /10</span></p>
+                          </div>
+                        </div>
+                      </a>
+                      <div className="hidden lg:flex items-center justify-center gap-4 mt-8">
+                        {topDeals.map((p, i) => i < 3 ? (
+                          <a key={p.id} href={`/products/${p.slug}`} className="w-14 h-14 rounded-xl bg-white border border-slate-200 shadow-sm overflow-hidden p-1" data-gravity-cursor="view">
+                            <img src={proxyImageUrl(p.images?.[0] || p.productImage) || NO_IMAGE} alt={p.title} referrerPolicy="no-referrer" className="w-full h-full object-contain"
+                              onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
+                          </a>
+                        ) : null)}
+                      </div>
+                    </div>
+                  ) : null}
+                  </BannerInlineEditor>
+                </div>
+
+                {/* Bottom trust chips */}
+                <div className="mt-auto px-7 md:px-10 py-5 border-t border-[#246BFF]/10 bg-white/55">
+                  <ul className="flex flex-wrap gap-x-6 gap-y-2">
+                    {['1,200+ products scored', '45+ categories', 'Tracked daily from Amazon', 'Independent verdicts'].map(t => (
+                      <li key={t} className="flex items-center gap-1.5 text-[13px] font-semibold text-slate-600">
+                        <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                        {t}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+
+          {/* ── Slides 2+: admin banner slides (full-bleed) ── */}
+          {heroSlides.map((slide, i) => (
+            <div key={i} className="relative w-full shrink-0">
+              <img
+                src={slide.image}
+                alt={slide.heading}
+                referrerPolicy="no-referrer"
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/10" />
+              <div className="relative commerce-container flex items-end min-h-[560px] py-12">
+                <motion.div
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.55 }}
+                  className="max-w-xl"
+                >
+                  {slide.badge && (
+                    <span className="inline-block bg-[#FF8A00] text-white text-[11px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-4 shadow-lg">{slide.badge}</span>
+                  )}
+                  <h2 className="text-3xl md:text-5xl font-[900] tracking-tight leading-[1.05] text-white drop-shadow-lg">{slide.heading}</h2>
+                  {slide.sub && <p className="mt-3 text-white/85 text-base md:text-lg max-w-md leading-relaxed">{slide.sub}</p>}
+                  <a
+                    href={slide.href}
+                    className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#FF8A00] hover:bg-[#e67b00] text-white font-bold px-7 py-3.5 text-[15px] shadow-[0_12px_30px_-10px_rgba(255,138,0,0.7)] transition-all hover:-translate-y-0.5"
+                  >
+                    {slide.cta}
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                     </svg>
-                  </span>
-                </div>
-              </motion.a>
-              </BannerInlineEditor>
-            ))}
-          </div>
+                  </a>
+                </motion.div>
+              </div>
+            </div>
+          ))}
         </div>
+
+        {/* Slider arrows */}
+        {totalSlides > 1 && (
+          <>
+            <button
+              onClick={() => goSlide(slideIdx - 1)}
+              aria-label="Previous slide"
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/85 hover:bg-white text-slate-700 shadow-lg flex items-center justify-center backdrop-blur transition-all active:scale-95"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={() => goSlide(slideIdx + 1)}
+              aria-label="Next slide"
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/85 hover:bg-white text-slate-700 shadow-lg flex items-center justify-center backdrop-blur transition-all active:scale-95"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+            {/* Dots */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+              {Array.from({ length: totalSlides }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => goSlide(i)}
+                  aria-label={`Go to slide ${i + 1}`}
+                  className={`h-2 rounded-full transition-all duration-300 ${slideIdx === i ? 'w-7 bg-[#246BFF]' : 'w-2 bg-slate-400/60 hover:bg-slate-500'}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </section>
 
       {/* ============================ TRUST STRIP ============================ */}
@@ -482,86 +635,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
       </section>
 
       <main className="commerce-container space-y-14 md:space-y-20 py-12 md:py-16">
-        {/* ============================ SHOP BY CATEGORY ============================ */}
+        {/* ============================ BANNER ROW 1 (reference home1-banner-1) ============================ */}
         <section>
-          <SectionHead title="Shop by Category" sub="From tech to self-care — every pick independently scored" href="/categories" label="All Categories" />
-          <div className="flex gap-5 md:gap-7 overflow-x-auto pb-4 -mx-1 px-1 snap-x">
-            {shopCategories.map(cat => {
-              const img = categoryImage(cat);
-              const count = productCountFor(cat.name);
-              return (
-                <a key={cat.id} href={`/categories/${cat.slug}`} data-gravity-cursor="explore"
-                  className="snap-start shrink-0 flex flex-col items-center w-[104px] group">
-                  <div className="w-[104px] h-[104px] rounded-full overflow-hidden border-4 border-white shadow-[0_10px_28px_-10px_rgba(36,107,255,0.35)] bg-white group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
-                    {img ? (
-                      <img
-                        src={img}
-                        alt={cat.name}
-                        loading="lazy"
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-contain p-2"
-                        onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }}
-                      />
-                    ) : (
-                      <AnimatedCategoryIcon
-                        slug={cat.slug}
-                        icon={cat.icon}
-                        image={cat.image}
-                        className="w-12 h-12"
-                      />
-                    )}
-                  </div>
-                  <p className="mt-2.5 text-[13px] font-bold text-slate-800 text-center leading-tight group-hover:text-[#246BFF] transition-colors line-clamp-1">{cat.name}</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">{count} products</p>
-                </a>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* ============================ TODAY'S BEST DEALS ============================ */}
-        {topDeals.length > 0 && (
-          <section>
-            <SectionHead title="Today's Best Deals" sub="The steepest real discounts we're tracking right now" href="/deals" label="All Deals" />
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-              {topDeals.map(p => {
-                const disc = p.discountPercentage || (Number(p.referencePrice) > Number(p.currentPrice)
-                  ? Math.round((1 - Number(p.currentPrice) / Number(p.referencePrice)) * 100) : 0);
-                return (
-                  <a key={p.id} href={`/products/${p.slug}`} data-gravity-cursor="view"
-                    className="group flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-[0_18px_44px_-16px_rgba(36,107,255,0.3)] hover:-translate-y-1 hover:border-[#246BFF]/40 transition-all duration-300">
-                    <div className="relative bg-white h-[225px] flex items-center justify-center overflow-hidden p-4">
-                      {disc > 0 && (
-                        <span className="absolute top-2.5 left-2.5 z-10 bg-[#FF334F] text-white text-[12px] font-black px-2.5 py-1 rounded-lg shadow-md">−{disc}%</span>
-                      )}
-                      {p.isDeal && (
-                        <span className="absolute top-2.5 right-2.5 z-10 bg-[#FF8A00] text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase">Deal</span>
-                      )}
-                      <img src={proxyImageUrl(p.images?.[0] || p.productImage) || NO_IMAGE} alt={p.title} loading="lazy"
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-contain mix-blend-normal drop-shadow-[0_14px_20px_rgba(15,23,42,0.12)] transition-transform duration-500 group-hover:scale-108"
-                        onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
-                    </div>
-                    <div className="flex flex-col flex-1 gap-1.5 px-3.5 pb-3.5 pt-1">
-                      <p className="text-[11px] font-bold text-[#246BFF] uppercase tracking-wide truncate">{p.brand}</p>
-                      <h3 className="text-[13px] font-bold text-slate-900 line-clamp-2 leading-snug min-h-[36px]">{p.title}</h3>
-                      <Stars rating={p.rating} count={p.reviewCount} size={13} />
-                      <PriceBlock price={p.currentPrice || p.price} was={p.referencePrice} />
-                      <span className="mt-auto pt-1.5 w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#FF8A00] to-[#FF9E33] hover:from-[#e67b00] hover:to-[#FF8A00] text-white text-[13px] font-bold py-3 shadow-[0_6px_16px_-6px_rgba(255,138,0,0.5)] transition-all group-hover:shadow-[0_10px_22px_-6px_rgba(255,138,0,0.6)]">
-                        Check Price on Amazon
-                      </span>
-                    </div>
-                  </a>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* ============================ PROMOTIONAL BANNERS ============================ */}
-        <section>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {promoBanners.map((banner, i) => {
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {promoBanners.slice(0, 2).map((banner, i) => {
               const isAdminPromo = !!bannerSlots.promos[i];
               return (
               <BannerInlineEditor
@@ -609,60 +686,259 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           </div>
         </section>
 
-        {/* ============================ POPULAR IN ELECTRONICS / BEAUTY ============================ */}
-        {rails.length > 0 && (
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {rails.map(({ cat, prods }) => (
-              <div key={cat.id} className="bg-white rounded-3xl border border-slate-200 p-6">
-                <div className="flex items-center justify-between gap-3 mb-5">
-                  <div>
-                    <h2 className="text-xl md:text-2xl font-[850] text-slate-900">{cat.name}</h2>
-                    <p className="text-[13px] text-slate-500 mt-0.5 truncate">{cat.description || 'Independently reviewed picks'}</p>
-                  </div>
-                  <a href={`/categories/${cat.slug}`} className="shrink-0 text-[13px] font-bold text-[#246BFF] hover:text-[#1a57e0] flex items-center gap-1 whitespace-nowrap">
-                    Shop Now
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-                  </a>
-                </div>
-                {prods.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {prods.map(p => (
-                      <a key={p.id} href={`/products/${p.slug}`} data-gravity-cursor="view"
-                        className="group flex items-center gap-3 rounded-2xl border border-slate-100 hover:border-[#246BFF]/40 hover:bg-[#F8FAFC] p-2.5 transition-all">
-                        <div className="flex items-center justify-center bg-white border border-slate-200 rounded-xl w-[92px] h-[92px] shrink-0 overflow-hidden p-2 group-hover:scale-[1.02] transition-transform">
-                          <img src={proxyImageUrl(p.images?.[0] || p.productImage) || NO_IMAGE} alt={p.title} loading="lazy"
-                            referrerPolicy="no-referrer" className="w-full h-full object-contain"
-                            onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[11px] font-bold text-[#246BFF] uppercase truncate">{p.brand}</p>
-                          <h3 className="text-[14px] font-bold text-slate-900 line-clamp-2 leading-snug group-hover:text-[#246BFF] transition-colors">{p.title}</h3>
-                          <div className="mt-1.5 flex items-center justify-between gap-2">
-                            <Stars rating={p.rating} count={p.reviewCount} size={13} />
-                            <div className="text-right">
-                              {Number(p.currentPrice || p.price) > 0 ? (
-                                <>
-                                  <p className="text-[15px] font-[850] text-slate-900 leading-none">${Number(p.currentPrice || p.price).toFixed(2)}</p>
-                                  {Number(p.referencePrice) > Number(p.currentPrice || 0) && (
-                                    <p className="text-[10px] text-slate-400 line-through mt-0.5">${Number(p.referencePrice).toFixed(2)}</p>
-                                  )}
-                                </>
-                              ) : (
-                                <p className="text-[11px] font-semibold text-slate-500">Check price</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-[13px] text-slate-500 py-8 text-center">Products coming soon.</p>
-                )}
+        {/* ============================ TODAY'S BEST DEALS (reference so-deals + countdown) ============================ */}
+        {topDeals.length > 0 && (
+          <section>
+            <div className="flex items-end justify-between gap-4 mb-6 md:mb-8">
+              <div>
+                <h2 className="text-2xl md:text-3xl lg:text-[32px] font-[850] tracking-tight leading-tight font-sans text-slate-900">
+                  Hot Deals <span className="align-middle text-base font-bold text-[#FF334F]">🔥</span>
+                </h2>
+                <div className="mt-1.5 text-sm text-slate-500">The steepest real discounts we're tracking right now</div>
               </div>
-            ))}
+              <div className="flex items-center gap-3 shrink-0">
+                <span className="hidden sm:block text-[12px] font-bold uppercase tracking-wider text-slate-400">Ends in</span>
+                <DealsCountdown />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+              {topDeals.map(p => {
+                const disc = p.discountPercentage || (Number(p.referencePrice) > Number(p.currentPrice)
+                  ? Math.round((1 - Number(p.currentPrice) / Number(p.referencePrice)) * 100) : 0);
+                return (
+                  <a key={p.id} href={`/products/${p.slug}`} data-gravity-cursor="view"
+                    className="group flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-[0_18px_44px_-16px_rgba(36,107,255,0.3)] hover:-translate-y-1 hover:border-[#246BFF]/40 transition-all duration-300">
+                    <div className="relative bg-white h-[225px] flex items-center justify-center overflow-hidden p-4">
+                      {disc > 0 && (
+                        <span className="absolute top-2.5 left-2.5 z-10 bg-[#FF334F] text-white text-[12px] font-black px-2.5 py-1 rounded-lg shadow-md">−{disc}%</span>
+                      )}
+                      {p.isDeal && (
+                        <span className="absolute top-2.5 right-2.5 z-10 bg-[#FF8A00] text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase">Deal</span>
+                      )}
+                      <img src={proxyImageUrl(p.images?.[0] || p.productImage) || NO_IMAGE} alt={p.title} loading="lazy"
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-contain mix-blend-normal drop-shadow-[0_14px_20px_rgba(15,23,42,0.12)] transition-transform duration-500 group-hover:scale-108"
+                        onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
+                    </div>
+                    <div className="flex flex-col flex-1 gap-1.5 px-3.5 pb-3.5 pt-1">
+                      <p className="text-[11px] font-bold text-[#246BFF] uppercase tracking-wide truncate">{p.brand}</p>
+                      <h3 className="text-[13px] font-bold text-slate-900 line-clamp-2 leading-snug min-h-[36px]">{p.title}</h3>
+                      <Stars rating={p.rating} count={p.reviewCount} size={13} />
+                      <PriceBlock price={p.currentPrice || p.price} was={p.referencePrice} />
+                      <span className="mt-auto pt-1.5 w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#FF8A00] to-[#FF9E33] hover:from-[#e67b00] hover:to-[#FF8A00] text-white text-[13px] font-bold py-3 shadow-[0_6px_16px_-6px_rgba(255,138,0,0.5)] transition-all group-hover:shadow-[0_10px_22px_-6px_rgba(255,138,0,0.6)]">
+                        Check Price on Amazon
+                      </span>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
           </section>
         )}
+
+        {/* ============================ BANNER ROW 2 (reference home1-banner-2) ============================ */}
+        <section>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {promoBanners.slice(2, 3).map((banner, i) => {
+              const slot = 2;
+              const isAdminPromo = !!bannerSlots.promos[slot];
+              return (
+              <BannerInlineEditor
+                key={banner.title + slot}
+                placement="promo_3"
+                banner={bannerSlots.promos[slot]}
+                align="left"
+              >
+              <a href={banner.href} data-gravity-cursor="explore"
+                className={`relative overflow-hidden rounded-2xl min-h-[190px] flex items-end border border-white/80 bg-gradient-to-br ${banner.tint} to-transparent shadow-[0_14px_40px_-18px_rgba(36,107,255,0.3)] group`}>
+                {isAdminPromo ? (
+                  <img src={banner.image} alt={banner.title} loading="lazy" referrerPolicy="no-referrer"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                ) : (
+                  <img src={banner.image} alt={banner.title} loading="lazy" referrerPolicy="no-referrer"
+                    className="absolute -right-8 top-1/2 -translate-y-1/2 w-[55%] h-[88%] object-contain mix-blend-luminosity opacity-75 drop-shadow-[0_18px_28px_rgba(15,23,42,0.35)] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-2"
+                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                )}
+                <div className={`absolute inset-0 ${isAdminPromo ? 'bg-gradient-to-t from-black/80 via-black/40 to-transparent' : 'bg-gradient-to-t from-black/70 via-black/25 to-transparent'}`} />
+                <div className="relative z-10 p-5">
+                  <span className="inline-block bg-[#FF8A00] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full mb-2 shadow-sm">{banner.label}</span>
+                  <h3 className={`text-xl font-[850] text-white leading-tight drop-shadow-sm ${isAdminPromo ? '' : 'max-w-[62%]'}`}>{banner.title}</h3>
+                  <span className="mt-2.5 inline-flex items-center gap-1.5 text-[12px] font-bold text-white bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-3 py-1.5 transition-colors group-hover:bg-white/25">
+                    {banner.cta}
+                    <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
+                </div>
+              </a>
+              </BannerInlineEditor>
+              );
+            })}
+            {/* Second half: hero tile banner (admin or fallback) */}
+            <BannerInlineEditor placement="hero_tile_1" banner={bannerSlots.heroTiles[0]} align="left">
+            <a href={heroTiles[0].href} data-gravity-cursor="explore"
+              className={`relative overflow-hidden rounded-2xl min-h-[190px] flex items-end border border-white/80 bg-gradient-to-br ${heroTiles[0].tint} to-transparent shadow-[0_14px_40px_-18px_rgba(36,107,255,0.3)] group`}>
+              {heroTiles[0].imageUrl ? (
+                <img src={heroTiles[0].imageUrl} alt={heroTiles[0].label} loading="lazy" referrerPolicy="no-referrer"
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              ) : heroTiles[0].img ? (
+                <img src={proxyImageUrl(heroTiles[0].img.images?.[0] || heroTiles[0].img.productImage) || NO_IMAGE} alt={heroTiles[0].label}
+                  referrerPolicy="no-referrer" loading="lazy"
+                  className="absolute -right-8 top-1/2 -translate-y-1/2 w-[55%] h-[88%] object-contain mix-blend-luminosity opacity-75 drop-shadow-[0_18px_28px_rgba(15,23,42,0.35)] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-2"
+                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              ) : null}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
+              <div className="relative z-10 p-5">
+                <span className="inline-block bg-[#FF8A00] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full mb-2 shadow-sm">{heroTiles[0].label}</span>
+                <h3 className="text-xl font-[850] text-white leading-tight drop-shadow-sm max-w-[62%]">{heroTiles[0].sub}</h3>
+                <span className="mt-2.5 inline-flex items-center gap-1.5 text-[12px] font-bold text-white bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-3 py-1.5 transition-colors group-hover:bg-white/25">
+                  Shop now
+                  <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                  </svg>
+                </span>
+              </div>
+            </a>
+            </BannerInlineEditor>
+          </div>
+        </section>
+
+        {/* ============================ SHOP BY CATEGORY ============================ */}
+        <section>
+          <SectionHead title="Shop by Category" sub="From tech to self-care — every pick independently scored" href="/categories" label="All Categories" />
+          <div className="flex gap-5 md:gap-7 overflow-x-auto pb-4 -mx-1 px-1 snap-x">
+            {shopCategories.map(cat => {
+              const img = categoryImage(cat);
+              const count = productCountFor(cat.name);
+              return (
+                <a key={cat.id} href={`/categories/${cat.slug}`} data-gravity-cursor="explore"
+                  className="snap-start shrink-0 flex flex-col items-center w-[104px] group">
+                  <div className="w-[104px] h-[104px] rounded-full overflow-hidden border-4 border-white shadow-[0_10px_28px_-10px_rgba(36,107,255,0.35)] bg-white group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
+                    {img ? (
+                      <img
+                        src={img}
+                        alt={cat.name}
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-contain p-2"
+                        onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }}
+                      />
+                    ) : (
+                      <AnimatedCategoryIcon
+                        slug={cat.slug}
+                        icon={cat.icon}
+                        image={cat.image}
+                        className="w-12 h-12"
+                      />
+                    )}
+                  </div>
+                  <p className="mt-2.5 text-[13px] font-bold text-slate-800 text-center leading-tight group-hover:text-[#246BFF] transition-colors line-clamp-1">{cat.name}</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">{count} products</p>
+                </a>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* ============================ TABBED PRODUCT RAILS (reference so-listing-tabs) ============================ */}
+        {tabCategories.length > 0 && (
+          <section>
+            <SectionHead title="Popular Right Now" sub="Top-rated picks across our best categories" href="/products?sort=rating" label="All Products" />
+            {/* Tabs */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              {tabCategories.map((cat, i) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveTab(i)}
+                  className={`px-4 py-2 rounded-xl text-[13px] font-bold transition-all ${
+                    activeTab === i
+                      ? 'bg-[#246BFF] text-white shadow-[0_8px_20px_-8px_rgba(36,107,255,0.6)]'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:border-[#246BFF]/40 hover:text-[#246BFF]'
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+            {tabProducts.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                {tabProducts.map(p => {
+                  const disc = p.discountPercentage || (Number(p.referencePrice) > Number(p.currentPrice)
+                    ? Math.round((1 - Number(p.currentPrice) / Number(p.referencePrice)) * 100) : 0);
+                  return (
+                    <a key={p.id} href={`/products/${p.slug}`} data-gravity-cursor="view"
+                      className="group flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-[0_18px_44px_-16px_rgba(36,107,255,0.3)] hover:-translate-y-1 hover:border-[#246BFF]/40 transition-all duration-300">
+                      <div className="relative bg-white h-[200px] flex items-center justify-center overflow-hidden p-4">
+                        {disc > 0 && (
+                          <span className="absolute top-2.5 left-2.5 z-10 bg-[#FF334F] text-white text-[12px] font-black px-2.5 py-1 rounded-lg shadow-md">−{disc}%</span>
+                        )}
+                        <img src={proxyImageUrl(p.images?.[0] || p.productImage) || NO_IMAGE} alt={p.title} loading="lazy"
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-contain mix-blend-normal drop-shadow-[0_14px_20px_rgba(15,23,42,0.12)] transition-transform duration-500 group-hover:scale-108"
+                          onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
+                      </div>
+                      <div className="flex flex-col flex-1 gap-1.5 px-3.5 pb-3.5 pt-1">
+                        <p className="text-[11px] font-bold text-[#246BFF] uppercase tracking-wide truncate">{p.brand}</p>
+                        <h3 className="text-[13px] font-bold text-slate-900 line-clamp-2 leading-snug min-h-[36px]">{p.title}</h3>
+                        <Stars rating={p.rating} count={p.reviewCount} size={13} />
+                        <PriceBlock price={p.currentPrice || p.price} was={p.referencePrice} />
+                        <span className="mt-auto pt-1.5 w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#FF8A00] to-[#FF9E33] hover:from-[#e67b00] hover:to-[#FF8A00] text-white text-[13px] font-bold py-3 shadow-[0_6px_16px_-6px_rgba(255,138,0,0.5)] transition-all group-hover:shadow-[0_10px_22px_-6px_rgba(255,138,0,0.6)]">
+                          Check Price on Amazon
+                        </span>
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-[13px] text-slate-500 py-8 text-center bg-white rounded-2xl border border-slate-200">Products coming soon.</p>
+            )}
+          </section>
+        )}
+
+        {/* ============================ BANNER ROW 3 (reference banner-tab) ============================ */}
+        <section>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[1, 2].map((idx) => {
+              const tile = heroTiles[idx];
+              return (
+              <BannerInlineEditor
+                key={tile.label + idx}
+                placement={(`hero_tile_${idx + 1}`) as any}
+                banner={bannerSlots.heroTiles[idx]}
+                align="left"
+              >
+              <a href={tile.href} data-gravity-cursor="explore"
+                className={`relative overflow-hidden rounded-2xl min-h-[190px] flex items-end border border-white/80 bg-gradient-to-br ${tile.tint} to-transparent shadow-[0_14px_40px_-18px_rgba(36,107,255,0.3)] group`}>
+                {tile.imageUrl ? (
+                  <img src={tile.imageUrl} alt={tile.label} loading="lazy" referrerPolicy="no-referrer"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                ) : tile.img ? (
+                  <img src={proxyImageUrl(tile.img.images?.[0] || tile.img.productImage) || NO_IMAGE} alt={tile.label}
+                    referrerPolicy="no-referrer" loading="lazy"
+                    className="absolute -right-8 top-1/2 -translate-y-1/2 w-[55%] h-[88%] object-contain mix-blend-luminosity opacity-75 drop-shadow-[0_18px_28px_rgba(15,23,42,0.35)] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-2"
+                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                ) : null}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
+                <div className="relative z-10 p-5">
+                  <span className="inline-block bg-[#FF8A00] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full mb-2 shadow-sm">{tile.label}</span>
+                  <h3 className="text-xl font-[850] text-white leading-tight drop-shadow-sm max-w-[62%]">{tile.sub}</h3>
+                  <span className="mt-2.5 inline-flex items-center gap-1.5 text-[12px] font-bold text-white bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-3 py-1.5 transition-colors group-hover:bg-white/25">
+                    Shop now
+                    <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
+                </div>
+              </a>
+              </BannerInlineEditor>
+              );
+            })}
+          </div>
+        </section>
 
         {/* ============================ COMPARISON + AI ============================ */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -763,7 +1039,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           </div>
         </section>
 
-        {/* ============================ LATEST BUYING GUIDES ============================ */}
+        {/* ============================ LATEST BUYING GUIDES (reference so-latest-blog) ============================ */}
         {posts.length > 0 && (
           <section>
             <SectionHead title="Latest Buying Guides" sub="What to look for before you buy" href="/guides" label="All Guides" />
@@ -796,7 +1072,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           </section>
         )}
 
-        {/* ============================ SHOP BY BRAND ============================ */}
+        {/* ============================ SHOP BY BRAND (reference top-brand slider) ============================ */}
         {brandsAll.length > 0 && (
           <section>
             <SectionHead title="Shop by Brand" sub="Brands we've tested and recommend" href="/brands" label="All Brands" />
@@ -826,6 +1102,54 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             </div>
           </section>
         )}
+
+        {/* ============================ NEWSLETTER STRIP (reference newsletter_promo) ============================ */}
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#164EE8] via-[#246BFF] to-[#4F7CFF] px-7 md:px-12 py-10 md:py-12">
+          <div className="absolute -top-24 -right-16 w-72 h-72 rounded-full bg-white/10 blur-3xl" />
+          <div className="absolute -bottom-28 -left-16 w-64 h-64 rounded-full bg-[#FF8A00]/25 blur-3xl" />
+          <div className="relative grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-8 items-center">
+            <div>
+              <span className="inline-flex items-center gap-2 bg-white/15 text-white text-[11px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-white/25">
+                ✉️ Deals straight to your inbox
+              </span>
+              <h2 className="mt-4 text-2xl md:text-4xl font-[900] tracking-tight text-white leading-tight">
+                Never Miss a Price Drop
+              </h2>
+              <p className="mt-2.5 text-white/80 text-sm md:text-base max-w-lg leading-relaxed">
+                Join our newsletter and get the hottest Amazon deals, buying guides and early access — before they sell out.
+              </p>
+            </div>
+            <form onSubmit={submitNewsletter} className="w-full">
+              <div className="bg-white rounded-2xl p-1.5 flex items-stretch gap-1 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.4)]">
+                <span className="hidden sm:flex items-center pl-3 text-slate-400">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </span>
+                <input
+                  type="email"
+                  required
+                  value={nlEmail}
+                  onChange={e => setNlEmail(e.target.value)}
+                  placeholder="Enter your email address"
+                  aria-label="Email address"
+                  className="flex-1 min-w-0 bg-transparent px-3 sm:px-2 py-3.5 text-[15px] text-slate-900 placeholder-slate-400 outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={nlBusy}
+                  className="bg-[#FF8A00] hover:bg-[#e67b00] disabled:opacity-60 text-white font-bold px-6 py-3 rounded-xl shrink-0 transition-colors"
+                >
+                  {nlBusy ? 'Sending…' : 'Subscribe'}
+                </button>
+              </div>
+              {nlMsg && (
+                <p className={`mt-3 text-[13px] font-bold ${nlMsg.ok ? 'text-emerald-200' : 'text-amber-200'}`}>{nlMsg.text}</p>
+              )}
+              <p className="mt-3 text-[12px] text-white/60">No spam, ever. Unsubscribe anytime.</p>
+            </form>
+          </div>
+        </section>
       </main>
 
       {/* ============================ AFFILIATE DISCLOSURE ============================ */}

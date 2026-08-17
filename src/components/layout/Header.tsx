@@ -218,8 +218,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
       {/* Top Announcement Bar — bright soft-blue wash (no navy) */}
       <div className="bg-gradient-to-r from-[#EAF2FF] via-[#F4F8FF] to-[#FFF3E6] text-slate-800 text-xs font-medium py-1 px-4 border-b border-[#246BFF]/10">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="bg-[#FF8A00] text-white font-black text-[10px] px-1.5 py-0.5 rounded uppercase">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <span className="bg-[#FF8A00] text-white font-black text-[10px] px-1.5 py-0.5 rounded uppercase shrink-0">
               NEW
             </span>
             <span className="truncate text-slate-700">
@@ -527,7 +527,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
 
           {/* Compare */}
           <a href="/compare" aria-label="Compare products" title="Compare products"
-            className="relative hw-glass-icon">
+            className="relative hw-glass-icon hidden sm:inline-flex">
             <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 13V7m0 6a4 4 0 004-4h6m-2-2l2 2-2 2M16 11v6m0 0a4 4 0 01-4 4H6m2-2l-2-2 2-2" />
             </svg>
@@ -547,7 +547,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
           {/* High Contrast Accessibility Toggle */}
           <button
             onClick={toggleHighContrast}
-            className={`hw-glass-btn px-3 py-2 ${
+            className={`hw-glass-btn px-3 py-2 hidden sm:inline-flex ${
               isHighContrast ? 'ring-2 ring-slate-900 dark:ring-white !border-slate-400' : ''
             }`}
             title={isHighContrast ? "Disable High Contrast" : "Enable High Contrast"}
