@@ -53,13 +53,13 @@ export const AffiliateCTA: React.FC<AffiliateCTAProps> = ({
   const getVariantStyles = () => {
     switch (variant) {
       case 'deal':
-        return 'bg-gradient-to-r from-dw-blue to-dw-orange hover:from-dw-blue-600 hover:to-orange-500 text-white shadow-lg shadow-dw-orange/25 border-none font-extrabold';
+        return 'bg-gradient-to-r from-[#1a2b4a] to-[#246BFF] hover:from-[#0f1d35] hover:to-[#164EE8] text-white shadow-lg shadow-[#1a2b4a]/25 border-none font-extrabold';
       case 'sticky_mobile':
-        return 'w-full bg-gradient-to-r from-dw-blue to-dw-orange hover:opacity-90 text-white font-bold py-3 px-6 shadow-xl text-center rounded-xl text-base flex items-center justify-center gap-2';
+        return 'w-full bg-gradient-to-r from-[#1a2b4a] to-[#246BFF] hover:opacity-90 text-white font-bold py-3 px-6 shadow-xl text-center rounded-xl text-base flex items-center justify-center gap-2';
       case 'secondary':
         return 'bg-[#246BFF] hover:bg-[#164EE8] text-white shadow-md font-bold';
       case 'outline':
-        return 'border-2 border-dw-orange/80 hover:border-dw-orange text-dw-orange hover:bg-orange-50 dark:hover:bg-orange-950/30 font-bold';
+        return 'border-2 border-[#246BFF]/40 hover:border-[#246BFF] text-[#246BFF] hover:bg-blue-50 dark:hover:bg-blue-950/30 font-bold';
       default:
         return 'bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] hover:from-dw-blue-700 hover:to-dw-blue-600 text-white font-extrabold shadow-md shadow-dw-blue/25';
     }

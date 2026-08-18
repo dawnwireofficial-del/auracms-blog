@@ -725,7 +725,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                       <h3 className="text-[13px] font-bold text-slate-900 line-clamp-2 leading-snug min-h-[36px]">{p.title}</h3>
                       <Stars rating={p.rating} count={p.reviewCount} size={13} />
                       <PriceBlock price={p.currentPrice || p.price} was={p.referencePrice} />
-                      <span className="mt-auto pt-1.5 w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#FF8A00] to-[#FF9E33] hover:from-[#e67b00] hover:to-[#FF8A00] text-white text-[13px] font-bold py-3 shadow-[0_6px_16px_-6px_rgba(255,138,0,0.5)] transition-all group-hover:shadow-[0_10px_22px_-6px_rgba(255,138,0,0.6)]">
+                      <span className="mt-auto pt-1.5 w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#1a2b4a] to-[#0f1d35] hover:from-[#0f1d35] hover:to-[#0a1428] text-white text-[13px] font-bold py-3 shadow-[0_6px_16px_-6px_rgba(26,43,74,0.5)] transition-all group-hover:shadow-[0_10px_22px_-6px_rgba(26,43,74,0.6)]">
                         Check Price on Amazon
                       </span>
                     </div>
@@ -857,7 +857,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                         <h3 className="text-[13px] font-bold text-slate-900 line-clamp-2 leading-snug min-h-[36px]">{p.title}</h3>
                         <Stars rating={p.rating} count={p.reviewCount} size={13} />
                         <PriceBlock price={p.currentPrice || p.price} was={p.referencePrice} />
-                        <span className="mt-auto pt-1.5 w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#FF8A00] to-[#FF9E33] hover:from-[#e67b00] hover:to-[#FF8A00] text-white text-[13px] font-bold py-3 shadow-[0_6px_16px_-6px_rgba(255,138,0,0.5)] transition-all group-hover:shadow-[0_10px_22px_-6px_rgba(255,138,0,0.6)]">
+                        <span className="mt-auto pt-1.5 w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#1a2b4a] to-[#0f1d35] hover:from-[#0f1d35] hover:to-[#0a1428] text-white text-[13px] font-bold py-3 shadow-[0_6px_16px_-6px_rgba(26,43,74,0.5)] transition-all group-hover:shadow-[0_10px_22px_-6px_rgba(26,43,74,0.6)]">
                           Check Price on Amazon
                         </span>
                       </div>
@@ -1111,7 +1111,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 <button
                   type="submit"
                   disabled={nlBusy}
-                  className="bg-[#FF8A00] hover:bg-[#e67b00] disabled:opacity-60 text-white font-bold px-6 py-3 rounded-xl shrink-0 transition-colors"
+                  className="bg-[#246BFF] hover:bg-[#164EE8] disabled:opacity-60 text-white font-bold px-6 py-3 rounded-xl shrink-0 transition-colors"
                 >
                   {nlBusy ? 'Sending…' : 'Subscribe'}
                 </button>

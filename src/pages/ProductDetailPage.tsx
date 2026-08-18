@@ -518,7 +518,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
           {/* AI Assistant Callout */}
           {onOpenChatbotForProduct && (
-            <div className="p-4 bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] text-white rounded-2xl border border-[#FF8A00]/40 shadow-lg flex items-center justify-between gap-3">
+            <div className="p-4 bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] text-white rounded-2xl border border-[#246BFF]/30 shadow-lg flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-amber-400 text-slate-950 rounded-xl font-black text-xs shrink-0 shadow">
                   AI
