@@ -648,6 +648,7 @@ export async function importProductReview(data: {
 
   const review: Record<string, any> = {
     id: crypto.randomUUID(),
+    asin: norm.asin || null,
     product_name: norm.product_name,
     brand: norm.brand,
     product_image: productImage,

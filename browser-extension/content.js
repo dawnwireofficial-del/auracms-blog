@@ -1450,19 +1450,28 @@
       if (progressBar) progressBar.style.display = 'block';
       if (progressText) progressText.style.display = 'block';
 
+      // Process 3 products concurrently (same as background queue CONCURRENCY)
+      const CONCURRENCY = 3;
       let success = 0;
       let failed = 0;
-      for (let i = 0; i < results.length; i++) {
-        const r = results[i];
-        if (progressText) progressText.textContent = `Importing ${i + 1}/${results.length}: ${r.title.substring(0, 40)}...`;
-        if (progressFill) progressFill.style.width = ((i / results.length) * 100) + '%';
-        try {
-          const result = await importProductByUrl(r.url);
-          if (result?.success) success++;
-          else failed++;
-        } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ failed++; }
-        await new Promise(res => setTimeout(res, 400));
+      let idx = 0;
+
+      async function importNext() {
+        while (idx < results.length) {
+          const i = idx++;
+          const r = results[i];
+          if (progressText) progressText.textContent = `Importing ${i + 1}/${results.length}: ${r.title.substring(0, 40)}...`;
+          if (progressFill) progressFill.style.width = ((i / results.length) * 100) + '%';
+          try {
+            const result = await importProductByUrl(r.url);
+            if (result?.success) success++; else failed++;
+          } catch (e) { console.error('[DawnWire]', e); failed++; }
+        }
       }
+
+      // Launch CONCURRENCY workers
+      await Promise.all(Array.from({ length: Math.min(CONCURRENCY, results.length) }, () => importNext()));
+
       if (progressFill) progressFill.style.width = '100%';
       if (progressText) progressText.textContent = `Done: ${success} imported, ${failed} failed`;
       showToast(`✅ Imported ${success} products${failed ? ', ' + failed + ' failed' : ''}`, failed > 0 ? 'error' : 'success');
@@ -1507,14 +1516,18 @@
     document.getElementById('dw-import-store-btn')?.addEventListener('click', async () => {
       const btn = document.getElementById('dw-import-store-btn');
       if (btn) { btn.textContent = 'Importing...'; btn.disabled = true; }
-      let success = 0;
-      for (const p of products) {
-        try {
-          const result = await importProductByUrl(p.url);
-          if (result?.success) success++;
-        } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
-        await new Promise(res => setTimeout(res, 400));
+      const CONCURRENCY = 3;
+      let success = 0; let idx = 0;
+      async function importNext() {
+        while (idx < products.length) {
+          const i = idx++;
+          try {
+            const result = await importProductByUrl(products[i].url);
+            if (result?.success) success++;
+          } catch (e) { console.error('[DawnWire]', e); }
+        }
       }
+      await Promise.all(Array.from({ length: Math.min(CONCURRENCY, products.length) }, () => importNext()));
       showToast(`✅ Imported ${success}/${products.length} products from store`, success > 0 ? 'success' : 'error');
       if (btn) { btn.textContent = 'Import Store (' + products.length + ')'; btn.disabled = false; }
       if (success > 0) banner.remove();
@@ -1556,14 +1569,18 @@
     document.getElementById('dw-import-wishlist-btn')?.addEventListener('click', async () => {
       const btn = document.getElementById('dw-import-wishlist-btn');
       if (btn) { btn.textContent = 'Importing...'; btn.disabled = true; }
-      let success = 0;
-      for (const p of products) {
-        try {
-          const result = await importProductByUrl(p.url);
-          if (result?.success) success++;
-        } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
-        await new Promise(res => setTimeout(res, 400));
+      const CONCURRENCY = 3;
+      let success = 0; let idx = 0;
+      async function importNext() {
+        while (idx < products.length) {
+          const i = idx++;
+          try {
+            const result = await importProductByUrl(products[i].url);
+            if (result?.success) success++;
+          } catch (e) { console.error('[DawnWire]', e); }
+        }
       }
+      await Promise.all(Array.from({ length: Math.min(CONCURRENCY, products.length) }, () => importNext()));
       showToast(`✅ Imported ${success}/${products.length} from wishlist`, success > 0 ? 'success' : 'error');
       if (btn) { btn.textContent = 'Import Wishlist (' + products.length + ')'; btn.disabled = false; }
       if (success > 0) banner.remove();
