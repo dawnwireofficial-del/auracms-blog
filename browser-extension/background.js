@@ -206,15 +206,15 @@ async function handleImport(data) {
         body: JSON.stringify({
           title: data.product_name?.substring(0, 100) || 'Product',
           destinationUrl: taggedUrl,
-          affiliate_url: taggedUrl,
-          short_slug: slug,
-          button_text: 'Buy Now',
+          affiliateUrl: taggedUrl,
+          shortSlug: slug,
+          buttonText: 'Buy Now',
           status: 'active',
-          no_follow: true,
+          noFollow: true,
           sponsored: true,
-          open_in_new_tab: true,
-          category_id: null,
-          post_id: null,
+          openInNewTab: true,
+          categoryId: null,
+          postId: null,
         })
       });
       if (affRes.ok) {
