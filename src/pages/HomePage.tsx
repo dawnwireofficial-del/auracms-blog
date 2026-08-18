@@ -664,14 +664,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                     alt={banner.title}
                     loading="lazy"
                     referrerPolicy="no-referrer"
-                    className="absolute -right-8 top-1/2 -translate-y-1/2 w-[55%] h-[88%] object-contain mix-blend-luminosity opacity-75 drop-shadow-[0_18px_28px_rgba(15,23,42,0.35)] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-2"
+                    className="absolute right-0 top-0 w-full h-full object-cover opacity-30 transition-transform duration-700 group-hover:scale-110"
                     onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
                   />
                 )}
-                <div className={`absolute inset-0 ${isAdminPromo ? 'bg-gradient-to-t from-black/80 via-black/40 to-transparent' : 'bg-gradient-to-t from-black/70 via-black/25 to-transparent'}`} />
-                <div className="relative z-10 p-5">
+                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+                <div className="relative z-10 p-5 md:p-6">
                   <span className="inline-block bg-[#FF8A00] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full mb-2 shadow-sm">{banner.label}</span>
-                  <h3 className={`text-xl font-[850] text-white leading-tight drop-shadow-sm ${isAdminPromo ? '' : 'max-w-[62%]'}`}>{banner.title}</h3>
+                  <h3 className="text-xl md:text-2xl font-[900] text-white leading-tight drop-shadow-md max-w-[75%]">{banner.title}</h3>
                   <span className="mt-2.5 inline-flex items-center gap-1.5 text-[12px] font-bold text-white bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-3 py-1.5 transition-colors group-hover:bg-white/25">
                     {banner.cta}
                     <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -739,60 +739,31 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         {/* ============================ BANNER ROW 2 (reference home1-banner-2) ============================ */}
         <section>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {promoBanners.slice(2, 3).map((banner, i) => {
-              const slot = 2;
-              const isAdminPromo = !!bannerSlots.promos[slot];
+            {[0, 1].map((idx) => {
+              const tile = heroTiles[idx];
               return (
               <BannerInlineEditor
-                key={banner.title + slot}
-                placement="promo_3"
-                banner={bannerSlots.promos[slot]}
+                key={tile.label + idx}
+                placement={(`hero_tile_${idx + 1}`) as any}
+                banner={bannerSlots.heroTiles[idx]}
                 align="left"
               >
-              <a href={banner.href} data-gravity-cursor="explore"
-                className={`relative overflow-hidden rounded-2xl min-h-[190px] flex items-end border border-white/80 bg-gradient-to-br ${banner.tint} to-transparent shadow-[0_14px_40px_-18px_rgba(36,107,255,0.3)] group`}>
-                {isAdminPromo ? (
-                  <img src={banner.image} alt={banner.title} loading="lazy" referrerPolicy="no-referrer"
+              <a href={tile.href} data-gravity-cursor="explore"
+                className="relative overflow-hidden rounded-2xl min-h-[190px] flex items-end border border-white/80 bg-gradient-to-br from-black/60 to-transparent shadow-[0_14px_40px_-18px_rgba(36,107,255,0.3)] group">
+                {tile.imageUrl ? (
+                  <img src={tile.imageUrl} alt={tile.label} loading="lazy" referrerPolicy="no-referrer"
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                ) : (
-                  <img src={banner.image} alt={banner.title} loading="lazy" referrerPolicy="no-referrer"
-                    className="absolute -right-8 top-1/2 -translate-y-1/2 w-[55%] h-[88%] object-contain mix-blend-luminosity opacity-75 drop-shadow-[0_18px_28px_rgba(15,23,42,0.35)] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-2"
+                ) : tile.img ? (
+                  <img src={proxyImageUrl(tile.img.images?.[0] || tile.img.productImage) || NO_IMAGE} alt={tile.label}
+                    referrerPolicy="no-referrer" loading="lazy"
+                    className="absolute right-0 top-0 w-full h-full object-cover opacity-30 transition-transform duration-700 group-hover:scale-110"
                     onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                )}
-                <div className={`absolute inset-0 ${isAdminPromo ? 'bg-gradient-to-t from-black/80 via-black/40 to-transparent' : 'bg-gradient-to-t from-black/70 via-black/25 to-transparent'}`} />
-                <div className="relative z-10 p-5">
-                  <span className="inline-block bg-[#FF8A00] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full mb-2 shadow-sm">{banner.label}</span>
-                  <h3 className={`text-xl font-[850] text-white leading-tight drop-shadow-sm ${isAdminPromo ? '' : 'max-w-[62%]'}`}>{banner.title}</h3>
-                  <span className="mt-2.5 inline-flex items-center gap-1.5 text-[12px] font-bold text-white bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-3 py-1.5 transition-colors group-hover:bg-white/25">
-                    {banner.cta}
-                    <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </span>
-                </div>
-              </a>
-              </BannerInlineEditor>
-              );
-            })}
-            {/* Second half: hero tile banner (admin or fallback) */}
-            <BannerInlineEditor placement="hero_tile_1" banner={bannerSlots.heroTiles[0]} align="left">
-            <a href={heroTiles[0].href} data-gravity-cursor="explore"
-              className={`relative overflow-hidden rounded-2xl min-h-[190px] flex items-end border border-white/80 bg-gradient-to-br ${heroTiles[0].tint} to-transparent shadow-[0_14px_40px_-18px_rgba(36,107,255,0.3)] group`}>
-              {heroTiles[0].imageUrl ? (
-                <img src={heroTiles[0].imageUrl} alt={heroTiles[0].label} loading="lazy" referrerPolicy="no-referrer"
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-              ) : heroTiles[0].img ? (
-                <img src={proxyImageUrl(heroTiles[0].img.images?.[0] || heroTiles[0].img.productImage) || NO_IMAGE} alt={heroTiles[0].label}
-                  referrerPolicy="no-referrer" loading="lazy"
-                  className="absolute -right-8 top-1/2 -translate-y-1/2 w-[55%] h-[88%] object-contain mix-blend-luminosity opacity-75 drop-shadow-[0_18px_28px_rgba(15,23,42,0.35)] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-2"
-                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-              ) : null}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
-              <div className="relative z-10 p-5">
-                <span className="inline-block bg-[#FF8A00] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full mb-2 shadow-sm">{heroTiles[0].label}</span>
-                <h3 className="text-xl font-[850] text-white leading-tight drop-shadow-sm max-w-[62%]">{heroTiles[0].sub}</h3>
+                ) : null}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+              <div className="relative z-10 p-5 md:p-6">
+                <span className="inline-block bg-[#FF8A00] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full mb-2 shadow-sm">{tile.label}</span>
+                <h3 className="text-xl md:text-2xl font-[900] text-white leading-tight drop-shadow-md max-w-[75%]">{tile.sub}</h3>
                 <span className="mt-2.5 inline-flex items-center gap-1.5 text-[12px] font-bold text-white bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-3 py-1.5 transition-colors group-hover:bg-white/25">
                   Shop now
                   <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -802,6 +773,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
               </div>
             </a>
             </BannerInlineEditor>
+              );
+            })}
           </div>
         </section>
 
@@ -911,7 +884,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 align="left"
               >
               <a href={tile.href} data-gravity-cursor="explore"
-                className={`relative overflow-hidden rounded-2xl min-h-[190px] flex items-end border border-white/80 bg-gradient-to-br ${tile.tint} to-transparent shadow-[0_14px_40px_-18px_rgba(36,107,255,0.3)] group`}>
+                className="relative overflow-hidden rounded-2xl min-h-[190px] flex items-end border border-white/80 bg-gradient-to-br from-black/60 to-transparent shadow-[0_14px_40px_-18px_rgba(36,107,255,0.3)] group">
                 {tile.imageUrl ? (
                   <img src={tile.imageUrl} alt={tile.label} loading="lazy" referrerPolicy="no-referrer"
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -919,13 +892,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 ) : tile.img ? (
                   <img src={proxyImageUrl(tile.img.images?.[0] || tile.img.productImage) || NO_IMAGE} alt={tile.label}
                     referrerPolicy="no-referrer" loading="lazy"
-                    className="absolute -right-8 top-1/2 -translate-y-1/2 w-[55%] h-[88%] object-contain mix-blend-luminosity opacity-75 drop-shadow-[0_18px_28px_rgba(15,23,42,0.35)] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-2"
+                    className="absolute right-0 top-0 w-full h-full object-cover opacity-30 transition-transform duration-700 group-hover:scale-110"
                     onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 ) : null}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
-                <div className="relative z-10 p-5">
+                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+                <div className="relative z-10 p-5 md:p-6">
                   <span className="inline-block bg-[#FF8A00] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full mb-2 shadow-sm">{tile.label}</span>
-                  <h3 className="text-xl font-[850] text-white leading-tight drop-shadow-sm max-w-[62%]">{tile.sub}</h3>
+                  <h3 className="text-xl md:text-2xl font-[900] text-white leading-tight drop-shadow-md max-w-[75%]">{tile.sub}</h3>
                   <span className="mt-2.5 inline-flex items-center gap-1.5 text-[12px] font-bold text-white bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-3 py-1.5 transition-colors group-hover:bg-white/25">
                     Shop now
                     <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
