@@ -22,13 +22,16 @@ export function cleanReviewHighlights(text: unknown): string {
   const out = sanitizeHtml(text);
   if (!out) return '';
   // Amazon review-widget containers captured script/style/CSS noise via textContent.
-  // If the value is dominated by code markers, treat it as noise and hide the box.
   if (/window\.(?:mix_csa|uet)\b/.test(out)) return '';
   if (/\._cr-[A-Za-z0-9_-]+/.test(out) || /\.cr-insights-widget/.test(out)) return '';
   if (/style_[-A-Za-z0-9_]+/.test(out) && /\{[^}]+\}/.test(out)) return '';
   const braceCount = (out.match(/\{/g) || []).length;
   const semicolonCount = (out.match(/;/g) || []).length;
   if (braceCount > 2 || semicolonCount > 3) return '';
+  // Amazon star histogram noise: repeated "star" words, percentage patterns
+  if (/\d star\b.*\d star\b/.test(out) && /\d+%/.test(out)) return '';
+  if (/\bstars?\b.*\bstar\b.*\bstar\b/.test(out) && out.split('star').length > 5) return '';
+  if (/Customer reviews?\d/.test(out)) return '';
   const words = out.split(' ').filter(w => /^[A-Za-z]{3,}$/.test(w));
   if (words.length < 4) return '';
   return out;

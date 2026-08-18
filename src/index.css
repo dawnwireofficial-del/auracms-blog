@@ -690,8 +690,6 @@
   .dw-decor-object {
     position: fixed;
     pointer-events: none;
-    will-change: transform;
-    transform: translateZ(0);
     user-select: none;
   }
   /* Ambient keyframes — slow, gentle, inputs-driven variants get desynced */
