@@ -187,18 +187,26 @@ async function handleImport(data) {
 
   const reviewId = result.id || result.review?.id;
 
-  // 3. Auto-create a cloaked affiliate link
+  // 3. Auto-create a cloaked affiliate link (with tag=dawnwire-20 for commission)
   let affiliateLink = null;
-  if (reviewId && data.amazon_url) {
+  const rawUrl = data.amazon_url || data.affiliate_url || '';
+  if (reviewId && rawUrl) {
     try {
       const slug = data.asin || (result.review?.slug || result.slug || 'product-' + Date.now());
+      // Ensure the affiliate tag is present
+      let taggedUrl = rawUrl;
+      if (taggedUrl.includes('amazon') && !taggedUrl.includes('tag=')) {
+        taggedUrl += (taggedUrl.includes('?') ? '&' : '?') + 'tag=dawnwire-20';
+      } else if (taggedUrl.includes('amazon') && !taggedUrl.includes('dawnwire-20')) {
+        taggedUrl = taggedUrl.replace(/tag=[^&]+/, 'tag=dawnwire-20');
+      }
       const affRes = await fetch(baseUrl + '/api/admin/affiliate', {
         method: 'POST',
         headers,
         body: JSON.stringify({
           title: data.product_name?.substring(0, 100) || 'Product',
-          destinationUrl: data.amazon_url,
-          affiliate_url: data.amazon_url,
+          destinationUrl: taggedUrl,
+          affiliate_url: taggedUrl,
           short_slug: slug,
           button_text: 'Buy Now',
           status: 'active',

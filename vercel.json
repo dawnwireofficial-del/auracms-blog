@@ -76,6 +76,10 @@
       "dest": "/api/index.js"
     },
     {
+      "src": "^/go/(.*)$",
+      "dest": "/api/index.js"
+    },
+    {
       "src": "^/api/(.*)$",
       "dest": "/api/index.js"
     },

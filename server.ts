@@ -65,7 +65,7 @@ app.use((req, res, next) => {
     /^\/admin\/?$/, /^\/admin\/.*$/,
     /^\/account\/?$/, /^\/login\/?$/,
     /^\/post\/[^\/]+$/, /^\/page\/[^\/]+$/,
-    /^\/contact\/?$/, /^\/buyers-guide\/[^\/]+$/,
+    /^\/contact\/?$/,    /^\/buyers-guide\/[^\/]+$/, /^\/buying-guides\/?$/,
     /^\/review\/[^\/]+$/, /^\/portfolio\/?$/,
     /^\/portfolio\/[^\/]+$/, /^\/service\/?$/,
     /^\/service\/[^\/]+$/, /^\/search\/?$/, /^\/trending\/?$/,
