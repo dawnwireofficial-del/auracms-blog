@@ -806,10 +806,17 @@
       let listPrice = '';
       let savings = '';
       if (isAmazon()) {
+        // List price: use specific selectors to avoid picking up unit prices ($X.XX/fl oz)
         listPrice = doc.querySelector('.a-text-price.a-text-price-basis .a-offscreen')?.textContent?.trim()
           || doc.querySelector('#listPrice')?.textContent?.trim()
-          || doc.querySelector('.a-text-price .a-offscreen')?.textContent?.trim()
+          || doc.querySelector('.priceBlockStrikePriceString, .basisPrice .a-offscreen')?.textContent?.trim()
           || '';
+        // Validate: list price must be higher than current price, otherwise it's probably a unit price
+        const currentPriceNum = parseFloat((doc.querySelector('.a-price-whole')?.textContent || '').replace(/[^\d]/g, ''));
+        const listNum = parseFloat(listPrice.replace(/[^\d.]/g, ''));
+        if (listNum && currentPriceNum && listNum < currentPriceNum * 0.5) {
+          listPrice = ''; // Too low — this is likely a unit price, not a list price
+        }
         const savingsEl = doc.querySelector('.a-price-savings, .a-color-price.a-text-price, [id*="savings"]');
         if (savingsEl) {
           savings = savingsEl.textContent.replace(/\s+/g, ' ').trim();

@@ -145,7 +145,11 @@ function fullImportPayload(data) {
   if (data.bsrDetail && data.bsrDetail.length) specs.best_sellers_rank_detail = data.bsrDetail;
   if (data.reviewHighlights) specs.review_highlights = data.reviewHighlights;
   if (data.detailBullets && Object.keys(data.detailBullets).length) specs.detail_bullets = data.detailBullets;
-  if (data.listPrice) specs.listPrice = data.listPrice;
+  // Validate listPrice: must be higher than current price, otherwise it's a unit price
+  const currentPrice = parseFloat(String(data.price || '0')) || 0;
+  const listPriceNum = parseFloat(String(data.listPrice || '0')) || 0;
+  const validListPrice = (listPriceNum > 0 && currentPrice > 0 && listPriceNum > currentPrice * 0.5) ? data.listPrice : null;
+  if (validListPrice) specs.listPrice = validListPrice;
   if (data.savings) specs.savings = data.savings;
   if (data.priceRange) specs.priceRange = data.priceRange;
   if (data.videoUrl) specs.video_url = data.videoUrl;
@@ -155,7 +159,7 @@ function fullImportPayload(data) {
     product_image: data.product_image || null,
     affiliate_url: data.amazon_url || null,
     price: data.price || null,
-    original_price: data.listPrice || null,
+    original_price: validListPrice || null,
     rating: data.rating || 0,
     review_count: data.reviewCount || null,
     stock_status: data.stockStatus || 'in_stock',
