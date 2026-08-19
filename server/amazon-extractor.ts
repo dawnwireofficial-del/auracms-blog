@@ -82,6 +82,10 @@ export interface ExtractedProductData {
   categoryPath?: string;
   bestSellersRank?: string;
   department?: string;
+  detailBullets?: Record<string, string>;
+  reviewHighlights?: string;
+  reviewStats?: { total: number; average: number; distribution: { 5: number; 4: number; 3: number; 2: number; 1: number } };
+  reviews?: Array<{ name: string; rating: number; title?: string; date?: string; body?: string; verified?: boolean }>;
   source: 'pa_api' | 'web_scraper' | 'ai_synthesis' | 'dictionary';
 }
 
@@ -458,6 +462,104 @@ export async function scrapeAmazonHtml(asin: string): Promise<Partial<ExtractedP
       department = deptMatch[0].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
     }
 
+    // Parse Technical Specifications / Detail Bullets
+    const detailBullets: Record<string, string> = {};
+    // Method 1: productDetails_techSpec_section table (th + td pairs)
+    const techSpecMatch = html.match(/id="productDetails_techSpec_section"[^>]*>([\s\S]*?)<\/table>/i);
+    if (techSpecMatch) {
+      const rows = techSpecMatch[1].match(/<tr[^>]*>([\s\S]*?)<\/tr>/gi) || [];
+      for (const row of rows) {
+        const thMatch = row.match(/<th[^>]*>([\s\S]*?)<\/th>/i);
+        const tdMatch = row.match(/<td[^>]*>([\s\S]*?)<\/td>/i);
+        if (thMatch && tdMatch) {
+          const key = thMatch[1].replace(/<[^>]+>/g, '').trim();
+          const val = tdMatch[1].replace(/<[^>]+>/g, '').trim();
+          if (key && val && key.length < 100 && val.length < 500) detailBullets[key] = val;
+        }
+      }
+    }
+    // Method 2: a-keyvalue table (used on some product pages)
+    if (Object.keys(detailBullets).length === 0) {
+      const keyValueMatch = html.match(/<table[^>]*class="[^"]*a-keyvalue[^"]*"[^>]*>([\s\S]*?)<\/table>/i);
+      if (keyValueMatch) {
+        const rows = keyValueMatch[1].match(/<tr[^>]*>([\s\S]*?)<\/tr>/gi) || [];
+        for (const row of rows) {
+          const thMatch = row.match(/<th[^>]*>([\s\S]*?)<\/th>/i);
+          const tdMatch = row.match(/<td[^>]*>([\s\S]*?)<\/td>/i);
+          if (thMatch && tdMatch) {
+            const key = thMatch[1].replace(/<[^>]+>/g, '').trim();
+            const val = tdMatch[1].replace(/<[^>]+>/g, '').trim();
+            if (key && val && key.length < 100 && val.length < 500) detailBullets[key] = val;
+          }
+        }
+      }
+    }
+    // Method 3: detailBulletsList_feature_div (ul > li pairs)
+    if (Object.keys(detailBullets).length === 0) {
+      const bulletMatch = html.match(/id="detailBulletsList_feature_div"[^>]*>([\s\S]*?)<\/div>/i);
+      if (bulletMatch) {
+        const spans = bulletMatch[1].match(/<span[^>]*class="a-list-item"[^>]*>([\s\S]*?)<\/span>/gi) || [];
+        for (const span of spans) {
+          const text = span.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+          const kvMatch = text.match(/^([^:]+):\s*(.+)$/);
+          if (kvMatch && kvMatch[1].length < 80 && kvMatch[2].length < 500) {
+            detailBullets[kvMatch[1].trim()] = kvMatch[2].trim();
+          }
+        }
+      }
+    }
+    // Method 4: Additional Info table (prodDetails format)
+    if (Object.keys(detailBullets).length === 0) {
+      const additionalMatch = html.match(/id="productDetails_detailBullets_sections"[^>]*>([\s\S]*?)<\/table>/i);
+      if (additionalMatch) {
+        const rows = additionalMatch[1].match(/<tr[^>]*>([\s\S]*?)<\/tr>/gi) || [];
+        for (const row of rows) {
+          const thMatch = row.match(/<th[^>]*>([\s\S]*?)<\/th>/i);
+          const tdMatch = row.match(/<td[^>]*>([\s\S]*?)<\/td>/i);
+          if (thMatch && tdMatch) {
+            const key = thMatch[1].replace(/<[^>]+>/g, '').trim();
+            const val = tdMatch[1].replace(/<[^>]+>/g, '').trim();
+            if (key && val && key.length < 100 && val.length < 500) detailBullets[key] = val;
+          }
+        }
+      }
+    }
+    // Always include ASIN in detail bullets
+    if (!detailBullets.ASIN) detailBullets.ASIN = asin;
+
+        // Parse review highlights (AI-generated "Customers say" summary)
+    let reviewHighlights = '';
+    const highlightMatch = html.match(/id="cr-lighthouse-summary"[\s\S]*?<\/div>/i) ||
+                           html.match(/class="[^"]*cr-lighthouse[^"]*"[\s\S]*?<\/div>/i) ||
+                           html.match(/Customers say[\s\S]{0,2000}?<\/div>/i);
+    if (highlightMatch) {
+      const raw = highlightMatch[0].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+      // Filter out noise (code, CSS, short junk)
+      if (raw.length > 30 && raw.length < 2000 && !raw.includes('window.') && !raw.includes('{') && raw.split(' ').length > 8) {
+        reviewHighlights = raw;
+      }
+    }
+
+    // Parse review stats (average, total, distribution)
+    let reviewStats = null;
+    const totalMatch = html.match(/([\d,]+)\s+(?:global )?ratings/i);
+    const avgMatch = html.match(/([0-9\.]+)\s+out of 5/i);
+    if (totalMatch && avgMatch) {
+      const totalCount = parseInt(totalMatch[1].replace(/,/g, ''), 10);
+      const avgRating = parseFloat(avgMatch[1]);
+      // Parse star distribution histogram
+      const distMatch = html.match(/histogramTable[\s\S]*?<\/table>/i);
+      const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+      if (distMatch) {
+        const pcts = [...distMatch[0].matchAll(/(\d+)%/g)].map(m => parseInt(m[1], 10));
+        if (pcts.length >= 5) {
+          distribution[5] = pcts[0]; distribution[4] = pcts[1]; distribution[3] = pcts[2];
+          distribution[2] = pcts[3]; distribution[1] = pcts[4];
+        }
+      }
+      reviewStats = { total: totalCount, average: avgRating, distribution };
+    }
+
     return {
       asin,
       title: rawTitle,
@@ -472,6 +574,10 @@ export async function scrapeAmazonHtml(asin: string): Promise<Partial<ExtractedP
       categoryPath,
       bestSellersRank: bsrBlocks.join(' | '),
       department,
+      specifications: detailBullets,
+      detailBullets: detailBullets,
+      reviewHighlights: reviewHighlights || undefined,
+      reviewStats: reviewStats || undefined,
     };
   } catch (err) {
     return null;
