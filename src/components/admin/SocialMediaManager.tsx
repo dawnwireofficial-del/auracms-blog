@@ -222,6 +222,98 @@ const SocialMediaManager: React.FC<{ token: string }> = ({ token }) => {
     showNotif('success', 'All captions generated!');
   };
 
+  // ─── Copy & Post (no API needed) ─────────────────────────────────────────────
+
+  const copyToClipboard = async (text: string): Promise<boolean> => {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // Fallback
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      return true;
+    }
+  };
+
+  const openFacebookShare = async (platform: PlatformKey) => {
+    const product = getSelectedProduct();
+    const caption = drafts[platform];
+    if (!product || !caption.trim()) return;
+
+    const productUrl = product.affiliateUrl || product.affiliate_url || `https://dawnwire.com/products/${product.slug}`;
+    // Facebook sharer only takes URL + quote, so copy caption separately
+    await copyToClipboard(caption);
+    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(productUrl)}&quote=${encodeURIComponent(caption.substring(0, 255))}`;
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+    showNotif('success', 'Caption copied! Paste it in the Facebook share dialog.');
+  };
+
+  const openInstagramShare = async (platform: PlatformKey) => {
+    const product = getSelectedProduct();
+    const caption = drafts[platform];
+    if (!product || !caption.trim()) return;
+
+    // Copy the full caption to clipboard — user will paste into Instagram
+    await copyToClipboard(caption);
+    // Open Instagram
+    window.open('https://www.instagram.com/', '_blank');
+    showNotif('success', 'Caption copied! Open Instagram → New Post → Paste the caption.');
+  };
+
+  const openPinterestShare = async (platform: PlatformKey) => {
+    const product = getSelectedProduct();
+    const caption = drafts[platform];
+    if (!product || !caption.trim()) return;
+
+    const productUrl = product.affiliateUrl || product.affiliate_url || `https://dawnwire.com/products/${product.slug}`;
+    const imageUrl = (product.images && product.images[0]) || product.product_image || '';
+
+    // If API is connected, use API; otherwise open Pinterest pin creator
+    if (isPlatformConnected('pinterest')) {
+      await publishSingle('pinterest');
+    } else {
+      let pinUrl = `https://www.pinterest.com/pin/create/button/?url=${encodeURIComponent(productUrl)}&description=${encodeURIComponent(caption.substring(0, 500))}`;
+      if (imageUrl) pinUrl += `&media=${encodeURIComponent(imageUrl)}`;
+      await copyToClipboard(caption);
+      window.open(pinUrl, '_blank', 'width=800,height=600');
+      showNotif('success', 'Caption copied! Pinterest pin creator opened.');
+    }
+  };
+
+  const copyAndPost = async (platform: PlatformKey) => {
+    const product = getSelectedProduct();
+    if (!product || !drafts[platform].trim()) {
+      showNotif('error', 'Generate a caption first');
+      return;
+    }
+
+    // If API connected, use API publish
+    if (isPlatformConnected(platform)) {
+      await publishSingle(platform);
+      return;
+    }
+
+    // Otherwise use Copy & Post
+    switch (platform) {
+      case 'facebook': return openFacebookShare(platform);
+      case 'instagram': return openInstagramShare(platform);
+      case 'pinterest': return openPinterestShare(platform);
+    }
+  };
+
+  const copyAndPostAll = async () => {
+    const platforms = selectedPlatforms.filter(p => drafts[p].trim());
+    for (const p of platforms) {
+      await copyAndPost(p);
+      await new Promise(r => setTimeout(r, 500)); // Small delay between tabs
+    }
+  };
+
   // ─── Publishing ─────────────────────────────────────────────────────────────
 
   const publishToAll = async () => {
@@ -605,7 +697,7 @@ const SocialMediaManager: React.FC<{ token: string }> = ({ token }) => {
                       <span className="text-[10px] text-slate-400">({drafts[platform.key].length}/{platform.maxChars} chars)</span>
                       {!connected && (
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 font-bold">
-                          Not connected — add API keys in Settings
+                          📋 Copy & Post mode (add API in Settings for auto-publish)
                         </span>
                       )}
                     </div>
@@ -620,11 +712,15 @@ const SocialMediaManager: React.FC<{ token: string }> = ({ token }) => {
                         ) : '✨'} AI Generate
                       </button>
                       <button
-                        onClick={() => publishSingle(platform.key)}
-                        disabled={!connected || !drafts[platform.key].trim() || !selectedProduct}
-                        className="text-xs font-bold text-white px-4 py-1.5 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-50 shadow-sm transition-all"
+                        onClick={() => copyAndPost(platform.key)}
+                        disabled={!drafts[platform.key].trim() || !selectedProduct}
+                        className={`text-xs font-bold text-white px-4 py-1.5 rounded-lg disabled:opacity-50 shadow-sm transition-all flex items-center gap-1.5 ${
+                          connected
+                            ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700'
+                            : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
+                        }`}
                       >
-                        🚀 Post Now
+                        {connected ? '🚀 Post Now' : '📋 Copy & Post'}
                       </button>
                     </div>
                   </div>
@@ -656,21 +752,39 @@ const SocialMediaManager: React.FC<{ token: string }> = ({ token }) => {
               <div>
                 <h3 className="text-base font-black">Ready to Publish?</h3>
                 <p className="text-xs text-blue-100 mt-1">
-                  Publish to {selectedPlatforms.length} platform{selectedPlatforms.length > 1 ? 's' : ''} at once
+                  {(() => {
+                    const activePlatforms = selectedPlatforms.filter(p => drafts[p].trim());
+                    const connectedCount = activePlatforms.filter(p => isPlatformConnected(p as PlatformKey)).length;
+                    const manualCount = activePlatforms.length - connectedCount;
+                    if (activePlatforms.length === 0) return 'Write at least one caption first';
+                    const parts = [];
+                    if (connectedCount > 0) parts.push(`${connectedCount} via API`);
+                    if (manualCount > 0) parts.push(`${manualCount} via Copy & Post`);
+                    return `${parts.join(' + ')} — ${activePlatforms.length} platform${activePlatforms.length > 1 ? 's' : ''}`;
+                  })()}
                   {!selectedProduct && ' — select a product first'}
                 </p>
               </div>
-              <button
-                onClick={publishToAll}
-                disabled={isPublishing || !selectedProduct || selectedPlatforms.filter(p => drafts[p].trim()).length === 0}
-                className="bg-white text-blue-700 font-extrabold px-8 py-3 rounded-xl text-sm shadow-xl hover:bg-blue-50 disabled:opacity-50 flex items-center gap-2 transition-all"
-              >
-                {isPublishing ? (
-                  <><span className="w-4 h-4 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" /> Publishing...</>
-                ) : (
-                  <>🚀 Publish to All Platforms</>
-                )}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={copyAndPostAll}
+                  disabled={!selectedProduct || selectedPlatforms.filter(p => drafts[p].trim()).length === 0}
+                  className="bg-white/20 hover:bg-white/30 text-white font-extrabold px-6 py-3 rounded-xl text-sm shadow-xl disabled:opacity-50 flex items-center gap-2 transition-all border border-white/30"
+                >
+                  📋 Copy & Post All
+                </button>
+                <button
+                  onClick={publishToAll}
+                  disabled={isPublishing || !selectedProduct || selectedPlatforms.filter(p => drafts[p].trim()).length === 0}
+                  className="bg-white text-blue-700 font-extrabold px-8 py-3 rounded-xl text-sm shadow-xl hover:bg-blue-50 disabled:opacity-50 flex items-center gap-2 transition-all"
+                >
+                  {isPublishing ? (
+                    <><span className="w-4 h-4 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" /> Publishing...</>
+                  ) : (
+                    <>🚀 Publish via API</>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Publish Results */}
