@@ -268,7 +268,7 @@ router.post('/publish', authenticate, requireRole(['super_admin', 'admin']), asy
       .single();
 
     if (credError || !cred) {
-      return res.status(400).json({ error: `No active ${platform} credentials configured. Go to Settings tab to add them.` });
+      return res.status(200).json({ success: false, error: `No active ${platform} credentials configured. Use Copy & Post mode instead.`, post: null });
     }
 
     const token = cred.access_token;
@@ -388,7 +388,7 @@ router.post('/publish', authenticate, requireRole(['super_admin', 'admin']), asy
     await supabase.from('social_media_posts').insert(postLog);
 
     if (publishError) {
-      return res.status(500).json({ error: publishError, post: postLog });
+      return res.status(200).json({ success: false, error: publishError, post: postLog });
     }
 
     res.json({ success: true, post: postLog });
@@ -406,26 +406,93 @@ router.post('/publish-all', authenticate, requireRole(['super_admin', 'admin']),
       return res.status(400).json({ error: 'product_id, platforms array, captions object, and image_url are required' });
     }
 
+    const supabase = await getSupabaseAdmin();
     const results: any[] = [];
 
     for (const platform of platforms) {
       try {
-        const response = await fetch(`http://localhost:${process.env.PORT || 3000}/api/admin/social-media/publish`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': req.headers.authorization || '',
-          },
-          body: JSON.stringify({
-            platform,
-            product_id,
-            caption: captions[platform] || '',
-            image_url,
-            link,
-          }),
-        });
-        const data = await response.json();
-        results.push({ platform, ...data });
+        // Get credentials
+        const { data: cred } = await supabase
+          .from('social_media_credentials')
+          .select('*')
+          .eq('platform', platform)
+          .eq('is_active', true)
+          .single();
+
+        if (!cred) {
+          results.push({ platform, success: false, error: `No active ${platform} credentials`, post: null });
+          continue;
+        }
+
+        const caption = captions[platform] || '';
+        let platformPostId = '';
+        let publishError = '';
+
+        try {
+          if (platform === 'facebook' && cred.page_id) {
+            const fbRes = await fetch(`https://graph.facebook.com/v19.0/${cred.page_id}/feed`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ message: caption, link: link || '', access_token: cred.access_token }),
+            });
+            const fbData: any = await fbRes.json();
+            if (fbData.error) throw new Error(fbData.error.message);
+            platformPostId = fbData.id || '';
+          } else if (platform === 'instagram' && cred.page_id) {
+            const cRes = await fetch(`https://graph.facebook.com/v19.0/${cred.page_id}/media`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ image_url, caption, access_token: cred.access_token }),
+            });
+            const cData: any = await cRes.json();
+            if (cData.error) throw new Error(cData.error.message);
+            const pRes = await fetch(`https://graph.facebook.com/v19.0/${cred.page_id}/media_publish`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ creation_id: cData.id, access_token: cred.access_token }),
+            });
+            const pData: any = await pRes.json();
+            if (pData.error) throw new Error(pData.error.message);
+            platformPostId = pData.id || '';
+          } else if (platform === 'pinterest' && cred.board_id) {
+            const pinRes = await fetch('https://api.pinterest.com/v5/pins', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cred.access_token}` },
+              body: JSON.stringify({
+                board_id: cred.board_id,
+                title: caption.split('\n')[0].substring(0, 100),
+                description: caption,
+                link: link || `https://dawnwire.com/products/${product_id}`,
+                image_url,
+              }),
+            });
+            const pinData: any = await pinRes.json();
+            if (pinData.code && pinData.code !== 200) throw new Error(pinData.message || 'Pinterest API error');
+            platformPostId = pinData.id || '';
+          } else {
+            publishError = `Missing configuration for ${platform}`;
+          }
+        } catch (e: any) {
+          publishError = e.message;
+        }
+
+        // Log the post
+        const postLog: any = {
+          id: crypto.randomUUID(),
+          product_id,
+          platform,
+          caption: caption.substring(0, 500),
+          image_url,
+          link: link || null,
+          status: publishError ? 'failed' : 'published',
+          platform_post_id: platformPostId || null,
+          error_message: publishError || null,
+          published_at: publishError ? null : new Date().toISOString(),
+          created_at: new Date().toISOString(),
+        };
+        await supabase.from('social_media_posts').insert(postLog);
+
+        results.push({ platform, success: !publishError, error: publishError || null, post: postLog });
       } catch (e: any) {
         results.push({ platform, success: false, error: e.message });
       }
