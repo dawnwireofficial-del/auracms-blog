@@ -196,11 +196,18 @@ function fullImportPayload(data) {
   if (data.savings && !specs.savings) specs.savings = data.savings;
   if (data.priceRange) specs.priceRange = data.priceRange;
   if (data.videoUrl) specs.video_url = data.videoUrl;
+  // Always ensure affiliate tag is present on Amazon URLs
+  let affiliateUrl = data.amazon_url || null;
+  if (affiliateUrl && affiliateUrl.includes('amazon') && !affiliateUrl.includes('tag=')) {
+    affiliateUrl += (affiliateUrl.includes('?') ? '&' : '?') + 'tag=dawnwire-20';
+  } else if (affiliateUrl && affiliateUrl.includes('amazon') && affiliateUrl.includes('tag=')) {
+    affiliateUrl = affiliateUrl.replace(/tag=[^&]+/, 'tag=dawnwire-20');
+  }
   return {
     product_name: data.product_name || null,
     brand: data.brand || null,
     product_image: data.product_image || null,
-    affiliate_url: data.amazon_url || null,
+    affiliate_url: affiliateUrl,
     price: data.price || null,
     original_price: validListPrice || null,
     rating: data.rating || 0,

@@ -32,11 +32,18 @@
     if (data.savings) specs.savings = data.savings;
     if (data.priceRange) specs.priceRange = data.priceRange;
     if (data.videoUrl) specs.video_url = data.videoUrl;
+    // Always ensure affiliate tag on Amazon URLs
+    let affUrl = data.amazon_url || null;
+    if (affUrl && affUrl.includes('amazon') && !affUrl.includes('tag=')) {
+      affUrl += (affUrl.includes('?') ? '&' : '?') + 'tag=dawnwire-20';
+    } else if (affUrl && affUrl.includes('amazon') && affUrl.includes('tag=')) {
+      affUrl = affUrl.replace(/tag=[^&]+/, 'tag=dawnwire-20');
+    }
     return {
       product_name: data.product_name || null,
       brand: data.brand || null,
       product_image: data.product_image || null,
-      affiliate_url: data.amazon_url || null,
+      affiliate_url: affUrl,
       price: data.price || null,
       original_price: data.listPrice || null,
       rating: data.rating || 0,
@@ -99,7 +106,7 @@
           const affRes = await fetch(baseUrl + '/api/admin/affiliate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiToken },
-            body: JSON.stringify({ title: (data.product_name || '').substring(0, 100), affiliate_url: data.amazon_url, short_slug: slug, button_text: 'Buy Now', status: 'active', no_follow: true, sponsored: true, open_in_new_tab: true })
+            body: JSON.stringify({ title: (data.product_name || '').substring(0, 100), affiliate_url: affUrl || data.amazon_url, short_slug: slug, button_text: 'Buy Now', status: 'active', no_follow: true, sponsored: true, open_in_new_tab: true })
           });
           if (affRes.ok) { const affData = await affRes.json(); affiliateLink = '/go/' + (affData.short_slug || affData.slug || slug); }
         } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
