@@ -806,16 +806,24 @@
       let listPrice = '';
       let savings = '';
       if (isAmazon()) {
-        // List price: use specific selectors to avoid picking up unit prices ($X.XX/fl oz)
-        listPrice = doc.querySelector('.a-text-price.a-text-price-basis .a-offscreen')?.textContent?.trim()
-          || doc.querySelector('#listPrice')?.textContent?.trim()
-          || doc.querySelector('.priceBlockStrikePriceString, .basisPrice .a-offscreen')?.textContent?.trim()
+        // List price: try specific selectors IN ORDER of reliability
+        // 1. #listPrice element (most reliable — Amazon's explicit list price)
+        // 2. .basisPrice .a-offscreen (strikethrough price container)
+        // 3. span[data-a-strike] .a-offscreen (struck-through price)
+        // 4. .a-text-price .a-offscreen INSIDE #apex_offerDisplay_desktop (price block only)
+        // Do NOT use broad .a-text-price.a-text-price-basis — it matches unit prices ($X.XX/fl oz)
+        listPrice = doc.querySelector('#listPrice')?.textContent?.trim()
+          || doc.querySelector('.basisPrice .a-offscreen')?.textContent?.trim()
+          || doc.querySelector('span.a-price[data-a-strike] .a-offscreen')?.textContent?.trim()
+          || doc.querySelector('#apex_offerDisplay_desktop .a-text-price .a-offscreen')?.textContent?.trim()
           || '';
-        // Validate: list price must be higher than current price, otherwise it's probably a unit price
-        const currentPriceNum = parseFloat((doc.querySelector('.a-price-whole')?.textContent || '').replace(/[^\d]/g, ''));
+        // Get current price for validation
+        const currentPriceNum = parseFloat((doc.querySelector('.a-price:not([data-a-strike]) .a-offscreen')?.textContent || doc.querySelector('.a-price-whole')?.textContent || '').replace(/[^\d.]/g, ''));
         const listNum = parseFloat(listPrice.replace(/[^\d.]/g, ''));
-        if (listNum && currentPriceNum && listNum < currentPriceNum * 0.5) {
-          listPrice = ''; // Too low — this is likely a unit price, not a list price
+        // Validate: list price must be HIGHER than current price (it's a strike-through/discount price)
+        // If list < current, it's a unit price ($6.21/fl oz) or per-item price, not a real list price
+        if (listNum && currentPriceNum && listNum <= currentPriceNum) {
+          listPrice = ''; // Not a real list price — it's a unit/per-item price
         }
         const savingsEl = doc.querySelector('.a-price-savings, .a-color-price.a-text-price, [id*="savings"]');
         if (savingsEl) {

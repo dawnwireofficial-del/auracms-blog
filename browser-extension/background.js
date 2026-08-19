@@ -182,9 +182,18 @@ function fullImportPayload(data) {
   if (data.detailBullets && Object.keys(data.detailBullets).length) specs.detail_bullets = data.detailBullets;
   const currentPrice = parseFloat(String(data.price || '0')) || 0;
   const listPriceNum = parseFloat(String(data.listPrice || '0')) || 0;
-  const validListPrice = (listPriceNum > 0 && currentPrice > 0 && listPriceNum > currentPrice * 0.5) ? data.listPrice : null;
-  if (validListPrice) specs.listPrice = validListPrice;
-  if (data.savings) specs.savings = data.savings;
+  const validListPrice = (listPriceNum > 0 && currentPrice > 0 && listPriceNum > currentPrice) ? data.listPrice : null;
+  if (validListPrice) {
+    specs.listPrice = validListPrice;
+    // Calculate discount percentage for display
+    const savingsNum = listPriceNum - currentPrice;
+    const discountPct = Math.round((savingsNum / listPriceNum) * 100);
+    if (discountPct > 0) {
+      specs.discount_percent = discountPct;
+      specs.savings = data.savings || `$${savingsNum.toFixed(2)} (${discountPct}%)`;
+    }
+  }
+  if (data.savings && !specs.savings) specs.savings = data.savings;
   if (data.priceRange) specs.priceRange = data.priceRange;
   if (data.videoUrl) specs.video_url = data.videoUrl;
   return {

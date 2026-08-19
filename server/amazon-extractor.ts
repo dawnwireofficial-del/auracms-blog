@@ -26,7 +26,7 @@ function mapPaApiData(pa: AmazonProductData, asin: string): Partial<ExtractedPro
     mainCategory: pa.category || 'Electronics',
     subcategory: 'General',
     currentPrice: pa.price || 99.99,
-    referencePrice: pa.referencePrice || (pa.price ? Math.round(pa.price * 1.2) : 129.99),
+    referencePrice: (pa.referencePrice && pa.referencePrice > (pa.price || 0)) ? pa.referencePrice : (pa.price ? Math.round(pa.price * 1.2) : 129.99),
     discountPercentage: discount,
     images,
     mainImage: images[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800',
@@ -332,9 +332,27 @@ export async function scrapeAmazonHtml(asin: string): Promise<Partial<ExtractedP
                        html.match(/data-price="([0-9\.]+)"/i);
     const currentPrice = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : 0;
 
-    // Parse List Price / Reference Price
-    const refPriceMatch = html.match(/<span class="a-text-price"[^>]*>[\s\S]*?\$([0-9\.,]+)/i);
-    const referencePrice = refPriceMatch ? parseFloat(refPriceMatch[1].replace(/,/g, '')) : (currentPrice ? Math.round(currentPrice * 1.15 * 100) / 100 : 0);
+    // Parse List Price / Reference Price — try multiple selectors, validate against current price
+    // 1. basisPrice container (strikethrough price, most reliable)
+    // 2. data-a-strike attribute (struck-through price)
+    // 3. a-text-price inside offer display (price block only, not unit price)
+    // Do NOT use broad a-text-price selector — it matches unit prices ($X.XX/fl oz)
+    let referencePrice = 0;
+    const basisPriceMatch = html.match(/class="basisPrice[^"]*"[\s\S]*?\$([0-9\.,]+)/i);
+    const strikeMatch = html.match(/data-a-strike[\s\S]*?\$([0-9\.,]+)/i);
+    const offerPriceMatch = html.match(/apex_offerDisplay_desktop[\s\S]*?a-text-price[\s\S]*?\$([0-9\.,]+)/i);
+    const refStr = basisPriceMatch?.[1] || strikeMatch?.[1] || offerPriceMatch?.[1] || '';
+    if (refStr) {
+      const parsed = parseFloat(refStr.replace(/,/g, ''));
+      // Validate: reference price must be HIGHER than current price (it's a strike-through/discount price)
+      if (parsed > 0 && currentPrice > 0 && parsed > currentPrice) {
+        referencePrice = parsed;
+      }
+    }
+    // Fallback: if no valid reference price found, estimate 15% above current price
+    if (!referencePrice && currentPrice) {
+      referencePrice = Math.round(currentPrice * 1.15 * 100) / 100;
+    }
 
     // Parse ALL Unique High-Res Amazon Gallery Images from HTML.
     // The declared "hiRes" / #landingImage src is the REAL main product photo —
