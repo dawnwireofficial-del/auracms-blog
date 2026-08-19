@@ -117,6 +117,18 @@
     .hint { font-size: 10px; color: #556688; margin-top: 3px; }
 
     .footer { margin-top: 14px; padding-top: 10px; border-top: 1px solid #1a3366; font-size: 10px; color: #556688; text-align: center; }
+    .spinner { width: 12px; height: 12px; border: 2px solid #33cc8833; border-top-color: #33cc88; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; flex-shrink: 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .queue-section { margin-top: 8px; }
+    .queue-header { font-size: 10px; font-weight: 600; color: #8899bb; text-transform: uppercase; margin-bottom: 4px; }
+    .queue-item { display: flex; align-items: center; gap: 6px; padding: 3px 0; font-size: 10px; border-bottom: 1px solid #1a336633; }
+    .queue-item:last-child { border-bottom: none; }
+    .queue-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #c0d0f0; }
+    .queue-status { font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+    .queue-status.pending { background: #1a3366; color: #8899bb; }
+    .queue-status.importing { background: #246BFF33; color: #4488ff; }
+    .queue-status.done { background: #22c55e22; color: #22c55e; }
+    .queue-status.failed { background: #dc262622; color: #dc2626; }
 
     /* URL Import specific */
     .url-list {
@@ -347,6 +359,20 @@
 
     <!-- Import log -->
     <div id="importLog" class="url-list" style="display:none; margin-top: 6px;"></div>
+
+    <!-- Persisted queue (from background.js) -->
+    <div id="importStatus" style="display:none; align-items:center; gap:6px; font-size:11px; color:#22c55e; margin-top:8px;">
+      <div class="spinner"></div>
+      <span id="importStatusText">Import in progress...</span>
+    </div>
+
+    <div id="queueSection" class="queue-section">
+      <div class="queue-header">Background Queue</div>
+      <div class="progress-bar active" style="margin: 6px 0;">
+        <div id="queueProgressFill" class="progress-fill" style="width: 0%;"></div>
+      </div>
+      <div id="queueList"></div>
+    </div>
 
     <!-- Status -->
     <div id="status" class="status"></div>

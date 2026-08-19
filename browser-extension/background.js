@@ -1,7 +1,33 @@
 const DEFAULT_API_URL = 'https://www.dawnwire.com';
 
+// Queue is persisted in chrome.storage.local so it survives popup close
+// and MV3 service worker restarts.
 let importQueue = [];
 let queueRunning = false;
+
+// ─── Restore queue from storage on service worker start ───
+(async () => {
+  try {
+    const stored = await chrome.storage.local.get(['importQueue', 'queueRunning']);
+    if (stored.importQueue && stored.importQueue.length > 0) {
+      importQueue = stored.importQueue;
+      // Reset any 'importing' items back to 'pending' (SW was killed mid-import)
+      importQueue.forEach(item => {
+        if (item.status === 'importing') item.status = 'pending';
+      });
+      console.log('[DawnWire BG] Restored queue from storage:', importQueue.length, 'items');
+      if (!queueRunning) processQueue(null);
+    }
+  } catch (e) { console.error('[DawnWire BG] Queue restore failed:', e); }
+})();
+
+async function persistQueue() {
+  try {
+    // Only persist pending/importing items (not done/failed, to keep storage small)
+    const toSave = importQueue.filter(i => i.status === 'pending' || i.status === 'importing');
+    await chrome.storage.local.set({ importQueue: toSave, queueRunning });
+  } catch (e) { console.error('[DawnWire BG] Queue persist failed:', e); }
+}
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'IMPORT_PRODUCT') {
@@ -9,8 +35,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
   if (message.type === 'IMPORT_FROM_URL') {
-    // Bulk import: open the product in a background tab, extract with the same
-    // live-DOM path as single-product import, then import & close the tab.
     importFromUrl(message.url).then(sendResponse).catch(err => sendResponse({ success: false, error: err.message }));
     return true;
   }
@@ -20,55 +44,72 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return false;
   }
   if (message.type === 'GET_QUEUE_STATUS') {
-    sendResponse({
-      queueLength: importQueue.length,
-      running: queueRunning,
-      items: importQueue.map(item => ({
-        title: item.data.product_name?.substring(0, 40) || 'Unknown',
-        status: item.status
-      }))
-    });
+    sendResponse(getQueueStatus());
+    return false;
+  }
+  if (message.type === 'RESUME_QUEUE') {
+    // Popup re-opened: resume processing if there are pending items
+    const pending = importQueue.filter(i => i.status === 'pending');
+    if (pending.length > 0 && !queueRunning) {
+      processQueue(null);
+    }
+    sendResponse(getQueueStatus());
+    return false;
+  }
+  if (message.type === 'CLEAR_QUEUE') {
+    importQueue = [];
+    queueRunning = false;
+    persistQueue();
+    sendResponse({ cleared: true });
     return false;
   }
   if (message.type === 'TEST_CONNECTION') {
     testConnection().then(sendResponse).catch(err => sendResponse({ success: false, error: err.message }));
     return true;
   }
-  // Auto-import: content script asks if auto-import is enabled for this URL
   if (message.type === 'CHECK_AUTO_IMPORT') {
     checkAutoImport(message.url).then(sendResponse).catch(() => sendResponse({ autoImport: false }));
     return true;
   }
 });
 
+function getQueueStatus() {
+  return {
+    queueLength: importQueue.length,
+    running: queueRunning,
+    pending: importQueue.filter(i => i.status === 'pending').length,
+    importing: importQueue.filter(i => i.status === 'importing').length,
+    done: importQueue.filter(i => i.status === 'done').length,
+    failed: importQueue.filter(i => i.status === 'failed').length,
+    items: importQueue.map(item => ({
+      title: item.data.product_name?.substring(0, 40) || item.data.url?.substring(0, 40) || 'Unknown',
+      status: item.status
+    }))
+  };
+}
+
 // Listen for tab updates to trigger auto-import
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status !== 'complete' || !tab.url) return;
 
-  // Check if auto-import is enabled
   const settings = await chrome.storage.sync.get(['autoImport', 'apiToken']);
   if (!settings.autoImport || !settings.apiToken) return;
 
-  // Check if this is a supported product page
   if (!isSupportedProductUrl(tab.url)) return;
 
-  // Small delay to let page settle
   setTimeout(async () => {
     try {
-      // Check if already imported
       const base = (await getSettings()).apiUrl;
       const headers = await apiHeaders();
       const check = await fetch(base + '/api/admin/seo/product-reviews/check-duplicate?' + new URLSearchParams({ url: tab.url }), { headers });
       if (check.ok) {
         const dup = await check.json();
-        if (dup.duplicate) return; // already imported
+        if (dup.duplicate) return;
       }
 
-      // Extract and import
       const data = await extractFromTab(tab.id);
       if (data && data.product_name) {
         const result = await handleImport(data);
-        // Show a notification
         chrome.notifications?.create({
           type: 'basic',
           iconUrl: 'icons/icon128.png',
@@ -117,10 +158,6 @@ async function getSettings() {
   return { apiUrl: result.apiUrl || DEFAULT_API_URL, apiToken: result.apiToken || '' };
 }
 
-function apiUrl() {
-  return getSettings().then(s => s.apiUrl.replace(/\/$/, ''));
-}
-
 function apiHeaders() {
   return getSettings().then(s => ({
     'Content-Type': 'application/json',
@@ -128,8 +165,6 @@ function apiHeaders() {
   }));
 }
 
-// Full product payload for a reimport — refreshes reviews, images, specs, ASIN,
-// price, rating etc. on the existing row instead of only patching a few fields.
 function fullImportPayload(data) {
   const specs = {
     ...(data.specs || {}),
@@ -145,7 +180,6 @@ function fullImportPayload(data) {
   if (data.bsrDetail && data.bsrDetail.length) specs.best_sellers_rank_detail = data.bsrDetail;
   if (data.reviewHighlights) specs.review_highlights = data.reviewHighlights;
   if (data.detailBullets && Object.keys(data.detailBullets).length) specs.detail_bullets = data.detailBullets;
-  // Validate listPrice: must be higher than current price, otherwise it's a unit price
   const currentPrice = parseFloat(String(data.price || '0')) || 0;
   const listPriceNum = parseFloat(String(data.listPrice || '0')) || 0;
   const validListPrice = (listPriceNum > 0 && currentPrice > 0 && listPriceNum > currentPrice * 0.5) ? data.listPrice : null;
@@ -190,9 +224,6 @@ async function waitForTabComplete(tabId, timeoutMs = 30000) {
   return false;
 }
 
-// Opens the product in a background tab, lets its JS render, then asks the
-// content script to extract full live-DOM data (identical to single-product
-// import). Imports via handleImport (dup-check → create → article → video).
 async function importFromUrl(url) {
   let tab;
   try {
@@ -202,13 +233,13 @@ async function importFromUrl(url) {
   }
   try {
     await waitForTabComplete(tab.id);
-    await sleep(1500); // let dynamic content (reviews, video, A+) render
+    await sleep(1500);
     let data = null;
     for (let attempt = 0; attempt < 6; attempt++) {
       try {
         const res = await chrome.tabs.sendMessage(tab.id, { type: 'EXTRACT_PRODUCT_DATA' });
         if (res && res.product_name) { data = res; break; }
-      } catch (e) { /* content script not injected/ready yet */ }
+      } catch (e) {}
       await sleep(1200);
     }
     if (!data || !data.product_name) {
@@ -236,25 +267,20 @@ async function handleImport(data) {
     if (dupRes.ok) {
       const dupData = await dupRes.json();
       if (dupData.duplicate) {
-        // Update existing instead of creating new
         const updateRes = await fetch(baseUrl + '/api/admin/seo/product-reviews/' + dupData.id, {
           method: 'PUT',
           headers,
           body: JSON.stringify(fullImportPayload(data))
         });
         if (updateRes.ok) {
-          // Auto-process the updated duplicate (fill missing SEO/category/brand)
           try {
             await fetch(baseUrl + '/api/admin/seo/product-reviews/auto-process/' + dupData.id, {
-              method: 'POST',
-              headers
+              method: 'POST', headers
             });
           } catch (e) { console.error('[DawnWire BG]', e); }
-          // Refresh video from Amazon (uses ASIN on the existing row)
           try {
             await fetch(baseUrl + '/api/admin/seo/product-reviews/fetch-video/' + dupData.id, {
-              method: 'POST',
-              headers
+              method: 'POST', headers
             });
           } catch (e) { console.error('[DawnWire BG]', e); }
           return { success: true, updated: true, id: dupData.id };
@@ -274,13 +300,12 @@ async function handleImport(data) {
 
   const reviewId = result.id || result.review?.id;
 
-  // 3. Auto-create a cloaked affiliate link (with tag=dawnwire-20 for commission)
+  // 3. Auto-create cloaked affiliate link
   let affiliateLink = null;
   const rawUrl = data.amazon_url || data.affiliate_url || '';
   if (reviewId && rawUrl) {
     try {
       const slug = data.asin || (result.review?.slug || result.slug || 'product-' + Date.now());
-      // Ensure the affiliate tag is present
       let taggedUrl = rawUrl;
       if (taggedUrl.includes('amazon') && !taggedUrl.includes('tag=')) {
         taggedUrl += (taggedUrl.includes('?') ? '&' : '?') + 'tag=dawnwire-20';
@@ -311,13 +336,12 @@ async function handleImport(data) {
     } catch (e) { console.error('[DawnWire BG]', e); }
   }
 
-  // 4. Trigger server-side video fetch from Amazon (uses ASIN)
+  // 4. Server-side video fetch
   let videoFetched = false;
   if (reviewId) {
     try {
       const videoRes = await fetch(baseUrl + '/api/admin/seo/product-reviews/fetch-video/' + reviewId, {
-        method: 'POST',
-        headers
+        method: 'POST', headers
       });
       if (videoRes.ok) {
         const videoData = await videoRes.json();
@@ -326,26 +350,23 @@ async function handleImport(data) {
     } catch (e) { console.error('[DawnWire BG]', e); }
   }
 
-  // 5. Auto-process: brand + category detection + AI SEO generation (fills
-  //    missing seo_title, description, keywords, best_for, verdict, score)
+  // 5. Auto-process: brand + category + AI SEO
   let autoProcessed = false;
   if (reviewId) {
     try {
       const autoRes = await fetch(baseUrl + '/api/admin/seo/product-reviews/auto-process/' + reviewId, {
-        method: 'POST',
-        headers
+        method: 'POST', headers
       });
       if (autoRes.ok) autoProcessed = true;
     } catch (e) { console.error('[DawnWire BG]', e); }
   }
 
-  // 6. Auto-generate a published AI article (+ design image) for this product
+  // 6. Auto-generate AI article
   let generatedArticle = false;
   if (reviewId && data.amazon_url) {
     try {
       const genRes = await fetch(baseUrl + '/api/admin/seo/auto-articles/generate/' + reviewId, {
-        method: 'POST',
-        headers
+        method: 'POST', headers
       });
       if (genRes.ok) generatedArticle = true;
     } catch (e) { console.error('[DawnWire BG]', e); }
@@ -356,11 +377,13 @@ async function handleImport(data) {
 
 function addToQueue(products, tabId) {
   importQueue.push(...products.map(p => ({ data: p, status: 'pending' })));
+  persistQueue();
   if (!queueRunning) processQueue(tabId);
 }
 
 async function processQueue(tabId) {
   queueRunning = true;
+  persistQueue();
   notifyQueueStatus(tabId);
 
   const CONCURRENCY = 3;
@@ -368,6 +391,7 @@ async function processQueue(tabId) {
   while (importQueue.length > 0) {
     const batch = importQueue.splice(0, CONCURRENCY);
     batch.forEach(item => { item.status = 'importing'; });
+    persistQueue();
     notifyQueueStatus(tabId);
 
     await Promise.allSettled(batch.map(item =>
@@ -379,6 +403,7 @@ async function processQueue(tabId) {
       })
     ));
 
+    // Retry failed items
     for (const item of batch) {
       if (item.status === 'failed') {
         item.retryCount = (item.retryCount || 0) + 1;
@@ -390,22 +415,17 @@ async function processQueue(tabId) {
         }
       }
     }
+    persistQueue();
     notifyQueueStatus(tabId);
   }
 
   queueRunning = false;
+  persistQueue();
   notifyQueueStatus(tabId);
 }
 
 function notifyQueueStatus(tabId) {
-  const status = {
-    queueLength: importQueue.length,
-    running: queueRunning,
-    items: importQueue.map(item => ({
-      title: item.data.product_name?.substring(0, 40) || 'Unknown',
-      status: item.status
-    }))
-  };
+  const status = getQueueStatus();
   // Notify the popup if open
   chrome.runtime.sendMessage({ type: 'QUEUE_STATUS', status }).catch(() => {});
   // Also notify the content script tab if available

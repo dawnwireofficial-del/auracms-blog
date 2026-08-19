@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const resultOk = document.getElementById('resultOk');
   const resultFail = document.getElementById('resultFail');
   const importLog = document.getElementById('importLog');
+  const importStatus = document.getElementById('importStatus');
+  const importStatusText = document.getElementById('importStatusText');
+  const queueSection = document.getElementById('queueSection');
+  const queueList = document.getElementById('queueList');
+  const queueProgressFill = document.getElementById('queueProgressFill');
   const currentPageSection = document.getElementById('currentPageSection');
   const currentPageUrl = document.getElementById('currentPageUrl');
   const currentPageBadge = document.getElementById('currentPageBadge');
@@ -68,6 +73,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     autoImportInfo.style.display = 'block';
   }
 
+  // ─── On popup open: resume any pending queue ───
+  try {
+    const queueStatus = await chrome.runtime.sendMessage({ type: 'RESUME_QUEUE' });
+    if (queueStatus && (queueStatus.pending > 0 || queueStatus.importing > 0)) {
+      updateQueueUI(queueStatus);
+      setStatus(statusDiv, `Resuming import: ${queueStatus.pending} pending, ${queueStatus.importing} in progress...`, 'info');
+    }
+  } catch (e) {}
+
   // ─── Detect current page ───
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -79,7 +93,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentPageBadge.className = 'badge ' + store.badge;
         currentPageUrl.textContent = tab.url;
 
-        // Check if already imported
         const { apiToken, apiUrl } = await chrome.storage.sync.get(['apiUrl', 'apiToken']);
         if (apiToken) {
           try {
@@ -145,7 +158,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const lines = urlInput.value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     const urls = [];
     for (const line of lines) {
-      // Try to extract URL from text (user might paste "Product Name https://..." or just a URL)
       const urlMatch = line.match(/(https?:\/\/[^\s]+)/i);
       if (urlMatch && isValidProductUrl(urlMatch[1])) {
         urls.push(urlMatch[1]);
@@ -153,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         urls.push(line);
       }
     }
-    return [...new Set(urls)]; // deduplicate
+    return [...new Set(urls)];
   }
 
   // ─── Preview parsed URLs ───
@@ -194,7 +206,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    // Check API token
     const { apiToken } = await chrome.storage.sync.get(['apiToken']);
     if (!apiToken) {
       setStatus(statusDiv, 'Please configure your API token in Settings first.', 'error');
@@ -213,13 +224,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     let done = 0, failed = 0;
     const total = urls.length;
 
-    // Process URLs sequentially (background.js handles concurrent internally)
     for (let i = 0; i < urls.length; i++) {
       const url = urls[i];
       const store = detectStore(url);
       const short = url.replace(/https?:\/\/(www\.)?/, '').substring(0, 40);
 
-      // Add to log as pending
       const logItem = document.createElement('div');
       logItem.className = 'url-item';
       logItem.innerHTML = `<span class="badge ${store.badge}">${store.name}</span>
@@ -249,7 +258,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       progressFill.style.width = (((done + failed) / total) * 100) + '%';
     }
 
-    // Show results
     resultsSummary.style.display = 'flex';
     resultOk.textContent = done;
     resultFail.textContent = failed;
@@ -261,16 +269,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     urlPreview.style.display = 'none';
     parseUrlsBtn.style.display = 'none';
 
-    if (done > 0) {
-      setStatus(statusDiv, `${done} product(s) imported successfully!`, 'success');
-    }
-    if (failed > 0) {
-      setStatus(statusDiv, `${failed} product(s) failed. Check the log above.`, 'error');
-    }
+    if (done > 0) setStatus(statusDiv, `${done} product(s) imported successfully!`, 'success');
+    if (failed > 0) setStatus(statusDiv, `${failed} product(s) failed. Check the log above.`, 'error');
   });
 
   // ─── Clear ───
-  clearUrlsBtn.addEventListener('click', () => {
+  clearUrlsBtn.addEventListener('click', async () => {
     urlInput.value = '';
     urlPreview.style.display = 'none';
     urlPreview.innerHTML = '';
@@ -281,7 +285,54 @@ document.addEventListener('DOMContentLoaded', async () => {
     progressBar.classList.remove('active');
     progressText.style.display = 'none';
     statusDiv.className = 'status';
+    // Also clear any persisted queue
+    try { await chrome.runtime.sendMessage({ type: 'CLEAR_QUEUE' }); } catch (e) {}
   });
+
+  // ─── Listen for queue updates from background ───
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message.type === 'QUEUE_STATUS') {
+      updateQueueUI(message.status);
+    }
+  });
+
+  // Poll queue status while popup is open (for real-time updates)
+  setInterval(async () => {
+    try {
+      const status = await chrome.runtime.sendMessage({ type: 'GET_QUEUE_STATUS' });
+      if (status) updateQueueUI(status);
+    } catch (e) {}
+  }, 2000);
+
+  function updateQueueUI(status) {
+    if (!status) return;
+    const hasWork = status.pending > 0 || status.importing > 0 || status.running;
+
+    if (hasWork) {
+      queueSection.classList.add('active');
+      importStatus.classList.add('active');
+    } else {
+      queueSection.classList.remove('active');
+      importStatus.classList.remove('active');
+    }
+
+    const total = (status.pending || 0) + (status.importing || 0) + (status.done || 0) + (status.failed || 0);
+    const completed = (status.done || 0) + (status.failed || 0);
+    const pct = total > 0 ? (completed / total) * 100 : 0;
+    queueProgressFill.style.width = Math.min(pct, 100) + '%';
+
+    if (total > 0) {
+      progressText.style.display = 'block';
+      progressText.textContent = `${completed}/${total} complete (${status.done || 0} ok, ${status.failed || 0} failed)`;
+    }
+
+    queueList.innerHTML = (status.items || []).map((item, i) => `
+      <div class="queue-item" key="${i}">
+        <span class="queue-title">${item.title}</span>
+        <span class="queue-status ${item.status}">${item.status}</span>
+      </div>
+    `).join('');
+  }
 
   // ─── Settings: Save ───
   saveBtn.addEventListener('click', async () => {
