@@ -20,14 +20,97 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return false;
   }
   if (message.type === 'GET_QUEUE_STATUS') {
-    sendResponse({ queueLength: importQueue.length, running: queueRunning });
+    sendResponse({
+      queueLength: importQueue.length,
+      running: queueRunning,
+      items: importQueue.map(item => ({
+        title: item.data.product_name?.substring(0, 40) || 'Unknown',
+        status: item.status
+      }))
+    });
     return false;
   }
   if (message.type === 'TEST_CONNECTION') {
     testConnection().then(sendResponse).catch(err => sendResponse({ success: false, error: err.message }));
     return true;
   }
+  // Auto-import: content script asks if auto-import is enabled for this URL
+  if (message.type === 'CHECK_AUTO_IMPORT') {
+    checkAutoImport(message.url).then(sendResponse).catch(() => sendResponse({ autoImport: false }));
+    return true;
+  }
 });
+
+// Listen for tab updates to trigger auto-import
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  if (changeInfo.status !== 'complete' || !tab.url) return;
+
+  // Check if auto-import is enabled
+  const settings = await chrome.storage.sync.get(['autoImport', 'apiToken']);
+  if (!settings.autoImport || !settings.apiToken) return;
+
+  // Check if this is a supported product page
+  if (!isSupportedProductUrl(tab.url)) return;
+
+  // Small delay to let page settle
+  setTimeout(async () => {
+    try {
+      // Check if already imported
+      const base = (await getSettings()).apiUrl;
+      const headers = await apiHeaders();
+      const check = await fetch(base + '/api/admin/seo/product-reviews/check-duplicate?' + new URLSearchParams({ url: tab.url }), { headers });
+      if (check.ok) {
+        const dup = await check.json();
+        if (dup.duplicate) return; // already imported
+      }
+
+      // Extract and import
+      const data = await extractFromTab(tab.id);
+      if (data && data.product_name) {
+        const result = await handleImport(data);
+        // Show a notification
+        chrome.notifications?.create({
+          type: 'basic',
+          iconUrl: 'icons/icon128.png',
+          title: 'DawnWire Auto-Import',
+          message: `Imported: ${data.product_name.substring(0, 60)}`
+        }).catch(() => {});
+      }
+    } catch (e) {
+      console.error('[DawnWire AutoImport]', e);
+    }
+  }, 2000);
+});
+
+function isSupportedProductUrl(url) {
+  const patterns = [
+    /amazon\.\w+\/(dp|gp\/product|product)\/\w+/i,
+    /amzn\.to\/\w+/i,
+    /walmart\.com\/ip\//i,
+    /bestbuy\.com\/.*\/product/i,
+    /aliexpress\.com\/item/i,
+    /ebay\.\w+\/itm\//i,
+  ];
+  return patterns.some(p => p.test(url));
+}
+
+async function extractFromTab(tabId) {
+  await waitForTabComplete(tabId);
+  await new Promise(r => setTimeout(r, 1500));
+  for (let attempt = 0; attempt < 6; attempt++) {
+    try {
+      const res = await chrome.tabs.sendMessage(tabId, { type: 'EXTRACT_PRODUCT_DATA' });
+      if (res && res.product_name) return res;
+    } catch (e) {}
+    await new Promise(r => setTimeout(r, 1200));
+  }
+  return null;
+}
+
+async function checkAutoImport(url) {
+  const settings = await chrome.storage.sync.get(['autoImport', 'apiToken']);
+  return { autoImport: !!settings.autoImport && !!settings.apiToken };
+}
 
 async function getSettings() {
   const result = await chrome.storage.sync.get(['apiUrl', 'apiToken']);

@@ -1,12 +1,13 @@
 {
   "manifest_version": 3,
   "name": "DawnWire Product Importer",
-  "version": "1.0.0",
-  "description": "Import Amazon product details directly into your DawnWire website as affiliate product reviews.",
+  "version": "3.0.0",
+  "description": "Import products from Amazon, Walmart, Best Buy, AliExpress, eBay into DawnWire. Supports URL import, bulk import, and auto-import.",
   "permissions": [
     "storage",
     "activeTab",
-    "tabs"
+    "tabs",
+    "notifications"
   ],
   "host_permissions": [
     "https://dawnwire.com/*",

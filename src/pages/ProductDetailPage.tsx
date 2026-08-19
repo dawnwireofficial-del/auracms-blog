@@ -11,7 +11,7 @@ import { PriceHistoryTracker } from '../components/product/PriceHistoryTracker';
 import { ProductFaqSection } from '../components/product/ProductFaqSection';
 import CustomerReviews from '../components/affiliate/CustomerReviews';
 import { useAppStore, store } from '../lib/store';
-import { sanitizeHtml } from '../lib/sanitize';
+import { sanitizeHtml, cleanReviewSummary, cleanSpecKey } from '../lib/sanitize';
 import ReactMarkdown from 'react-markdown';
 import { safeText, safeSpecValue, isValidImageUrl, proxyImageUrl } from '../utils/safeRender';
 import { trackPageView } from '../lib/tracker';
@@ -151,8 +151,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             id: data.id, title: data.product_name || data.title || '', slug: data.slug || productSlug,
             categoryId: data.category_id || data.categoryId || '', asin: data.asin || '', brand: data.brand || '', mainCategory: data.category || data.mainCategory || 'Electronics',
             subcategory: data.subcategory || 'General', productType: 'Physical Product',
-            shortDescription: data.review_summary || data.shortDescription || '',
-            fullDescription: data.review_summary || data.fullDescription || '',
+            shortDescription: cleanReviewSummary(data.review_summary) || data.shortDescription || '',
+            fullDescription: cleanReviewSummary(data.review_summary) || data.fullDescription || '',
             videoUrl: data.specs?.video_url || data.videoUrl || '',
             images: (() => { const imgs: string[] = []; if (data.product_image) imgs.push(data.product_image); const dbGallery = data.gallery; if (Array.isArray(dbGallery)) dbGallery.forEach((u: string) => { if (u && !imgs.includes(u)) imgs.push(u); }); const specsGallery = data.specs?.gallery; if (Array.isArray(specsGallery)) specsGallery.forEach((u: string) => { if (u && !imgs.includes(u)) imgs.push(u); }); return imgs; })(),
             amazonOriginalUrl: data.amazon_url || '', affiliateUrl: data.affiliate_url || '',
@@ -164,7 +164,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             mainFeatures: Array.isArray(data.key_features) ? data.key_features : [],
             specifications: data.specs || {}, pros: Array.isArray(data.pros) ? data.pros : [],
             cons: Array.isArray(data.cons) ? data.cons : [], bestFor: data.best_for || '',
-            editorVerdict: data.review_summary || '', editorScore: Number(data.editor_score) || (Number(data.rating) * 2) || 0,
+            editorVerdict: cleanReviewSummary(data.review_summary) || '', editorScore: Number(data.editor_score) || (Number(data.rating) * 2) || 0,
             reviewArticle: data.review_article || data.reviewArticle || '',
             faq: Array.isArray(data.faq) ? data.faq : [],
             affiliateDisclosure: data.affiliate_disclosure || data.affiliateDisclosure || '',
@@ -1021,7 +1021,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 if (k === 'detail_bullets' || k === 'details') {
                   if (v && typeof v === 'object' && !Array.isArray(v)) {
                     for (const [sk, sv] of Object.entries(v as any)) {
-                      const clean = sk.replace(/[\u200E\u200F\u202A\u202B\u202C\u202D]/g, '').replace(/[:：]/g, '').trim();
+                      const clean = cleanSpecKey(sk);
                       if (typeof sv !== 'string' && typeof sv !== 'number') continue;
                       if (!sv) continue;
                       const norm = normalizeLabel(clean);

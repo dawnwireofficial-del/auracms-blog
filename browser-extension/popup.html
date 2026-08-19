@@ -7,7 +7,9 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      width: 360px;
+      width: 400px;
+      max-height: 580px;
+      overflow-y: auto;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #0A1F44;
       color: #fff;
@@ -21,10 +23,39 @@
       align-items: center;
       gap: 8px;
     }
-    h1 span { color: #FF8A00; }
-    .subtitle { font-size: 11px; color: #8899bb; margin-bottom: 16px; }
-    label { display: block; font-size: 11px; font-weight: 600; color: #8899bb; text-transform: uppercase; margin-bottom: 4px; margin-top: 12px; }
-    input {
+    h1 span { color: #246BFF; }
+    .subtitle { font-size: 11px; color: #8899bb; margin-bottom: 14px; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 14px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #1a3366;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 8px 0;
+      font-size: 11px;
+      font-weight: 600;
+      background: #0D2A5C;
+      color: #8899bb;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: #246BFF;
+      color: #fff;
+    }
+    .tab-btn:hover:not(.active) { background: #1a3366; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    label { display: block; font-size: 11px; font-weight: 600; color: #8899bb; text-transform: uppercase; margin-bottom: 4px; margin-top: 10px; }
+    input[type="url"], input[type="password"], input[type="text"] {
       width: 100%;
       padding: 10px 12px;
       border: 1px solid #1a3366;
@@ -36,6 +67,24 @@
     }
     input:focus { border-color: #246BFF; }
     input::placeholder { color: #445577; }
+
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #1a3366;
+      border-radius: 8px;
+      background: #0D2A5C;
+      color: #fff;
+      font-size: 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      outline: none;
+      resize: vertical;
+      min-height: 100px;
+      line-height: 1.6;
+    }
+    textarea:focus { border-color: #246BFF; }
+    textarea::placeholder { color: #445577; }
+
     .btn {
       display: block;
       width: 100%;
@@ -45,14 +94,18 @@
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      margin-top: 12px;
+      margin-top: 10px;
       transition: opacity 0.2s;
     }
     .btn:hover { opacity: 0.9; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-primary { background: #246BFF; color: #fff; }
-    .btn-secondary { background: #1a3366; color: #8899bb; margin-top: 8px; font-size: 11px; }
+    .btn-green { background: #22c55e; color: #fff; }
+    .btn-secondary { background: #1a3366; color: #8899bb; margin-top: 6px; font-size: 11px; }
+    .btn-danger { background: #dc2626; color: #fff; margin-top: 6px; font-size: 11px; }
+
     .status {
-      margin-top: 12px;
+      margin-top: 10px;
       padding: 8px 10px;
       border-radius: 6px;
       font-size: 11px;
@@ -62,83 +115,284 @@
     .status.error { display: block; background: #330a0a; color: #ff4444; border: 1px solid #ff444422; }
     .status.info { display: block; background: #0a1a33; color: #4488ff; border: 1px solid #4488ff22; }
     .hint { font-size: 10px; color: #556688; margin-top: 3px; }
-    .footer { margin-top: 16px; padding-top: 12px; border-top: 1px solid #1a3366; font-size: 11px; color: #556688; text-align: center; }
-    .footer a { color: #4488ff; text-decoration: none; }
 
-    .import-status { margin-top: 8px; display: none; }
-    .import-status.active { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #33cc88; }
-    .spinner { width: 12px; height: 12px; border: 2px solid #33cc8833; border-top-color: #33cc88; border-radius: 50%; animation: spin 0.8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .footer { margin-top: 14px; padding-top: 10px; border-top: 1px solid #1a3366; font-size: 10px; color: #556688; text-align: center; }
 
-    .queue-section { margin-top: 16px; display: none; }
-    .queue-section.active { display: block; }
-    .queue-header { font-size: 11px; font-weight: 600; color: #8899bb; text-transform: uppercase; margin-bottom: 8px; }
-    .queue-item { display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 10px; border-bottom: 1px solid #1a336633; }
-    .queue-item:last-child { border-bottom: none; }
-    .queue-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #c0d0f0; }
-    .queue-status { font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
-    .queue-status.pending { background: #1a3366; color: #8899bb; }
-    .queue-status.importing { background: #246BFF33; color: #4488ff; }
-    .queue-status.done { background: #33cc8822; color: #33cc88; }
-    .queue-status.failed { background: #ff444422; color: #ff4444; }
-    .queue-progress {
-      height: 3px;
+    /* URL Import specific */
+    .url-list {
+      margin-top: 8px;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+    .url-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      margin-bottom: 3px;
+      font-size: 11px;
+      background: #0D2A5C;
+      border: 1px solid #1a3366;
+    }
+    .url-item .badge {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .badge-amazon { background: #FF990022; color: #FF9900; }
+    .badge-walmart { background: #0071DC22; color: #0071DC; }
+    .badge-bestbuy { background: #FFCC0022; color: #FFCC00; }
+    .badge-aliexpress { background: #FF474722; color: #FF4747; }
+    .badge-ebay { background: #E5323822; color: #E53238; }
+    .badge-unknown { background: #55555522; color: #888; }
+    .url-item .url-text {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #c0d0f0;
+    }
+    .url-item .url-status {
+      font-size: 9px;
+      font-weight: 600;
+      padding: 1px 5px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .url-status.pending { background: #1a3366; color: #8899bb; }
+    .url-status.importing { background: #246BFF33; color: #4488ff; }
+    .url-status.done { background: #22c55e22; color: #22c55e; }
+    .url-status.failed { background: #dc262622; color: #dc2626; }
+    .url-item .url-remove {
+      background: none;
+      border: none;
+      color: #556688;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0 2px;
+    }
+    .url-item .url-remove:hover { color: #ff4444; }
+
+    /* Progress */
+    .progress-bar {
+      height: 4px;
       background: #1a3366;
       border-radius: 2px;
       overflow: hidden;
       margin: 8px 0;
+      display: none;
     }
-    .queue-progress-fill {
+    .progress-bar.active { display: block; }
+    .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, #246BFF, #4488ff);
+      background: linear-gradient(90deg, #246BFF, #22c55e);
       border-radius: 2px;
       transition: width 0.3s ease;
       width: 0%;
     }
-    .badge { display: inline-block; font-size: 9px; padding: 1px 5px; border-radius: 4px; margin-left: 4px; }
-    .badge-amazon { background: #FF990022; color: #FF9900; }
-    .badge-walmart { background: #0071DC22; color: #0071DC; }
-    .badge-bestbuy { background: #FFCC0022; color: #FFCC00; }
+    .progress-text {
+      font-size: 10px;
+      color: #8899bb;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    /* Auto-import toggle */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #0D2A5C;
+      border: 1px solid #1a3366;
+    }
+    .toggle-label {
+      font-size: 12px;
+      color: #c0d0f0;
+      font-weight: 600;
+    }
+    .toggle-desc {
+      font-size: 10px;
+      color: #556688;
+      margin-top: 1px;
+    }
+    .toggle {
+      width: 40px;
+      height: 22px;
+      border-radius: 11px;
+      background: #1a3366;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.3s;
+      flex-shrink: 0;
+    }
+    .toggle.on { background: #22c55e; }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.3s;
+    }
+    .toggle.on::after { transform: translateX(18px); }
+
+    /* Current page import */
+    .current-page {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #0D2A5C;
+      border: 1px solid #1a3366;
+      margin-bottom: 10px;
+    }
+    .current-page .page-url {
+      flex: 1;
+      font-size: 11px;
+      color: #c0d0f0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .current-page .import-now-btn {
+      padding: 5px 12px;
+      border: none;
+      border-radius: 6px;
+      background: #22c55e;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .current-page .import-now-btn:hover { opacity: 0.85; }
+    .current-page .import-now-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .current-page .import-now-btn.imported { background: #1a3366; color: #22c55e; }
+
+    /* Results summary */
+    .results-summary {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .result-stat {
+      flex: 1;
+      text-align: center;
+      padding: 6px;
+      border-radius: 6px;
+      background: #0D2A5C;
+    }
+    .result-stat .num { font-size: 18px; font-weight: 700; }
+    .result-stat .lbl { font-size: 9px; color: #8899bb; text-transform: uppercase; }
+    .result-stat.ok .num { color: #22c55e; }
+    .result-stat.fail .num { color: #dc2626; }
   </style>
 </head>
 <body>
   <h1>&#9889; DawnWire <span>Importer</span></h1>
   <p class="subtitle">Multi-store product import for your website</p>
 
-  <label>API URL</label>
-  <input type="url" id="apiUrl" placeholder="https://dawnwire.com" />
-  <p class="hint">Your DawnWire website URL</p>
-
-  <label>API Token</label>
-  <input type="password" id="apiToken" placeholder="Paste your admin token" />
-  <p class="hint">Get this from Admin &rarr; Settings &rarr; Browser Extension API Token</p>
-
-  <button id="saveBtn" class="btn btn-primary">Save Settings</button>
-  <button id="testBtn" class="btn btn-secondary">Test Connection</button>
-
-  <div id="status" class="status"></div>
-
-  <div id="connIndicator" style="display:none;align-items:center;gap:6px;font-size:10px;color:#8899bb;margin-top:8px;">
-    <span id="connDot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#555;"></span>
-    <span id="connText">Not tested</span>
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="url-import">URL Import</button>
+    <button class="tab-btn" data-tab="settings">Settings</button>
   </div>
 
-  <div id="importStatus" class="import-status">
-    <div class="spinner"></div>
-    <span>Import in progress...</span>
-  </div>
+  <!-- ═══════════ URL IMPORT TAB ═══════════ -->
+  <div id="tab-url-import" class="tab-panel active">
 
-  <div id="queueSection" class="queue-section">
-    <div class="queue-header">Import Queue</div>
-    <div class="queue-progress">
-      <div id="queueProgressFill" class="queue-progress-fill"></div>
+    <!-- Current page quick-import -->
+    <div id="currentPageSection" class="current-page" style="display:none;">
+      <span class="badge badge-amazon" id="currentPageBadge">AMAZON</span>
+      <span class="page-url" id="currentPageUrl">-</span>
+      <button class="import-now-btn" id="importCurrentBtn">Import</button>
     </div>
-    <div id="queueList"></div>
+
+    <!-- URL textarea -->
+    <label>Paste Product URLs</label>
+    <textarea id="urlInput" placeholder="https://www.amazon.com/dp/B08FX95J5P&#10;https://www.amazon.com/dp/B09V3KXJPB&#10;https://www.walmart.com/ip/...&#10;&#10;One URL per line. Supports Amazon, Walmart, Best Buy, AliExpress, eBay." rows="5"></textarea>
+    <p class="hint">Paste one or more product URLs — one per line. Click "Import Products" to fetch & import.</p>
+
+    <!-- Parsed URL preview -->
+    <div id="urlPreview" class="url-list" style="display:none;"></div>
+
+    <!-- Buttons -->
+    <button id="parseUrlsBtn" class="btn btn-secondary" style="display:none;">Preview Parsed URLs</button>
+    <button id="importUrlsBtn" class="btn btn-green">&#9889; Import Products</button>
+    <button id="clearUrlsBtn" class="btn btn-secondary">Clear All</button>
+
+    <!-- Progress -->
+    <div id="progressBar" class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div id="progressText" class="progress-text" style="display:none;"></div>
+
+    <!-- Results -->
+    <div id="resultsSummary" class="results-summary" style="display:none;">
+      <div class="result-stat ok"><div class="num" id="resultOk">0</div><div class="lbl">Imported</div></div>
+      <div class="result-stat fail"><div class="num" id="resultFail">0</div><div class="lbl">Failed</div></div>
+    </div>
+
+    <!-- Import log -->
+    <div id="importLog" class="url-list" style="display:none; margin-top: 6px;"></div>
+
+    <!-- Status -->
+    <div id="status" class="status"></div>
+
+  </div>
+
+  <!-- ═══════════ SETTINGS TAB ═══════════ -->
+  <div id="tab-settings" class="tab-panel">
+
+    <label>API URL</label>
+    <input type="url" id="apiUrl" placeholder="https://www.dawnwire.com" />
+    <p class="hint">Your DawnWire website URL</p>
+
+    <label>API Token</label>
+    <input type="password" id="apiToken" placeholder="Paste your admin token" />
+    <p class="hint">Get this from Admin &#8594; Settings &#8594; Browser Extension API Token</p>
+
+    <button id="saveBtn" class="btn btn-primary">Save Settings</button>
+    <button id="testBtn" class="btn btn-secondary">Test Connection</button>
+
+    <!-- Auto-import toggle -->
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Auto-Import on Visit</div>
+        <div class="toggle-desc">Auto-import when you open a supported product page</div>
+      </div>
+      <div id="autoImportToggle" class="toggle"></div>
+    </div>
+
+    <!-- Auto-import info -->
+    <div id="autoImportInfo" style="display:none; margin-top: 8px; padding: 8px 10px; border-radius: 6px; background: #0a3322; border: 1px solid #33cc8822; font-size: 10px; color: #33cc88;">
+      Auto-import enabled. Open any Amazon/Walmart/Best Buy product page and it will be imported automatically.
+    </div>
+
+    <div id="statusSettings" class="status"></div>
+
+    <div id="connIndicator" style="display:none;align-items:center;gap:6px;font-size:10px;color:#8899bb;margin-top:8px;">
+      <span id="connDot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#555;"></span>
+      <span id="connText">Not tested</span>
+    </div>
+
   </div>
 
   <div class="footer">
-    <a href="https://dawnwire.com" target="_blank">DawnWire</a> &middot; v2.0.0 &middot;
-    <span style="color:#556688">Amazon, Walmart, Best Buy, AliExpress, eBay</span>
+    DawnWire Importer &middot; v3.0 &middot;
+    Amazon, Walmart, Best Buy, AliExpress, eBay
   </div>
 
   <script src="popup.js"></script>
