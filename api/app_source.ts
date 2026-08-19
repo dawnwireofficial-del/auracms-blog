@@ -13,6 +13,7 @@ import adminRouter from './routes/admin';
 import analyticsRouter from './routes/analytics';
 import migrateRouter from './routes/migrate';
 import cronRouter from './routes/cron';
+import socialMediaRouter from './routes/social-media';
 
 const app = express();
 
@@ -228,6 +229,7 @@ app.use('/api/public', publicRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/admin/analytics', analyticsRouter);
 app.use('/api/admin/seo', seoRouter);
+app.use('/api/admin/social-media', socialMediaRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/migrate', migrateRouter);
 app.use('/api/cron', cronRouter);

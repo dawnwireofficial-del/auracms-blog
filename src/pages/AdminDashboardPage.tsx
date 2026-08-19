@@ -37,6 +37,7 @@ import AdminBannerManager from '../components/admin/AdminBannerManager';
 import AdminDeals from '../components/admin/AdminDeals';
 import AdminHomepage from '../components/admin/AdminHomepage';
 import AdminCategorySections from '../components/admin/AdminCategorySections';
+import SocialMediaManager from '../components/admin/SocialMediaManager';
 
 function BannerUploadBtn({ onUrl }: { onUrl: (url: string) => void }) {
   const [uploading, setUploading] = React.useState(false);
@@ -119,14 +120,14 @@ export const AdminDashboardPage: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
     if (tab) {
-      const valid = ['bulk-import','auto-articles','dashboard','posts','categories','comments','product-review','product-articles','article-generator','testimonials','affiliate','pages','subscribers','drips','alerts','contact','settings','seo-engine','logs','brands','banners','deals','homepage','sections','clusters','amazon-sync','media','auto-import'];
+      const valid = ['bulk-import','auto-articles','dashboard','posts','categories','comments','product-review','product-articles','article-generator','testimonials','affiliate','pages','subscribers','drips','alerts','contact','settings','seo-engine','logs','brands','banners','deals','homepage','sections','clusters','amazon-sync','media','auto-import','social-media'];
       if (valid.includes(tab)) return tab as typeof activeTab;
     }
     if (tab === 'bulk-import') return 'bulk-import';
     if (tab === 'auto-articles') return 'auto-articles';
     return 'products';
   };
-  const [activeTab, setActiveTab] = useState<'products' | 'activity-feed' | 'scraper' | 'auto-articles' | 'reviews' | 'banners' | 'analytics' | 'seo' | 'firebase' | 'profile' | 'extension' | 'bulk-import' | 'dashboard' | 'posts' | 'categories' | 'comments' | 'product-review' | 'product-articles' | 'article-generator' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'brands' | 'deals' | 'homepage' | 'sections' | 'clusters' | 'amazon-sync' | 'media' | 'auto-import' | 'wp-import' | 'seo-engine'>(getInitialTab);
+  const [activeTab, setActiveTab] = useState<'products' | 'activity-feed' | 'scraper' | 'auto-articles' | 'reviews' | 'banners' | 'analytics' | 'seo' | 'firebase' | 'profile' | 'extension' | 'bulk-import' | 'dashboard' | 'posts' | 'categories' | 'comments' | 'product-review' | 'product-articles' | 'article-generator' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'brands' | 'deals' | 'homepage' | 'sections' | 'clusters' | 'amazon-sync' | 'media' | 'auto-import' | 'wp-import' | 'seo-engine' | 'social-media'>(getInitialTab);
 
   // Form states
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
@@ -841,6 +842,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
             { id: 'homepage', label: '🏠 Homepage' },
             { id: 'sections', label: '🧩 Sections' },
             { id: 'seo-engine', label: '🧠 SEO Engine' },
+            { id: 'social-media', label: '📱 Social Media' },
             { id: 'seo', label: 'SEO & Sitemap' },
             { id: 'analytics', label: `Affiliate Clicks (${serverClickData.totalClicks})` },
             { id: 'firebase', label: 'Firebase & Backup' },
@@ -2495,6 +2497,11 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
         {/* Tab: SEO Engine */}
         {activeTab === 'seo-engine' && (
           <SeoDashboard token={token} baseUrl="" />
+        )}
+
+        {/* Tab: Social Media Publisher */}
+        {activeTab === 'social-media' && (
+          <SocialMediaManager token={token} />
         )}
 
         {/* Tab: Posts */}
