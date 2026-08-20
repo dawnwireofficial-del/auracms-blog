@@ -574,133 +574,143 @@ router.post('/test-connection', authenticate, requireRole(['super_admin', 'admin
 
 // ─── Pinterest Product Catalog CSV Feed ───────────────────────────────────────
 
+// ─── Shared: map DawnWire fields → catalog columns ───────────────────────────
+
+function mapGoogleCategory(bestFor: string, category: string, specs: any): string {
+  const text = `${bestFor} ${category} ${specs?.details?.department || ''}`.toLowerCase();
+  if (text.match(/beauty|skin|hair|makeup|face|lip|eye|moistur|serum|cleanser|body.scrub|lotion|sunscreen|lip.balm/)) return 'Health & Beauty > Personal Care > Skin Care';
+  if (text.match(/kitchen|cook|food|coffee|tea|blender|air.fryer|instant.pot|cutting.board|knife|pan|pot|bowl|utensil|spice|grater|opener/)) return 'Home & Garden > Kitchen & Dining > Small Kitchen Appliances';
+  if (text.match(/tech|gadget|electronic|computer|laptop|phone|tablet|headphone|speaker|camera|keyboard|mouse|monitor|webcam|rack|shelf|fan|clock|usb/)) return 'Electronics > Computers';
+  if (text.match(/home|furniture|decor|lamp|organiz|storage|clean|trash|towel|mat|dispenser|holder|sponge|brush/)) return 'Home & Garden > Home Decor';
+  if (text.match(/fitness|health|exercise|yoga|gym|sport|protein|weight|vest|resistance/)) return 'Health & Fitness > Exercise & Fitness';
+  if (text.match(/toy|game|kid|baby|child|montessori|puzzle/)) return 'Toys & Games';
+  if (text.match(/fashion|cloth|wear|shirt|pant|shoe|jacket|backpack|bag|sleeve|vinyl|record/)) return 'Apparel & Accessories > Clothing';
+  if (text.match(/pet|dog|cat|fish/)) return 'Animals & Pet Supplies > Pet Supplies';
+  if (text.match(/auto|car|vehicle|seat.cover|floor.mat/)) return 'Automotive > Parts & Accessories';
+  if (text.match(/print|toner|ink|cartridge|paper/)) return 'Office Supplies > Printers > Ink & Toner';
+  if (text.match(/projector|screen|mount|stand|case/)) return 'Electronics > Audio & Video > Video Equipment';
+  if (text.match(/mask|serum|collagen|peptide|ceramide|vitamin|niacinamide|sunscreen|spf/)) return 'Health & Beauty > Personal Care > Skin Care';
+  return 'Home & Garden';
+}
+
+function buildCatalogRow(r: any, baseUrl: string, columns: string[]): string {
+  function esc(val: any): string {
+    if (val == null || val === '') return '';
+    const s = String(val).replace(/"/g, '""');
+    return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
+  }
+  function price(raw: any): string {
+    if (!raw) return '';
+    const num = parseFloat(String(raw).replace(/[^0-9.]/g, ''));
+    if (isNaN(num) || num <= 0) return '';
+    return `${num.toFixed(2)} USD`;
+  }
+
+  const name = r.product_name || '';
+  const brand = r.brand || '';
+  const slug = r.slug || r.id;
+  const productUrl = `${baseUrl}/products/${slug}`;
+  const image = r.product_image || '';
+  const gallery: string[] = r.gallery || r.specs?.gallery || [];
+  const additionalImages = gallery.filter((g: string) => g && g !== image).slice(0, 10).join('|');
+  const p = price(r.price);
+  const origP = price(r.original_price);
+  const saleP = origP && p ? p : '';
+  const displayP = origP || p;
+  const bestFor = r.best_for || '';
+  const category = r.specs?.details?.department || r.category || '';
+  const reviewSummary = (r.review_summary || '').substring(0, 500);
+  const finalVerdict = (r.final_verdict || '').substring(0, 300);
+  const pros = Array.isArray(r.pros) ? r.pros.join(', ') : (r.pros || '');
+  const features = Array.isArray(r.key_features) ? r.key_features.join(', ') : (r.key_features || '');
+  const editorScore = r.editor_score || 0;
+  const rating = r.rating || 0;
+  const reviewCount = r.review_count || 0;
+  const asin = r.asin || r.specs?.asin || '';
+  const dealBadge = r.deal_badge || '';
+  const couponCode = r.coupon_code || '';
+  const stockStatus = r.stock_status || 'in_stock';
+  const seoDesc = (r.seo_description || '').substring(0, 300);
+  const googleCat = mapGoogleCategory(bestFor, category, r.specs);
+  const productType = [brand, bestFor, category].filter(Boolean).join(' > ');
+
+  // Rich description
+  const desc = [
+    reviewSummary,
+    finalVerdict ? `Verdict: ${finalVerdict}` : '',
+    pros ? `Pros: ${pros}` : '',
+    bestFor ? `Best for: ${bestFor}` : '',
+    editorScore ? `Editor Score: ${editorScore}/10` : '',
+    rating ? `Rating: ${rating}/5 (${reviewCount} reviews)` : '',
+    dealBadge ? `Deal: ${dealBadge}` : '',
+    couponCode ? `Coupon: ${couponCode}` : '',
+    asin ? `ASIN: ${asin}` : '',
+    seoDesc,
+  ].filter(Boolean).join(' | ');
+
+  // Custom labels
+  const labels = [
+    editorScore >= 8 ? 'top_rated' : editorScore >= 6 ? 'recommended' : 'standard',
+    saleP ? 'on_sale' : 'regular_price',
+    r.is_deal || dealBadge ? 'has_deal' : 'no_deal',
+    brand.toLowerCase().replace(/\s+/g, '_'),
+    bestFor.toLowerCase().replace(/\s+/g, '_').substring(0, 50),
+  ];
+
+  return columns.map((col) => {
+    switch (col) {
+      case 'id': return esc(slug.substring(0, 100));
+      case 'item_group_id': return esc(brand ? brand.toLowerCase().replace(/\s+/g, '-') : slug.substring(0, 50));
+      case 'title': return esc(`${brand ? brand + ' ' : ''}${name}`.substring(0, 150));
+      case 'description': return esc(desc.substring(0, 500));
+      case 'link': return esc(productUrl);
+      case 'image_link': return esc(image);
+      case 'price': return esc(displayP);
+      case 'availability': return esc(stockStatus === 'out_of_stock' ? 'out of stock' : 'in stock');
+      case 'condition': return esc('new');
+      case 'google_product_category': return esc(googleCat);
+      case 'product_type': return esc(productType);
+      case 'additional_image_link': return esc(additionalImages);
+      case 'sale_price': return esc(saleP);
+      case 'brand': return esc(brand);
+      case 'gender': return esc('unisex');
+      case 'age_group': return esc('adult');
+      case 'size': return esc('');
+      case 'size_type': return esc('');
+      case 'shipping': return esc('US:Standard:0 USD');
+      case 'custom_label_0': return esc(labels[0]);
+      case 'custom_label_1': return esc(labels[1]);
+      case 'custom_label_2': return esc(labels[2]);
+      case 'custom_label_3': return esc(labels[3]);
+      case 'custom_label_4': return esc(labels[4]);
+      case 'adwords_redirect': return esc(`${productUrl}?utm_source=pinterest&utm_campaign=shopping`);
+      default: return '';
+    }
+  }).join(',');
+}
+
+// ─── Pinterest Product Catalog CSV ─────────────────────────────────────────────
+
 router.get('/pinterest-catalog', authenticate, requireRole(['super_admin', 'admin']), async (_req, res) => {
   try {
     const { getPublishedProductReviews } = await import('../../server/seo-engine');
     const reviews = await getPublishedProductReviews().catch(() => []) as any[];
     const baseUrl = process.env.APP_URL || 'https://www.dawnwire.com';
 
-    // Pinterest CSV header (matches their product catalog spec)
     const columns = [
       'id', 'item_group_id', 'title', 'description', 'link', 'image_link',
       'price', 'availability', 'condition', 'google_product_category',
       'product_type', 'additional_image_link', 'sale_price', 'brand',
       'gender', 'age_group', 'size', 'size_type', 'shipping',
-      'custom_label_0', 'adwords_redirect',
+      'custom_label_0', 'custom_label_1', 'custom_label_2', 'custom_label_3', 'custom_label_4',
+      'adwords_redirect',
     ];
 
-    function escCsv(val: string): string {
-      if (!val) return '';
-      const s = String(val).replace(/"/g, '""');
-      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
-    }
-
-    function parsePrice(raw: any): { price: string; salePrice: string } {
-      if (!raw) return { price: '', salePrice: '' };
-      const num = parseFloat(String(raw).replace(/[^0-9.]/g, ''));
-      if (isNaN(num) || num <= 0) return { price: '', salePrice: '' };
-      return { price: `${num} USD`, salePrice: '' };
-    }
-
-    const rows = reviews
+    const rows = (reviews || [])
       .filter((r: any) => r.product_name && r.status === 'published')
-      .map((r: any) => {
-        const name = r.product_name || '';
-        const brand = r.brand || '';
-        const slug = r.slug || r.id;
-        const productUrl = `${baseUrl}/products/${slug}`;
-        const image = r.product_image || '';
-        const additionalImages = (r.specs?.gallery || []).slice(0, 10).join('|');
-        const { price, salePrice } = parsePrice(r.price);
-        const originalPrice = parsePrice(r.original_price).price;
-        const bestFor = r.best_for || '';
-        const category = r.specs?.details?.department || r.specs?.category || '';
-        const reviewSummary = (r.review_summary || '').substring(0, 500);
-        const finalVerdict = (r.final_verdict || '').substring(0, 300);
-        const pros = Array.isArray(r.pros) ? r.pros.join(', ') : (r.pros || '');
-        const cons = Array.isArray(r.cons) ? r.cons.join(', ') : (r.cons || '');
-        const features = Array.isArray(r.key_features) ? r.key_features.join(', ') : (r.key_features || '');
-        const editorScore = r.editor_score || 0;
-        const rating = r.rating || 0;
-        const reviewCount = r.review_count || 0;
-        const asin = r.specs?.asin || '';
-
-        // Build rich description for Pinterest
-        const descParts = [
-          reviewSummary,
-          finalVerdict ? `Verdict: ${finalVerdict}` : '',
-          pros ? `Pros: ${pros}` : '',
-          bestFor ? `Best for: ${bestFor}` : '',
-          editorScore ? `Editor Score: ${editorScore}/10` : '',
-          rating ? `Rating: ${rating}/5 (${reviewCount} reviews)` : '',
-          asin ? `ASIN: ${asin}` : '',
-        ].filter(Boolean).join(' | ');
-
-        // Map category to Google product category
-        const catLower = category.toLowerCase() || (bestFor || '').toLowerCase();
-        let googleCategory = 'Media > Books > Nonfiction';
-        if (catLower.includes('beauty') || catLower.includes('personal') || catLower.includes('skin') || catLower.includes('hair')) {
-          googleCategory = 'Beauty & Personal Care';
-        } else if (catLower.includes('kitchen') || catLower.includes('cooking') || catLower.includes('food')) {
-          googleCategory = 'Home & Garden > Kitchen & Dining';
-        } else if (catLower.includes('tech') || catLower.includes('electronic') || catLower.includes('gadget') || catLower.includes('computer')) {
-          googleCategory = 'Electronics > Computers';
-        } else if (catLower.includes('home') || catLower.includes('furniture') || catLower.includes('decor')) {
-          googleCategory = 'Home & Garden';
-        } else if (catLower.includes('fitness') || catLower.includes('health') || catLower.includes('sport')) {
-          googleCategory = 'Health & Fitness';
-        } else if (catLower.includes('fashion') || catLower.includes('clothing') || catLower.includes('wear')) {
-          googleCategory = 'Apparel & Accessories > Clothing';
-        } else if (catLower.includes('toy') || catLower.includes('game') || catLower.includes('kid')) {
-          googleCategory = 'Toys & Games';
-        }
-
-        // Build product_type from best_for + brand
-        const productType = [brand, bestFor, category].filter(Boolean).join(' > ');
-
-        // Custom labels for Pinterest ads
-        const customLabels = [
-          editorScore >= 8 ? 'Top Rated' : editorScore >= 6 ? 'Recommended' : '',
-          salePrice ? 'On Sale' : '',
-          r.is_deal || r.deal_badge ? 'Deal' : '',
-          brand,
-        ].filter(Boolean).join(', ');
-
-        return columns.map((col) => {
-          switch (col) {
-            case 'id': return escCsv(slug.substring(0, 100));
-            case 'item_group_id': return escCsv(brand ? brand.toLowerCase().replace(/\s+/g, '-') : slug.substring(0, 50));
-            case 'title': return escCsv(`${brand ? brand + ' ' : ''}${name}`.substring(0, 150));
-            case 'description': return escCsv(descParts.substring(0, 500));
-            case 'link': return escCsv(productUrl);
-            case 'image_link': return escCsv(image);
-            case 'price': return escCsv(price);
-            case 'availability': return escCsv(r.stock_status === 'out_of_stock' ? 'out of stock' : 'in stock');
-            case 'condition': return escCsv('new');
-            case 'google_product_category': return escCsv(googleCategory);
-            case 'product_type': return escCsv(productType);
-            case 'additional_image_link': return escCsv(additionalImages);
-            case 'sale_price': return escCsv(salePrice);
-            case 'brand': return escCsv(brand);
-            case 'gender': return escCsv('unisex');
-            case 'age_group': return escCsv('adult');
-            case 'size': return escCsv('');
-            case 'size_type': return escCsv('');
-            case 'shipping': return escCsv('US:Standard:0 USD');
-            case 'custom_label_0': return escCsv(customLabels);
-            case 'adwords_redirect': return escCsv(`${productUrl}?utm_source=pinterest&utm_campaign=shopping`);
-            default: return '';
-          }
-        }).join(',');
-      });
+      .map((r: any) => buildCatalogRow(r, baseUrl, columns));
 
     const csv = [columns.join(','), ...rows].join('\n');
-
-    // Also generate a metadata summary
-    const totalProducts = rows.length;
-    const withImages = reviews.filter((r: any) => r.product_image).length;
-    const withPrices = reviews.filter((r: any) => r.price).length;
-
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', `attachment; filename="dawnwire-pinterest-catalog-${new Date().toISOString().split('T')[0]}.csv"`);
     res.send(csv);
@@ -709,30 +719,22 @@ router.get('/pinterest-catalog', authenticate, requireRole(['super_admin', 'admi
   }
 });
 
-// Pinterest catalog metadata endpoint (for UI)
 router.get('/pinterest-catalog/stats', authenticate, requireRole(['super_admin', 'admin']), async (_req, res) => {
   try {
     const { getPublishedProductReviews } = await import('../../server/seo-engine');
     const reviews = await getPublishedProductReviews().catch(() => []) as any[];
-    const published = reviews.filter((r: any) => r.product_name && r.status === 'published');
-    const withImages = published.filter((r: any) => r.product_image).length;
-    const withPrices = published.filter((r: any) => r.price).length;
-    const withAsin = published.filter((r: any) => r.specs?.asin).length;
-    const withDeals = published.filter((r: any) => r.is_deal || r.deal_badge).length;
-    const categories = [...new Set(published.map((r: any) => r.best_for || r.specs?.details?.department || 'Uncategorized'))];
-    const brands = [...new Set(published.map((r: any) => r.brand).filter(Boolean))];
-
+    const p = reviews.filter((r: any) => r.product_name && r.status === 'published');
     res.json({
-      totalProducts: published.length,
-      withImages,
-      withPrices,
-      withAsin,
-      withDeals,
-      categoryCount: categories.length,
-      brandCount: brands.length,
-      categories: categories.slice(0, 20),
-      brands: brands.slice(0, 20),
-      estimatedFileSize: `~${Math.round(published.length * 0.8)} KB`,
+      totalProducts: p.length,
+      withImages: p.filter((r: any) => r.product_image).length,
+      withPrices: p.filter((r: any) => r.price).length,
+      withAsin: p.filter((r: any) => r.asin || r.specs?.asin).length,
+      withDeals: p.filter((r: any) => r.is_deal || r.deal_badge).length,
+      withGallery: p.filter((r: any) => (r.gallery || r.specs?.gallery || []).length > 1).length,
+      withSeoDesc: p.filter((r: any) => r.seo_description).length,
+      categoryCount: [...new Set(p.map((r: any) => r.best_for || r.specs?.details?.department || 'Other'))].length,
+      brandCount: [...new Set(p.map((r: any) => r.brand).filter(Boolean))].length,
+      estimatedFileSize: `~${Math.round(p.length * 1.2)} KB`,
     });
   } catch (e: any) {
     res.status(500).json({ error: e.message });
@@ -747,7 +749,6 @@ router.get('/google-shopping-feed', authenticate, requireRole(['super_admin', 'a
     const reviews = await getPublishedProductReviews().catch(() => []) as any[];
     const baseUrl = process.env.APP_URL || 'https://www.dawnwire.com';
 
-    // Google Merchant Center CSV columns (RSS feed format)
     const columns = [
       'id', 'title', 'description', 'link', 'image_link', 'additional_image_link',
       'price', 'sale_price', 'availability', 'condition', 'brand',
@@ -755,93 +756,9 @@ router.get('/google-shopping-feed', authenticate, requireRole(['super_admin', 'a
       'custom_label_1', 'custom_label_2', 'custom_label_3', 'custom_label_4',
     ];
 
-    function escCsv(val: any): string {
-      if (val == null || val === '') return '';
-      const s = String(val).replace(/"/g, '""');
-      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
-    }
-
-    function parsePrice(raw: any): string {
-      if (!raw) return '';
-      const num = parseFloat(String(raw).replace(/[^0-9.]/g, ''));
-      if (isNaN(num) || num <= 0) return '';
-      return `${num.toFixed(2)} USD`;
-    }
-
-    function mapGoogleCategory(bestFor: string, category: string, specs: any): string {
-      const text = `${bestFor} ${category} ${specs?.details?.department || ''}`.toLowerCase();
-      if (text.match(/beauty|skin|hair|makeup|face|lip|eye|moistur|serum|cleanser/)) return 'Health & Beauty > Personal Care > Skin Care';
-      if (text.match(/kitchen|cook|food|coffee|tea|blender|air.fryer|instant.pot/)) return 'Home & Garden > Kitchen & Dining > Small Kitchen Appliances';
-      if (text.match(/tech|gadget|electronic|computer|laptop|phone|tablet|headphone|speaker|camera/)) return 'Electronics > Computers > Laptops';
-      if (text.match(/home|furniture|decor|lamp|organiz|storage|clean/)) return 'Home & Garden > Home Decor';
-      if (text.match(/fitness|health|exercise|yoga|gym|sport|protein/)) return 'Health & Fitness > Exercise & Fitness';
-      if (text.match(/toy|game|kid|baby|child/)) return 'Toys & Games';
-      if (text.match(/fashion|cloth|wear|shirt|pant|shoe|jacket/)) return 'Apparel & Accessories > Clothing';
-      if (text.match(/pet|dog|cat|fish/)) return 'Animals & Pet Supplies > Pet Supplies';
-      if (text.match(/auto|car|vehicle|seat.cover|floor.mat/)) return 'Automotive > Parts & Accessories';
-      if (text.match(/book|notebook|journal|planner/)) return 'Media > Books';
-      return 'Home & Garden';
-    }
-
-    const rows = reviews
+    const rows = (reviews || [])
       .filter((r: any) => r.product_name && r.status === 'published')
-      .map((r: any) => {
-        const name = r.product_name || '';
-        const brand = r.brand || '';
-        const slug = r.slug || r.id;
-        const productUrl = `${baseUrl}/products/${slug}`;
-        const image = r.product_image || '';
-        const additionalImages = (r.specs?.gallery || []).slice(0, 10).join('|');
-        const price = parsePrice(r.price);
-        const salePrice = parsePrice(r.original_price) && parsePrice(r.price) ? parsePrice(r.price) : '';
-        const displayPrice = parsePrice(r.original_price) || price;
-        const bestFor = r.best_for || '';
-        const category = r.specs?.details?.department || r.specs?.category || '';
-        const reviewSummary = (r.review_summary || '').substring(0, 5000);
-        const editorScore = r.editor_score || 0;
-        const rating = r.rating || 0;
-
-        // Build description with rich content
-        const descParts = [
-          reviewSummary,
-          r.final_verdict ? `Verdict: ${r.final_verdict}` : '',
-          r.pros?.length ? `Pros: ${Array.isArray(r.pros) ? r.pros.join(', ') : r.pros}` : '',
-          bestFor ? `Best for: ${bestFor}` : '',
-          editorScore ? `Editor Score: ${editorScore}/10` : '',
-          rating ? `Rating: ${rating}/5` : '',
-        ].filter(Boolean).join(' ');
-
-        // Custom labels for Google Shopping ads
-        const label0 = editorScore >= 8 ? 'top_rated' : editorScore >= 6 ? 'recommended' : 'standard';
-        const label1 = salePrice ? 'on_sale' : 'regular_price';
-        const label2 = r.is_deal || r.deal_badge ? 'has_deal' : 'no_deal';
-        const label3 = brand.toLowerCase().replace(/\s+/g, '_');
-        const label4 = bestFor.toLowerCase().replace(/\s+/g, '_').substring(0, 50);
-
-        return columns.map((col) => {
-          switch (col) {
-            case 'id': return escCsv(slug.substring(0, 50));
-            case 'title': return escCsv(`${brand ? brand + ' - ' : ''}${name}`.substring(0, 150));
-            case 'description': return escCsv(descParts.substring(0, 5000));
-            case 'link': return escCsv(productUrl);
-            case 'image_link': return escCsv(image);
-            case 'additional_image_link': return escCsv(additionalImages);
-            case 'price': return escCsv(displayPrice);
-            case 'sale_price': return escCsv(salePrice);
-            case 'availability': return escCsv(r.stock_status === 'out_of_stock' ? 'out_of_stock' : 'in_stock');
-            case 'condition': return escCsv('new');
-            case 'brand': return escCsv(brand);
-            case 'google_product_category': return escCsv(mapGoogleCategory(bestFor, category, r.specs));
-            case 'product_type': return escCsv([brand, bestFor, category].filter(Boolean).join(' > '));
-            case 'custom_label_0': return escCsv(label0);
-            case 'custom_label_1': return escCsv(label1);
-            case 'custom_label_2': return escCsv(label2);
-            case 'custom_label_3': return escCsv(label3);
-            case 'custom_label_4': return escCsv(label4);
-            default: return '';
-          }
-        }).join(',');
-      });
+      .map((r: any) => buildCatalogRow(r, baseUrl, columns));
 
     const csv = [columns.join(','), ...rows].join('\n');
     const date = new Date().toISOString().split('T')[0];
@@ -859,31 +776,27 @@ router.get('/google-shopping-feed/stats', authenticate, requireRole(['super_admi
   try {
     const { getPublishedProductReviews } = await import('../../server/seo-engine');
     const reviews = await getPublishedProductReviews().catch(() => []) as any[];
-    const published = reviews.filter((r: any) => r.product_name && r.status === 'published');
-    const withImages = published.filter((r: any) => r.product_image).length;
-    const withPrices = published.filter((r: any) => r.price).length;
-    const withBrand = published.filter((r: any) => r.brand).length;
-    const withBestFor = published.filter((r: any) => r.best_for).length;
-    const withEditorScore = published.filter((r: any) => r.editor_score).length;
-    const brands = [...new Set(published.map((r: any) => r.brand).filter(Boolean))];
-    const categories = [...new Set(published.map((r: any) => r.best_for || r.specs?.details?.department || 'Other').filter(Boolean))];
-
+    const p = reviews.filter((r: any) => r.product_name && r.status === 'published');
     res.json({
-      totalProducts: published.length,
-      withImages,
-      withPrices,
-      withBrand,
-      withBestFor,
-      withEditorScore,
-      brandCount: brands.length,
-      categoryCount: categories.length,
-      estimatedFileSize: `~${Math.round(published.length * 1.2)} KB`,
+      totalProducts: p.length,
+      withImages: p.filter((r: any) => r.product_image).length,
+      withPrices: p.filter((r: any) => r.price).length,
+      withBrand: p.filter((r: any) => r.brand).length,
+      withBestFor: p.filter((r: any) => r.best_for).length,
+      withEditorScore: p.filter((r: any) => r.editor_score).length,
+      withGallery: p.filter((r: any) => (r.gallery || r.specs?.gallery || []).length > 1).length,
+      withAsin: p.filter((r: any) => r.asin || r.specs?.asin).length,
+      withSeoDesc: p.filter((r: any) => r.seo_description).length,
+      brandCount: [...new Set(p.map((r: any) => r.brand).filter(Boolean))].length,
+      categoryCount: [...new Set(p.map((r: any) => r.best_for || r.specs?.details?.department || 'Other'))].length,
+      estimatedFileSize: `~${Math.round(p.length * 1.2)} KB`,
       missingData: {
-        noImage: published.length - withImages,
-        noPrice: published.length - withPrices,
-        noBrand: published.length - withBrand,
-        noBestFor: published.length - withBestFor,
-        noScore: published.length - withEditorScore,
+        noImage: p.length - p.filter((r: any) => r.product_image).length,
+        noPrice: p.length - p.filter((r: any) => r.price).length,
+        noBrand: p.length - p.filter((r: any) => r.brand).length,
+        noBestFor: p.length - p.filter((r: any) => r.best_for).length,
+        noScore: p.length - p.filter((r: any) => r.editor_score).length,
+        noAsin: p.length - p.filter((r: any) => r.asin || r.specs?.asin).length,
       },
     });
   } catch (e: any) {
