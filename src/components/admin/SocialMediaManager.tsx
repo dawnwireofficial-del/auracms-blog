@@ -67,13 +67,138 @@ const PLATFORMS: { key: PlatformKey; name: string; icon: string; color: string; 
   },
 ];
 
+// ─── Pinterest Catalog Section ────────────────────────────────────────────────
+
+const PinterestCatalogSection: React.FC<{ token: string; products: any[] }> = ({ token, products }) => {
+  const [stats, setStats] = useState<any>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [notif, setNotif] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+
+  useEffect(() => {
+    fetch('/api/admin/social-media/pinterest-catalog/stats', {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(r => r.ok ? r.json() : null).then(d => setStats(d)).catch(() => {});
+  }, []);
+
+  const downloadCatalog = async () => {
+    setIsDownloading(true);
+    try {
+      const res = await fetch('/api/admin/social-media/pinterest-catalog', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Download failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dawnwire-pinterest-catalog-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setNotif({ type: 'success', msg: 'Catalog downloaded! Upload it to Pinterest → Catalogs → Add products' });
+      setTimeout(() => setNotif(null), 5000);
+    } catch (e: any) {
+      setNotif({ type: 'error', msg: e.message });
+      setTimeout(() => setNotif(null), 4000);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {notif && (
+        <div className={`px-4 py-3 rounded-xl text-sm font-bold text-white ${notif.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
+          {notif.type === 'success' ? '✅' : '❌'} {notif.msg}
+        </div>
+      )}
+
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-3xl">📦</span>
+          <div>
+            <h3 className="text-base font-black text-slate-900 dark:text-white">Pinterest Product Catalog</h3>
+            <p className="text-xs text-slate-500">Download a CSV file formatted for Pinterest's product feed. Upload it to Pinterest → Catalogs → Add products from data source.</p>
+          </div>
+        </div>
+
+        {stats && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            {[
+              { label: 'Total Products', value: stats.totalProducts, icon: '🛒' },
+              { label: 'With Images', value: stats.withImages, icon: '🖼️' },
+              { label: 'With Prices', value: stats.withPrices, icon: '💰' },
+              { label: 'With ASIN', value: stats.withAsin, icon: '🔗' },
+            ].map(s => (
+              <div key={s.label} className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 text-center">
+                <span className="text-lg block">{s.icon}</span>
+                <span className="text-lg font-black text-slate-900 dark:text-white">{s.value}</span>
+                <span className="text-[10px] text-slate-400 block">{s.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {stats && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            <span className="text-[10px] bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-full font-bold">📦 {stats.estimatedFileSize}</span>
+            <span className="text-[10px] bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 px-2 py-1 rounded-full font-bold">🏷️ {stats.brandCount} brands</span>
+            <span className="text-[10px] bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 px-2 py-1 rounded-full font-bold">📂 {stats.categoryCount} categories</span>
+            {stats.withDeals > 0 && (
+              <span className="text-[10px] bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 px-2 py-1 rounded-full font-bold">🔥 {stats.withDeals} deals</span>
+            )}
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={downloadCatalog}
+            disabled={isDownloading}
+            className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-slate-400 disabled:to-slate-500 text-white font-black text-sm rounded-xl shadow-lg transition-all"
+          >
+            {isDownloading ? (
+              <>
+                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                Generating CSV...
+              </>
+            ) : (
+              <>📦 Download Pinterest Catalog CSV</>
+            )}
+          </button>
+          <a
+            href="https://business.pinterest.com/catalogs/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-sm rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+          >
+            📌 Open Pinterest Catalog Manager →
+          </a>
+        </div>
+
+        <div className="mt-5 p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
+          <h4 className="text-xs font-black text-slate-700 dark:text-slate-300 mb-2">📋 How to Upload:</h4>
+          <ol className="text-xs text-slate-500 space-y-1.5 list-decimal list-inside">
+            <li>Click <strong>Download Pinterest Catalog CSV</strong> above</li>
+            <li>Go to <a href="https://business.pinterest.com/catalogs/" target="_blank" className="text-blue-500 underline">Pinterest Business Hub → Catalogs</a></li>
+            <li>Click <strong>"Add products"</strong> → Choose <strong>"Upload data source"</strong></li>
+            <li>Upload the downloaded CSV file</li>
+            <li>Pinterest will automatically create pins for all products with images, prices, and links</li>
+            <li>Your products will appear in Pinterest search and shopping results</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 const SocialMediaManager: React.FC<{ token: string }> = ({ token }) => {
   const { products } = useAppStore();
 
   // Tab state
-  const [activeSection, setActiveSection] = useState<'compose' | 'history' | 'settings'>('compose');
+  const [activeSection, setActiveSection] = useState<'compose' | 'catalog' | 'history' | 'settings'>('compose');
 
   // Product selection
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
@@ -526,6 +651,7 @@ const SocialMediaManager: React.FC<{ token: string }> = ({ token }) => {
       <div className="flex gap-2 p-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
         {[
           { key: 'compose' as const, label: '✏️ Compose & Publish', count: selectedPlatforms.length },
+          { key: 'catalog' as const, label: '📦 Pinterest Catalog', count: 0 },
           { key: 'history' as const, label: '📋 Post History', count: postHistory.length },
           { key: 'settings' as const, label: '⚙️ Platform Settings', count: credentials.length },
         ].map(tab => (
@@ -855,6 +981,11 @@ const SocialMediaManager: React.FC<{ token: string }> = ({ token }) => {
             </div>
           )}
         </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════ PINTEREST CATALOG */}
+      {activeSection === 'catalog' && (
+        <PinterestCatalogSection token={token} products={products} />
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════════ SETTINGS */}

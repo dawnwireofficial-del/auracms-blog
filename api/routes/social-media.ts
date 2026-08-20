@@ -572,4 +572,171 @@ router.post('/test-connection', authenticate, requireRole(['super_admin', 'admin
   }
 });
 
+// ─── Pinterest Product Catalog CSV Feed ───────────────────────────────────────
+
+router.get('/pinterest-catalog', authenticate, requireRole(['super_admin', 'admin']), async (_req, res) => {
+  try {
+    const { getPublishedProductReviews } = await import('../../server/seo-engine');
+    const reviews = await getPublishedProductReviews().catch(() => []) as any[];
+    const baseUrl = process.env.APP_URL || 'https://www.dawnwire.com';
+
+    // Pinterest CSV header (matches their product catalog spec)
+    const columns = [
+      'id', 'item_group_id', 'title', 'description', 'link', 'image_link',
+      'price', 'availability', 'condition', 'google_product_category',
+      'product_type', 'additional_image_link', 'sale_price', 'brand',
+      'gender', 'age_group', 'size', 'size_type', 'shipping',
+      'custom_label_0', 'adwords_redirect',
+    ];
+
+    function escCsv(val: string): string {
+      if (!val) return '';
+      const s = String(val).replace(/"/g, '""');
+      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
+    }
+
+    function parsePrice(raw: any): { price: string; salePrice: string } {
+      if (!raw) return { price: '', salePrice: '' };
+      const num = parseFloat(String(raw).replace(/[^0-9.]/g, ''));
+      if (isNaN(num) || num <= 0) return { price: '', salePrice: '' };
+      return { price: `${num} USD`, salePrice: '' };
+    }
+
+    const rows = reviews
+      .filter((r: any) => r.product_name && r.status === 'published')
+      .map((r: any) => {
+        const name = r.product_name || '';
+        const brand = r.brand || '';
+        const slug = r.slug || r.id;
+        const productUrl = `${baseUrl}/products/${slug}`;
+        const image = r.product_image || '';
+        const additionalImages = (r.specs?.gallery || []).slice(0, 10).join('|');
+        const { price, salePrice } = parsePrice(r.price);
+        const originalPrice = parsePrice(r.original_price).price;
+        const bestFor = r.best_for || '';
+        const category = r.specs?.details?.department || r.specs?.category || '';
+        const reviewSummary = (r.review_summary || '').substring(0, 500);
+        const finalVerdict = (r.final_verdict || '').substring(0, 300);
+        const pros = Array.isArray(r.pros) ? r.pros.join(', ') : (r.pros || '');
+        const cons = Array.isArray(r.cons) ? r.cons.join(', ') : (r.cons || '');
+        const features = Array.isArray(r.key_features) ? r.key_features.join(', ') : (r.key_features || '');
+        const editorScore = r.editor_score || 0;
+        const rating = r.rating || 0;
+        const reviewCount = r.review_count || 0;
+        const asin = r.specs?.asin || '';
+
+        // Build rich description for Pinterest
+        const descParts = [
+          reviewSummary,
+          finalVerdict ? `Verdict: ${finalVerdict}` : '',
+          pros ? `Pros: ${pros}` : '',
+          bestFor ? `Best for: ${bestFor}` : '',
+          editorScore ? `Editor Score: ${editorScore}/10` : '',
+          rating ? `Rating: ${rating}/5 (${reviewCount} reviews)` : '',
+          asin ? `ASIN: ${asin}` : '',
+        ].filter(Boolean).join(' | ');
+
+        // Map category to Google product category
+        const catLower = category.toLowerCase() || (bestFor || '').toLowerCase();
+        let googleCategory = 'Media > Books > Nonfiction';
+        if (catLower.includes('beauty') || catLower.includes('personal') || catLower.includes('skin') || catLower.includes('hair')) {
+          googleCategory = 'Beauty & Personal Care';
+        } else if (catLower.includes('kitchen') || catLower.includes('cooking') || catLower.includes('food')) {
+          googleCategory = 'Home & Garden > Kitchen & Dining';
+        } else if (catLower.includes('tech') || catLower.includes('electronic') || catLower.includes('gadget') || catLower.includes('computer')) {
+          googleCategory = 'Electronics > Computers';
+        } else if (catLower.includes('home') || catLower.includes('furniture') || catLower.includes('decor')) {
+          googleCategory = 'Home & Garden';
+        } else if (catLower.includes('fitness') || catLower.includes('health') || catLower.includes('sport')) {
+          googleCategory = 'Health & Fitness';
+        } else if (catLower.includes('fashion') || catLower.includes('clothing') || catLower.includes('wear')) {
+          googleCategory = 'Apparel & Accessories > Clothing';
+        } else if (catLower.includes('toy') || catLower.includes('game') || catLower.includes('kid')) {
+          googleCategory = 'Toys & Games';
+        }
+
+        // Build product_type from best_for + brand
+        const productType = [brand, bestFor, category].filter(Boolean).join(' > ');
+
+        // Custom labels for Pinterest ads
+        const customLabels = [
+          editorScore >= 8 ? 'Top Rated' : editorScore >= 6 ? 'Recommended' : '',
+          salePrice ? 'On Sale' : '',
+          r.is_deal || r.deal_badge ? 'Deal' : '',
+          brand,
+        ].filter(Boolean).join(', ');
+
+        return columns.map((col) => {
+          switch (col) {
+            case 'id': return escCsv(slug.substring(0, 100));
+            case 'item_group_id': return escCsv(brand ? brand.toLowerCase().replace(/\s+/g, '-') : slug.substring(0, 50));
+            case 'title': return escCsv(`${brand ? brand + ' ' : ''}${name}`.substring(0, 150));
+            case 'description': return escCsv(descParts.substring(0, 500));
+            case 'link': return escCsv(productUrl);
+            case 'image_link': return escCsv(image);
+            case 'price': return escCsv(price);
+            case 'availability': return escCsv(r.stock_status === 'out_of_stock' ? 'out of stock' : 'in stock');
+            case 'condition': return escCsv('new');
+            case 'google_product_category': return escCsv(googleCategory);
+            case 'product_type': return escCsv(productType);
+            case 'additional_image_link': return escCsv(additionalImages);
+            case 'sale_price': return escCsv(salePrice);
+            case 'brand': return escCsv(brand);
+            case 'gender': return escCsv('unisex');
+            case 'age_group': return escCsv('adult');
+            case 'size': return escCsv('');
+            case 'size_type': return escCsv('');
+            case 'shipping': return escCsv('US:Standard:0 USD');
+            case 'custom_label_0': return escCsv(customLabels);
+            case 'adwords_redirect': return escCsv(`${productUrl}?utm_source=pinterest&utm_campaign=shopping`);
+            default: return '';
+          }
+        }).join(',');
+      });
+
+    const csv = [columns.join(','), ...rows].join('\n');
+
+    // Also generate a metadata summary
+    const totalProducts = rows.length;
+    const withImages = reviews.filter((r: any) => r.product_image).length;
+    const withPrices = reviews.filter((r: any) => r.price).length;
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="dawnwire-pinterest-catalog-${new Date().toISOString().split('T')[0]}.csv"`);
+    res.send(csv);
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Pinterest catalog metadata endpoint (for UI)
+router.get('/pinterest-catalog/stats', authenticate, requireRole(['super_admin', 'admin']), async (_req, res) => {
+  try {
+    const { getPublishedProductReviews } = await import('../../server/seo-engine');
+    const reviews = await getPublishedProductReviews().catch(() => []) as any[];
+    const published = reviews.filter((r: any) => r.product_name && r.status === 'published');
+    const withImages = published.filter((r: any) => r.product_image).length;
+    const withPrices = published.filter((r: any) => r.price).length;
+    const withAsin = published.filter((r: any) => r.specs?.asin).length;
+    const withDeals = published.filter((r: any) => r.is_deal || r.deal_badge).length;
+    const categories = [...new Set(published.map((r: any) => r.best_for || r.specs?.details?.department || 'Uncategorized'))];
+    const brands = [...new Set(published.map((r: any) => r.brand).filter(Boolean))];
+
+    res.json({
+      totalProducts: published.length,
+      withImages,
+      withPrices,
+      withAsin,
+      withDeals,
+      categoryCount: categories.length,
+      brandCount: brands.length,
+      categories: categories.slice(0, 20),
+      brands: brands.slice(0, 20),
+      estimatedFileSize: `~${Math.round(published.length * 0.8)} KB`,
+    });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 export default router;
