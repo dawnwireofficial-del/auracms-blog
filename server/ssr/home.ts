@@ -1,5 +1,5 @@
 import { dbInstance } from '../db';
-import { getPublishedProductReviews } from '../seo-engine';
+import { createClient } from '@supabase/supabase-js';
 
 // Lightweight server-side renderer for the DawnWire homepage.
 // Produces semantic HTML (H1, headings, paragraphs, internal links) that is
@@ -22,33 +22,51 @@ function val(row: any, key: string): any {
   return row[snake];
 }
 
+// In-memory cache — persists across warm invocations on Vercel
+let _cache: { data: any; ts: number } | null = null;
+const CACHE_TTL = 120_000; // 2 minutes
+
 async function loadHomeData() {
+  // Return cached data if fresh
+  if (_cache && Date.now() - _cache.ts < CACHE_TTL) return _cache.data;
+
   let categories: any[] = [];
   let products: any[] = [];
   let posts: any[] = [];
+
   try {
     categories = (await dbInstance.getCategories()).filter((c: any) => c.status === 'active');
   } catch (e) {
     console.error('[SSR home] categories:', e);
   }
+
   try {
-    const rows = await getPublishedProductReviews();
-    products = (rows || [])
-      .filter((r: any) => r.product_name)
-      .sort((a: any, b: any) => Number(val(b, 'editorScore') || 0) - Number(val(a, 'editorScore') || 0))
-      .slice(0, 8);
+    const sb = createClient(
+      process.env.SUPABASE_URL || '',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || ''
+    );
+    // Run both queries in parallel
+    const [prodRes, postRes] = await Promise.all([
+      sb.from('product_reviews')
+        .select('id, slug, product_name, brand, product_image, price, editor_score, rating, review_count, best_for')
+        .eq('status', 'published')
+        .order('editor_score', { ascending: false })
+        .limit(20),
+      sb.from('posts')
+        .select('id, slug, title, excerpt, featured_image, category_id, reading_time')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(8),
+    ]);
+    products = (prodRes.data || []).filter((r: any) => r.product_name);
+    posts = (postRes.data || []).filter((p: any) => p.title && p.slug);
   } catch (e) {
-    console.error('[SSR home] products:', e);
+    console.error('[SSR home] queries:', e);
   }
-  try {
-    const rows = await dbInstance.getPosts();
-    posts = (rows || [])
-      .filter((p: any) => p.status === 'published' && p.title && p.slug)
-      .slice(0, 6);
-  } catch (e) {
-    console.error('[SSR home] posts:', e);
-  }
-  return { categories, products, posts };
+
+  const result = { categories, products, posts };
+  _cache = { data: result, ts: Date.now() };
+  return result;
 }
 
 function buildCategoryLinks(categories: any[]): string {
