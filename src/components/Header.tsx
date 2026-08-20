@@ -340,6 +340,23 @@ export default function Header({
                 </button>
               </div>
 
+              {/* Social Links */}
+              <div className="border-t border-gray-100 dark:border-zinc-800 mt-3 pt-3 px-4">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Follow Us</p>
+                <div className="flex gap-2">
+                  {[
+                    { name: 'Facebook', href: 'https://www.facebook.com/profile.php?id=61591752300472', color: 'bg-blue-600' },
+                    { name: 'Instagram', href: 'https://www.instagram.com/dawnwire/', color: 'bg-gradient-to-br from-purple-500 to-pink-500' },
+                    { name: 'Pinterest', href: 'https://www.pinterest.com/dawnwire/', color: 'bg-red-600' },
+                    { name: 'X', href: 'https://x.com/dawnwire', color: 'bg-black dark:bg-white dark:text-black' },
+                  ].map(s => (
+                    <a key={s.name} href={s.href} target="_blank" rel="noopener noreferrer"
+                      className={`${s.color} text-white text-[10px] font-bold px-3 py-1.5 rounded-full`}
+                    >{s.name}</a>
+                  ))}
+                </div>
+              </div>
+
               <div className="border-t border-gray-100 dark:border-zinc-800 mt-3 pt-4 flex flex-col gap-2 px-4">
                 {currentUser ? (
                   <div className="flex items-center justify-between">
