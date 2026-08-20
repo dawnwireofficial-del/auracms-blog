@@ -277,7 +277,8 @@ app.use(async (req, res, next) => {
 // ====== Sitemap & RSS feeds ======
 app.get('/sitemap.xml', async (_req, res) => {
   try {
-    const baseUrl = process.env.APP_URL || 'https://www.dawnwire.com';
+    // Always use www.dawnwire.com — env var may be set wrong (no www)
+    const baseUrl = 'https://www.dawnwire.com';
     const fmtDate = (d: string | undefined | null) => { try { return new Date(d || Date.now()).toISOString(); } catch { return new Date().toISOString(); } };
 
     // Only include affiliate-shopping relevant content
@@ -324,7 +325,7 @@ app.get('/sitemap.xml', async (_req, res) => {
 // Image sitemap — only affiliate product images
 app.get('/image-sitemap.xml', async (_req, res) => {
   try {
-    const baseUrl = process.env.APP_URL || 'https://www.dawnwire.com';
+    const baseUrl = 'https://www.dawnwire.com';
     const reviews = await seo.getPublishedProductReviews().catch(() => []) as any[];
     const entries = reviews
       .filter((r: any) => r.product_image)
@@ -341,7 +342,7 @@ app.get('/image-sitemap.xml', async (_req, res) => {
 
 // Robots.txt
 app.get('/robots.txt', async (_req, res) => {
-  const baseUrl = process.env.APP_URL || 'https://dawnwire.com';
+  const baseUrl = 'https://www.dawnwire.com';
   let settings: any = null; try { settings = await dbInstance.getSettings(); } catch (e) { console.error(e) }
   const customRules = (settings as any)?.robotsTxt || '';
   res.header('Content-Type', 'text/plain');
@@ -417,7 +418,7 @@ ${customRules}`);
 });
 
 app.get('/llms.txt', async (_req, res) => {
-  const baseUrl = process.env.APP_URL || 'https://dawnwire.com';
+  const baseUrl = 'https://www.dawnwire.com';
   let productCount = 0;
   let categoryCount = 0;
   try {
@@ -506,7 +507,7 @@ Amazon Product Reviews | Buying Guides | Price Drop Deals | Tech Reviews | Beaut
 });
 
 app.get('/llms-full.txt', async (_req, res) => {
-  const baseUrl = process.env.APP_URL || 'https://dawnwire.com';
+  const baseUrl = 'https://www.dawnwire.com';
   try {
     const reviews = await seo.getPublishedProductReviews().catch(() => []) as any[];
     const cats = await Promise.resolve(dbInstance.getCategories()).catch(() => []) as any[];
@@ -577,7 +578,7 @@ app.get('/llms-full.txt', async (_req, res) => {
 app.get('/rss.xml', async (_req, res) => {
   try {
     const posts = (await dbInstance.getPosts()).filter(p => p.status === 'published' && (p.visibility == null || p.visibility === 'public'));
-    const baseUrl = process.env.APP_URL || 'https://dawnwire.com';
+    const baseUrl = 'https://www.dawnwire.com';
     let settings: any = null; try { settings = await dbInstance.getSettings(); } catch (e) { console.error(e) }
     const siteName = (settings as any)?.siteName || 'DawnWire';
     const siteTagline = (settings as any)?.siteTagline || '';
@@ -594,7 +595,7 @@ app.get('/rss.xml', async (_req, res) => {
     res.send(`<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>${siteName}</title><link>${baseUrl}</link><description>${siteTagline}</description>${items}</channel></rss>`);
   } catch (e: any) {
     const name = 'DawnWire';
-    res.status(500).header('Content-Type', 'application/rss+xml').send(`<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>${name}</title><link>${process.env.APP_URL || ''}</link></channel></rss>`);
+    res.status(500).header('Content-Type', 'application/rss+xml').send(`<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>${name}</title><link>https://www.dawnwire.com</link></channel></rss>`);
   }
 });
 
@@ -623,7 +624,7 @@ function formatCitation(title: string, publishedAt: string | undefined, siteName
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     monthDay = `${months[d.getMonth()]} ${d.getDate()}`;
   }
-  const fullUrl = `${process.env.APP_URL || 'https://dawnwire.com'}/${url}`;
+  const fullUrl = `${'https://www.dawnwire.com'}/${url}`;
   return {
     apa: `${siteName}. (${year}). ${title}. ${siteName}. ${fullUrl}`,
     mla: `"${title}." ${siteName}, ${monthDay ? `${monthDay}, ` : ''}${year}, ${fullUrl}.`,
@@ -676,7 +677,7 @@ app.get('/api/llm/content', async (_req, res) => {
       });
 
     res.json({
-      site: { name: siteName, url: process.env.APP_URL || 'https://dawnwire.com' },
+      site: { name: siteName, url: 'https://www.dawnwire.com' },
       summary: { posts: posts.length, productReviews: productReviews.length, faqs: llmFaqs.length, pages: pages.length },
       citationFormat: 'Each content item includes a "citation" object with APA and MLA formatted references.',
       posts, productReviews, faqs: llmFaqs, pages,

@@ -358,7 +358,7 @@ router.post('/publish', authenticate, requireRole(['super_admin', 'admin']), asy
             board_id: boardId,
             title: caption.split('\n')[0].substring(0, 100),
             description: caption,
-            link: link || `https://dawnwire.com/products/${product_id}`,
+            link: link || `https://www.dawnwire.com/products/${product_id}`,
             image_url: image_url,
           }),
         });
@@ -462,7 +462,7 @@ router.post('/publish-all', authenticate, requireRole(['super_admin', 'admin']),
                 board_id: cred.board_id,
                 title: caption.split('\n')[0].substring(0, 100),
                 description: caption,
-                link: link || `https://dawnwire.com/products/${product_id}`,
+                link: link || `https://www.dawnwire.com/products/${product_id}`,
                 image_url,
               }),
             });
