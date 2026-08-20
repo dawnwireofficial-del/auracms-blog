@@ -10,6 +10,7 @@ import MascotAnimation from '../components/MascotAnimation';
 import { useReducedMotion } from '../components/useReducedMotion';
 import BannerInlineEditor from '../components/admin/BannerInlineEditor';
 import { HeroBanner, DealStrip, CategoryCard, BrandedBanner, GRADIENTS } from '../components/branding/BrandedBanners';
+import { SeasonalBanner, UpcomingEventsBar } from '../components/branding/SeasonalBanners';
 import type { Post } from '../types';
 
 interface HomePageProps {
@@ -638,6 +639,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
       {/* ============================ DEAL STRIP ============================ */}
       <section className="commerce-container mt-6">
         <DealStrip products={products} />
+      </section>
+
+      {/* ============================ SEASONAL BANNER ============================ */}
+      <section className="commerce-container">
+        <SeasonalBanner products={products} />
       </section>
 
       <main className="commerce-container space-y-14 md:space-y-20 py-12 md:py-16">
