@@ -81,6 +81,28 @@ export function App() {
       .then(r => r.json())
       .then(s => { if (s && typeof s === 'object') setDesignSettings(s.designSettings || {}); })
       .catch(() => {});
+    // Dismiss the pre-React loader after data loads
+    const loader = document.getElementById('dawn-loader');
+    if (loader) {
+      const dismiss = () => {
+        loader.style.opacity = '0';
+        loader.style.visibility = 'hidden';
+        setTimeout(() => loader.remove(), 500);
+      };
+      // Dismiss after 1.5s minimum (so animation is visible) or after 4s max
+      const minTimer = setTimeout(dismiss, 1500);
+      const maxTimer = setTimeout(dismiss, 4000);
+      // Also dismiss when products finish loading
+      const checkReady = setInterval(() => {
+        if (products.length > 0 || document.readyState === 'complete') {
+          clearInterval(checkReady);
+          clearTimeout(minTimer);
+          clearTimeout(maxTimer);
+          dismiss();
+        }
+      }, 200);
+      return () => { clearInterval(checkReady); clearTimeout(minTimer); clearTimeout(maxTimer); };
+    }
   }, []);
 
   useEffect(() => {

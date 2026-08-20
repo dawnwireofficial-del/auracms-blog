@@ -192,6 +192,31 @@
   <body>
     <script>!function(){var t,e=localStorage.getItem("theme");(e==="dark"||!e&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.documentElement.classList.add("dark")}()</script>
     <div id="root"></div>
+    <!-- Pre-React loader: shows immediately while JS bundles load -->
+    <div id="dawn-loader" style="position:fixed;inset:0;z-index:9999;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.4s ease,visibility 0.4s ease">
+      <style>
+        @keyframes dw-spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+        @keyframes dw-pulse{0%,100%{opacity:0.4;transform:scale(0.8)}50%{opacity:1;transform:scale(1.1)}}
+        @keyframes dw-bar{0%{width:0%;left:0}50%{width:60%;left:20%}100%{width:0%;left:100%}}
+        @keyframes dw-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+        @keyframes dw-shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        .dw-loader-logo{width:64px;height:64px;animation:dw-pulse 1.5s ease-in-out infinite}
+        .dw-loader-ring{width:80px;height:80px;border:3px solid #e2e8f0;border-top-color:#246BFF;border-right-color:#FF8A00;border-radius:50%;animation:dw-spin 1s linear infinite}
+        .dw-loader-bar{width:180px;height:4px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-top:24px}
+        .dw-loader-bar::after{content:'';display:block;height:100%;background:linear-gradient(90deg,#246BFF,#FF8A00,#246BFF);background-size:200% 100%;animation:dw-shimmer 1.5s linear infinite;border-radius:999px}
+        .dw-loader-text{font-family:system-ui,-apple-system,sans-serif;font-size:13px;font-weight:600;color:#64748b;margin-top:16px;letter-spacing:0.05em}
+        .dw-loader-sub{font-family:system-ui,-apple-system,sans-serif;font-size:11px;color:#94a3b8;margin-top:4px}
+      </style>
+      <div style="position:relative;width:80px;height:80px;margin-bottom:20px">
+        <div class="dw-loader-ring"></div>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+          <img src="/logo/dw-mark.png" alt="" class="dw-loader-logo" onerror="this.style.display='none'" />
+        </div>
+      </div>
+      <div class="dw-loader-text">Loading DawnWire</div>
+      <div class="dw-loader-sub">AI-powered product reviews &amp; deals</div>
+      <div class="dw-loader-bar"></div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
