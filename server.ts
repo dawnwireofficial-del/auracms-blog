@@ -21,9 +21,21 @@ if (!process.env.AI_GATEWAY_API_KEY && !process.env.COHERE_API_KEY) {
 // Server-render dynamic pages before the static middleware so crawlers receive
 // semantic HTML (H1, headings, editorial copy, internal links) in the raw
 // response instead of the empty JS shell. The client React app hydrates over it.
-function serveSsr(render: () => Promise<string | null>, res: express.Response, next: express.NextFunction) {
+// SSR cache: keyed by URL path, TTL 5 minutes
+const ssrCache = new Map<string, { html: string; ts: number }>();
+const SSR_TTL = 5 * 60 * 1000;
+
+function serveSsr(render: () => Promise<string | null>, res: express.Response, next: express.NextFunction, cacheKey?: string) {
   const indexPath = path.join(distPath, 'index.html');
   if (!fs.existsSync(indexPath)) return next();
+
+  const key = cacheKey || '__default__';
+  const cached = ssrCache.get(key);
+  if (cached && Date.now() - cached.ts < SSR_TTL) {
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=300');
+    return res.type('html').send(cached.html);
+  }
+
   (async () => {
     let ssrBody = '';
     try {
@@ -33,21 +45,28 @@ function serveSsr(render: () => Promise<string | null>, res: express.Response, n
     }
     if (!ssrBody) return next();
     const html = fs.readFileSync(indexPath, 'utf8');
-    res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=900, stale-while-revalidate=300');
-    return res.type('html').send(html.replace('<div id="root"></div>', `<div id="root">${ssrBody}</div>`));
+    const full = html.replace('<div id="root"></div>', `<div id="root">${ssrBody}</div>`);
+    ssrCache.set(key, { html: full, ts: Date.now() });
+    // Evict oldest entries if cache grows too large
+    if (ssrCache.size > 200) {
+      const oldest = ssrCache.keys().next().value;
+      if (oldest) ssrCache.delete(oldest);
+    }
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=300');
+    return res.type('html').send(full);
   })().catch(next);
 }
 
-app.get('/', (req, res, next) => serveSsr(renderHomePageHtml, res, next));
+app.get('/', (req, res, next) => serveSsr(renderHomePageHtml, res, next, '/'));
 
 // Product review detail pages (/products/:slug and legacy /product/:slug)
-app.get('/products/:slug', (req, res, next) => serveSsr(() => renderProductPageHtml(req.params.slug), res, next));
+app.get('/products/:slug', (req, res, next) => serveSsr(() => renderProductPageHtml(req.params.slug), res, next, `/products/${req.params.slug}`));
 
 // Category landing pages (/categories/:slug)
-app.get('/categories/:slug', (req, res, next) => serveSsr(() => renderCategoryPageHtml(req.params.slug), res, next));
+app.get('/categories/:slug', (req, res, next) => serveSsr(() => renderCategoryPageHtml(req.params.slug), res, next, `/categories/${req.params.slug}`));
 
 // Editorial post pages (/post/:slug)
-app.get('/post/:slug', (req, res, next) => serveSsr(() => renderPostPageHtml(req.params.slug), res, next));
+app.get('/post/:slug', (req, res, next) => serveSsr(() => renderPostPageHtml(req.params.slug), res, next, `/post/${req.params.slug}`));
 
 app.use(express.static(distPath));
 
