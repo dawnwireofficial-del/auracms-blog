@@ -99,20 +99,22 @@
 }
 
 .primary-btn {
-  @apply bg-gradient-to-r from-primary to-cyan text-white font-semibold rounded-[14px] px-6 py-3 transition-all duration-300 cursor-pointer inline-flex items-center justify-center gap-2;
-  box-shadow: 0 4px 20px rgba(8, 102, 255, 0.25);
+  @apply bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] text-white font-bold rounded-xl px-6 py-3 transition-all duration-200 cursor-pointer inline-flex items-center justify-center gap-2;
+  box-shadow: 0 4px 14px -4px rgba(36,107,255,0.5);
 }
 .primary-btn:hover {
-  box-shadow: 0 6px 30px rgba(8, 102, 255, 0.35);
+  box-shadow: 0 6px 20px -4px rgba(36,107,255,0.6);
   transform: translateY(-1px);
 }
 
 .amazon-btn {
-  @apply bg-amazon-orange text-[#07101F] font-bold rounded-[14px] px-6 py-3 transition-all duration-300 cursor-pointer inline-flex items-center justify-center gap-2;
+  @apply bg-gradient-to-r from-[#FF8A00] to-[#FF6A00] text-white font-bold rounded-xl px-6 py-3 transition-all duration-200 cursor-pointer inline-flex items-center justify-center gap-2;
+  box-shadow: 0 4px 14px -4px rgba(255,138,0,0.5);
 }
 .amazon-btn:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.05);
   transform: translateY(-1px);
+  box-shadow: 0 6px 20px -4px rgba(255,138,0,0.6);
 }
 
 .ghost-btn {
@@ -526,19 +528,25 @@
 
   /* Commerce cards (standard, no glass) */
   .commerce-card {
-    @apply bg-white dark:bg-dw-card rounded-2xl border border-slate-200 dark:border-dw-border-soft shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.12)];
+    @apply bg-white dark:bg-dw-card rounded-2xl border border-slate-100 dark:border-dw-border-soft;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px -12px rgba(0,0,0,0.08);
   }
   .commerce-card-hover {
-    @apply hover:-translate-y-1 hover:shadow-[0_2px_4px_rgba(15,23,42,0.05),0_20px_44px_-16px_rgba(15,23,42,0.22)] hover:border-slate-300 dark:hover:border-dw-border transition-all duration-300;
+    @apply hover:-translate-y-1.5 border-blue-100 dark:hover:border-dw-border transition-all duration-300;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06), 0 20px 48px -16px rgba(36,107,255,0.12);
   }
 
   /* Buttons */
   .btn-cta {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-[#FF8A00] hover:bg-[#e67b00] active:bg-[#d16f00] text-white font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A00]/40 focus-visible:ring-offset-2 shadow-[0_6px_18px_-6px_rgba(255,138,0,0.55)];
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#FF8A00] to-[#FF6A00] hover:from-[#e67b00] hover:to-[#e06000] active:bg-[#d16f00] text-white font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A00]/40 focus-visible:ring-offset-2;
+    box-shadow: 0 6px 18px -6px rgba(255,138,0,0.55);
   }
+  .btn-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 24px -6px rgba(255,138,0,0.6); }
   .btn-royal {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-[#246BFF] hover:bg-[#164EE8] text-white font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#246BFF]/40 shadow-[0_6px_18px_-8px_rgba(36,107,255,0.5)];
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] hover:from-[#164EE8] hover:to-[#3d6bee] text-white font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#246BFF]/40;
+    box-shadow: 0 6px 18px -8px rgba(36,107,255,0.5);
   }
+  .btn-royal:hover { transform: translateY(-1px); box-shadow: 0 8px 24px -8px rgba(36,107,255,0.6); }
   .btn-royal-blue {
     @apply inline-flex items-center justify-center gap-2 rounded-xl bg-[#246BFF] hover:bg-[#164EE8] text-white font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#246BFF]/40 shadow-[0_6px_18px_-8px_rgba(36,107,255,0.5)];
   }
