@@ -490,27 +490,52 @@ export async function deleteProductReview(id: string): Promise<boolean> {
   return !error;
 }
 
+async function uploadToCatbox(buf: Buffer): Promise<string | null> {
+  try {
+    const ext = buf[0] === 0x89 && buf[1] === 0x50 ? '.png' : buf[0] === 0xFF ? '.jpg' : '.bin';
+    const blob = new Blob([buf], { type: `image/${ext === '.png' ? 'png' : 'jpeg'}` });
+    const fd = new FormData();
+    fd.append('reqtype', 'fileupload');
+    fd.append('fileToUpload', blob, `img${ext}`);
+    const resp = await fetch('https://catbox.moe/user/api.php', {
+      method: 'POST',
+      body: fd,
+      signal: AbortSignal.timeout(20000),
+    });
+    const url = await resp.text();
+    return url.startsWith('http') ? url : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function uploadToImgBB(imageUrl: string): Promise<string | null> {
   try {
-    const key = process.env.IMGBB_API_KEY;
-    if (!key) return null;
     const resp = await fetch(imageUrl, {
       signal: AbortSignal.timeout(10000),
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; DawnWire/1.0)' },
     });
     if (!resp.ok) return null;
     const buf = Buffer.from(await resp.arrayBuffer());
-    const b64 = buf.toString('base64');
-    const body = new URLSearchParams({ image: b64 });
-    const imgbb = await fetch(`https://api.imgbb.com/1/upload?key=${key}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body,
-      signal: AbortSignal.timeout(15000),
-    });
-    const data: any = await imgbb.json();
-    if (!data.success) return null;
-    return data.data.url;
+    if (buf.length < 100) return null;
+    // Try imgbb first
+    const key = process.env.IMGBB_API_KEY;
+    if (key) {
+      try {
+        const b64 = buf.toString('base64');
+        const body = new URLSearchParams({ image: b64 });
+        const imgbb = await fetch(`https://api.imgbb.com/1/upload?key=${key}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body,
+          signal: AbortSignal.timeout(15000),
+        });
+        const data: any = await imgbb.json();
+        if (data.success) return data.data.url;
+      } catch {}
+    }
+    // Fallback: catbox.moe
+    return await uploadToCatbox(buf);
   } catch {
     return null;
   }
@@ -614,19 +639,20 @@ export async function importProductReview(data: {
     slug = `${slug}-${counter}`;
   }
 
-  // Upload images to imgbb for permanent storage
+  // Auto-host images: always upload Amazon CDN images to permanent storage
   let productImage = typeof data.product_image === 'string' ? data.product_image.trim() : null;
   let galleryImages: string[] = norm.gallery.length > 0 ? [...norm.gallery] : [];
-  if (data.uploadImages) {
+  const shouldUpload = data.uploadImages !== false; // default true for all imports
+  if (shouldUpload) {
     if (productImage && AMAZON_CDN_RE.test(productImage)) {
-      const imgbbUrl = await uploadToImgBB(productImage);
-      if (imgbbUrl) productImage = imgbbUrl;
+      const hosted = await uploadToImgBB(productImage);
+      if (hosted) productImage = hosted;
     }
     if (galleryImages.length > 0) {
       const uploaded = await Promise.all(galleryImages.map(async (u) => {
         if (AMAZON_CDN_RE.test(u)) {
-          const imgbbUrl = await uploadToImgBB(u);
-          return imgbbUrl || u;
+          const hosted = await uploadToImgBB(u);
+          return hosted || u;
         }
         return u;
       }));

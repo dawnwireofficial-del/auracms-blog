@@ -41,21 +41,39 @@ async function downloadAndUpload(url: string): Promise<string | null> {
       return null;
     }
     const b64 = buf.toString('base64');
-    const body = new URLSearchParams({ image: b64 });
 
-    // Upload to imgbb
-    const imgbb = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body,
-      signal: AbortSignal.timeout(20000),
-    });
-    const data: any = await imgbb.json();
-    if (!data.success) {
-      console.log(`    ✗ imgbb upload failed: ${JSON.stringify(data).substring(0, 200)}`);
-      return null;
+    // Try imgbb first
+    if (IMGBB_KEY) {
+      try {
+        const body = new URLSearchParams({ image: b64 });
+        const imgbb = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body,
+          signal: AbortSignal.timeout(20000),
+        });
+        const data: any = await imgbb.json();
+        if (data.success) return data.data.url;
+      } catch {}
     }
-    return data.data.url;
+
+    // Fallback: catbox.moe (free, permanent, no rate limits)
+    try {
+      const blob = new Blob([buf], { type: 'image/jpeg' });
+      const fd = new FormData();
+      fd.append('reqtype', 'fileupload');
+      fd.append('fileToUpload', blob, 'product.jpg');
+      const catResp = await fetch('https://catbox.moe/user/api.php', {
+        method: 'POST',
+        body: fd,
+        signal: AbortSignal.timeout(20000),
+      });
+      const catUrl = await catResp.text();
+      if (catUrl.startsWith('http')) return catUrl;
+    } catch {}
+
+    console.log(`    ✗ All upload services failed`);
+    return null;
   } catch (e: any) {
     console.log(`    ✗ Error: ${e.message}`);
     return null;

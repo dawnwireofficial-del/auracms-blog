@@ -741,6 +741,96 @@ router.get('/pinterest-catalog/stats', authenticate, requireRole(['super_admin',
   }
 });
 
+// ─── Pinterest Bulk Pins CSV (for bulk Pin creation, not catalog) ────────────
+
+router.get('/pinterest-pins-csv', authenticate, requireRole(['super_admin', 'admin']), async (_req, res) => {
+  try {
+    const { getPublishedProductReviews } = await import('../../server/seo-engine');
+    const reviews = await getPublishedProductReviews().catch(() => []) as any[];
+    const baseUrl = 'https://www.dawnwire.com';
+
+    const columns = ['Title', 'Description', 'Link', 'Image URL', 'Board Name', 'Keywords'];
+
+    const esc = (s: string) => `"${(s || '').replace(/"/g, '""')}"`;
+
+    const boards: Record<string, string> = {
+      'beauty-personal-care': 'Beauty & Personal Care',
+      'home-kitchen': 'Home & Kitchen',
+      'electronics': 'Electronics',
+      'technology': 'Technology',
+      'gaming': 'Gaming',
+      'sports-outdoors': 'Sports & Outdoors',
+      'fitness': 'Fitness',
+      'baby-products': 'Baby Products',
+      'automotive': 'Automotive',
+      'toys-games': 'Toys & Games',
+      'office-productivity': 'Office & Productivity',
+      'ai-software-tools': 'AI & Software Tools',
+    };
+
+    const rows = (reviews || [])
+      .filter((r: any) => r.product_name && r.status === 'published' && (r.product_image || (r.specs?.gallery || [])[0]))
+      .map((r: any) => {
+        const name = String(r.product_name || '');
+        const brand = String(r.brand || '');
+        const bestFor = String(r.best_for || '');
+        const score = Number(r.editor_score || 0);
+        const rating = Number(r.rating || 0);
+        const verdict = String(r.final_verdict || r.review_summary || '').slice(0, 200);
+        const cat = String(r.category || bestFor || 'Shopping').toLowerCase();
+        const boardName = boards[cat] || 'DawnWire Picks';
+
+        // Pin title — editorial, not merchant-style
+        const title = score >= 8
+          ? `Best ${brand} ${name.split(' ').slice(0, 4).join(' ')} — Editor's Pick (${score}/10)`
+          : `${brand} ${name.split(' ').slice(0, 5).join(' ')} Review & Buying Guide`;
+
+        // Pin description — human-readable, with disclosure
+        const desc = [
+          verdict || `Looking for the best ${name.split(' ').slice(0, 3).join(' ')}?`,
+          '',
+          `DawnWire Score: ${score}/10 | Rating: ${rating}/5`,
+          bestFor ? `Best for: ${bestFor}` : '',
+          '',
+          `Read the full review →`,
+          '',
+          'DawnWire may earn a commission from qualifying purchases.',
+        ].filter(Boolean).join('\n');
+
+        const image = r.product_image || (r.specs?.gallery || [])[0] || '';
+        const link = `${baseUrl}/products/${r.slug || r.id}?utm_source=pinterest&utm_medium=organic&utm_campaign=pin`;
+
+        const keywords = [brand, bestFor, cat, 'review', 'buying guide', 'best', score >= 8 ? 'top rated' : ''].filter(Boolean).join(', ');
+
+        return [esc(title), esc(desc), esc(link), esc(image), esc(boardName), esc(keywords)].join(',');
+      });
+
+    const csv = [columns.join(','), ...rows].join('\n');
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="dawnwire-pinterest-pins-${new Date().toISOString().split('T')[0]}.csv"`);
+    res.send(csv);
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.get('/pinterest-pins-csv/stats', authenticate, requireRole(['super_admin', 'admin']), async (_req, res) => {
+  try {
+    const { getPublishedProductReviews } = await import('../../server/seo-engine');
+    const reviews = await getPublishedProductReviews().catch(() => []) as any[];
+    const p = reviews.filter((r: any) => r.product_name && r.status === 'published');
+    res.json({
+      totalPins: p.length,
+      withImages: p.filter((r: any) => r.product_image || (r.specs?.gallery || [])[0]).length,
+      withVerdict: p.filter((r: any) => r.final_verdict || r.review_summary).length,
+      withScore: p.filter((r: any) => Number(r.editor_score) > 0).length,
+      boardCount: [...new Set(p.map((r: any) => r.best_for || r.category || 'Shopping'))].length,
+    });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ─── Google Merchant Center Product Feed ──────────────────────────────────────
 
 router.get('/google-shopping-feed', authenticate, requireRole(['super_admin', 'admin']), async (_req, res) => {

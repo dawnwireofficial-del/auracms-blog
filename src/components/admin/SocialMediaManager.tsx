@@ -368,7 +368,7 @@ const SocialMediaManager: React.FC<{ token: string }> = ({ token }) => {
   const { products } = useAppStore();
 
   // Tab state
-  const [activeSection, setActiveSection] = useState<'compose' | 'catalog' | 'google' | 'bulkseo' | 'history' | 'settings'>('compose');
+  const [activeSection, setActiveSection] = useState<'compose' | 'pins' | 'catalog' | 'google' | 'bulkseo' | 'history' | 'settings'>('compose');
 
   // Product selection
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
@@ -821,6 +821,7 @@ const SocialMediaManager: React.FC<{ token: string }> = ({ token }) => {
       <div className="flex gap-2 p-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
         {[
           { key: 'compose' as const, label: '✏️ Compose', count: selectedPlatforms.length },
+          { key: 'pins' as const, label: '📌 Bulk Pins', count: 0 },
           { key: 'catalog' as const, label: '📦 Pinterest CSV', count: 0 },
           { key: 'google' as const, label: '🛒 Google Shopping', count: 0 },
           { key: 'bulkseo' as const, label: '⚡ Bulk SEO', count: 0 },
@@ -1152,6 +1153,45 @@ const SocialMediaManager: React.FC<{ token: string }> = ({ token }) => {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════ PINTEREST BULK PINS */}
+      {activeSection === 'pins' && (
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
+            <h3 className="text-base font-black text-slate-900 dark:text-white mb-2">📌 Pinterest Bulk Pins CSV</h3>
+            <p className="text-xs text-slate-500 mb-4">Download a CSV for Pinterest's bulk Pin creation. Each product becomes an individual Pin with editorial title, description, and keywords.</p>
+            <button
+              onClick={async () => {
+                try {
+                  const res = await fetch('/api/admin/social-media/pinterest-pins-csv', { headers: { Authorization: `Bearer ${token}` } });
+                  if (!res.ok) throw new Error('Download failed');
+                  const blob = await res.blob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `dawnwire-pinterest-pins-${new Date().toISOString().split('T')[0]}.csv`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                } catch (e: any) { alert(e.message); }
+              }}
+              className="bg-[#E60023] hover:bg-[#ad081b] text-white font-bold px-5 py-2.5 rounded-xl text-sm shadow-md transition-all"
+            >
+              📌 Download Pinterest Pins CSV
+            </button>
+          </div>
+          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+            <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-2">How to use this CSV:</h4>
+            <ol className="text-xs text-slate-600 dark:text-slate-400 space-y-1.5 list-decimal pl-4">
+              <li>Click <strong>Download Pinterest Pins CSV</strong> above</li>
+              <li>Go to <a href="https://business.pinterest.com/pin-creation-tool/" target="_blank" className="text-blue-500 underline">Pinterest Pin Creation Tool</a></li>
+              <li>Click <strong>Bulk create Pins</strong> → Upload the CSV file</li>
+              <li>Review the pins and assign them to your boards</li>
+              <li>Publish — Pins will appear in Pinterest search results</li>
+            </ol>
+            <p className="text-[10px] text-slate-400 mt-3">Each Pin includes an editorial title (not merchant-style), honest review description, DawnWire score, and affiliate disclosure.</p>
+          </div>
         </div>
       )}
 
