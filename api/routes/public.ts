@@ -22,7 +22,18 @@ router.get('/posts/slug/:slug', async (req, res) => {
   if (!post || post.status !== 'published' || (post.visibility != null && post.visibility !== 'public')) return res.status(404).json({ error: 'Article not found' });
   res.json(post);
 });
-router.get('/categories', async (_req, res) => res.json((await dbInstance.getCategories()).filter(c => c.status === 'active')));
+// Cache categories for 5 minutes
+let _catCache: { data: any; ts: number } | null = null;
+router.get('/categories', async (_req, res) => {
+  if (_catCache && Date.now() - _catCache.ts < 300_000) {
+    res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
+    return res.json(_catCache.data);
+  }
+  const cats = (await dbInstance.getCategories()).filter((c: any) => c.status === 'active');
+  _catCache = { data: cats, ts: Date.now() };
+  res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
+  res.json(cats);
+});
 router.get('/tags', async (_req, res) => res.json(await dbInstance.getTags()));
 router.get('/pages', async (_req, res) => res.json((await dbInstance.getPages()).filter(p => p.status === 'published')));
 router.get('/pages/:slug', async (req, res) => {
