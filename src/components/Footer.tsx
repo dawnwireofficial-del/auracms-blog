@@ -119,7 +119,7 @@ export default function Footer({ onNavigate, settings }: FooterProps) {
                 {[
                   { icon: Facebook, href: 'https://www.facebook.com/profile.php?id=61591752300472', label: 'Facebook' },
                   { icon: Instagram, href: 'https://www.instagram.com/dawnwire/', label: 'Instagram' },
-                  { icon: Twitter, href: 'https://x.com/dawnwire', label: 'X (Twitter)' },
+                  { icon: Twitter, href: 'https://x.com/dawn_wire_', label: 'X (Twitter)' },
                   { icon: Linkedin, href: 'https://linkedin.com/company/dawnwire', label: 'LinkedIn' },
                 ].map((social, i) => (
                   <a

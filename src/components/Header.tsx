@@ -348,7 +348,7 @@ export default function Header({
                     { name: 'Facebook', href: 'https://www.facebook.com/profile.php?id=61591752300472', color: 'bg-blue-600' },
                     { name: 'Instagram', href: 'https://www.instagram.com/dawnwire/', color: 'bg-gradient-to-br from-purple-500 to-pink-500' },
                     { name: 'Pinterest', href: 'https://www.pinterest.com/dawnwireofficial/', color: 'bg-red-600' },
-                    { name: 'X', href: 'https://x.com/dawnwire', color: 'bg-black dark:bg-white dark:text-black' },
+                    { name: 'X', href: 'https://x.com/dawn_wire_', color: 'bg-black dark:bg-white dark:text-black' },
                   ].map(s => (
                     <a key={s.name} href={s.href} target="_blank" rel="noopener noreferrer"
                       className={`${s.color} text-white text-[10px] font-bold px-3 py-1.5 rounded-full`}
