@@ -11,6 +11,7 @@ import { useReducedMotion } from '../components/useReducedMotion';
 import BannerInlineEditor from '../components/admin/BannerInlineEditor';
 import { HeroBanner, DealStrip, CategoryCard, BrandedBanner, GRADIENTS } from '../components/branding/BrandedBanners';
 import { SeasonalBanner, UpcomingEventsBar } from '../components/branding/SeasonalBanners';
+import { ScrollReveal, StaggerReveal, ScaleReveal } from '../components/common/ScrollReveal';
 import type { Post } from '../types';
 
 interface HomePageProps {
@@ -648,6 +649,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
 
       <main className="commerce-container space-y-14 md:space-y-20 py-12 md:py-16">
         {/* ============================ PROMO BANNERS (BrandedBanner) ============================ */}
+        <ScrollReveal>
         <section>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {promoBanners.slice(0, 2).map((banner, i) => (
@@ -664,8 +666,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             ))}
           </div>
         </section>
+        </ScrollReveal>
 
         {/* ============================ TODAY'S BEST DEALS (reference so-deals + countdown) ============================ */}
+        <ScrollReveal delay={0.1}>
         {topDeals.length > 0 && (
           <section>
             <div className="flex items-end justify-between gap-4 mb-6 md:mb-8">
@@ -756,8 +760,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             })}
           </div>
         </section>
+        </ScrollReveal>
 
         {/* ============================ SHOP BY CATEGORY (Branded Cards) ============================ */}
+        <ScrollReveal>
         <section>
           <SectionHead title="Shop by Category" sub="From tech to self-care — every pick independently scored" href="/categories" label="All Categories" />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -776,6 +782,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             })}
           </div>
         </section>
+        </ScrollReveal>
 
         {/* ============================ TABBED PRODUCT RAILS (reference so-listing-tabs) ============================ */}
         {tabCategories.length > 0 && (
@@ -975,6 +982,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         </section>
 
         {/* ============================ LATEST BUYING GUIDES (reference so-latest-blog) ============================ */}
+        <ScrollReveal delay={0.1}>
         {posts.length > 0 && (
           <section>
             <SectionHead title="Latest Buying Guides" sub="What to look for before you buy" href="/guides" label="All Guides" />
@@ -1006,8 +1014,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             </div>
           </section>
         )}
+        </ScrollReveal>
 
         {/* ============================ SHOP BY BRAND (reference top-brand slider) ============================ */}
+        <ScrollReveal delay={0.15}>
         {brandsAll.length > 0 && (
           <section>
             <SectionHead title="Shop by Brand" sub="Brands we've tested and recommend" href="/brands" label="All Brands" />
@@ -1037,8 +1047,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             </div>
           </section>
         )}
+        </ScrollReveal>
 
         {/* ============================ NEWSLETTER STRIP (reference newsletter_promo) ============================ */}
+        <ScrollReveal>
         <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#164EE8] via-[#246BFF] to-[#4F7CFF] px-7 md:px-12 py-10 md:py-12">
           <div className="absolute -top-24 -right-16 w-72 h-72 rounded-full bg-white/10 blur-3xl" />
           <div className="absolute -bottom-28 -left-16 w-64 h-64 rounded-full bg-[#FF8A00]/25 blur-3xl" />
@@ -1085,6 +1097,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             </form>
           </div>
         </section>
+        </ScrollReveal>
       </main>
 
       {/* ============================ AFFILIATE DISCLOSURE ============================ */}
