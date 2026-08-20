@@ -45,8 +45,8 @@ async function loadHomeData() {
       process.env.SUPABASE_URL || '',
       process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || ''
     );
-    // Run both queries in parallel
-    const [prodRes, postRes] = await Promise.all([
+    // Run both queries in parallel with 8-second timeout
+    const queryPromise = Promise.all([
       sb.from('product_reviews')
         .select('id, slug, product_name, brand, product_image, price, editor_score, rating, review_count, best_for')
         .eq('status', 'published')
@@ -58,6 +58,10 @@ async function loadHomeData() {
         .order('created_at', { ascending: false })
         .limit(8),
     ]);
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Supabase query timeout (8s)')), 8000)
+    );
+    const [prodRes, postRes] = await Promise.race([queryPromise, timeoutPromise]) as any;
     products = (prodRes.data || []).filter((r: any) => r.product_name);
     posts = (postRes.data || []).filter((p: any) => p.title && p.slug);
   } catch (e) {

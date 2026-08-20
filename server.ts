@@ -39,7 +39,11 @@ function serveSsr(render: () => Promise<string | null>, res: express.Response, n
   (async () => {
     let ssrBody = '';
     try {
-      ssrBody = (await render()) || '';
+      const renderPromise = render();
+      const timeoutPromise = new Promise<null>((_, reject) =>
+        setTimeout(() => reject(new Error('SSR render timeout')), 10000)
+      );
+      ssrBody = (await Promise.race([renderPromise, timeoutPromise])) || '';
     } catch (e) {
       console.error('[SSR] render failed:', e);
     }
