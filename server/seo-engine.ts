@@ -648,14 +648,19 @@ export async function importProductReview(data: {
       const hosted = await uploadToImgBB(productImage);
       if (hosted) productImage = hosted;
     }
+    // Upload gallery sequentially to avoid rate limits
     if (galleryImages.length > 0) {
-      const uploaded = await Promise.all(galleryImages.map(async (u) => {
+      const uploaded: string[] = [];
+      for (const u of galleryImages) {
         if (AMAZON_CDN_RE.test(u)) {
           const hosted = await uploadToImgBB(u);
-          return hosted || u;
+          uploaded.push(hosted || u);
+          // Small delay between uploads to avoid rate limits
+          await new Promise(r => setTimeout(r, 1500));
+        } else {
+          uploaded.push(u);
         }
-        return u;
-      }));
+      }
       galleryImages = uploaded;
     }
   }
