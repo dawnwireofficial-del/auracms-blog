@@ -322,17 +322,29 @@ app.get('/sitemap.xml', async (_req, res) => {
   }
 });
 
-// Image sitemap — only affiliate product images
+// Image sitemap — all product images (main + up to 4 gallery per product)
 app.get('/image-sitemap.xml', async (_req, res) => {
   try {
     const baseUrl = 'https://www.dawnwire.com';
     const reviews = await seo.getPublishedProductReviews().catch(() => []) as any[];
-    const entries = reviews
-      .filter((r: any) => r.product_image)
-      .map((r: any) => {
-        const img = r.product_image.startsWith('http') ? r.product_image : baseUrl + r.product_image;
-        return `<url><loc>${baseUrl}/products/${r.slug || r.id}</loc><image:image><image:loc>${img}</image:loc>${r.product_name ? `<image:caption><![CDATA[${r.product_name}]]></image:caption>` : ''}</image:image></url>`;
-      });
+    const entries: string[] = [];
+    for (const r of reviews) {
+      if (!r.product_image) continue;
+      const pageUrl = `${baseUrl}/products/${r.slug || r.id}`;
+      const name = r.product_name || '';
+      const imgs: string[] = [];
+      imgs.push(r.product_image.startsWith('http') ? r.product_image : baseUrl + r.product_image);
+      const specs = r.specs || {};
+      const gallery: string[] = Array.isArray(specs.gallery) ? specs.gallery : [];
+      for (const g of gallery) {
+        if (g && typeof g === 'string' && g.startsWith('http') && !imgs.includes(g)) imgs.push(g);
+      }
+      if (imgs.length === 0) continue;
+      const imgTags = imgs.slice(0, 5).map((img: string) =>
+        `<image:image><image:loc>${img}</image:loc>${name ? `<image:caption><![CDATA[${name}]]></image:caption>` : ''}</image:image>`
+      ).join('');
+      entries.push(`<url><loc>${pageUrl}</loc>${imgTags}</url>`);
+    }
     res.header('Content-Type', 'application/xml');
     res.send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">${entries.join('')}</urlset>`);
   } catch {
