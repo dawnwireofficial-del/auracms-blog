@@ -9,6 +9,7 @@ import { AnimatedCategoryIcon } from '../components/common/AnimatedCategoryIcon'
 import MascotAnimation from '../components/MascotAnimation';
 import { useReducedMotion } from '../components/useReducedMotion';
 import BannerInlineEditor from '../components/admin/BannerInlineEditor';
+import { HeroBanner, DealStrip, CategoryCard, BrandedBanner, GRADIENTS } from '../components/branding/BrandedBanners';
 import type { Post } from '../types';
 
 interface HomePageProps {
@@ -634,55 +635,27 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         </div>
       </section>
 
+      {/* ============================ DEAL STRIP ============================ */}
+      <section className="commerce-container mt-6">
+        <DealStrip products={products} />
+      </section>
+
       <main className="commerce-container space-y-14 md:space-y-20 py-12 md:py-16">
-        {/* ============================ BANNER ROW 1 (reference home1-banner-1) ============================ */}
+        {/* ============================ PROMO BANNERS (BrandedBanner) ============================ */}
         <section>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {promoBanners.slice(0, 2).map((banner, i) => {
-              const isAdminPromo = !!bannerSlots.promos[i];
-              return (
-              <BannerInlineEditor
+            {promoBanners.slice(0, 2).map((banner, i) => (
+              <BrandedBanner
                 key={banner.title + i}
-                placement={(`promo_${i + 1}`) as any}
-                banner={bannerSlots.promos[i]}
-                align="left"
-              >
-              <a href={banner.href} data-gravity-cursor="explore"
-                className={`relative overflow-hidden rounded-2xl min-h-[190px] flex items-end border border-white/80 bg-gradient-to-br ${banner.tint} to-transparent shadow-[0_14px_40px_-18px_rgba(36,107,255,0.3)] group`}>
-                {isAdminPromo ? (
-                  <img
-                    src={banner.image}
-                    alt={banner.title}
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                  />
-                ) : (
-                  <img
-                    src={banner.image}
-                    alt={banner.title}
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                    className="absolute right-0 top-0 w-full h-full object-cover opacity-30 transition-transform duration-700 group-hover:scale-110"
-                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                  />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
-                <div className="relative z-10 p-5 md:p-6">
-                  <span className="inline-block bg-[#FF8A00] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full mb-2 shadow-sm">{banner.label}</span>
-                  <h3 className="text-xl md:text-2xl font-[900] text-white leading-tight drop-shadow-md max-w-[75%]">{banner.title}</h3>
-                  <span className="mt-2.5 inline-flex items-center gap-1.5 text-[12px] font-bold text-white bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-3 py-1.5 transition-colors group-hover:bg-white/25">
-                    {banner.cta}
-                    <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </span>
-                </div>
-              </a>
-              </BannerInlineEditor>
-              );
-            })}
+                title={banner.title}
+                subtitle={banner.label}
+                cta={banner.cta}
+                href={banner.href}
+                gradient={i === 0 ? 'premium' : 'deal'}
+                height="h-[200px] lg:h-[220px]"
+                showProduct={false}
+              />
+            ))}
           </div>
         </section>
 
@@ -778,38 +751,21 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           </div>
         </section>
 
-        {/* ============================ SHOP BY CATEGORY ============================ */}
+        {/* ============================ SHOP BY CATEGORY (Branded Cards) ============================ */}
         <section>
           <SectionHead title="Shop by Category" sub="From tech to self-care — every pick independently scored" href="/categories" label="All Categories" />
-          <div className="flex gap-5 md:gap-7 overflow-x-auto pb-4 -mx-1 px-1 snap-x">
-            {shopCategories.map(cat => {
-              const img = categoryImage(cat);
-              const count = productCountFor(cat.name);
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {shopCategories.slice(0, 10).map((cat, i) => {
+              const gradients: (keyof typeof GRADIENTS)[] = ['tech', 'premium', 'deal', 'nature', 'sunset', 'dark', 'beauty', 'hero', 'tech', 'premium'];
               return (
-                <a key={cat.id} href={`/categories/${cat.slug}`} data-gravity-cursor="explore"
-                  className="snap-start shrink-0 flex flex-col items-center w-[104px] group">
-                  <div className="w-[104px] h-[104px] rounded-full overflow-hidden border-4 border-white shadow-[0_10px_28px_-10px_rgba(36,107,255,0.35)] bg-white group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
-                    {img ? (
-                      <img
-                        src={img}
-                        alt={cat.name}
-                        loading="lazy"
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-contain p-2"
-                        onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }}
-                      />
-                    ) : (
-                      <AnimatedCategoryIcon
-                        slug={cat.slug}
-                        icon={cat.icon}
-                        image={cat.image}
-                        className="w-12 h-12"
-                      />
-                    )}
-                  </div>
-                  <p className="mt-2.5 text-[13px] font-bold text-slate-800 text-center leading-tight group-hover:text-[#246BFF] transition-colors line-clamp-1">{cat.name}</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">{count} products</p>
-                </a>
+                <CategoryCard
+                  key={cat.id}
+                  name={cat.name}
+                  slug={cat.slug}
+                  image={categoryImage(cat)}
+                  productCount={productCountFor(cat.name)}
+                  gradient={gradients[i % gradients.length]}
+                />
               );
             })}
           </div>
