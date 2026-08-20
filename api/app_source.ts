@@ -327,20 +327,37 @@ app.get('/image-sitemap.xml', async (_req, res) => {
   try {
     const baseUrl = 'https://www.dawnwire.com';
     const reviews = await seo.getPublishedProductReviews().catch(() => []) as any[];
+    // Regex to filter out junk images (SVGs, pixel GIFs, icons, video thumbnails)
+    const JUNK_IMG = /\.svg$|grey-pixel\.gif|play-button|play-icon|sash\/|\._SX|\._SY|\.SS[0-9]|PKplay|PKdp-play/i;
+    const AMAZON_CDN = /^https?:\/\/(m\.media-amazon|images-na\.ssl-images-amazon)/i;
     const entries: string[] = [];
     for (const r of reviews) {
       if (!r.product_image) continue;
       const pageUrl = `${baseUrl}/products/${r.slug || r.id}`;
       const name = r.product_name || '';
       const imgs: string[] = [];
-      imgs.push(r.product_image.startsWith('http') ? r.product_image : baseUrl + r.product_image);
+      // Route Amazon CDN images through proxy for Google indexing
+      const mainImg = r.product_image.startsWith('http') ? r.product_image : baseUrl + r.product_image;
+      if (AMAZON_CDN.test(mainImg)) {
+        imgs.push(`${baseUrl}/api/public/image-proxy?url=${encodeURIComponent(mainImg)}`);
+      } else if (!JUNK_IMG.test(mainImg)) {
+        imgs.push(mainImg);
+      }
+      // Gallery images
       const specs = r.specs || {};
       const gallery: string[] = Array.isArray(specs.gallery) ? specs.gallery : [];
       for (const g of gallery) {
-        if (g && typeof g === 'string' && g.startsWith('http') && !imgs.includes(g)) imgs.push(g);
+        if (!g || typeof g !== 'string' || !g.startsWith('http')) continue;
+        if (JUNK_IMG.test(g)) continue;
+        if (imgs.length >= 5) break; // Max 5 images per product
+        let imgUrl = g;
+        if (AMAZON_CDN.test(g)) {
+          imgUrl = `${baseUrl}/api/public/image-proxy?url=${encodeURIComponent(g)}`;
+        }
+        if (!imgs.includes(imgUrl)) imgs.push(imgUrl);
       }
       if (imgs.length === 0) continue;
-      const imgTags = imgs.slice(0, 5).map((img: string) =>
+      const imgTags = imgs.map((img: string) =>
         `<image:image><image:loc>${img}</image:loc>${name ? `<image:caption><![CDATA[${name}]]></image:caption>` : ''}</image:image>`
       ).join('');
       entries.push(`<url><loc>${pageUrl}</loc>${imgTags}</url>`);

@@ -16,7 +16,9 @@ import { createClient } from '@supabase/supabase-js';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const SB_URL = process.env.SUPABASE_URL || 'https://kbfngsmaikmuqplsoafw.supabase.co';
+import * as dotenv from 'dotenv';
+dotenv.config();
+const SB_URL = process.env.SUPABASE_URL || '';
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
 const IMGBB_KEY = process.env.IMGBB_API_KEY || '';
 
@@ -26,6 +28,9 @@ const LIMIT = parseInt(process.argv.find((_, i, a) => a[i - 1] === '--limit') ||
 
 const AMAZON_CDN = /^https?:\/\/(m\.media-amazon\.com|images-na\.ssl-images-amazon\.com)/i;
 const ALREADY_HOSTED = /catbox\.moe|ibb\.co|freeimage\.host|files\.catbox\.moe/i;
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const LOG_FILE = path.join(__dirname, 'rehost-progress.json');
 
 // Track completed product IDs for resume
