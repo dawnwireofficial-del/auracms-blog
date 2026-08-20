@@ -196,6 +196,27 @@ export async function getProductReviewById(id: string): Promise<any | null> {
   return data || null;
 }
 
+export async function getProductReviewBySlug(slug: string): Promise<any | null> {
+  const sb = await getClient();
+  // Try exact slug match first
+  let { data } = await sb.from('product_reviews').select('*').eq('slug', slug).eq('status', 'published').maybeSingle();
+  if (data) return data;
+  // Try by ID
+  ({ data } = await sb.from('product_reviews').select('*').eq('id', slug).eq('status', 'published').maybeSingle());
+  if (data) return data;
+  // Try normalized slug match
+  const norm = slug.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const { data: all } = await sb.from('product_reviews').select('id,slug,specs').eq('status', 'published').limit(1000);
+  if (!all) return null;
+  return all.find((r: any) => {
+    const rs = String(r.slug || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    return rs === norm || norm.includes(rs) || rs.includes(norm);
+  }) || all.find((r: any) => {
+    const asin = r.specs?.asin;
+    return asin && slug.toLowerCase().includes(String(asin).toLowerCase());
+  }) || null;
+}
+
 export function sanitizeReviewSummary(text: string | null | undefined): string | null {
   if (!text) return null;
   let clean = text;

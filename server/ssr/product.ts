@@ -1,5 +1,5 @@
 import { dbInstance } from '../db';
-import { getPublishedProductReviews } from '../seo-engine';
+import { getPublishedProductReviews, getProductReviewBySlug } from '../seo-engine';
 import { esc, val, mdToSimpleHtml, ssrFooter } from './common';
 
 // Server-side renderer for /products/:slug (product review detail pages).
@@ -29,13 +29,13 @@ function findProduct(reviews: any[], rawSlug: string): any {
 }
 
 export async function renderProductPageHtml(slug: string): Promise<string | null> {
-  let reviews: any[] = [];
+  // Fast path: fetch single product by slug (no need to load all 636)
+  let p: any = null;
   try {
-    reviews = await getPublishedProductReviews();
+    p = await getProductReviewBySlug(slug);
   } catch (e) {
-    console.error('[SSR product] reviews:', e);
+    console.error('[SSR product] single fetch:', e);
   }
-  const p = findProduct(reviews, slug);
   if (!p) return null;
 
   const name = String(val(p, 'productName') || p.product_name || '');
@@ -74,7 +74,10 @@ export async function renderProductPageHtml(slug: string): Promise<string | null
       categoryName = cat.name;
     }
     const catId = cat?.id || categoryId;
-    related = (reviews || [])
+    // Fetch all products only for related items (not for main product lookup)
+    let allReviews: any[] = [];
+    try { allReviews = await getPublishedProductReviews(); } catch {}
+    related = (allReviews || [])
       .filter((r) => r.id !== p.id && r.status === 'published' && (r.category_id === catId || r.best_for === bestFor) && r.product_name)
       .sort((a: any, b: any) => Number(val(b, 'editorScore') || 0) - Number(val(a, 'editorScore') || 0))
       .slice(0, 4);
