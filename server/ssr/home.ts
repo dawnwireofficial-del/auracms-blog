@@ -91,9 +91,42 @@ export async function renderHomePageHtml(): Promise<string> {
   const productCount = products.length;
   const categoryCount = categories.length;
 
+  // Build product cards with images for SSR (Google sees these)
+  const productCards = products.length > 0 ? `<section><h2>Top-rated product reviews</h2><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-top:1rem">${products.slice(0, 6).map((p: any) => {
+    const name = val(p, 'productName') || p.product_name || '';
+    const brand = val(p, 'brand') || '';
+    const image = val(p, 'productImage') || p.product_image || '';
+    const price = val(p, 'price');
+    const score = Number(val(p, 'editorScore') || 0);
+    const rating = Number(val(p, 'rating') || 0);
+    const slug = p.slug || p.id;
+    return `<a href="/products/${esc(slug)}" style="display:block;background:#fff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;text-decoration:none;color:inherit">
+      <div style="padding:16px;display:flex;align-items:center;justify-content:center;height:200px;background:#f8fafc">
+        ${image ? `<img src="${esc(image)}" alt="${esc(name)}" width="180" height="180" loading="lazy" style="max-height:100%;max-width:100%;object-fit:contain" />` : `<span style="font-size:48px">📦</span>`}
+      </div>
+      <div style="padding:12px 16px">
+        <p style="font-size:11px;font-weight:700;color:#246BFF;text-transform:uppercase;margin:0">${esc(brand)}</p>
+        <p style="font-size:13px;font-weight:700;margin:4px 0 8px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(name)}</p>
+        ${score ? `<p style="font-size:12px;color:#246BFF;font-weight:700;margin:0">DawnWire Score: ${score}/10</p>` : ''}
+        ${rating ? `<p style="font-size:12px;color:#f59e0b;margin:4px 0 0">${'★'.repeat(Math.round(rating))} ${rating}/5</p>` : ''}
+      </div>
+    </a>`;
+  }).join('')}</div><p style="margin-top:1rem"><a href="/reviews">Browse all reviews →</a></p></section>` : '';
+
+  // Build category cards with images
+  const categoryCards = categories.length > 0 ? `<section><h2>Shop by Category</h2><div style="display:flex;flex-wrap:wrap;gap:1rem;margin-top:1rem">${categories.slice(0, 12).map((c: any) => {
+    const img = c.image || c.desktopBanner || '';
+    return `<a href="/categories/${esc(c.slug)}" style="display:flex;flex-direction:column;align-items:center;width:100px;text-decoration:none;color:inherit">
+      <div style="width:80px;height:80px;border-radius:50%;background:#fff;border:3px solid #e2e8f0;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.08)">
+        ${img ? `<img src="${esc(img)}" alt="${esc(c.name)}" width="72" height="72" loading="lazy" style="width:100%;height:100%;object-fit:cover" />` : `<span style="font-size:28px">🏷️</span>`}
+      </div>
+      <p style="font-size:12px;font-weight:700;margin-top:8px;text-align:center">${esc(c.name)}</p>
+    </a>`;
+  }).join('')}</div></section>` : '';
+
   const links = [
-    buildCategoryLinks(categories),
-    buildProductLinks(products),
+    categoryCards,
+    productCards,
     buildGuideLinks(posts),
     `<section><h2>More from DawnWire</h2><ul class="ssr-links">
       <li><a href="/deals">Today's verified Amazon deals</a></li>
