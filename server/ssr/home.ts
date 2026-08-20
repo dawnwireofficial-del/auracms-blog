@@ -107,7 +107,66 @@ export async function renderHomePageHtml(): Promise<string> {
     .filter(Boolean)
     .join('\n');
 
-  return `<article class="ssr-content" id="home-seo-content">
+  const baseUrl = 'https://www.dawnwire.com';
+
+  // JSON-LD: WebSite + SearchAction
+  const webSiteSchema = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'DawnWire',
+    url: baseUrl,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${baseUrl}/search?q={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  });
+
+  // JSON-LD: Organization with social links
+  const orgSchema = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'DawnWire',
+    url: baseUrl,
+    logo: `${baseUrl}/logo/logo-transparent.png`,
+    description: 'Independent Amazon product reviews, AI-powered price-drop deals, and expert buying guides.',
+    sameAs: [
+      'https://www.facebook.com/profile.php?id=61591752300472',
+      'https://www.instagram.com/dawnwire/',
+      'https://www.pinterest.com/dawnwire/',
+    ],
+  });
+
+  // JSON-LD: ItemList of top products (for Google rich results)
+  let itemListSchema = '';
+  if (products.length > 0) {
+    itemListSchema = `<script type="application/ld+json">${JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: 'Top-Rated Product Reviews on DawnWire',
+      description: 'Expert-reviewed products ranked by our editorial team',
+      numberOfItems: products.length,
+      itemListElement: products.map((p: any, i: number) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `${baseUrl}/products/${p.slug || p.id}`,
+        name: val(p, 'productName') || p.product_name,
+      })),
+    })}</script>`;
+  }
+
+  // JSON-LD: BreadcrumbList
+  const breadcrumbSchema = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: baseUrl }],
+  });
+
+  return `<script type="application/ld+json">${webSiteSchema}</script>
+<script type="application/ld+json">${orgSchema}</script>
+<script type="application/ld+json">${breadcrumbSchema}</script>
+${itemListSchema}
+<article class="ssr-content" id="home-seo-content">
   <h1>Done-For-You Shopping: Honest Product Scores &amp; Verified Amazon Deals</h1>
   <p>DawnWire researches, price-checks, and scores the best products of 2026 — so you buy the right thing at the right price, in seconds instead of hours. Our AI-powered engine surfaces independent benchmarks, live price drops, and honest editor's verdicts across
   ${productCount > 0 ? `over ${productCount} products across ` : ''}${categoryCount > 0 ? `${categoryCount} categories` : 'popular categories'} including

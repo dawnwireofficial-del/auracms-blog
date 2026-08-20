@@ -60,7 +60,7 @@
       "dest": "/api/index.js"
     },
     {
-      "src": "^/(sitemap.xml|image-sitemap.xml|robots.txt|rss.xml|llms.txt)$",
+      "src": "^/(sitemap.xml|image-sitemap.xml|robots.txt|rss.xml|llms.txt|llms-full.txt)$",
       "dest": "/api/index.js"
     },
     {

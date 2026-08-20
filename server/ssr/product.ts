@@ -90,6 +90,44 @@ export async function renderProductPageHtml(slug: string): Promise<string | null
     bestFor ? `<span>Best for: ${esc(bestFor)}</span>` : '',
   ].filter(Boolean).join(' · ');
 
+  // === JSON-LD Structured Data for Google Rich Results ===
+  const baseUrl = 'https://www.dawnwire.com';
+  const productUrl = `${baseUrl}/products/${p.slug || p.id}`;
+  const imgSrc = image && image.startsWith('http') ? image : image ? `${baseUrl}${image}` : '';
+
+  const jsonLdSchemas: string[] = [];
+
+  // Product schema (enables rich product results in Google)
+  const productSchema: Record<string, any> = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: name,
+    url: productUrl,
+    description: reviewSummary || finalVerdict || `${name} review by DawnWire`,
+    ...(brand ? { brand: { '@type': 'Brand', name: brand } } : {}),
+    ...(imgSrc ? { image: imgSrc } : {}),
+    ...(price ? { offers: { '@type': 'Offer', priceCurrency: 'USD', price: parseFloat(String(price).replace(/[^0-9.]/g, '')) || undefined, availability: 'https://schema.org/InStock', url: productUrl, seller: { '@type': 'Organization', name: 'DawnWire' } } } : {}),
+    ...(rating ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: rating, bestRating: 5, reviewCount: reviewCount || 1 } } : {}),
+    ...(reviewCount ? { review: { '@type': 'Review', author: { '@type': 'Organization', name: 'DawnWire Editorial Team' }, reviewRating: { '@type': 'Rating', ratingValue: rating || 0, bestRating: 5 }, reviewBody: reviewSummary || finalVerdict || '' } } : {}),
+  };
+  jsonLdSchemas.push(`<script type="application/ld+json">${JSON.stringify(productSchema)}</script>`);
+
+  // BreadcrumbList schema
+  const breadcrumbItems = [
+    { name: 'Home', url: baseUrl },
+    { name: 'Products', url: `${baseUrl}/products` },
+  ];
+  if (categorySlug && categoryName) {
+    breadcrumbItems.push({ name: categoryName, url: `${baseUrl}/categories/${categorySlug}` });
+  }
+  breadcrumbItems.push({ name: name, url: productUrl });
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: breadcrumbItems.map((bc, i) => ({ '@type': 'ListItem', position: i + 1, name: bc.name, item: bc.url })),
+  };
+  jsonLdSchemas.push(`<script type="application/ld+json">${JSON.stringify(breadcrumbSchema)}</script>`);
+
   const parts: string[] = [];
 
   parts.push(`<div class="meta">${meta}</div>`);
@@ -135,7 +173,7 @@ export async function renderProductPageHtml(slug: string): Promise<string | null
     ? `<li><a href="/products?cat=${categorySlug ? esc(categorySlug) : ''}">Compare prices across ${esc(name)}</a></li>`
     : '';
 
-  return `<article class="ssr-content" id="product-seo-content">
+  return `${jsonLdSchemas.join('\n')}\n<article class="ssr-content" id="product-seo-content">
 <h1>${esc(name)} Review</h1>
 ${parts.join('\n')}
 <section><h2>More from DawnWire</h2><ul class="ssr-links">

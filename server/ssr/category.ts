@@ -68,7 +68,40 @@ export async function renderCategoryPageHtml(slug: string): Promise<string | nul
     .map((c: any) => `<li><a href="/categories/${esc(c.slug)}">${esc(c.name)}</a></li>`)
     .join('\n');
 
-  return `<article class="ssr-content" id="category-seo-content">
+  // === JSON-LD Structured Data ===
+  const baseUrl = 'https://www.dawnwire.com';
+  const catUrl = `${baseUrl}/categories/${slug}`;
+  const jsonLdSchemas: string[] = [];
+
+  // BreadcrumbList
+  jsonLdSchemas.push(`<script type="application/ld+json">${JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: baseUrl },
+      { '@type': 'ListItem', position: 2, name: 'Categories', item: `${baseUrl}/categories` },
+      { '@type': 'ListItem', position: 3, name: catName, item: catUrl },
+    ],
+  })}</script>`);
+
+  // ItemList (top products in category)
+  if (products.length > 0) {
+    jsonLdSchemas.push(`<script type="application/ld+json">${JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: `Best ${catName} Products`,
+      description: description || `Top-rated ${catName} products reviewed by DawnWire`,
+      numberOfItems: Math.min(products.length, 12),
+      itemListElement: products.slice(0, 12).map((r: any, i: number) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `${baseUrl}/products/${r.slug || r.id}`,
+        name: val(r, 'productName') || r.product_name,
+      })),
+    })}</script>`);
+  }
+
+  return `${jsonLdSchemas.join('\n')}\n<article class="ssr-content" id="category-seo-content">
 <h1>${esc(catName)} — Product Reviews &amp; Buying Guide</h1>
 ${description ? `<p>${esc(description)}</p>` : `<p>DawnWire's expert picks for the best ${esc(catName)} products on the market. Compare prices, read in-depth reviews, and find the right product for your needs.</p>`}
 ${seoContent ? `<div class="seo-content">${mdToSimpleHtml(seoContent)}</div>` : ''}
