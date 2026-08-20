@@ -114,6 +114,29 @@ async function uploadToImgBB(b64: string): Promise<string | null> {
   } catch { return null; }
 }
 
+async function uploadToCatbox(b64: string): Promise<string | null> {
+  try {
+    const buf = Buffer.from(b64, 'base64');
+    const blob = new Blob([buf], { type: 'image/png' });
+    const fd = new FormData();
+    fd.append('reqtype', 'fileupload');
+    fd.append('fileToUpload', blob, 'logo.png');
+    const resp = await fetch('https://catbox.moe/user/api.php', {
+      method: 'POST',
+      body: fd,
+      signal: AbortSignal.timeout(15000),
+    });
+    const url = await resp.text();
+    return url.startsWith('http') ? url : null;
+  } catch { return null; }
+}
+
+async function upload(b64: string): Promise<string | null> {
+  const imgbb = await uploadToImgBB(b64);
+  if (imgbb) return imgbb;
+  return await uploadToCatbox(b64);
+}
+
 async function fetchLogoFromDomain(domain: string): Promise<Buffer | null> {
   try {
     // Try common logo paths
@@ -179,7 +202,7 @@ async function main() {
           console.log(`[${stats.total}] ${name} → ${domain} (would upload ${buf.length} bytes)`);
           stats.domain++;
         } else {
-          const url = await uploadToImgBB(b64);
+          const url = await upload(b64);
           if (url) {
             await sb.from('brands').update({ logo_url: url }).eq('id', brand.id);
             console.log(`[${stats.total}] ${name} → ${url}`);
@@ -200,7 +223,7 @@ async function main() {
       stats.generated++;
     } else {
       const svgB64 = generateLetterSVG(name);
-      const url = await uploadToImgBB(svgB64);
+      const url = await upload(svgB64);
       if (url) {
         await sb.from('brands').update({ logo_url: url }).eq('id', brand.id);
         console.log(`[${stats.total}] ${name} → ${url}`);
