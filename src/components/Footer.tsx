@@ -135,7 +135,7 @@ export default function Footer({ onNavigate, settings }: FooterProps) {
                 ))}
                 {/* Pinterest - custom icon since lucide doesn't have one */}
                 <a
-                  href="https://www.pinterest.com/dawnwire/"
+                  href="https://www.pinterest.com/dawnwireofficial/"
                   target="_blank"
                   rel="noopener noreferrer"
                   title="Pinterest"

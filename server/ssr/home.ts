@@ -133,7 +133,7 @@ export async function renderHomePageHtml(): Promise<string> {
     sameAs: [
       'https://www.facebook.com/profile.php?id=61591752300472',
       'https://www.instagram.com/dawnwire/',
-      'https://www.pinterest.com/dawnwire/',
+      'https://www.pinterest.com/dawnwireofficial/',
     ],
   });
 
