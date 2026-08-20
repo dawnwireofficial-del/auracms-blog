@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Tell Tailwind v4 which files to scan — only our source, not node_modules */
+@source "../src/**/*.{ts,tsx,js,jsx}";
+@source "!../node_modules/**";
+@source "!../dist/**";
+
 @variant dark (&:where(.dark, .dark *));
 
 :root {
