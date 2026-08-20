@@ -192,13 +192,183 @@ const PinterestCatalogSection: React.FC<{ token: string; products: any[] }> = ({
   );
 };
 
+// ─── Google Shopping Feed Section ─────────────────────────────────────────────
+
+const GoogleShoppingSection: React.FC<{ token: string }> = ({ token }) => {
+  const [stats, setStats] = useState<any>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [notif, setNotif] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+
+  useEffect(() => {
+    fetch('/api/admin/social-media/google-shopping-feed/stats', {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(r => r.ok ? r.json() : null).then(d => setStats(d)).catch(() => {});
+  }, []);
+
+  const downloadFeed = async () => {
+    setIsDownloading(true);
+    try {
+      const res = await fetch('/api/admin/social-media/google-shopping-feed', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Download failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dawnwire-google-shopping-feed-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setNotif({ type: 'success', msg: 'Feed downloaded! Upload to Google Merchant Center → Products → All products → + button → Data source' });
+      setTimeout(() => setNotif(null), 5000);
+    } catch (e: any) {
+      setNotif({ type: 'error', msg: e.message });
+      setTimeout(() => setNotif(null), 4000);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {notif && (
+        <div className={`px-4 py-3 rounded-xl text-sm font-bold text-white ${notif.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
+          {notif.type === 'success' ? '✅' : '❌'} {notif.msg}
+        </div>
+      )}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-3xl">🛒</span>
+          <div>
+            <h3 className="text-base font-black text-slate-900 dark:text-white">Google Shopping Product Feed</h3>
+            <p className="text-xs text-slate-500">Download a CSV formatted for Google Merchant Center. Products appear in Google Shopping search results and ads.</p>
+          </div>
+        </div>
+        {stats && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            {[
+              { label: 'Total Products', value: stats.totalProducts, icon: '🛒', color: 'bg-blue-50 dark:bg-blue-950/30' },
+              { label: 'With Images', value: stats.withImages, icon: '🖼️', color: 'bg-emerald-50 dark:bg-emerald-950/30' },
+              { label: 'With Brand', value: stats.withBrand, icon: '🏷️', color: 'bg-purple-50 dark:bg-purple-950/30' },
+              { label: 'With Score', value: stats.withEditorScore, icon: '⭐', color: 'bg-amber-50 dark:bg-amber-950/30' },
+            ].map(s => (
+              <div key={s.label} className={`${s.color} rounded-xl p-3 text-center`}>
+                <span className="text-lg block">{s.icon}</span>
+                <span className="text-lg font-black text-slate-900 dark:text-white">{s.value}</span>
+                <span className="text-[10px] text-slate-400 block">{s.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {stats?.missingData && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {stats.missingData.noImage > 0 && <span className="text-[10px] bg-red-50 dark:bg-red-950/30 text-red-600 px-2 py-1 rounded-full font-bold">⚠️ {stats.missingData.noImage} missing images</span>}
+            {stats.missingData.noPrice > 0 && <span className="text-[10px] bg-amber-50 dark:bg-amber-950/30 text-amber-600 px-2 py-1 rounded-full font-bold">⚠️ {stats.missingData.noPrice} missing prices</span>}
+            {stats.missingData.noBrand > 0 && <span className="text-[10px] bg-orange-50 dark:bg-orange-950/30 text-orange-600 px-2 py-1 rounded-full font-bold">⚠️ {stats.missingData.noBrand} missing brands</span>}
+          </div>
+        )}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button onClick={downloadFeed} disabled={isDownloading}
+            className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-slate-400 disabled:to-slate-500 text-white font-black text-sm rounded-xl shadow-lg transition-all">
+            {isDownloading ? <><svg className="animate-spin w-4 h-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Generating...</> : <>🛒 Download Google Shopping Feed</>}
+          </button>
+          <a href="https://merchants.google.com/" target="_blank" rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-sm rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+            🌐 Open Google Merchant Center →
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Bulk SEO Section ──────────────────────────────────────────────────────────
+
+const BulkSeoSection: React.FC<{ token: string }> = ({ token }) => {
+  const [isRunning, setIsRunning] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [notif, setNotif] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+  const [limit, setLimit] = useState(50);
+
+  const runBulkProcess = async () => {
+    setIsRunning(true);
+    setResult(null);
+    try {
+      const res = await fetch('/api/admin/social-media/bulk-auto-process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ limit, onlyMissing: true }),
+      });
+      const data = await res.json();
+      setResult(data);
+      setNotif({ type: 'success', msg: `Processed ${data.processed}/${data.total} products. ${data.failed} failed.` });
+      setTimeout(() => setNotif(null), 6000);
+    } catch (e: any) {
+      setNotif({ type: 'error', msg: e.message });
+      setTimeout(() => setNotif(null), 4000);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {notif && (
+        <div className={`px-4 py-3 rounded-xl text-sm font-bold text-white ${notif.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
+          {notif.type === 'success' ? '✅' : '❌'} {notif.msg}
+        </div>
+      )}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-3xl">⚡</span>
+          <div>
+            <h3 className="text-base font-black text-slate-900 dark:text-white">Bulk SEO Enrichment</h3>
+            <p className="text-xs text-slate-500">Auto-generate editor scores, final verdicts, best_for tags, and category assignments for products missing them.</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 mb-4">
+          <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Max products:</label>
+          <select value={limit} onChange={e => setLimit(Number(e.target.value))}
+            className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 font-bold">
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
+        </div>
+        <button onClick={runBulkProcess} disabled={isRunning}
+          className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:from-slate-400 disabled:to-slate-500 text-white font-black text-sm rounded-xl shadow-lg transition-all">
+          {isRunning ? <><svg className="animate-spin w-4 h-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Processing...</> : <>⚡ Run Bulk SEO on {limit} Products</>}
+        </button>
+        {result && (
+          <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
+            <div className="flex gap-4 mb-3">
+              <span className="text-sm font-bold text-emerald-600">✅ {result.processed} processed</span>
+              {result.failed > 0 && <span className="text-sm font-bold text-red-600">❌ {result.failed} failed</span>}
+            </div>
+            <div className="max-h-60 overflow-y-auto space-y-1">
+              {(result.results || []).map((r: any) => (
+                <div key={r.id} className={`text-xs px-3 py-1.5 rounded-lg ${r.success ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700' : 'bg-red-50 dark:bg-red-950/20 text-red-600'}`}>
+                  {r.success ? '✅' : '❌'} {r.name?.substring(0, 60)} {r.changes?.length ? `(${r.changes.length} fields updated)` : ''} {r.error ? `- ${r.error}` : ''}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 const SocialMediaManager: React.FC<{ token: string }> = ({ token }) => {
   const { products } = useAppStore();
 
   // Tab state
-  const [activeSection, setActiveSection] = useState<'compose' | 'catalog' | 'history' | 'settings'>('compose');
+  const [activeSection, setActiveSection] = useState<'compose' | 'catalog' | 'google' | 'bulkseo' | 'history' | 'settings'>('compose');
 
   // Product selection
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
@@ -650,10 +820,12 @@ const SocialMediaManager: React.FC<{ token: string }> = ({ token }) => {
       {/* Section Tabs */}
       <div className="flex gap-2 p-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
         {[
-          { key: 'compose' as const, label: '✏️ Compose & Publish', count: selectedPlatforms.length },
-          { key: 'catalog' as const, label: '📦 Pinterest Catalog', count: 0 },
-          { key: 'history' as const, label: '📋 Post History', count: postHistory.length },
-          { key: 'settings' as const, label: '⚙️ Platform Settings', count: credentials.length },
+          { key: 'compose' as const, label: '✏️ Compose', count: selectedPlatforms.length },
+          { key: 'catalog' as const, label: '📦 Pinterest CSV', count: 0 },
+          { key: 'google' as const, label: '🛒 Google Shopping', count: 0 },
+          { key: 'bulkseo' as const, label: '⚡ Bulk SEO', count: 0 },
+          { key: 'history' as const, label: '📋 History', count: postHistory.length },
+          { key: 'settings' as const, label: '⚙️ Settings', count: credentials.length },
         ].map(tab => (
           <button
             key={tab.key}
@@ -986,6 +1158,16 @@ const SocialMediaManager: React.FC<{ token: string }> = ({ token }) => {
       {/* ═══════════════════════════════════════════════════════════════════════ PINTEREST CATALOG */}
       {activeSection === 'catalog' && (
         <PinterestCatalogSection token={token} products={products} />
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════ GOOGLE SHOPPING */}
+      {activeSection === 'google' && (
+        <GoogleShoppingSection token={token} />
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════ BULK SEO */}
+      {activeSection === 'bulkseo' && (
+        <BulkSeoSection token={token} />
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════════ SETTINGS */}

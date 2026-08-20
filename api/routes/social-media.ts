@@ -739,4 +739,200 @@ router.get('/pinterest-catalog/stats', authenticate, requireRole(['super_admin',
   }
 });
 
+// ─── Google Merchant Center Product Feed ──────────────────────────────────────
+
+router.get('/google-shopping-feed', authenticate, requireRole(['super_admin', 'admin']), async (_req, res) => {
+  try {
+    const { getPublishedProductReviews } = await import('../../server/seo-engine');
+    const reviews = await getPublishedProductReviews().catch(() => []) as any[];
+    const baseUrl = process.env.APP_URL || 'https://www.dawnwire.com';
+
+    // Google Merchant Center CSV columns (RSS feed format)
+    const columns = [
+      'id', 'title', 'description', 'link', 'image_link', 'additional_image_link',
+      'price', 'sale_price', 'availability', 'condition', 'brand',
+      'google_product_category', 'product_type', 'custom_label_0',
+      'custom_label_1', 'custom_label_2', 'custom_label_3', 'custom_label_4',
+    ];
+
+    function escCsv(val: any): string {
+      if (val == null || val === '') return '';
+      const s = String(val).replace(/"/g, '""');
+      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
+    }
+
+    function parsePrice(raw: any): string {
+      if (!raw) return '';
+      const num = parseFloat(String(raw).replace(/[^0-9.]/g, ''));
+      if (isNaN(num) || num <= 0) return '';
+      return `${num.toFixed(2)} USD`;
+    }
+
+    function mapGoogleCategory(bestFor: string, category: string, specs: any): string {
+      const text = `${bestFor} ${category} ${specs?.details?.department || ''}`.toLowerCase();
+      if (text.match(/beauty|skin|hair|makeup|face|lip|eye|moistur|serum|cleanser/)) return 'Health & Beauty > Personal Care > Skin Care';
+      if (text.match(/kitchen|cook|food|coffee|tea|blender|air.fryer|instant.pot/)) return 'Home & Garden > Kitchen & Dining > Small Kitchen Appliances';
+      if (text.match(/tech|gadget|electronic|computer|laptop|phone|tablet|headphone|speaker|camera/)) return 'Electronics > Computers > Laptops';
+      if (text.match(/home|furniture|decor|lamp|organiz|storage|clean/)) return 'Home & Garden > Home Decor';
+      if (text.match(/fitness|health|exercise|yoga|gym|sport|protein/)) return 'Health & Fitness > Exercise & Fitness';
+      if (text.match(/toy|game|kid|baby|child/)) return 'Toys & Games';
+      if (text.match(/fashion|cloth|wear|shirt|pant|shoe|jacket/)) return 'Apparel & Accessories > Clothing';
+      if (text.match(/pet|dog|cat|fish/)) return 'Animals & Pet Supplies > Pet Supplies';
+      if (text.match(/auto|car|vehicle|seat.cover|floor.mat/)) return 'Automotive > Parts & Accessories';
+      if (text.match(/book|notebook|journal|planner/)) return 'Media > Books';
+      return 'Home & Garden';
+    }
+
+    const rows = reviews
+      .filter((r: any) => r.product_name && r.status === 'published')
+      .map((r: any) => {
+        const name = r.product_name || '';
+        const brand = r.brand || '';
+        const slug = r.slug || r.id;
+        const productUrl = `${baseUrl}/products/${slug}`;
+        const image = r.product_image || '';
+        const additionalImages = (r.specs?.gallery || []).slice(0, 10).join('|');
+        const price = parsePrice(r.price);
+        const salePrice = parsePrice(r.original_price) && parsePrice(r.price) ? parsePrice(r.price) : '';
+        const displayPrice = parsePrice(r.original_price) || price;
+        const bestFor = r.best_for || '';
+        const category = r.specs?.details?.department || r.specs?.category || '';
+        const reviewSummary = (r.review_summary || '').substring(0, 5000);
+        const editorScore = r.editor_score || 0;
+        const rating = r.rating || 0;
+
+        // Build description with rich content
+        const descParts = [
+          reviewSummary,
+          r.final_verdict ? `Verdict: ${r.final_verdict}` : '',
+          r.pros?.length ? `Pros: ${Array.isArray(r.pros) ? r.pros.join(', ') : r.pros}` : '',
+          bestFor ? `Best for: ${bestFor}` : '',
+          editorScore ? `Editor Score: ${editorScore}/10` : '',
+          rating ? `Rating: ${rating}/5` : '',
+        ].filter(Boolean).join(' ');
+
+        // Custom labels for Google Shopping ads
+        const label0 = editorScore >= 8 ? 'top_rated' : editorScore >= 6 ? 'recommended' : 'standard';
+        const label1 = salePrice ? 'on_sale' : 'regular_price';
+        const label2 = r.is_deal || r.deal_badge ? 'has_deal' : 'no_deal';
+        const label3 = brand.toLowerCase().replace(/\s+/g, '_');
+        const label4 = bestFor.toLowerCase().replace(/\s+/g, '_').substring(0, 50);
+
+        return columns.map((col) => {
+          switch (col) {
+            case 'id': return escCsv(slug.substring(0, 50));
+            case 'title': return escCsv(`${brand ? brand + ' - ' : ''}${name}`.substring(0, 150));
+            case 'description': return escCsv(descParts.substring(0, 5000));
+            case 'link': return escCsv(productUrl);
+            case 'image_link': return escCsv(image);
+            case 'additional_image_link': return escCsv(additionalImages);
+            case 'price': return escCsv(displayPrice);
+            case 'sale_price': return escCsv(salePrice);
+            case 'availability': return escCsv(r.stock_status === 'out_of_stock' ? 'out_of_stock' : 'in_stock');
+            case 'condition': return escCsv('new');
+            case 'brand': return escCsv(brand);
+            case 'google_product_category': return escCsv(mapGoogleCategory(bestFor, category, r.specs));
+            case 'product_type': return escCsv([brand, bestFor, category].filter(Boolean).join(' > '));
+            case 'custom_label_0': return escCsv(label0);
+            case 'custom_label_1': return escCsv(label1);
+            case 'custom_label_2': return escCsv(label2);
+            case 'custom_label_3': return escCsv(label3);
+            case 'custom_label_4': return escCsv(label4);
+            default: return '';
+          }
+        }).join(',');
+      });
+
+    const csv = [columns.join(','), ...rows].join('\n');
+    const date = new Date().toISOString().split('T')[0];
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="dawnwire-google-shopping-feed-${date}.csv"`);
+    res.send(csv);
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Google Shopping feed stats
+router.get('/google-shopping-feed/stats', authenticate, requireRole(['super_admin', 'admin']), async (_req, res) => {
+  try {
+    const { getPublishedProductReviews } = await import('../../server/seo-engine');
+    const reviews = await getPublishedProductReviews().catch(() => []) as any[];
+    const published = reviews.filter((r: any) => r.product_name && r.status === 'published');
+    const withImages = published.filter((r: any) => r.product_image).length;
+    const withPrices = published.filter((r: any) => r.price).length;
+    const withBrand = published.filter((r: any) => r.brand).length;
+    const withBestFor = published.filter((r: any) => r.best_for).length;
+    const withEditorScore = published.filter((r: any) => r.editor_score).length;
+    const brands = [...new Set(published.map((r: any) => r.brand).filter(Boolean))];
+    const categories = [...new Set(published.map((r: any) => r.best_for || r.specs?.details?.department || 'Other').filter(Boolean))];
+
+    res.json({
+      totalProducts: published.length,
+      withImages,
+      withPrices,
+      withBrand,
+      withBestFor,
+      withEditorScore,
+      brandCount: brands.length,
+      categoryCount: categories.length,
+      estimatedFileSize: `~${Math.round(published.length * 1.2)} KB`,
+      missingData: {
+        noImage: published.length - withImages,
+        noPrice: published.length - withPrices,
+        noBrand: published.length - withBrand,
+        noBestFor: published.length - withBestFor,
+        noScore: published.length - withEditorScore,
+      },
+    });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── Bulk Auto-Process Products (SEO enrichment) ──────────────────────────────
+
+router.post('/bulk-auto-process', authenticate, requireRole(['super_admin', 'admin']), async (req, res) => {
+  try {
+    const { getPublishedProductReviews } = await import('../../server/seo-engine');
+    const { autoProcessProduct } = await import('../../server/auto-import');
+    const reviews = await getPublishedProductReviews().catch(() => []) as any[];
+    const limit = Math.min(parseInt(req.body.limit) || 50, 100);
+    const onlyMissing = req.body.onlyMissing !== false;
+
+    const candidates = (reviews || [])
+      .filter((r: any) => r.product_name && r.status === 'published')
+      .filter((r: any) => {
+        if (!onlyMissing) return true;
+        return !r.editor_score || !r.final_verdict || !r.best_for || !r.category_id;
+      })
+      .slice(0, limit);
+
+    const results: any[] = [];
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const product of candidates) {
+      try {
+        const result = await autoProcessProduct(product.id);
+        results.push({ id: product.id, name: product.product_name, success: true, changes: result?.changes || [] });
+        successCount++;
+      } catch (e: any) {
+        results.push({ id: product.id, name: product.product_name, success: false, error: e.message });
+        failCount++;
+      }
+    }
+
+    res.json({
+      total: candidates.length,
+      processed: successCount,
+      failed: failCount,
+      results,
+    });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 export default router;
