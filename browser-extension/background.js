@@ -336,7 +336,7 @@ async function handleImport(data) {
           destinationUrl: taggedUrl,
           affiliateUrl: taggedUrl,
           shortSlug: slug,
-          buttonText: 'Buy Now',
+          buttonText: 'Check Price',
           status: 'active',
           noFollow: true,
           sponsored: true,

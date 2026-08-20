@@ -353,7 +353,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             mpn: product.asin || undefined,
             description: product.shortDescription || product.reviewSummary || product.fullDescription || undefined,
             aggregateRating: product.rating ? { '@type': 'AggregateRating', ratingValue: Number(product.rating).toFixed(1), reviewCount: product.reviewCount || 0 } : undefined,
-            offers: { '@type': 'Offer', priceCurrency: 'USD', price: product.currentPrice ? Number(product.currentPrice).toFixed(2) : undefined, availability: 'https://schema.org/InStock', url: `https://www.amazon.com/dp/${product.asin}?tag=dawnwire-20` },
+            offers: product.currentPrice ? { '@type': 'Offer', priceCurrency: 'USD', price: Number(product.currentPrice).toFixed(2), url: product.affiliateUrl || `https://www.amazon.com/dp/${product.asin}?tag=dawnwire-20`, seller: { '@type': 'Organization', name: 'Amazon' }, itemCondition: 'https://schema.org/NewCondition' } : undefined,
             review: product.editorScore ? {
               '@type': 'Review',
               reviewRating: { '@type': 'Rating', ratingValue: Math.min(5, Math.max(0, product.editorScore / 2)).toFixed(1), bestRating: '5' },
@@ -573,7 +573,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
               <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                In Stock on Amazon US
+                Check Availability on Amazon
               </span>
             </div>
           </div>
@@ -631,7 +631,10 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             </div>
 
             <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center">
-              Ships directly from Amazon US. Price and availability subject to change.
+              Check current price and availability on Amazon. Price may change without notice.
+            </p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center">
+              DawnWire may earn a commission when you purchase through links on this page.
             </p>
           </div>
 
@@ -980,7 +983,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             </article>
             <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-2xl p-5">
               <div>
-                <h4 className="text-sm font-extrabold text-slate-900 dark:text-slate-100">Ready to buy? Get the best price now.</h4>
+                <h4 className="text-sm font-extrabold text-slate-900 dark:text-slate-100">Ready to check the latest price?</h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   {product.affiliateDisclosure || 'We may earn a commission at no extra cost to you when you shop through our links.'}
                 </p>
@@ -1293,7 +1296,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       <div className="lg:hidden fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 right-0 p-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-40 shadow-2xl flex items-center justify-between gap-3">
         <div>
           <span className="text-xs font-bold text-slate-500 block truncate max-w-[150px]">{product.title}</span>
-            <span className="text-base font-black text-amazon-orange">${product.currentPrice && !isNaN(Number(product.currentPrice)) ? Number(product.currentPrice).toFixed(2) : 'Check Amazon'}</span>
+          <span className="text-base font-black text-amazon-orange">${product.currentPrice && !isNaN(Number(product.currentPrice)) ? Number(product.currentPrice).toFixed(2) : 'Check Amazon'}</span>
+          <span className="text-[9px] text-slate-400 block">Price from Amazon. DawnWire earns a commission.</span>
         </div>
         <AffiliateCTA
           affiliateUrl={product.affiliateUrl}
@@ -1302,7 +1306,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           productTitle={product.title}
           productSlug={product.slug}
           variant="sticky_mobile"
-          label="Buy on Amazon"
+          label="Check Price on Amazon"
           position="sticky_mobile"
           className="flex-1"
         />

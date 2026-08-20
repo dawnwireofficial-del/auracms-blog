@@ -113,7 +113,7 @@ router.post('/affiliate', authenticate, requireRole(['super_admin', 'admin', 'ed
   const { title, destinationUrl, affiliateUrl, shortSlug, categoryId, postId, buttonText, disclosureText, noFollow, sponsored, openInNewTab, status } = req.body;
   if (!title || !destinationUrl || !affiliateUrl || !shortSlug) return res.status(400).json({ error: 'Missing required fields' });
   if (await dbInstance.getAffiliateBySlug(shortSlug)) return res.status(400).json({ error: 'Slug exists' });
-  const l = await dbInstance.createAffiliateLink({ title, destinationUrl, affiliateUrl, shortSlug, categoryId: categoryId || undefined, postId: postId || undefined, buttonText: buttonText || 'Buy Now', disclosureText: disclosureText || '', noFollow: noFollow !== false, sponsored: sponsored !== false, openInNewTab: openInNewTab !== false, status: status || 'active' });
+  const l = await dbInstance.createAffiliateLink({ title, destinationUrl, affiliateUrl, shortSlug, categoryId: categoryId || undefined, postId: postId || undefined, buttonText: buttonText || 'Check Price', disclosureText: disclosureText || '', noFollow: noFollow !== false, sponsored: sponsored !== false, openInNewTab: openInNewTab !== false, status: status || 'active' });
   dbInstance.log('Affiliate Added', `Added: "${l.title}"`, u.id, u.name);
   res.json(l);
 });

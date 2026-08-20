@@ -106,7 +106,7 @@
           const affRes = await fetch(baseUrl + '/api/admin/affiliate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiToken },
-            body: JSON.stringify({ title: (data.product_name || '').substring(0, 100), affiliate_url: affUrl || data.amazon_url, short_slug: slug, button_text: 'Buy Now', status: 'active', no_follow: true, sponsored: true, open_in_new_tab: true })
+            body: JSON.stringify({ title: (data.product_name || '').substring(0, 100), affiliate_url: affUrl || data.amazon_url, short_slug: slug, button_text: 'Check Price', status: 'active', no_follow: true, sponsored: true, open_in_new_tab: true })
           });
           if (affRes.ok) { const affData = await affRes.json(); affiliateLink = '/go/' + (affData.short_slug || affData.slug || slug); }
         } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
