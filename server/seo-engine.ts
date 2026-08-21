@@ -9,7 +9,7 @@ function slugify(text: string): string {
   return text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/^-+|-+$/g, '') || 'product';
 }
 
-async function getClient(): Promise<SupabaseClient> {
+export async function getClient(): Promise<SupabaseClient> {
   if (!seoClient) seoClient = await getSupabaseAdmin();
   return seoClient;
 }
