@@ -53,15 +53,15 @@ export const AffiliateCTA: React.FC<AffiliateCTAProps> = ({
   const getVariantStyles = () => {
     switch (variant) {
       case 'deal':
-        return 'bg-gradient-to-r from-[#1a2b4a] to-[#246BFF] hover:from-[#0f1d35] hover:to-[#164EE8] text-white shadow-lg shadow-[#1a2b4a]/25 border-none font-extrabold';
+        return 'bg-gradient-to-r from-[#0A1F44] via-[#162d5a] to-[#246BFF] hover:from-[#0f1d35] hover:via-[#1a3a6e] hover:to-[#164EE8] text-white shadow-[0_8px_24px_-6px_rgba(36,107,255,0.5)] hover:shadow-[0_12px_32px_-6px_rgba(36,107,255,0.6)] border-none font-extrabold hover:-translate-y-0.5';
       case 'sticky_mobile':
-        return 'w-full bg-gradient-to-r from-[#1a2b4a] to-[#246BFF] hover:opacity-90 text-white font-bold py-3 px-6 shadow-xl text-center rounded-xl text-base flex items-center justify-center gap-2';
+        return 'w-full bg-gradient-to-r from-[#0A1F44] via-[#164EE8] to-[#246BFF] hover:opacity-90 text-white font-bold py-3 px-6 shadow-xl shadow-[#0A1F44]/30 text-center rounded-xl text-base flex items-center justify-center gap-2';
       case 'secondary':
-        return 'bg-[#246BFF] hover:bg-[#164EE8] text-white shadow-md font-bold';
+        return 'bg-[#246BFF] hover:bg-[#164EE8] text-white shadow-md shadow-[#246BFF]/25 font-bold hover:shadow-lg';
       case 'outline':
-        return 'border-2 border-[#246BFF]/40 hover:border-[#246BFF] text-[#246BFF] hover:bg-blue-50 dark:hover:bg-blue-950/30 font-bold';
+        return 'border-2 border-[#246BFF]/40 hover:border-[#246BFF] text-[#246BFF] hover:bg-[#246BFF]/5 font-bold';
       default:
-        return 'bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] hover:from-dw-blue-700 hover:to-dw-blue-600 text-white font-extrabold shadow-md shadow-dw-blue/25';
+        return 'bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] hover:from-[#164EE8] hover:to-[#246BFF] text-white font-extrabold shadow-[0_8px_24px_-6px_rgba(36,107,255,0.4)] hover:shadow-[0_12px_32px_-6px_rgba(36,107,255,0.5)] hover:-translate-y-0.5';
     }
   };
 

@@ -357,22 +357,27 @@ export function CategoryCard({
   return (
     <a
       href={`/categories/${slug}`}
-      className="group relative block overflow-hidden rounded-2xl aspect-[4/3] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+      className="group relative block overflow-hidden rounded-2xl aspect-[4/3] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_50px_-16px_rgba(36,107,255,0.35)] border border-white/10"
       style={{ background: GRADIENTS[gradient] }}
     >
       {image && (
         <img
           src={proxyImageUrl(image) || ''}
           alt={name}
-          className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-50 group-hover:scale-105 transition-all duration-500"
+          className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-45 group-hover:scale-110 transition-all duration-700"
           referrerPolicy="no-referrer"
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
         />
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: 'radial-gradient(circle at 50% 80%, rgba(255,255,255,0.1) 0%, transparent 60%)' }} />
       <div className="relative z-10 h-full flex flex-col justify-end p-4">
-        <p className="text-white/70 text-[11px] font-bold uppercase tracking-widest">{productCount} products</p>
-        <h4 className="text-white font-bold text-lg mt-1">{name}</h4>
+        <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest">{productCount} products</p>
+        <h4 className="text-white font-bold text-lg mt-1 group-hover:text-white drop-shadow-md">{name}</h4>
+        <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-white/80 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-2.5 py-1 w-fit opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+          Browse
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+        </span>
       </div>
     </a>
   );

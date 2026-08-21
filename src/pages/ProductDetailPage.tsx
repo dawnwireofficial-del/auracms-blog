@@ -579,7 +579,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           </div>
 
           {/* Pricing & Amazon Buy Box */}
-          <div ref={buyBoxRef} className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-md space-y-4">
+          <div ref={buyBoxRef} className="relative p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-[0_8px_30px_-12px_rgba(36,107,255,0.2)] space-y-4 overflow-hidden">
+            <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-[#246BFF]/5 blur-3xl pointer-events-none" />
             <div className="flex items-baseline justify-between">
               <div>
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">
@@ -1293,7 +1294,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       </AnimatePresence>
 
       {/* Mobile Bottom Sticky Bar */}
-      <div className="lg:hidden fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 right-0 p-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-40 shadow-2xl flex items-center justify-between gap-3">
+      <div className="lg:hidden fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 right-0 p-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 z-40 shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.2)] flex items-center justify-between gap-3">
         <div>
           <span className="text-xs font-bold text-slate-500 block truncate max-w-[150px]">{product.title}</span>
           <span className="text-base font-black text-amazon-orange">${product.currentPrice && !isNaN(Number(product.currentPrice)) ? Number(product.currentPrice).toFixed(2) : 'Check Amazon'}</span>
