@@ -398,7 +398,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="relative rounded-[24px] overflow-hidden border border-white/70 shadow-[0_20px_60px_-24px_rgba(36,107,255,0.28)] bg-gradient-to-br from-white via-[#F4F8FF] to-[#FFF3E6] min-h-[460px] flex flex-col"
+                className="relative rounded-[24px] overflow-hidden border border-white/70 shadow-[0_20px_60px_-24px_rgba(36,107,255,0.28)] bg-gradient-to-br from-white via-[#F4F8FF] to-[#FFF3E6] min-h-[380px] md:min-h-[460px] flex flex-col"
                 data-gravity-cursor="explore"
               >
                 <div className="grid grid-cols-1 md:grid-cols-[1.05fr_0.95fr] gap-2 px-7 md:px-10 pt-8 md:pt-10 pb-0 items-center flex-1">
