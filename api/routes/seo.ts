@@ -476,6 +476,9 @@ router.post('/product-reviews/import', authenticate, async (req, res) => {
       new Promise((_, reject) => setTimeout(() => reject(new Error('Import timed out after 60s')), 60000))
     ]);
     res.json(result);
+    // Auto-regenerate catalog in background (fire-and-forget)
+    const { regenerateCatalog } = await import('../../server/api-cache');
+    regenerateCatalog().catch(() => {});
   } catch (e: any) {
     res.status(500).json({ error: e.message });
   }

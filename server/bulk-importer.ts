@@ -444,6 +444,14 @@ export async function processBulkImport(jobId: string): Promise<BulkImportJob> {
     result: { errors },
   });
 
+  // Auto-regenerate catalog after bulk import completes
+  try {
+    const { regenerateCatalog } = await import('./api-cache');
+    await regenerateCatalog();
+  } catch (e: any) {
+    console.error('[BulkImport] Catalog regeneration failed:', e.message);
+  }
+
   const finalQuery = sb.from('bulk_import_jobs').select('*').eq('id', jobId).single();
   const { data: finalJob } = await withTimeout(finalQuery, 5000, { data: null } as any);
   return finalJob as BulkImportJob;

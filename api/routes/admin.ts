@@ -957,6 +957,9 @@ router.post('/products/import-from-asin', authenticate, requireRole(['super_admi
     dbInstance.log('Product Imported', `Imported: "${created.product_name}" (ASIN: ${cleanAsin})`, u.id, u.name);
 
     return res.json({ success: true, product: created });
+    // Auto-regenerate catalog in background
+    const { regenerateCatalog } = await import('../../server/api-cache');
+    regenerateCatalog().catch(() => {});
   } catch (e: any) {
     return res.status(500).json({ error: e.message || 'Import failed' });
   }
