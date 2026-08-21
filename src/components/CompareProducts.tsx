@@ -217,7 +217,7 @@ function CompareTable({ products, highlightId, onNavigate }: CompareProductsProp
                     whileTap={prefersReduced ? {} : { scale: 0.97 }}
                   >
                     <ShoppingBag className="w-3 h-3" />
-                    {p.cta_text || 'Buy Now'}
+                    {p.cta_text || 'Check Price'}
                   </motion.a>
                   <motion.button
                     onClick={() => onNavigate('review', p.slug || p.id)}

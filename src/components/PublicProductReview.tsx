@@ -104,8 +104,8 @@ function ImageLightbox({ images, index, onClose }: { images: string[]; index: nu
 function TrustBadges() {
   const badges = [
     { icon: '🔄', label: '30-Day Returns', desc: 'No questions asked' },
-    { icon: '🔒', label: 'Secure Checkout', desc: 'SSL encrypted' },
-    { icon: '📦', label: 'Free Shipping', desc: 'On orders over $25' },
+    { icon: '🔒', label: 'Trusted Retailer', desc: 'Sold by Amazon' },
+    { icon: '📦', label: 'Shipping', desc: 'Check retailer for details' },
     { icon: '✅', label: '1-Year Warranty', desc: 'Manufacturer covered' },
   ];
   return (
@@ -514,8 +514,9 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
                   onClick={(e) => { if (!review.affiliate_url) { e.preventDefault(); onNavigate('review', review.id); } if (review.affiliate_url) { fetch('/api/public/track/affiliate-click', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: review.id, pageUrl: window.location.pathname }) }).catch(() => {}); } }}
                 >
                   <ShoppingBag className="w-5 h-5" />
-                  {review.cta_text || 'Buy Now'} <ArrowRight className="w-4 h-4" />
+                  {review.cta_text || 'Check Price on Amazon'} <ArrowRight className="w-4 h-4" />
                 </motion.a>
+                <p className="text-[10px] text-slate-400 dark:text-zinc-500 mt-1.5">DawnWire may earn a commission when you purchase through links on this page.</p>
                 <button
                   onClick={async () => {
                     if (inWishlist && wishlistId) {
@@ -961,7 +962,7 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
                     </div>
                     {review.stock_status && (
                       <p className={`text-xs mt-2 font-medium ${review.stock_status === 'out_of_stock' ? 'text-red-500' : review.stock_status === 'low_stock' ? 'text-amber-500' : 'text-green-500'}`}>
-                        {review.stock_status === 'out_of_stock' ? '❌ Out of Stock' : review.stock_status === 'low_stock' ? '⚠️ Low Stock' : '✅ In Stock'}
+                        {review.stock_status === 'out_of_stock' ? '❌ Check Availability' : review.stock_status === 'low_stock' ? '⚠️ Limited Stock' : '✅ Available on Amazon'}
                       </p>
                     )}
                   </div>
@@ -1132,7 +1133,7 @@ export default function PublicProductReview({ slug, onNavigate }: PublicProductR
               onClick={(e) => { if (!review.affiliate_url) { e.preventDefault(); onNavigate('review', review.id); } if (review.affiliate_url) { fetch('/api/public/track/affiliate-click', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: review.id, pageUrl: window.location.pathname }) }).catch(() => {}); } }}
             >
               <ShoppingBag className="w-4 h-4" />
-              {review.cta_text || 'Buy Now'}
+              {review.cta_text || 'Check Price on Amazon'}
             </motion.a>
           </div>
         </div>

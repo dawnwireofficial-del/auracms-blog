@@ -214,7 +214,7 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
                 ) : product.stockStatus === 'low_stock' ? (
                   <span className="text-xs text-amber-500 flex items-center gap-1"><AlertCircle className="h-3.5 w-3.5" /> Only few left</span>
                 ) : (
-                  <span className="text-xs text-emerald-600 flex items-center gap-1"><CheckCircle className="h-3.5 w-3.5" /> In Stock</span>
+                  <span className="text-xs text-emerald-600 flex items-center gap-1"><CheckCircle className="h-3.5 w-3.5" /> Check Availability</span>
                 )}
                 {(product as any).primeEligible && <span className="text-xs text-blue-600 flex items-center gap-1"><Shield className="h-3 w-3" /> Prime Eligible</span>}
               </div>
@@ -231,7 +231,7 @@ export default function ProductDetail({ product, relatedProducts, similarProduct
 
             {/* Price Disclaimer */}
             <p className="text-[10px] text-slate-400 dark:text-zinc-500 mt-2 italic">
-              Price and availability are accurate as of {new Date().toLocaleDateString()} and are subject to change on Amazon.
+              Prices shown are from Amazon and may change. Click the button above to see the current price.
             </p>
 
             {/* Coupon */}

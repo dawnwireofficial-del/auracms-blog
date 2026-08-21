@@ -168,7 +168,7 @@ export default function BuyerGuidePage({ category, onNavigate }: BuyerGuidePageP
                       onClick={() => { if (p.affiliate_url) { fetch('/api/public/track/affiliate-click', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: p.id, pageUrl: window.location.pathname }) }).catch(() => {}); } }}
                     >
                       <ShoppingBag className="h-3 w-3" />
-                      Buy Now
+                      Check Price on Amazon
                     </a>
                   </div>
                 </div>

@@ -109,7 +109,7 @@ export async function renderProductPageHtml(slug: string): Promise<string | null
     description: reviewSummary || finalVerdict || `${name} review by DawnWire`,
     ...(brand ? { brand: { '@type': 'Brand', name: brand } } : {}),
     ...(imgSrc ? { image: imgSrc } : {}),
-    ...(price ? { offers: { '@type': 'Offer', priceCurrency: 'USD', price: parseFloat(String(price).replace(/[^0-9.]/g, '')) || undefined, availability: 'https://schema.org/InStock', url: productUrl, seller: { '@type': 'Organization', name: 'DawnWire' } } } : {}),
+    ...(price ? { offers: { '@type': 'Offer', priceCurrency: 'USD', price: parseFloat(String(price).replace(/[^0-9.]/g, '')) || undefined, url: `https://www.amazon.com/dp/${p.asin || ''}?tag=dawnwire-20`, seller: { '@type': 'Organization', name: 'Amazon' } } } : {}),
     ...(rating ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: rating, bestRating: 5, reviewCount: reviewCount || 1 } } : {}),
     ...(reviewCount ? { review: { '@type': 'Review', author: { '@type': 'Organization', name: 'DawnWire Editorial Team' }, reviewRating: { '@type': 'Rating', ratingValue: rating || 0, bestRating: 5 }, reviewBody: reviewSummary || finalVerdict || '' } } : {}),
   };

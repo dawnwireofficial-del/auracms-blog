@@ -424,12 +424,12 @@ export default function SeoDashboard({ token, baseUrl }: SeoDashboardProps) {
             { name: 'pros', label: 'Pros (comma separated)', type: 'tags', placeholder: 'Easy to use, Affordable' },
             { name: 'cons', label: 'Cons (comma separated)', type: 'tags', placeholder: 'Limited features, No API' },
             { name: 'keyFeatures', label: 'Key Features (comma separated)', type: 'tags', placeholder: 'Feature A, Feature B' },
-            { name: 'ctaText', label: 'CTA Button Text', type: 'text', placeholder: 'Buy Now' },
+            { name: 'ctaText', label: 'CTA Button Text', type: 'text', placeholder: 'Check Price on Amazon' },
             { name: 'reviewSummary', label: 'Review Summary', type: 'textarea' },
             { name: 'finalVerdict', label: 'Final Verdict', type: 'textarea' },
             { name: 'status', label: 'Status', type: 'select', options: [{value:'draft',label:'Draft'},{value:'published',label:'Published'}], required: true },
           ]}
-          initialForm={() => ({ rating: 4, ctaText: 'Buy Now', pros: [], cons: [], keyFeatures: [], status: 'draft', schemaEnabled: true, galleryImages: '' })}
+          initialForm={() => ({ rating: 4, ctaText: 'Check Price on Amazon', pros: [], cons: [], keyFeatures: [], status: 'draft', schemaEnabled: true, galleryImages: '' })}
           transformForm={(item) => {
             const specs: any = item.specs || {};
             const gallery: string[] = specs.gallery || [];
@@ -446,7 +446,7 @@ export default function SeoDashboard({ token, baseUrl }: SeoDashboardProps) {
               pros: item.pros || [],
               cons: item.cons || [],
               keyFeatures: item.key_features || [],
-              ctaText: item.cta_text || 'Buy Now',
+              ctaText: item.cta_text || 'Check Price on Amazon',
               reviewSummary: item.review_summary || '',
               finalVerdict: item.final_verdict || '',
               status: item.status || 'draft',
@@ -469,7 +469,7 @@ export default function SeoDashboard({ token, baseUrl }: SeoDashboardProps) {
               pros: form.pros || [],
               cons: form.cons || [],
               key_features: form.keyFeatures || [],
-              cta_text: form.ctaText || 'Buy Now',
+              cta_text: form.ctaText || 'Check Price on Amazon',
               review_summary: form.reviewSummary,
               final_verdict: form.finalVerdict,
               slug: form.productName ? form.productName.toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/^-+|-+$/g, '') || 'product' : undefined,

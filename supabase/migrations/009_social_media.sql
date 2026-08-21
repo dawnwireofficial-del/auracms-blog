@@ -37,3 +37,20 @@ CREATE INDEX IF NOT EXISTS idx_social_creds_platform ON social_media_credentials
 
 -- Unique constraint: one credential per platform
 CREATE UNIQUE INDEX IF NOT EXISTS idx_social_creds_platform_unique ON social_media_credentials(platform) WHERE is_active = true;
+
+-- RLS policies
+ALTER TABLE social_media_credentials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE social_media_posts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Service role full access on credentials" ON social_media_credentials
+  FOR ALL USING (true) WITH CHECK (true);
+
+CREATE POLICY "Service role full access on posts" ON social_media_posts
+  FOR ALL USING (true) WITH CHECK (true);
+
+GRANT ALL ON social_media_credentials TO service_role;
+GRANT ALL ON social_media_posts TO service_role;
+GRANT ALL ON social_media_credentials TO authenticated;
+GRANT ALL ON social_media_posts TO authenticated;
+GRANT SELECT ON social_media_credentials TO anon;
+GRANT SELECT ON social_media_posts TO anon;

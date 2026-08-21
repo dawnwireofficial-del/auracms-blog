@@ -89,8 +89,8 @@ export default function BrandsPage({ onNavigate }: { onNavigate: (r: string, p?:
                   onClick={() => onNavigate('products', `?brand=${encodeURIComponent(brand.name || brand.slug)}`)}
                   className="flex flex-col items-center p-6 bg-white dark:bg-zinc-800/50 rounded-2xl border border-slate-100 dark:border-zinc-700/50 hover:shadow-lg hover:border-blue-500/30 transition-all group text-center"
                 >
-                  {brand.logo_url ? (
-                    <img src={proxyImageUrl(brand.logo_url)} alt={brand.name} referrerPolicy="no-referrer" className="h-20 w-20 object-contain mb-4 group-hover:scale-110 transition-transform" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  {brand.logoUrl || brand.logo_url ? (
+                    <img src={proxyImageUrl(brand.logoUrl || brand.logo_url)} alt={brand.name} referrerPolicy="no-referrer" className="h-20 w-20 object-contain mb-4 group-hover:scale-110 transition-transform" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   ) : (
                     <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-dw-blue/10 to-dw-orange/10 flex items-center justify-center mb-4">
                       <Building2 className="h-10 w-10 text-blue-500" />
