@@ -596,8 +596,9 @@ function mapGoogleCategory(bestFor: string, category: string, specs: any): strin
 function buildCatalogRow(r: any, baseUrl: string, columns: string[]): string {
   function esc(val: any): string {
     if (val == null || val === '') return '';
-    const s = String(val).replace(/"/g, '""');
-    return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
+    const s = String(val).replace(/[\r\n\t]+/g, ' ').replace(/"/g, '""');
+    // Always quote fields to prevent CSV injection issues
+    return `"${s}"`;
   }
   function price(raw: any): string {
     if (!raw) return '';
@@ -634,8 +635,8 @@ function buildCatalogRow(r: any, baseUrl: string, columns: string[]): string {
   const googleCat = mapGoogleCategory(bestFor, category, r.specs);
   const productType = [brand, bestFor, category].filter(Boolean).join(' > ');
 
-  // Rich description
-  const desc = [
+  // Rich description — truncate to Google's 5000-char limit, strip newlines
+  const descRaw = [
     reviewSummary,
     finalVerdict ? `Verdict: ${finalVerdict}` : '',
     pros ? `Pros: ${pros}` : '',
@@ -646,7 +647,7 @@ function buildCatalogRow(r: any, baseUrl: string, columns: string[]): string {
     couponCode ? `Coupon: ${couponCode}` : '',
     asin ? `ASIN: ${asin}` : '',
     seoDesc,
-  ].filter(Boolean).join(' | ');
+  ].filter(Boolean).join(' | ').replace(/[\r\n\t]+/g, ' ').substring(0, 4900);
 
   // Custom labels
   const labels = [
@@ -658,11 +659,13 @@ function buildCatalogRow(r: any, baseUrl: string, columns: string[]): string {
   ];
 
   return columns.map((col) => {
-    switch (col) {
+    // Strip 'g:' prefix for switch matching
+    const field = col.replace(/^g:/, '');
+    switch (field) {
       case 'id': return esc(slug.substring(0, 100));
       case 'item_group_id': return esc(brand ? brand.toLowerCase().replace(/\s+/g, '-') : slug.substring(0, 50));
       case 'title': return esc(`${brand ? brand + ' ' : ''}${name}`.substring(0, 150));
-      case 'description': return esc(desc.substring(0, 500));
+      case 'description': return esc(descRaw); // already truncated to 4900 chars
       case 'link': return esc(productUrl);
       case 'image_link': return esc(image);
       case 'price': return esc(displayP);
@@ -683,8 +686,7 @@ function buildCatalogRow(r: any, baseUrl: string, columns: string[]): string {
       case 'custom_label_2': return esc(labels[2]);
       case 'custom_label_3': return esc(labels[3]);
       case 'custom_label_4': return esc(labels[4]);
-      case 'adwords_redirect': return esc(`${productUrl}?utm_source=pinterest&utm_campaign=shopping`);
-      default: return '';
+      default: return esc('');
     }
   }).join(',');
 }
@@ -839,11 +841,12 @@ router.get('/google-shopping-feed', authenticate, requireRole(['super_admin', 'a
     const reviews = await getPublishedProductReviews().catch(() => []) as any[];
     const baseUrl = process.env.APP_URL || 'https://www.dawnwire.com';
 
+    // Google Merchant Center requires 'g:' prefix for all field names in CSV format
     const columns = [
-      'id', 'title', 'description', 'link', 'image_link', 'additional_image_link',
-      'price', 'sale_price', 'availability', 'condition', 'brand',
-      'google_product_category', 'product_type', 'custom_label_0',
-      'custom_label_1', 'custom_label_2', 'custom_label_3', 'custom_label_4',
+      'g:id', 'g:title', 'g:description', 'g:link', 'g:image_link', 'g:additional_image_link',
+      'g:price', 'g:sale_price', 'g:availability', 'g:condition', 'g:brand',
+      'g:google_product_category', 'g:product_type', 'g:custom_label_0',
+      'g:custom_label_1', 'g:custom_label_2', 'g:custom_label_3', 'g:custom_label_4',
     ];
 
     const rows = (reviews || [])
