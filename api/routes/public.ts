@@ -379,12 +379,22 @@ router.get('/categories/:slug', async (req, res) => {
   const cats = await dbInstance.getCategories();
   const cat = cats.find((c: any) => c.slug === req.params.slug && c.status === 'active');
   if (!cat) return res.status(404).json({ error: 'Category not found' });
-    const [banners, sections, subcategories, reviews] = await Promise.all([
+    const [banners, sections, subcategories] = await Promise.all([
     dbInstance.getCategoryBanners(cat.id),
     dbInstance.getCategorySections(cat.id),
     dbInstance.getCategories(),
-    seo.getProductReviews(),
   ]);
+  // Fetch only lightweight product columns (not specs/review_article/gallery)
+  const sb = await (seo as any).getClient?.();
+  let reviews: any[] = [];
+  if (sb) {
+    const { data } = await sb.from('product_reviews')
+      .select('id,slug,product_name,brand,product_image,price,original_price,rating,review_count,editor_score,best_for,status,category_id,stock_status,deal_badge,coupon_code,affiliate_url,asin')
+      .eq('status', 'published')
+      .order('editor_score', { ascending: false })
+      .limit(200);
+    reviews = data || [];
+  }
   res.json({
     ...cat,
     banners: banners.filter((b: any) => b.isActive && !b.isArchived),
@@ -406,14 +416,14 @@ router.get('/categories/:slug', async (req, res) => {
         // Fall back: product name must include the full category name or match by spec department/subcategory
         const pnWords = pn.split(/\s+/).filter(Boolean);
         const catWords = cn.split(/\s+/).filter(Boolean);
-        const specDept = ((r.specs?.details?.department) || '').toLowerCase();
+        const specDept: string = '';
         // Match if: product name contains entire category name, OR specs department matches, OR 2+ category words appear in product name
         if (pn.includes(cn)) return true;
         if (specDept && catWords.some((w: string) => specDept.includes(w))) return true;
         return false;
       }
       const catWords = cn.split(/\s+/).filter(Boolean);
-      const bestWords = bf.split(/\s+/).filter(Boolean);
+      const bestWords = bf.split(/\s+/).filter(Boolean) as string[];
       return catWords.some((w: string) => bestWords.includes(w));
     }),
   });
@@ -437,15 +447,11 @@ router.get(['/product-reviews', '/products'], async (req, res) => {
     const sb = await (seo as any).getClient?.() || null;
     if (sb) {
       const { data } = await sb.from('product_reviews')
-        .select('id, slug, product_name, brand, product_image, price, original_price, rating, review_count, editor_score, best_for, status, created_at, updated_at, discount_percentage, stock_status, deal_badge, coupon_code, affiliate_url, category_id, key_features, review_summary')
+        .select('id, slug, product_name, brand, product_image, price, original_price, rating, review_count, editor_score, best_for, status, created_at, updated_at, discount_percentage, stock_status, deal_badge, coupon_code, affiliate_url, category_id, asin')
         .eq('status', 'published')
         .order('created_at', { ascending: false })
         .range(0, Math.min(parseInt(req.query.limit as string) || 100, 100) - 1);
-      items = (data || []).map((r: any) => {
-        if (typeof r.review_summary === 'string' && r.review_summary.length > 280) r.review_summary = r.review_summary.slice(0, 280) + '…';
-        if (Array.isArray(r.key_features)) r.key_features = r.key_features.slice(0, 6);
-        return r;
-      });
+      items = data || [];
     } else {
       items = await seo.getProductReviews();
       items = items.filter((r: any) => r.status === 'published');
@@ -457,8 +463,23 @@ router.get(['/product-reviews', '/products'], async (req, res) => {
       });
     }
   } else {
-    items = await seo.getProductReviews();
-    items = items.filter((r: any) => r.status === 'published');
+    // Non-light: also use selective columns to avoid pulling specs/review_article
+    const sb2 = await (seo as any).getClient?.() || null;
+    if (sb2) {
+      const { data } = await sb2.from('product_reviews')
+        .select('id, slug, product_name, brand, product_image, price, original_price, rating, review_count, editor_score, best_for, status, created_at, updated_at, discount_percentage, stock_status, deal_badge, coupon_code, affiliate_url, category_id, asin, pros, cons, review_summary, final_verdict, amazon_url, commerce_mode, seo_title, seo_description, review_article, key_features')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(500);
+      items = (data || []).map((r: any) => {
+        if (typeof r.review_summary === 'string' && r.review_summary.length > 500) r.review_summary = r.review_summary.slice(0, 500) + '…';
+        if (Array.isArray(r.key_features)) r.key_features = r.key_features.slice(0, 8);
+        return r;
+      });
+    } else {
+      items = await seo.getProductReviews();
+      items = items.filter((r: any) => r.status === 'published');
+    }
   }
   // Entity enrichment (skip for light queries)
   if (!light) {
@@ -537,6 +558,8 @@ router.get(['/product-reviews', '/products'], async (req, res) => {
   const offset = parseInt(req.query.offset as string) || 0;
   const total = items.length;
   if (limit > 0) items.splice(0, items.length, ...items.slice(offset, offset + limit));
+  // Cache: light queries 5min, non-light 2min (Vercel edge cache)
+  res.set('Cache-Control', `public, max-age=${light ? 300 : 120}, stale-while-revalidate=${light ? 600 : 300}`);
   res.json({ data: items, total, limit, offset });
 });
 
