@@ -87,10 +87,18 @@ export async function cachedQuery<T>(
 export function readStaticCatalog(file: string): any {
   try {
     const fs = require('fs');
-    const path = require('path');
-    const filePath = path.join(process.cwd(), 'public', 'data', file);
-    if (fs.existsSync(filePath)) {
-      return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const pathMod = require('path');
+    const candidates = [
+      pathMod.join(process.cwd(), 'public', 'data', file),
+      pathMod.join(process.cwd(), 'dist', 'data', file),
+      pathMod.join(process.cwd(), 'data', file),
+    ];
+    for (const filePath of candidates) {
+      try {
+        if (fs.existsSync(filePath)) {
+          return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        }
+      } catch {}
     }
   } catch {}
   return null;
