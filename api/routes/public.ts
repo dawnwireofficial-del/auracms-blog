@@ -452,11 +452,12 @@ router.get('/categories/:slug/subcategories', async (req, res) => {
 router.get(['/product-reviews', '/products'], async (req, res) => {
   const light = req.query.light === '1' || req.query.light === 'true';
   const cacheKey = light ? 'products:light' : 'products:full';
-  const cacheTTL = light ? 300_000 : 120_000; // light=5min, full=2min
   
   let items: any[];
   try {
-    items = await cachedQuery(cacheKey, async () => {
+    // Skip in-memory cache for products — rely on Vercel edge cache (Cache-Control headers)
+    // In-memory cache can go stale across function instances and serve wrong counts
+    items = await (async () => {
       // Try Supabase first with timeout
       const sb = await (seo as any).getClient?.() || null;
       if (sb) {
@@ -472,9 +473,11 @@ router.get(['/product-reviews', '/products'], async (req, res) => {
           setTimeout(() => rej(new Error('Supabase timeout')), 8000)
         );
         const { data } = await Promise.race([queryPromise, timeoutPromise]) as any;
-        // Reject suspiciously small results (likely Supabase cold start / pause)
-        if (data && data.length >= 10) return data;
-        console.log(`[API] Supabase returned only ${data?.length || 0} products, falling back to static catalog`);
+        // Reject throttled / partial results — compare against static catalog count
+        const catalogSnapshot = readStaticCatalog('catalog.json');
+        const expectedMin = Math.min((catalogSnapshot?.products?.length || 835), 100);
+        if (data && data.length >= expectedMin) return data;
+        console.log(`[API] Supabase returned ${data?.length || 0} products (expected >= ${expectedMin}), falling back to static catalog`);
       }
       // Fallback: static catalog.json
       console.log(`[API] Using static catalog for ${cacheKey}`);
@@ -483,7 +486,7 @@ router.get(['/product-reviews', '/products'], async (req, res) => {
       // Last resort: try getPublishedProductReviews
       const fallback = await seo.getPublishedProductReviews();
       return fallback.filter((r: any) => r.status === 'published');
-    }, cacheTTL, cacheTTL * 2);
+    })();
   } catch (e: any) {
     console.error(`[API] product-reviews cache error:`, e.message);
     // Absolute last resort
