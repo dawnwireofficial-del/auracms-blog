@@ -194,23 +194,67 @@ export async function renderHomePageHtml(): Promise<string> {
     },
   });
 
-  // JSON-LD: Organization with social links
+  // JSON-LD: Organization with social links (distinct from 'Dawn Wire Service' — a 1990s Pakistani newspaper digest)
   const orgSchema = JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'DawnWire',
-    alternateName: ['DawnWire.com', 'dawnwire.com', 'DawnWire Product Reviews'],
+    alternateName: ['DawnWire.com', 'DawnWire Product Reviews', 'DawnWire AI Shopping'],
     url: baseUrl,
     logo: `${baseUrl}/logo/logo-transparent.png`,
-    description: 'DawnWire is an AI-powered product review and buying guide platform that helps consumers find the best Amazon products through independent editorial reviews, price tracking, and expert comparisons.',
+    description: 'DawnWire (dawnwire.com) is an American AI-powered product review and comparison platform — NOT the historical Dawn Wire Service (a 1990s Pakistani newspaper digest). DawnWire independently researches, prices-checks, and scores Amazon products across 30+ categories to help US consumers buy the right thing at the right price.',
     foundingDate: '2024',
-    industry: 'Product Reviews & Consumer Technology',
+    foundingLocation: { '@type': 'Place', name: 'United States' },
+    industry: 'Product Reviews, Consumer Technology, Affiliate Marketing',
+    category: 'Product Review Platform',
+    knowsAbout: ['Amazon Product Reviews', 'AI-Powered Shopping', 'Price Comparison', 'Buying Guides', 'Consumer Electronics Reviews', 'Beauty Product Reviews', 'Home and Kitchen Reviews'],
     areaServed: { '@type': 'Country', name: 'United States' },
+    contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', email: 'tech@dawnwire.com' },
     sameAs: [
       'https://www.facebook.com/profile.php?id=61591752300472',
       'https://www.instagram.com/dawnwire/',
       'https://www.pinterest.com/dawnwireofficial/',
       'https://x.com/dawn_wire_',
+    ],
+  });
+
+  // JSON-LD: FAQPage for brand disambiguation (helps Google understand what DawnWire IS)
+  const faqSchema = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'What is DawnWire?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'DawnWire (dawnwire.com) is an AI-powered product review and comparison platform that independently researches, price-checks, and scores Amazon products across 30+ categories. DawnWire is not a retailer and does not sell products directly — we link you to the best deals on Amazon.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Is DawnWire the same as Dawn Wire Service?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'No. DawnWire (dawnwire.com) is a modern AI-powered product review platform launched in 2024. Dawn Wire Service (DWS) was a historical weekly news digest from the Dawn Group of Newspapers in Pakistan during the 1990s. These are completely unrelated entities.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How does DawnWire make money?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'DawnWire earns a small commission when you purchase products through our affiliate links marked "Check Price on Amazon." This is at no extra cost to you. Our editorial reviews and scores are independently produced and are not influenced by affiliate commissions.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How many products has DawnWire reviewed?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `DawnWire has independently reviewed and scored over ${productCount || '800'} products across ${categoryCount || '30'}+ categories including electronics, beauty, home & kitchen, fashion, and more.`,
+        },
+      },
     ],
   });
 
@@ -241,6 +285,7 @@ export async function renderHomePageHtml(): Promise<string> {
 
   return `<script type="application/ld+json">${webSiteSchema}</script>
 <script type="application/ld+json">${orgSchema}</script>
+<script type="application/ld+json">${faqSchema}</script>
 <script type="application/ld+json">${breadcrumbSchema}</script>
 ${itemListSchema}
 <article class="ssr-content" id="home-seo-content">
