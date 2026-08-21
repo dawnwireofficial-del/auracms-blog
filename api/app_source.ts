@@ -183,6 +183,7 @@ app.use((_req, res, next) => {
 // start can never 504 a user request (Vercel function timeout is 60s).
 const moduleStart = Date.now();
 let lastPostPublishRun = 0;
+let lastAutoSocialRun = 0;
 app.use((_req, _res, next) => {
   const now = Date.now();
   // Cold-start guard: give the first request the full function budget.
@@ -193,6 +194,17 @@ app.use((_req, _res, next) => {
       processScheduledPosts().then((result: any) => {
         if (result.published > 0) {
           console.log(`[Scheduler] Published ${result.published} scheduled posts`);
+        }
+      }).catch((e: any) => console.error(e))
+    ).catch((e: any) => console.error(e));
+  }
+  // Auto-social posting (every 2 hours by default)
+  if (now - lastAutoSocialRun > 120_000) {
+    lastAutoSocialRun = now;
+    import('../server/auto-social').then(({ runAutoSocialPost }) =>
+      runAutoSocialPost().then((result: any) => {
+        if (result.processed > 0) {
+          console.log(`[AutoSocial] Posted ${result.processed} products to social media`);
         }
       }).catch((e: any) => console.error(e))
     ).catch((e: any) => console.error(e));

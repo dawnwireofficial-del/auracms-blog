@@ -336,7 +336,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     .slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-24">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#111120] text-[#1A1A2E] dark:text-[#F0EDE8] pb-24">
       <DisclosureBanner />
 
       {/* REVIEW + PRODUCT + FAQ STRUCTURED DATA */}
@@ -373,7 +373,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       />
 
       {/* Breadcrumbs */}
-      <div className="max-w-7xl mx-auto px-4 py-4 text-xs text-slate-500 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 py-4 text-xs text-[#6B7280] dark:text-[#8A857C] flex items-center justify-between">
         <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap">
           <a href="/" className="hover:underline">Home</a>
           <span>/</span>
@@ -381,7 +381,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           <span>/</span>
           <a href={`/categories/${product.mainCategory.toLowerCase()}`} className="hover:underline">{product.mainCategory}</a>
           <span>/</span>
-          <span className="text-slate-900 dark:text-slate-100 font-bold truncate max-w-[200px] sm:max-w-xs">{product.title}</span>
+          <span className="text-[#1A1A2E] dark:text-[#F0EDE8] font-bold truncate max-w-[200px] sm:max-w-xs">{product.title}</span>
         </div>
 
         <button
@@ -389,7 +389,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
             isWishlisted
               ? 'bg-rose-50 dark:bg-rose-950/80 text-rose-600 border-rose-300'
-              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 hover:text-rose-600'
+              : 'bg-white dark:bg-[#252538] border-[#E5E1DC] dark:border-[#333348] text-[#6B7280] hover:text-rose-600'
           }`}
         >
           <svg className={`w-4 h-4 ${isWishlisted ? 'fill-rose-600' : 'fill-none stroke-current'}`} viewBox="0 0 24 24">
@@ -400,14 +400,14 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       </div>
 
       {/* Navigation Quick Tabs */}
-      <div className="sticky top-[42px] z-30 max-w-7xl mx-auto px-4 mb-6 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-md -mx-0">
-        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 text-xs font-bold overflow-x-auto">
+      <div className="sticky top-[42px] z-30 max-w-7xl mx-auto px-4 mb-6 bg-[#FAF8F5]/95 dark:bg-[#1C1C2E]/95 backdrop-blur-md -mx-0">
+        <div className="flex items-center gap-2 border-b border-[#E5E1DC] dark:border-[#333348] pb-2 text-xs font-bold overflow-x-auto">
           <button
             onClick={() => { setActiveTab('overview'); document.getElementById('section-overview')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
             className={`px-4 py-2 rounded-xl transition-all ${
               activeTab === 'overview'
-                ? 'bg-[#246BFF] text-white shadow-md'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                ? 'bg-[#1A1A2E] dark:bg-[#D4B87A] text-[#C9A96E] dark:text-[#1A1A2E] shadow-md'
+                : 'text-[#374151] dark:text-[#8A857C] hover:bg-[#F5F0EB] dark:hover:bg-[#252538]'
             }`}
           >
             Overview & Pricing
@@ -416,8 +416,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             onClick={() => { setActiveTab('gallery'); document.getElementById('section-gallery')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
             className={`px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
               activeTab === 'gallery'
-                ? 'bg-[#246BFF] text-white shadow-md'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                ? 'bg-[#1A1A2E] dark:bg-[#D4B87A] text-[#C9A96E] dark:text-[#1A1A2E] shadow-md'
+                : 'text-[#374151] dark:text-[#8A857C] hover:bg-[#F5F0EB] dark:hover:bg-[#252538]'
             }`}
           >
             <span>📷 All Imported Images</span>
@@ -430,8 +430,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             onClick={() => { setActiveTab('videos'); document.getElementById('section-video')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
             className={`px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
               activeTab === 'videos'
-                ? 'bg-[#246BFF] text-white shadow-md'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                ? 'bg-[#1A1A2E] dark:bg-[#D4B87A] text-[#C9A96E] dark:text-[#1A1A2E] shadow-md'
+                : 'text-[#374151] dark:text-[#8A857C] hover:bg-[#F5F0EB] dark:hover:bg-[#252538]'
             }`}
           >
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
@@ -445,8 +445,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             onClick={() => { setActiveTab('specs'); document.getElementById('section-specs')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
             className={`px-4 py-2 rounded-xl transition-all ${
               activeTab === 'specs'
-                ? 'bg-[#246BFF] text-white shadow-md'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                ? 'bg-[#1A1A2E] dark:bg-[#D4B87A] text-[#C9A96E] dark:text-[#1A1A2E] shadow-md'
+                : 'text-[#374151] dark:text-[#8A857C] hover:bg-[#F5F0EB] dark:hover:bg-[#252538]'
             }`}
           >
             ⚙️ Specifications & Pros/Cons
@@ -458,7 +458,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       <div id="section-overview" className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Col: Interactive Image Gallery with Zoom & Lightbox Trigger */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="relative group bg-white dark:bg-slate-900/90 rounded-3xl p-4 sm:p-6 border border-slate-200 dark:border-blue-500/30 shadow-2xl shadow-blue-950/40 flex flex-col items-center justify-center h-72 sm:h-96 overflow-hidden">
+          <div className="relative group bg-[#FAF8F5] dark:bg-[#252538] rounded-3xl p-4 sm:p-6 border border-[#E5E1DC] dark:border-[#444460] shadow-2xl flex flex-col items-center justify-center h-72 sm:h-96 overflow-hidden">
             <img
               src={proxyImageUrl(allImportedImages[selectedImageIndex])}
               alt={`${product.title} angle ${selectedImageIndex + 1}`}
@@ -480,7 +480,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             {/* Expand Gallery Button */}
             <button
               onClick={() => setIsLightboxOpen(true)}
-              className="absolute bottom-4 right-4 bg-slate-900/80 hover:bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-700 backdrop-blur-md shadow-lg flex items-center gap-1.5 transition-all opacity-90 hover:opacity-100"
+              className="absolute bottom-4 right-4 bg-[#1A1A2E]/80 hover:bg-[#1A1A2E] text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-[#444460] backdrop-blur-md shadow-lg flex items-center gap-1.5 transition-all opacity-90 hover:opacity-100"
             >
               <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
@@ -491,7 +491,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
           {/* Thumbnails Row for All Imported Images */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs text-slate-500 font-bold px-1">
+            <div className="flex items-center justify-between text-xs text-[#6B7280] font-bold px-1">
               <span>All Imported Product Images ({allImportedImages.length})</span>
               <span className="text-blue-600 dark:text-blue-400 text-[11px]">Click image for high-res preview</span>
             </div>
@@ -501,14 +501,14 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 <button
                   key={idx}
                   onClick={() => setSelectedImageIndex(idx)}
-                  className={`relative w-20 h-20 rounded-2xl bg-white dark:bg-slate-900 p-2 border transition-all shrink-0 ${
+                  className={`relative w-20 h-20 rounded-2xl bg-white dark:bg-[#252538] p-2 border transition-all shrink-0 ${
                     selectedImageIndex === idx
                       ? 'border-blue-600 ring-2 ring-blue-500/30 scale-105 shadow-md'
-                      : 'border-slate-200 dark:border-slate-800 opacity-70 hover:opacity-100'
+                      : 'border-[#E5E1DC] dark:border-[#333348] opacity-70 hover:opacity-100'
                   }`}
                 >
                   <img src={proxyImageUrl(img)} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-contain" referrerPolicy="no-referrer" loading="lazy" decoding="async" onError={(e) => handleImageError(idx, e)} />
-                  <span className="absolute bottom-1 right-1 bg-slate-900/80 text-white text-[9px] px-1 rounded font-bold">
+                  <span className="absolute bottom-1 right-1 bg-[#1A1A2E]/80 text-white text-[9px] px-1 rounded font-bold">
                     #{idx + 1}
                   </span>
                 </button>
@@ -520,7 +520,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           {onOpenChatbotForProduct && (
             <div className="p-4 bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] text-white rounded-2xl border border-[#246BFF]/30 shadow-lg flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-amber-400 text-slate-950 rounded-xl font-black text-xs shrink-0 shadow">
+                <div className="p-2.5 bg-amber-400 text-[#0A0A15] rounded-xl font-black text-xs shrink-0 shadow">
                   AI
                 </div>
                 <div>
@@ -530,7 +530,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               </div>
               <button
                 onClick={() => onOpenChatbotForProduct(product)}
-                className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-3.5 py-2 rounded-xl text-xs shrink-0 shadow-md transition-colors"
+                className="bg-amber-400 hover:bg-amber-300 text-[#0A0A15] font-black px-3.5 py-2 rounded-xl text-xs shrink-0 shadow-md transition-colors"
               >
                 Ask Assistant
               </button>
@@ -542,7 +542,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         <div className="lg:col-span-7 space-y-6">
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className="text-xs font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+              <span className="text-xs font-extrabold text-[#C9A96E] dark:text-[#D4B87A] uppercase tracking-wider">
                 {product.brand} • {product.subcategory}
               </span>
               {product.bestFor && (
@@ -552,18 +552,18 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               )}
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-['Playfair_Display',serif] font-bold text-[#1A1A2E] dark:text-[#F0EDE8] leading-tight">
               {product.title}
             </h1>
 
             {/* Score & Rating Bar */}
-            <div className="flex flex-wrap items-center gap-4 mt-3 pb-4 border-b border-slate-200/80 dark:border-slate-800">
-              <div className="flex items-center gap-1.5 bg-[#246BFF] text-white font-black text-xs px-3 py-1.5 rounded-xl shadow-md">
+            <div className="flex flex-wrap items-center gap-4 mt-3 pb-4 border-b border-[#E5E1DC]/80 dark:border-[#333348]">
+              <div className="flex items-center gap-1.5 bg-[#1A1A2E] dark:bg-[#D4B87A] text-[#C9A96E] dark:text-[#1A1A2E] font-black text-xs px-3 py-1.5 rounded-xl shadow-md">
                 <span>DawnWire Score:</span>
                 <span className="text-sm font-black">{product.editorScore} / 10</span>
               </div>
 
-              <div className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400">
+              <div className="flex items-center gap-1 text-xs text-[#374151] dark:text-[#8A857C]">
                 <div className="flex text-amber-400">
                   {'★'.repeat(Math.round(product.rating || 4.5))}
                 </div>
@@ -579,11 +579,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           </div>
 
           {/* Pricing & Amazon Buy Box */}
-          <div ref={buyBoxRef} className="relative p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-[0_8px_30px_-12px_rgba(36,107,255,0.2)] space-y-4 overflow-hidden">
+          <div ref={buyBoxRef} className="relative p-6 bg-white dark:bg-[#252538] rounded-3xl border border-[#E5E1DC] dark:border-[#333348] shadow-[0_8px_30px_-12px_rgba(26,26,46,0.15)] space-y-4 overflow-hidden">
             <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-[#246BFF]/5 blur-3xl pointer-events-none" />
             <div className="flex items-baseline justify-between">
               <div>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                <span className="text-xs font-bold text-[#8A857C] uppercase tracking-wider block mb-1">
                   Current Verified Amazon Price
                 </span>
                 <div className="flex items-baseline gap-3">
@@ -607,8 +607,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 </div>
               </div>
 
-              <span className="text-xs text-slate-400 text-right">
-                ASIN: <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">{product.asin}</code><br />
+              <span className="text-xs text-[#9CA3AF] text-right">
+                ASIN: <code className="font-mono bg-[#FAF8F5] dark:bg-[#252538] px-1.5 py-0.5 rounded">{product.asin}</code><br />
                 Updated: Today
               </span>
             </div>
@@ -631,26 +631,26 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               />
             </div>
 
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center">
+            <p className="text-[11px] text-[#6B7280] dark:text-[#8A857C] text-center">
               Check current price and availability on Amazon. Price may change without notice.
             </p>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center">
+            <p className="text-[10px] text-[#9CA3AF] dark:text-[#6B7280] text-center">
               DawnWire may earn a commission when you purchase through links on this page.
             </p>
           </div>
 
           {/* Short Description */}
-          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
+          <p className="text-sm text-[#374151] dark:text-[#C8C4BC] leading-relaxed font-normal">
             {sanitizeHtml(product.fullDescription || product.shortDescription)}
           </p>
 
           {/* Key Features Bullet Points */}
           {product.mainFeatures && product.mainFeatures.length > 0 && (
-            <div className="p-5 bg-slate-100/70 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
-              <h4 className="text-xs font-black uppercase text-slate-900 dark:text-slate-100 tracking-wider">
+            <div className="p-5 bg-[#FAF8F5] dark:bg-[#1C1C2E] rounded-2xl border border-[#E5E1DC] dark:border-[#333348] space-y-2">
+              <h4 className="text-xs font-black uppercase text-[#1A1A2E] dark:text-[#F0EDE8] tracking-wider">
                 Key Product Highlights
               </h4>
-              <ul className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
+              <ul className="space-y-1.5 text-xs text-[#374151] dark:text-[#C8C4BC]">
                 {product.mainFeatures.map((feat, idx) => (
                   <li key={idx} className="flex items-start gap-2">
                     <span className="text-blue-600 dark:text-blue-400 font-bold">•</span>
@@ -665,15 +665,14 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
       {/* ALL IMPORTED IMAGES FULL GALLERY SECTION */}
       <section id="section-gallery" className="max-w-7xl mx-auto px-4 mt-16 space-y-6">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-extrabold uppercase mb-1">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#E5E1DC] dark:border-[#333348] pb-4">
+          <div>              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF8F5] dark:bg-[#252538] text-[#C9A96E] dark:text-[#D4B87A] border border-[#E5E1DC] dark:border-[#444460] text-xs font-extrabold uppercase mb-1">
               📸 High-Resolution Visual Inspection
             </div>
-            <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100">
+            <h2 className="text-2xl font-['Playfair_Display',serif] font-bold text-[#1A1A2E] dark:text-[#F0EDE8]">
               All Imported Product Images ({allImportedImages.length})
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[#6B7280]">
               Full angle photography, build quality details, and unboxing angles for {product.title}
             </p>
           </div>
@@ -689,8 +688,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           </button>
         </div>
 
-        {/* Multi-Image Grid Showcase */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        {/* Multi-Image Grid Showcase */}          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {allImportedImages.map((img, idx) => (
             <motion.div
               key={idx}
@@ -699,7 +697,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 setSelectedImageIndex(idx);
                 setIsLightboxOpen(true);
               }}
-              className="group relative bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 shadow-sm cursor-pointer overflow-hidden flex flex-col items-center justify-center h-48"
+              className="group relative bg-[#FAF8F5] dark:bg-[#252538] rounded-2xl p-4 border border-[#E5E1DC]/80 dark:border-[#333348] shadow-sm cursor-pointer overflow-hidden flex flex-col items-center justify-center h-48"
             >
               <img
                 src={proxyImageUrl(img)}
@@ -710,13 +708,13 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 decoding="async"
                 onError={(e) => handleImageError(idx, e)}
               />
-              <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <span className="bg-white/90 text-slate-950 font-black text-xs px-3 py-1.5 rounded-xl shadow-lg flex items-center gap-1">
+              <div className="absolute inset-0 bg-[#0A0A15]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span className="bg-white/90 text-[#0A0A15] font-black text-xs px-3 py-1.5 rounded-xl shadow-lg flex items-center gap-1">
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                   Inspect #{idx + 1}
                 </span>
               </div>
-              <span className="absolute top-2 right-2 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
+              <span className="absolute top-2 right-2 bg-[#1A1A2E]/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
                 Angle {idx + 1}
               </span>
             </motion.div>
@@ -727,10 +725,10 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       {/* PRODUCT VIDEO (HLS FROM AMAZON IMPORT) */}
       {product.videoUrl && (
         <section id="section-video" className="max-w-7xl mx-auto px-4 mt-16">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <div className="bg-white dark:bg-[#252538] rounded-3xl p-6 sm:p-8 border border-[#E5E1DC]/80 dark:border-[#333348] shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-slate-100">Product Video</h3>
+              <h3 className="text-lg font-extrabold text-[#1A1A2E] dark:text-[#F0EDE8]">Product Video</h3>
             </div>
             <div className="aspect-video bg-black rounded-2xl overflow-hidden">
               <HlsVideo src={product.videoUrl} poster={product.images[0] || ''} />
@@ -742,11 +740,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       {/* EMBEDDED VIDEO REVIEWS & DEMONSTRATION SECTION */}
       {productVideos.length > 0 && (
       <section className="max-w-7xl mx-auto px-4 mt-16">
-        <div className="relative overflow-hidden bg-slate-900 text-white rounded-3xl p-6 sm:p-10 border border-slate-800 shadow-2xl space-y-8">
+        <div className="relative overflow-hidden bg-[#1A1A2E] text-white rounded-3xl p-6 sm:p-10 border border-[#333348] shadow-2xl space-y-8">
           {/* Gravity particle ambient background */}
           <GravityParticleCanvas particleCount={40} className="opacity-40" />
 
-          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#333348] pb-6">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-600/90 text-white text-xs font-black uppercase tracking-wider mb-2">
                 <span className="w-2 h-2 rounded-full bg-white animate-ping" />
@@ -755,14 +753,14 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               <h2 className="text-2xl sm:text-3xl font-black text-white">
                 Hands-On Demonstration & Lab Videos
               </h2>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-[#9CA3AF] mt-1">
                 Watch verified product tests, teardowns, and real-world audio/performance demonstrations for {product.title}.
               </p>
             </div>
 
-            <div className="flex items-center gap-2 text-xs font-bold bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700">
+            <div className="flex items-center gap-2 text-xs font-bold bg-[#252538]/80 px-4 py-2 rounded-xl border border-[#444460]">
               <span className="text-amber-400">★ {product.editorScore}</span>
-              {productVideos.length > 0 && <span className="text-slate-400">| {productVideos.length} Video Reviews Available</span>}
+              {productVideos.length > 0 && <span className="text-[#9CA3AF]">| {productVideos.length} Video Reviews Available</span>}
             </div>
           </div>
 
@@ -770,7 +768,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Left 8 Cols: Large 16:9 Embedded Player */}
             <div className="lg:col-span-8 space-y-4">
-              <div className="relative bg-black rounded-2xl overflow-hidden border border-slate-800 shadow-2xl aspect-video w-full">
+              <div className="relative bg-black rounded-2xl overflow-hidden border border-[#333348] shadow-2xl aspect-video w-full">
                 <iframe
                   src={`https://www.youtube-nocookie.com/embed/${activeVideo.youtubeId}?autoplay=0&rel=0&modestbranding=1`}
                   title={activeVideo.title}
@@ -781,9 +779,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               </div>
 
               {/* Active Video Info Banner */}
-              <div className="p-4 bg-slate-800/80 rounded-2xl border border-slate-700/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="p-4 bg-[#252538]/80 rounded-2xl border border-[#444460]/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                  <div className="flex items-center gap-2 text-xs text-[#9CA3AF] mb-1">
                     <span className="uppercase font-black text-amber-400 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/30">
                       [{activeVideo.type.toUpperCase()}]
                     </span>
@@ -810,7 +808,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
             {/* Right 4 Cols: Video Playlist Cards */}
             <div className="lg:col-span-4 space-y-3">
-              <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider">
+              <h3 className="text-xs font-black uppercase text-[#9CA3AF] tracking-wider">
                 Select Video Review ({productVideos.length})
               </h3>
 
@@ -826,11 +824,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                       className={`w-full text-left p-3 rounded-2xl border transition-all flex items-center gap-3 ${
                         isActive
                           ? 'bg-blue-900/90 border-blue-400 ring-2 ring-blue-500/30'
-                          : 'bg-slate-800/60 border-slate-700/80 hover:bg-slate-800 hover:border-slate-600'
+                          : 'bg-[#252538]/60 border-[#444460]/80 hover:bg-[#252538] hover:border-[#444460]'
                       }`}
                     >
                       {/* Video Thumbnail */}
-                      <div className="relative w-24 h-16 rounded-xl bg-slate-950 overflow-hidden shrink-0 border border-slate-700 flex items-center justify-center">
+                      <div className="relative w-24 h-16 rounded-xl bg-[#0A0A15] overflow-hidden shrink-0 border border-[#444460] flex items-center justify-center">
                         <img src={proxyImageUrl(vid.thumbnailUrl || allImportedImages[0])} alt="" className="w-full h-full object-cover opacity-80" referrerPolicy="no-referrer" loading="lazy" decoding="async" onError={(e) => { const t = e.currentTarget; if (t.src.includes('/api/public/image-proxy')) { const m = t.src.match(/url=([^&]+)/); if (m) t.src = decodeURIComponent(m[1]); } else { t.style.display = 'none'; } }} />
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                           <svg className="w-6 h-6 text-amber-400 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -848,7 +846,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                         <h4 className="text-xs font-bold text-white line-clamp-2 leading-tight">
                           {vid.title}
                         </h4>
-                        <span className="text-[11px] text-slate-400 block mt-1">
+                        <span className="text-[11px] text-[#9CA3AF] block mt-1">
                           {vid.author}
                         </span>
                       </div>
@@ -874,14 +872,14 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
       {/* NEWSLETTER + PRICE DROP LEAD CAPTURE */}
       <section className="max-w-7xl mx-auto px-4 mt-16">
-        <div className="bg-gradient-to-br from-[#EEF4FF] via-white to-[#FFF7ED] text-slate-900 rounded-3xl p-6 sm:p-10 border border-[#E2E8F0] shadow-[0_12px_40px_-18px_rgba(36,107,255,0.28)]">
+        <div className="bg-gradient-to-br from-[#FAF8F5] via-white to-[#F5F0EB] dark:from-[#1C1C2E] dark:via-[#252538] dark:to-[#1C1C2E] text-[#1A1A2E] dark:text-[#F0EDE8] rounded-3xl p-6 sm:p-10 border border-[#E5E1DC] dark:border-[#333348] shadow-[0_12px_40px_-18px_rgba(26,26,46,0.15)]">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-6">
-              <span className="text-[10px] font-black bg-[#FF8A00] text-white px-2.5 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1 mb-3">
+              <span className="text-[10px] font-black bg-[#1A1A2E] dark:bg-[#D4B87A] text-[#C9A96E] dark:text-[#1A1A2E] px-2.5 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1 mb-3">
                 💸 Deals & Price Alerts
               </span>
               <h3 className="text-xl sm:text-2xl font-extrabold">Never overpay for {product.title}</h3>
-              <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+              <p className="text-sm text-[#6B7280] dark:text-[#8A857C] mt-2 leading-relaxed">
                 Get an instant email when the price {captureAlertType === 'price_increase' ? 'rises above' : 'drops below'} your target, plus our best daily {product.mainCategory} deals and exclusive coupon codes — straight to your inbox.
               </p>
             </div>
@@ -898,21 +896,21 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     onChange={(e) => setCaptureEmail(e.target.value)}
                     placeholder="you@example.com"
                     required
-                    className="w-full bg-white border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:ring-2 focus:ring-[#FF8A00]/40 focus:border-[#FF8A00]"
+                    className="w-full bg-white border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-[#1A1A2E] placeholder-[#9CA3AF] outline-none focus:ring-2 focus:ring-[#FF8A00]/40 focus:border-[#FF8A00]"
                   />
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-[#6B7280]">
                     <span className="shrink-0 font-bold">Notify when:</span>
                     <button
                       type="button"
                       onClick={() => setCaptureAlertType('price_drop')}
-                      className={`px-3 py-1.5 rounded-lg font-semibold border transition-colors ${captureAlertType === 'price_drop' ? 'bg-[#FFF3E6] border-[#FF8A00]/50 text-[#e67b00]' : 'bg-white border-[#E2E8F0] text-slate-600 hover:bg-slate-50'}`}
+                      className={`px-3 py-1.5 rounded-lg font-semibold border transition-colors ${captureAlertType === 'price_drop' ? 'bg-[#FFF3E6] border-[#FF8A00]/50 text-[#e67b00]' : 'bg-white border-[#E2E8F0] text-[#6B7280] hover:bg-[#FAF8F5]'}`}
                     >
                       Price drops to
                     </button>
                     <button
                       type="button"
                       onClick={() => setCaptureAlertType('price_increase')}
-                      className={`px-3 py-1.5 rounded-lg font-semibold border transition-colors ${captureAlertType === 'price_increase' ? 'bg-[#FFF3E6] border-[#FF8A00]/50 text-[#e67b00]' : 'bg-white border-[#E2E8F0] text-slate-600 hover:bg-slate-50'}`}
+                      className={`px-3 py-1.5 rounded-lg font-semibold border transition-colors ${captureAlertType === 'price_increase' ? 'bg-[#FFF3E6] border-[#FF8A00]/50 text-[#e67b00]' : 'bg-white border-[#E2E8F0] text-[#6B7280] hover:bg-[#FAF8F5]'}`}
                     >
                       Price rises to
                     </button>
@@ -922,9 +920,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                       step="0.01"
                       value={captureTargetPrice}
                       onChange={(e) => setCaptureTargetPrice(e.target.value)}
-                      className="bg-white border border-[#E2E8F0] rounded-lg px-3 py-1.5 text-sm text-slate-800 w-28 outline-none focus:ring-2 focus:ring-[#FF8A00]/40"
+                      className="bg-white border border-[#E2E8F0] rounded-lg px-3 py-1.5 text-sm text-[#1A1A2E] w-28 outline-none focus:ring-2 focus:ring-[#FF8A00]/40"
                     />
-                    <span className="text-slate-500">
+                    <span className="text-[#6B7280]">
                       (current ${product.currentPrice && !isNaN(Number(product.currentPrice)) ? Number(product.currentPrice).toFixed(2) : '—'})
                     </span>
                   </div>
@@ -935,7 +933,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   >
                     {captureSaving ? 'Saving...' : `🔔 Notify Me When Price ${captureAlertType === 'price_increase' ? 'Rises' : 'Drops'} + Get Deals`}
                   </button>
-                  <p className="text-[10px] text-slate-500 text-center">
+                  <p className="text-[10px] text-[#6B7280] text-center">
                     No spam. Unsubscribe anytime. We may earn a commission on qualifying purchases.
                   </p>
                 </form>
@@ -953,39 +951,39 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       {/* FULL REVIEW ARTICLE (product as article) */}
       {product.reviewArticle && (
         <section id="section-article" className="max-w-7xl mx-auto px-4 mt-16">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-10 border border-slate-200/80 dark:border-slate-800 shadow-sm">
-            <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-200 dark:border-slate-800">
-              <div className="p-2.5 bg-[#246BFF] text-white rounded-xl font-black text-xs shadow-md">DAWNWIRE</div>
+          <div className="bg-white dark:bg-[#252538] rounded-3xl p-6 sm:p-10 border border-[#E5E1DC] dark:border-[#333348] shadow-sm">
+            <div className="flex items-center gap-3 mb-6 pb-6 border-b border-[#E5E1DC] dark:border-[#333348]">
+              <div className="p-2.5 bg-[#1A1A2E] dark:bg-[#D4B87A] text-[#C9A96E] dark:text-[#1A1A2E] rounded-xl font-black text-xs shadow-md font-['Playfair_Display',serif]">DAWNWIRE</div>
               <div>
-                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100">Full {product.title} Review & Buying Guide</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                <h3 className="text-xl sm:text-2xl font-['Playfair_Display',serif] font-bold text-[#1A1A2E] dark:text-[#F0EDE8]">Full {product.title} Review & Buying Guide</h3>
+                <p className="text-xs text-[#6B7280] dark:text-[#8A857C] mt-0.5">
                   In-depth analysis, tested verdicts and the best price on Amazon — updated {product.lastSyncedAt ? new Date(product.lastSyncedAt).toLocaleDateString() : 'recently'}.
                 </p>
               </div>
             </div>
-            <article className="prose prose-slate dark:prose-invert max-w-none space-y-5 text-slate-700 dark:text-slate-200 text-[15px] leading-relaxed">
+            <article className="prose prose-slate dark:prose-invert max-w-none space-y-5 text-[#374151] dark:text-[#C8C4BC] text-[15px] leading-relaxed">
               <ReactMarkdown
                 components={{
-                  h2: ({ children }) => <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 mt-8 mb-4 border-b border-slate-200 dark:border-slate-800 pb-2">{children}</h2>,
-                  h3: ({ children }) => <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mt-6 mb-3">{children}</h3>,
+                  h2: ({ children }) => <h2 className="text-xl sm:text-2xl font-extrabold text-[#1A1A2E] dark:text-[#F0EDE8] mt-8 mb-4 border-b border-[#E5E1DC] dark:border-[#333348] pb-2">{children}</h2>,
+                  h3: ({ children }) => <h3 className="text-lg font-bold text-[#1A1A2E] dark:text-[#F0EDE8] mt-6 mb-3">{children}</h3>,
                   p: ({ children }) => <p className="leading-relaxed my-3">{children}</p>,
                   ul: ({ children }) => <ul className="list-disc pl-6 space-y-1.5 my-4">{children}</ul>,
                   ol: ({ children }) => <ol className="list-decimal pl-6 space-y-1.5 my-4">{children}</ol>,
                   li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                  strong: ({ children }) => <strong className="font-extrabold text-slate-900 dark:text-white">{children}</strong>,
+                  strong: ({ children }) => <strong className="font-extrabold text-[#1A1A2E] dark:text-white">{children}</strong>,
                   em: ({ children }) => <em className="italic">{children}</em>,
-                  blockquote: ({ children }) => <blockquote className="border-l-4 border-amber-400 pl-4 py-1 italic my-6 text-slate-600 dark:text-slate-300 bg-amber-50 dark:bg-amber-950/30 rounded-r-xl">{children}</blockquote>,
+                  blockquote: ({ children }) => <blockquote className="border-l-4 border-amber-400 pl-4 py-1 italic my-6 text-[#6B7280] dark:text-[#C8C4BC] bg-amber-50 dark:bg-amber-950/30 rounded-r-xl">{children}</blockquote>,
                   a: ({ href, children }) => <a href={href} className="text-blue-600 dark:text-blue-400 hover:underline font-bold" target="_blank" rel="sponsored noopener noreferrer">{children}</a>,
-                  hr: () => <hr className="my-8 border-slate-200 dark:border-slate-800" />,
+                  hr: () => <hr className="my-8 border-[#E5E1DC] dark:border-[#333348]" />,
                 }}
               >
                 {product.reviewArticle}
               </ReactMarkdown>
             </article>
-            <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-2xl p-5">
+            <div className="mt-8 pt-6 border-t border-[#E5E1DC] dark:border-[#333348] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-2xl p-5">
               <div>
-                <h4 className="text-sm font-extrabold text-slate-900 dark:text-slate-100">Ready to check the latest price?</h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                <h4 className="text-sm font-extrabold text-[#1A1A2E] dark:text-[#F0EDE8]">Ready to check the latest price?</h4>
+                <p className="text-xs text-[#6B7280] dark:text-[#8A857C] mt-0.5">
                   {product.affiliateDisclosure || 'We may earn a commission at no extra cost to you when you shop through our links.'}
                 </p>
               </div>
@@ -1009,8 +1007,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       {/* Specifications & Pros/Cons Section */}
       <section id="section-specs" className="max-w-7xl mx-auto px-4 mt-16 grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left: Specifications */}
-        <div className="lg:col-span-7 bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
-          <h3 className="text-xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+        <div className="lg:col-span-7 bg-white dark:bg-[#252538] rounded-3xl p-6 sm:p-8 border border-[#E5E1DC] dark:border-[#333348] shadow-sm space-y-6">
+          <h3 className="text-xl font-['Playfair_Display',serif] font-bold text-[#1A1A2E] dark:text-[#F0EDE8] flex items-center gap-2">
             <span>⚙️ Technical Specifications & Build Specs</span>
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1055,9 +1053,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   : key === 'details.product_dimensions' ? 'Product Dimensions'
                   : key.replace(/^details\./, '').replace(/_/g, ' ');
                 return (
-                  <div key={key} className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/60 dark:border-slate-700/60">
-                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block break-words">{label}</span>
-                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100 break-words">{isLong ? display.substring(0, 80) + '…' : display}</span>
+                  <div key={key} className="p-3.5 bg-[#FAF8F5] dark:bg-[#1C1C2E] rounded-2xl border border-[#E5E1DC]/60 dark:border-[#444460]/60">
+                    <span className="text-[11px] font-bold text-[#8A857C] uppercase tracking-wider block break-words">{label}</span>
+                    <span className="text-sm font-bold text-[#1A1A2E] dark:text-[#F0EDE8] break-words">{isLong ? display.substring(0, 80) + '…' : display}</span>
                   </div>
                 );
               });
@@ -1067,7 +1065,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           {/* Imported spec/angle images under the specs */}
           {allImportedImages.length > 0 && (
             <div className="mt-4">
-              <h4 className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+              <h4 className="text-xs font-black text-[#6B7280] dark:text-[#8A857C] uppercase tracking-wider mb-2">
                 Product Images & Build Angles ({allImportedImages.length})
               </h4>
               <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-thin">
@@ -1075,10 +1073,10 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   <button
                     key={idx}
                     onClick={() => { setSelectedImageIndex(idx); setIsLightboxOpen(true); }}
-                    className="relative w-20 h-20 rounded-2xl bg-white dark:bg-slate-800/60 p-1.5 border border-slate-200 dark:border-slate-700 shrink-0 hover:ring-2 hover:ring-blue-500/40 transition-all overflow-hidden"
+                    className="relative w-20 h-20 rounded-2xl bg-white dark:bg-[#252538]/60 p-1.5 border border-[#E5E1DC] dark:border-[#444460] shrink-0 hover:ring-2 hover:ring-blue-500/40 transition-all overflow-hidden"
                   >
                     <img src={proxyImageUrl(img)} alt={`${product.title} image ${idx + 1}`} className="w-full h-full object-contain" referrerPolicy="no-referrer" loading="lazy" decoding="async" onError={(e) => { const t = e.currentTarget; if (t.src.includes('/api/public/image-proxy')) { const m = t.src.match(/url=([^&]+)/); if (m) t.src = decodeURIComponent(m[1]); } else { t.style.display = 'none'; } }} />
-                    <span className="absolute bottom-0.5 right-0.5 bg-slate-900/80 text-white text-[9px] px-1 rounded font-bold">#{idx + 1}</span>
+                    <span className="absolute bottom-0.5 right-0.5 bg-[#1A1A2E]/80 text-white text-[9px] px-1 rounded font-bold">#{idx + 1}</span>
                   </button>
                 ))}
               </div>
@@ -1125,7 +1123,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         const specData = (product.specifications || {}) as any;
         return Array.isArray(specData.reviews) && specData.reviews.length > 0 ? (
           <section className="max-w-7xl mx-auto px-4 mt-16">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <div className="bg-white dark:bg-[#252538] rounded-3xl p-6 sm:p-8 border border-[#E5E1DC]/80 dark:border-[#333348] shadow-sm">
               <CustomerReviews
                 reviews={specData.reviews}
                 reviewStats={specData.review_stats}
@@ -1140,7 +1138,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       {relatedProducts.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 mt-16 space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">
+            <h3 className="text-2xl font-extrabold text-[#1A1A2E] dark:text-[#F0EDE8]">
               Similar Top Picks in {product.mainCategory}
             </h3>
             <a href={`/categories/${product.mainCategory.toLowerCase()}`} className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
@@ -1162,13 +1160,13 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex flex-col justify-between p-4 sm:p-6"
+            className="fixed inset-0 z-50 bg-[#0A0A15]/95 backdrop-blur-xl flex flex-col justify-between p-4 sm:p-6"
           >
             {/* Lightbox Header with Product Title, Zoom Controls & Close */}
-            <div className="flex flex-wrap items-center justify-between text-white z-20 gap-3 border-b border-slate-800 pb-3">
+            <div className="flex flex-wrap items-center justify-between text-white z-20 gap-3 border-b border-[#333348] pb-3">
               <div className="min-w-0">
                 <h3 className="text-sm font-extrabold truncate max-w-xs sm:max-w-md">{product.title}</h3>
-                <div className="flex items-center gap-3 text-xs text-slate-400 font-mono mt-0.5">
+                <div className="flex items-center gap-3 text-xs text-[#9CA3AF] font-mono mt-0.5">
                   <span>Image {selectedImageIndex + 1} of {allImportedImages.length}</span>
                   <span>•</span>
                   <span className="text-amber-400 font-bold">{lightboxZoom}x Zoom</span>
@@ -1176,24 +1174,24 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               </div>
 
               {/* Lightbox Interactive Toolbar (Zoom In/Out, Rotate, Reset, Close) */}
-              <div className="flex items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 shadow-xl">
+              <div className="flex items-center gap-1.5 bg-[#1A1A2E]/90 p-1.5 rounded-2xl border border-[#333348] shadow-xl">
                 <button
                   onClick={() => setLightboxZoom((prev) => Math.min(prev + 0.5, 3))}
-                  className="p-2 hover:bg-slate-800 rounded-xl text-slate-200 transition-colors font-bold text-xs"
+                  className="p-2 hover:bg-[#252538] rounded-xl text-[#C8C4BC] transition-colors font-bold text-xs"
                   title="Zoom In (+)"
                 >
                   🔍+
                 </button>
                 <button
                   onClick={() => setLightboxZoom((prev) => Math.max(prev - 0.5, 1))}
-                  className="p-2 hover:bg-slate-800 rounded-xl text-slate-200 transition-colors font-bold text-xs"
+                  className="p-2 hover:bg-[#252538] rounded-xl text-[#C8C4BC] transition-colors font-bold text-xs"
                   title="Zoom Out (-)"
                 >
                   🔍-
                 </button>
                 <button
                   onClick={() => setLightboxRotation((prev) => (prev + 90) % 360)}
-                  className="p-2 hover:bg-slate-800 rounded-xl text-slate-200 transition-colors font-bold text-xs"
+                  className="p-2 hover:bg-[#252538] rounded-xl text-[#C8C4BC] transition-colors font-bold text-xs"
                   title="Rotate 90°"
                 >
                   🔄
@@ -1210,7 +1208,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   </button>
                 )}
 
-                <div className="w-px h-5 bg-slate-800 mx-1" />
+                <div className="w-px h-5 bg-[#252538] mx-1" />
 
                 <button
                   onClick={() => setIsLightboxOpen(false)}
@@ -1230,7 +1228,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               {/* Prev Button */}
               <button
                 onClick={() => setSelectedImageIndex((prev) => (prev - 1 + allImportedImages.length) % allImportedImages.length)}
-                className="absolute left-2 sm:left-6 z-30 bg-slate-900/90 hover:bg-slate-900 text-white p-3 rounded-full border border-slate-700 shadow-2xl transition-all hover:scale-110"
+                className="absolute left-2 sm:left-6 z-30 bg-[#1A1A2E]/90 hover:bg-[#1A1A2E] text-white p-3 rounded-full border border-[#444460] shadow-2xl transition-all hover:scale-110"
                 title="Previous Image (← Arrow Left)"
               >
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1264,7 +1262,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               {/* Next Button */}
               <button
                 onClick={() => setSelectedImageIndex((prev) => (prev + 1) % allImportedImages.length)}
-                className="absolute right-2 sm:right-6 z-30 bg-slate-900/90 hover:bg-slate-900 text-white p-3 rounded-full border border-slate-700 shadow-2xl transition-all hover:scale-110"
+                className="absolute right-2 sm:right-6 z-30 bg-[#1A1A2E]/90 hover:bg-[#1A1A2E] text-white p-3 rounded-full border border-[#444460] shadow-2xl transition-all hover:scale-110"
                 title="Next Image (→ Arrow Right)"
               >
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1279,10 +1277,10 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 <button
                   key={idx}
                   onClick={() => setSelectedImageIndex(idx)}
-                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-slate-900 p-1.5 border transition-all shrink-0 ${
+                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-[#1A1A2E] p-1.5 border transition-all shrink-0 ${
                     selectedImageIndex === idx
                       ? 'border-amber-400 ring-2 ring-amber-400/40 scale-105'
-                      : 'border-slate-800 opacity-50 hover:opacity-100'
+                      : 'border-[#333348] opacity-50 hover:opacity-100'
                   }`}
                 >
                   <img src={proxyImageUrl(img)} alt="" className="w-full h-full object-contain" referrerPolicy="no-referrer" loading="lazy" decoding="async" onError={(e) => handleImageError(idx, e)} />
@@ -1294,11 +1292,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       </AnimatePresence>
 
       {/* Mobile Bottom Sticky Bar */}
-      <div className="lg:hidden fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 right-0 p-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 z-40 shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.2)] flex items-center justify-between gap-3">
+      <div className="lg:hidden fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 right-0 p-3 bg-white/95 dark:bg-[#252538]/95 backdrop-blur-xl border-t border-[#E5E1DC] dark:border-[#333348] z-40 shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.2)] flex items-center justify-between gap-3">
         <div>
-          <span className="text-xs font-bold text-slate-500 block truncate max-w-[150px]">{product.title}</span>
+          <span className="text-xs font-bold text-[#6B7280] block truncate max-w-[150px]">{product.title}</span>
           <span className="text-base font-black text-amazon-orange">${product.currentPrice && !isNaN(Number(product.currentPrice)) ? Number(product.currentPrice).toFixed(2) : 'Check Amazon'}</span>
-          <span className="text-[9px] text-slate-400 block">Price from Amazon. DawnWire earns a commission.</span>
+          <span className="text-[9px] text-[#9CA3AF] block">Price from Amazon. DawnWire earns a commission.</span>
         </div>
         <AffiliateCTA
           affiliateUrl={product.affiliateUrl}
@@ -1320,13 +1318,13 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         }`}
       >
         <div className="max-w-7xl mx-auto w-full px-4 pb-4">
-          <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl px-4 py-3 flex items-center justify-between gap-4">
+          <div className="bg-white/95 dark:bg-[#252538]/95 backdrop-blur-md border border-[#E5E1DC] dark:border-[#333348] rounded-2xl shadow-2xl px-4 py-3 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
               {allImportedImages[0] && (
                 <img
                   src={proxyImageUrl(allImportedImages[0])}
                   alt=""
-                  className="w-12 h-12 rounded-xl object-contain bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0"
+                  className="w-12 h-12 rounded-xl object-contain bg-white dark:bg-[#252538] border border-[#E5E1DC] dark:border-[#444460] shrink-0"
                   referrerPolicy="no-referrer"
                   loading="lazy"
                   decoding="async"
@@ -1339,27 +1337,27 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     {product.currentPrice && !isNaN(Number(product.currentPrice)) ? `$${Number(product.currentPrice).toFixed(2)}` : 'Check Amazon'}
                   </span>
                   {product.referencePrice && Number(product.referencePrice) > 0 && Number(product.currentPrice) > 0 && Number(product.referencePrice) > Number(product.currentPrice) && (
-                    <span className="text-xs text-slate-400 line-through">${Number(product.referencePrice).toFixed(2)}</span>
+                    <span className="text-xs text-[#9CA3AF] line-through">${Number(product.referencePrice).toFixed(2)}</span>
                   )}
                   {product.isDeal && product.discountPercentage ? (
                     <span className="text-[10px] font-black bg-red-600 text-white px-2 py-0.5 rounded-lg">-{product.discountPercentage}%</span>
                   ) : null}
                 </div>
-                <span className="text-[11px] font-bold text-slate-500 block truncate max-w-md">{product.title}</span>
+                <span className="text-[11px] font-bold text-[#6B7280] block truncate max-w-md">{product.title}</span>
               </div>
             </div>
             <div className="flex items-center gap-3 shrink-0">
-              <div className="hidden xl:flex items-center gap-2 text-xs font-bold text-slate-500">
+              <div className="hidden xl:flex items-center gap-2 text-xs font-bold text-[#6B7280]">
                 <div className="flex text-amber-400">{'★'.repeat(Math.round(product.rating || 4.5))}</div>
                 <span>{product.rating}</span>
-                <span className="text-slate-400">({product.reviewCount?.toLocaleString()})</span>
+                <span className="text-[#9CA3AF]">({product.reviewCount?.toLocaleString()})</span>
               </div>
               <button
                 onClick={() => store.toggleWishlist(product.id)}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
                   isWishlisted
                     ? 'bg-rose-50 dark:bg-rose-950/80 text-rose-600 border-rose-300'
-                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 hover:text-rose-600'
+                    : 'bg-white dark:bg-[#252538] border-[#E5E1DC] dark:border-[#444460] text-[#6B7280] hover:text-rose-600'
                 }`}
               >
                 <svg className={`w-4 h-4 ${isWishlisted ? 'fill-rose-600' : 'fill-none stroke-current'}`} viewBox="0 0 24 24">

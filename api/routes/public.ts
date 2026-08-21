@@ -865,4 +865,98 @@ router.get('/user/comparisons', async (req, res) => {
   res.json(data);
 });
 
+// ===== AI Health Check =====
+router.get('/health/ai', async (_req, res) => {
+  const testPrompt = 'Say hi in 3 words.';
+  const testSystem = 'You are a test bot. Reply with exactly 3 words.';
+  const timeout = 15000;
+
+  const providers: Record<string, { configured: boolean; latencyMs?: number; ok?: boolean; error?: string }> = {};
+
+  // 1. DeepSeek
+  try {
+    const { isDeepSeekConfigured, deepseekText } = await import('../../server/deepseek-pool');
+    const configured = isDeepSeekConfigured();
+    providers.deepseek = { configured };
+    if (configured) {
+      const t0 = Date.now();
+      const r = await deepseekText({ prompt: testPrompt, system: testSystem, timeoutMs: timeout, maxOutputTokens: 20 });
+      providers.deepseek.latencyMs = Date.now() - t0;
+      providers.deepseek.ok = !!r;
+    }
+  } catch (e: any) {
+    providers.deepseek = { configured: true, ok: false, error: e.message?.substring(0, 200) };
+  }
+
+  // 2. Cloudflare Workers AI
+  try {
+    const { isCloudflareTextConfigured } = await import('../../server/ai');
+    const configured = isCloudflareTextConfigured();
+    providers.cloudflare = { configured };
+    if (configured) {
+      const t0 = Date.now();
+      // cloudflareText is not exported, so we inline a minimal fetch
+      const accountId = process.env.CLOUDFLARE_ACCOUNT_ID || '';
+      const token = process.env.CLOUDFLARE_IMAGE_API_KEY || process.env.CLOUDFLARE_API_TOKEN || '';
+      const model = process.env.CLOUDFLARE_TEXT_MODEL || '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), timeout);
+      const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${model}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [{ role: 'user', content: testPrompt }], max_tokens: 20 }),
+        signal: ctrl.signal,
+      });
+      clearTimeout(tid);
+      const data: any = await r.json().catch(() => ({}));
+      providers.cloudflare.latencyMs = Date.now() - t0;
+      providers.cloudflare.ok = !!(data?.success && data?.result?.response);
+      if (!providers.cloudflare.ok) providers.cloudflare.error = data?.errors?.[0]?.message || `HTTP ${r.status}`;
+    }
+  } catch (e: any) {
+    providers.cloudflare = { configured: true, ok: false, error: e.message?.substring(0, 200) };
+  }
+
+  // 3. Cohere / AI Gateway
+  try {
+    const configured = !!(process.env.AI_GATEWAY_API_KEY || process.env.COHERE_API_KEY);
+    providers.cohere = { configured };
+    if (configured) {
+      const { cohereChat } = await import('../../server/ai');
+      const t0 = Date.now();
+      const r = await cohereChat(testPrompt, testSystem, timeout, 20);
+      providers.cohere.latencyMs = Date.now() - t0;
+      providers.cohere.ok = !!r;
+    }
+  } catch (e: any) {
+    providers.cohere = { configured: true, ok: false, error: e.message?.substring(0, 200) };
+  }
+
+  // 4. Gemini
+  try {
+    const { isGeminiConfigured, geminiText } = await import('../../server/gemini');
+    const configured = isGeminiConfigured();
+    providers.gemini = { configured };
+    if (configured) {
+      const t0 = Date.now();
+      const r = await geminiText(testPrompt, testSystem, timeout, 20);
+      providers.gemini.latencyMs = Date.now() - t0;
+      providers.gemini.ok = !!r;
+    }
+  } catch (e: any) {
+    providers.gemini = { configured: true, ok: false, error: e.message?.substring(0, 200) };
+  }
+
+  const configuredCount = Object.values(providers).filter(p => p.configured).length;
+  const healthyCount = Object.values(providers).filter(p => p.ok).length;
+  const primary = providers.deepseek?.ok ? 'deepseek' : providers.cloudflare?.ok ? 'cloudflare' : providers.cohere?.ok ? 'cohere' : providers.gemini?.ok ? 'gemini' : 'none';
+
+  res.json({
+    status: healthyCount > 0 ? 'ok' : 'degraded',
+    primary,
+    providers,
+    summary: `${healthyCount}/${configuredCount} providers healthy`,
+  });
+});
+
 export default router;

@@ -95,6 +95,34 @@
 
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-editorial: 'Playfair Display', 'Georgia', 'Times New Roman', serif;
+  --font-heading: 'Playfair Display', 'Georgia', serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  /* Editorial Premium palette — warm cream + deep ink + gold accent */
+  --editorial-cream: #FAF8F5;
+  --editorial-warm: #F5F0EB;
+  --editorial-ink: #1A1A2E;
+  --editorial-ink-light: #2D2D44;
+  --editorial-gold: #C9A96E;
+  --editorial-gold-light: #E8D5B0;
+  --editorial-text: #374151;
+  --editorial-text-muted: #6B7280;
+  --editorial-border: #E5E1DC;
+  --editorial-accent: #8B5E3C;
+}
+
+/* Editorial Dark Mode — warm dark with gold accents (not cold blue) */
+.dark {
+  --editorial-cream: #1C1C2E;
+  --editorial-warm: #252538;
+  --editorial-ink: #F0EDE8;
+  --editorial-ink-light: #D4CFC6;
+  --editorial-gold: #D4B87A;
+  --editorial-gold-light: #C9A96E;
+  --editorial-text: #C8C4BC;
+  --editorial-text-muted: #8A857C;
+  --editorial-border: #333348;
+  --editorial-accent: #A67C52;
 }
 
 @layer components {
@@ -780,9 +808,285 @@
   }
 }
 
+/* ============================================================
+   EDITORIAL PREMIUM DESIGN SYSTEM
+   Magazine-style typography, warm palette, trust-building
+   ============================================================ */
+@layer components {
+  /* Editorial serif headings */
+  .editorial-heading {
+    font-family: var(--font-editorial);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--editorial-ink);
+  }
+  .editorial-heading-xl {
+    font-family: var(--font-editorial);
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    color: var(--editorial-ink);
+  }
+  .editorial-heading-lg {
+    font-family: var(--font-editorial);
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: var(--editorial-ink);
+  }
+  .editorial-heading-md {
+    font-family: var(--font-editorial);
+    font-size: clamp(1.25rem, 2vw, 1.75rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+    color: var(--editorial-ink);
+  }
+  .editorial-subtitle {
+    font-family: var(--font-editorial);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--editorial-text-muted);
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+
+  /* Editorial card — warm cream background, subtle border, elegant shadow */
+  .editorial-card {
+    background: #FFFFFF;
+    border: 1px solid var(--editorial-border);
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px -12px rgba(0,0,0,0.06);
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .editorial-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06), 0 20px 48px -16px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+  }
+
+  /* Editorial score badge — gold/amber circular */
+  .editorial-score {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #C9A96E, #E8D5B0);
+    color: #FFFFFF;
+    font-family: var(--font-editorial);
+    font-weight: 800;
+    font-size: 18px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 8px rgba(201,169,110,0.3);
+  }
+  .editorial-score-sm {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  /* Editorial divider — thin gold line with centered label */
+  .editorial-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 2rem 0;
+  }
+  .editorial-divider::before,
+  .editorial-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--editorial-border), transparent);
+  }
+  .editorial-divider span {
+    font-family: var(--font-editorial);
+    font-style: italic;
+    font-size: 0.875rem;
+    color: var(--editorial-text-muted);
+    white-space: nowrap;
+  }
+
+  /* Editorial section header with gold accent line */
+  .editorial-section {
+    position: relative;
+    padding-left: 20px;
+    border-left: 3px solid var(--editorial-gold);
+  }
+  .editorial-section::before {
+    content: '';
+    position: absolute;
+    left: -3px;
+    top: 0;
+    width: 3px;
+    height: 24px;
+    background: var(--editorial-ink);
+  }
+
+  /* Editorial CTA button — refined, less gradient, more editorial */
+  .editorial-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+  }
+  .editorial-btn-primary {
+    background: var(--editorial-ink);
+    color: #FFFFFF;
+  }
+  .editorial-btn-primary:hover {
+    background: var(--editorial-ink-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(26,26,46,0.3);
+  }
+  .editorial-btn-outline {
+    background: transparent;
+    color: var(--editorial-ink);
+    border: 1.5px solid var(--editorial-ink);
+  }
+  .editorial-btn-outline:hover {
+    background: var(--editorial-ink);
+    color: #FFFFFF;
+  }
+  .editorial-btn-gold {
+    background: linear-gradient(135deg, var(--editorial-gold), #D4B87A);
+    color: #FFFFFF;
+  }
+  .editorial-btn-gold:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(201,169,110,0.4);
+  }
+
+  /* Editorial trust bar */
+  .editorial-trust {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 16px 24px;
+    background: var(--editorial-cream);
+    border: 1px solid var(--editorial-border);
+    border-radius: 12px;
+    font-size: 13px;
+    color: var(--editorial-text-muted);
+  }
+  .editorial-trust-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+  }
+  .editorial-trust-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--editorial-gold);
+  }
+
+  /* Editorial byline */
+  .editorial-byline {
+    font-family: var(--font-editorial);
+    font-style: italic;
+    font-size: 0.875rem;
+    color: var(--editorial-text-muted);
+    letter-spacing: 0.01em;
+  }
+
+  /* Editorial tag */
+  .editorial-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border: 1px solid var(--editorial-border);
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--editorial-text-muted);
+    background: var(--editorial-cream);
+  }
+
+  /* Editorial product image stage — warm neutral background */
+  .editorial-img-stage {
+    background: linear-gradient(135deg, #FAF8F5 0%, #F5F0EB 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .editorial-img-stage img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+}
+
+/* Editorial Dark Mode component overrides */
+.dark .editorial-card {
+  background: #1C1C2E;
+  border-color: #333348;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 8px 24px -12px rgba(0,0,0,0.3);
+}
+.dark .editorial-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3), 0 20px 48px -16px rgba(0,0,0,0.4);
+  border-color: #444460;
+}
+.dark .editorial-score {
+  background: linear-gradient(135deg, #D4B87A, #C9A96E);
+  box-shadow: 0 2px 8px rgba(212,184,122,0.3);
+}
+.dark .editorial-trust {
+  background: #1C1C2E;
+  border-color: #333348;
+  color: #C8C4BC;
+}
+.dark .editorial-btn-primary {
+  background: #D4B87A;
+  color: #1A1A2E;
+}
+.dark .editorial-btn-primary:hover {
+  background: #C9A96E;
+}
+.dark .editorial-btn-outline {
+  color: #D4B87A;
+  border-color: #D4B87A;
+}
+.dark .editorial-btn-outline:hover {
+  background: #D4B87A;
+  color: #1A1A2E;
+}
+.dark .editorial-tag {
+  background: #252538;
+  border-color: #333348;
+  color: #8A857C;
+}
+.dark .editorial-img-stage {
+  background: linear-gradient(135deg, #1C1C2E 0%, #252538 100%);
+}
+.dark .editorial-section {
+  border-left-color: #D4B87A;
+}
+.dark .editorial-section::before {
+  background: #F0EDE8;
+}
+
 @layer base {
   body {
-    @apply bg-[#F8FAFC] text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200;
+    @apply bg-[#F8FAFC] text-slate-900 dark:bg-[#111120] dark:text-[#F0EDE8] transition-colors duration-200;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;

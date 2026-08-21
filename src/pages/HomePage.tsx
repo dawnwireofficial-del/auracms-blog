@@ -26,14 +26,15 @@ const NO_IMAGE = 'data:image/svg+xml,' + encodeURIComponent(
 function SectionHead({ title, sub, href, label, light }: { title: string; sub?: string; href?: string; label?: string; light?: boolean }) {
   return (
     <div className="flex items-end justify-between gap-4 mb-6 md:mb-8">
-      <div>
-        <h2 className={`text-2xl md:text-3xl lg:text-[32px] font-[850] tracking-tight leading-tight font-sans ${light ? 'text-white' : 'text-slate-900'}`}>
+      <div className="relative pl-5 border-l-[3px] border-[#C9A96E]">
+        <div className="absolute left-[-3px] top-0 w-[3px] h-6 bg-[#1A1A2E]" />
+        <h2 className="font-['Playfair_Display',Georgia,serif] text-2xl md:text-3xl lg:text-[32px] font-[700] tracking-[-0.02em] leading-tight ${light ? 'text-white' : 'text-[#1A1A2E]'}">
           {title}
         </h2>
-        {sub && <div className={`mt-1.5 text-sm ${light ? 'text-white/70' : 'text-slate-500'}`}>{sub}</div>}
+        {sub && <div className={`mt-1.5 text-sm font-['Playfair_Display',Georgia,serif] italic ${light ? 'text-white/70' : 'text-[#6B7280]'}`}>{sub}</div>}
       </div>
       {href && (
-        <a href={href} className={`shrink-0 text-sm font-bold flex items-center gap-1 whitespace-nowrap transition-colors ${light ? 'text-white hover:text-white/80' : 'text-[#246BFF] hover:text-[#1a57e0]'}`}>
+        <a href={href} className={`shrink-0 text-[13px] font-semibold uppercase tracking-[0.06em] flex items-center gap-1.5 whitespace-nowrap transition-colors ${light ? 'text-white hover:text-white/80' : 'text-[#C9A96E] hover:text-[#B8944E]'}`}>
           {label || 'View All'}
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -51,12 +52,12 @@ function Stars({ rating, count, size = 15 }: { rating?: number; count?: number |
     <span className="inline-flex items-center gap-1.5">
       <span className="inline-flex items-center gap-0.5 text-amber-400 leading-none" aria-label={`${r} out of 5 stars`}>
         {[1, 2, 3, 4, 5].map(i => (
-          <svg key={i} width={size} height={size} viewBox="0 0 20 20" className={i <= full ? 'text-[#FF8A00]' : 'text-slate-300'} fill="currentColor">
+          <svg key={i} width={size} height={size} viewBox="0 0 20 20" className={i <= full ? 'text-[#FF8A00]' : 'text-[#D4CFC6]'} fill="currentColor">
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118L2.977 10.1c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
           </svg>
         ))}
       </span>
-      <span className="text-[13px] text-slate-500">
+      <span className="text-[13px] text-[#6B7280]">
         {r > 0 ? r.toFixed(1) : ''}
         {count ? ` (${Number(count).toLocaleString()})` : ''}
       </span>
@@ -73,21 +74,21 @@ function PriceBlock({ price, was, large }: { price?: number | string; was?: numb
     <div className="flex items-baseline gap-2">
       {showNow ? (
         <>
-          <span className={`${large ? 'text-2xl' : 'text-lg'} font-[850] tracking-tight text-slate-900`}>${p.toFixed(2)}</span>
-          {showWas && <span className="text-sm text-slate-400 line-through">${w.toFixed(2)}</span>}
+          <span className={`${large ? 'text-2xl' : 'text-lg'} font-[850] tracking-tight text-[#1A1A2E]`}>${p.toFixed(2)}</span>
+          {showWas && <span className="text-sm text-[#9CA3AF] line-through">${w.toFixed(2)}</span>}
         </>
       ) : (
-        <span className="text-sm font-semibold text-slate-500">Check Price on Amazon</span>
+        <span className="text-sm font-semibold text-[#6B7280]">Check Price on Amazon</span>
       )}
     </div>
   );
 }
 
 const TRUST_ITEMS = [
-  { icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', label: 'Independently tested', color: 'from-[#246BFF] to-[#4F7CFF]' },
-  { icon: 'M13 10V3L4 14h7v7l9-11h-7z', label: 'AI-powered scoring', color: 'from-[#FF8A00] to-[#FFB347]' },
-  { icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9', label: 'Live price tracking', color: 'from-[#059669] to-[#34D399]' },
-  { icon: 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z', label: 'AI research assistant', color: 'from-[#7C3AED] to-[#A78BFA]' },
+  { icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', label: 'Independently tested' },
+  { icon: 'M13 10V3L4 14h7v7l9-11h-7z', label: 'AI-powered scoring' },
+  { icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9', label: 'Live price tracking' },
+  { icon: 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z', label: 'AI research assistant' },
 ];
 
 /* Countdown timer to end of today — powers the "Hot Deals" module (reference so-deals timer) */
@@ -113,8 +114,8 @@ function DealsCountdown() {
     <div className="flex items-center gap-1.5 font-mono" aria-label="Deals end countdown">
       {[hh, mm, ss].map((v, i) => (
         <React.Fragment key={i}>
-          <span className="inline-flex items-center justify-center min-w-[42px] h-10 rounded-lg bg-gradient-to-b from-[#FF8A00] to-[#e67b00] text-white text-lg font-black shadow-[0_6px_14px_-6px_rgba(255,138,0,0.6)] tabular-nums">{v}</span>
-          {i < 2 && <span className="text-lg font-black text-slate-400">:</span>}
+          <span className="inline-flex items-center justify-center min-w-[42px] h-10 rounded-lg bg-[#1A1A2E] text-[#C9A96E] text-lg font-black shadow-[0_6px_14px_-6px_rgba(26,26,46,0.6)] tabular-nums font-['Playfair_Display',serif]">{v}</span>
+          {i < 2 && <span className="text-lg font-black text-[#9CA3AF]">:</span>}
         </React.Fragment>
       ))}
     </div>
@@ -368,7 +369,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 overflow-x-clip">
+    <div className="min-h-screen bg-[#F8FAFC] text-[#1A1A2E] overflow-x-clip">
       <DisclosureBanner />
 
       {/* ============================ FULL-WIDTH HERO SLIDER (reference so-homeslider) ============================ */}
@@ -411,7 +412,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                       </span>
                       {bannerSlots.heroMain?.subtitle || 'AI-powered deals & independent benchmarks'}
                     </div>
-                    <h1 className="mt-5 text-4xl sm:text-5xl xl:text-[58px] font-[900] tracking-tight leading-[1.02] text-slate-900 font-sans">
+                    <h1 className="mt-5 text-4xl sm:text-5xl xl:text-[58px] font-[900] tracking-tight leading-[1.02] text-[#1A1A2E] font-sans">
                       {bannerSlots.heroMain?.heading ? (
                         bannerSlots.heroMain.heading
                       ) : (
@@ -423,14 +424,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                         </>
                       )}
                     </h1>
-                    <p className="mt-5 max-w-lg text-[16px] leading-relaxed text-slate-600">
+                    <p className="mt-5 max-w-lg text-[16px] leading-relaxed text-[#6B7280]">
                       {bannerSlots.heroMain?.description || 'DawnWire researches, price-checks and scores the best products of 2026 — so you buy the right thing, at the right price, in seconds instead of hours.'}
                     </p>
 
                     {/* Hero search */}
                     <form onSubmit={submitHeroSearch} className="mt-7 max-w-xl">
                       <div className="bg-white/80 backdrop-blur rounded-2xl p-1.5 flex items-stretch gap-1 border border-white/80 shadow-[0_10px_30px_-8px_rgba(36,107,255,0.18)]">
-                        <span className="hidden sm:flex items-center pl-3 text-slate-400">
+                        <span className="hidden sm:flex items-center pl-3 text-[#9CA3AF]">
                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                           </svg>
@@ -440,12 +441,12 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                           onChange={e => setHeroQuery(e.target.value)}
                           placeholder="Search products, deals, reviews or guides…"
                           aria-label="Search DawnWire"
-                          className="flex-1 min-w-0 bg-transparent px-3 sm:px-2 py-3 text-[15px] text-slate-900 placeholder-slate-400 outline-none"
+                          className="flex-1 min-w-0 bg-transparent px-3 sm:px-2 py-3 text-[15px] text-[#1A1A2E] placeholder-[#9CA3AF] outline-none"
                         />
                         <button type="submit" className="bg-[#246BFF] hover:bg-[#164EE8] text-white font-bold px-6 py-2.5 rounded-xl shrink-0">Search</button>
                       </div>
-                      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-slate-500">
-                        <span className="font-bold text-slate-600">Trending:</span>
+                      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-[#6B7280]">
+                        <span className="font-bold text-[#6B7280]">Trending:</span>
                         {['Wireless Headphones', 'Korean Skincare', 'Air Fryers'].map(t => (
                           <button key={t} type="button" onClick={() => setHeroQuery(t)} className="hover:text-[#246BFF] font-semibold transition-colors">{t}</button>
                         ))}
@@ -460,7 +461,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                         </svg>
                         Find My Perfect Product
                       </button>
-                      <a href="/products?sort=rating" className="inline-flex items-center gap-2 rounded-xl border border-slate-300 text-slate-700 hover:border-[#246BFF] hover:text-[#246BFF] font-bold px-6 py-3 text-[15px] transition-all">
+                      <a href="/products?sort=rating" className="inline-flex items-center gap-2 rounded-xl border border-[#E5E1DC] text-[#374151] hover:border-[#246BFF] hover:text-[#246BFF] font-bold px-6 py-3 text-[15px] transition-all">
                         Browse Best Sellers
                       </a>
                     </div>
@@ -475,7 +476,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                         className="block relative"
                         data-gravity-cursor="view"
                       >
-                        <div className="relative mx-auto max-w-[460px] aspect-[7/4] rounded-[24px] bg-white border border-slate-200/80 shadow-[0_24px_70px_-24px_rgba(36,107,255,0.4)] overflow-hidden">
+                        <div className="relative mx-auto max-w-[460px] aspect-[7/4] rounded-[24px] bg-white border border-[#E5E1DC]/80 shadow-[0_24px_70px_-24px_rgba(36,107,255,0.4)] overflow-hidden">
                           <img
                             src={proxyImageUrl(bannerSlots.heroMain.desktopImage) || NO_IMAGE}
                             alt={bannerSlots.heroMain.altText || bannerSlots.heroMain.heading || 'Featured banner'}
@@ -498,7 +499,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                   ) : heroItem ? (
                     <div className="relative px-4 pb-2">
                       <a href={`/products/${heroItem.slug}`} className="block relative" data-gravity-cursor="view">
-                        <div className="relative mx-auto max-w-[360px] aspect-square rounded-[24px] bg-white border border-slate-200/80 shadow-[0_24px_70px_-24px_rgba(36,107,255,0.4)] p-4">
+                        <div className="relative mx-auto max-w-[360px] aspect-square rounded-[24px] bg-white border border-[#E5E1DC]/80 shadow-[0_24px_70px_-24px_rgba(36,107,255,0.4)] p-4">
                           <img
                             src={proxyImageUrl(heroItem.images?.[0] || heroItem.productImage) || NO_IMAGE}
                             alt={heroItem.title}
@@ -511,15 +512,15 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                               −{heroItem.discountPercentage}%
                             </span>
                           ) : null}
-                          <div className="absolute -bottom-4 -left-4 bg-white rounded-2xl border border-slate-200 shadow-xl px-4 py-2.5">
-                            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">DawnWire Score</p>
-                            <p className="text-xl font-[900] text-[#246BFF]">{(heroItem.editorScore || 0).toFixed(1)}<span className="text-sm text-slate-400"> /10</span></p>
+                          <div className="absolute -bottom-4 -left-4 bg-white rounded-2xl border border-[#E5E1DC] shadow-xl px-4 py-2.5">
+                            <p className="text-[10px] font-bold uppercase tracking-wide text-[#9CA3AF]">DawnWire Score</p>
+                            <p className="text-xl font-[900] text-[#246BFF]">{(heroItem.editorScore || 0).toFixed(1)}<span className="text-sm text-[#9CA3AF]"> /10</span></p>
                           </div>
                         </div>
                       </a>
                       <div className="hidden lg:flex items-center justify-center gap-4 mt-8">
                         {topDeals.map((p, i) => i < 3 ? (
-                          <a key={p.id} href={`/products/${p.slug}`} className="w-14 h-14 rounded-xl bg-white border border-slate-200 shadow-sm overflow-hidden p-1" data-gravity-cursor="view">
+                          <a key={p.id} href={`/products/${p.slug}`} className="w-14 h-14 rounded-xl bg-white border border-[#E5E1DC] shadow-sm overflow-hidden p-1" data-gravity-cursor="view">
                             <img src={proxyImageUrl(p.images?.[0] || p.productImage) || NO_IMAGE} alt={p.title} referrerPolicy="no-referrer" className="w-full h-full object-contain"
                               onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
                           </a>
@@ -534,7 +535,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 <div className="mt-auto px-7 md:px-10 py-5 border-t border-[#246BFF]/10 bg-white/55">
                   <ul className="flex flex-wrap gap-x-6 gap-y-2">
                     {['1,200+ products scored', '45+ categories', 'Tracked daily from Amazon', 'Independent verdicts'].map(t => (
-                      <li key={t} className="flex items-center gap-1.5 text-[13px] font-semibold text-slate-600">
+                      <li key={t} className="flex items-center gap-1.5 text-[13px] font-semibold text-[#6B7280]">
                         <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                         </svg>
@@ -591,7 +592,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             <button
               onClick={() => goSlide(slideIdx - 1)}
               aria-label="Previous slide"
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/85 hover:bg-white text-slate-700 shadow-lg flex items-center justify-center backdrop-blur transition-all active:scale-95"
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/85 hover:bg-white text-[#374151] shadow-lg flex items-center justify-center backdrop-blur transition-all active:scale-95"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -600,7 +601,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             <button
               onClick={() => goSlide(slideIdx + 1)}
               aria-label="Next slide"
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/85 hover:bg-white text-slate-700 shadow-lg flex items-center justify-center backdrop-blur transition-all active:scale-95"
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/85 hover:bg-white text-[#374151] shadow-lg flex items-center justify-center backdrop-blur transition-all active:scale-95"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -613,7 +614,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                   key={i}
                   onClick={() => goSlide(i)}
                   aria-label={`Go to slide ${i + 1}`}
-                  className={`h-2 rounded-full transition-all duration-300 ${slideIdx === i ? 'w-7 bg-[#246BFF]' : 'w-2 bg-slate-400/60 hover:bg-slate-500'}`}
+                  className={`h-2 rounded-full transition-all duration-300 ${slideIdx === i ? 'w-7 bg-[#246BFF]' : 'w-2 bg-[#9CA3AF]/60 hover:bg-[#6B7280]'}`}
                 />
               ))}
             </div>
@@ -622,18 +623,16 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
       </section>
 
       {/* ============================ TRUST STRIP ============================ */}
-      <section className="border-y border-slate-200/80 bg-white">
+      <section className="border-y border-[#E5E1DC]/80 dark:border-[#333348]/80 bg-white dark:bg-[#1C1C2E]">
         <div className="commerce-container grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 py-5">
           {TRUST_ITEMS.map(item => (
-            <div key={item.label} className="group flex items-center gap-3 hover:bg-[#F8FAFC] rounded-xl px-3 py-2 -mx-3 transition-colors">
-              <span className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.color} text-white flex items-center justify-center shrink-0 shadow-[0_4px_12px_-3px_rgba(0,0,0,0.15)] group-hover:scale-110 transition-transform duration-300`}
-                style={{ boxShadow: `0 4px 14px -3px ${item.color.includes('#246BFF') ? 'rgba(36,107,255,0.35)' : item.color.includes('#FF8A00') ? 'rgba(255,138,0,0.35)' : item.color.includes('#059669') ? 'rgba(5,150,105,0.35)' : 'rgba(124,58,237,0.35)'}` }}
-              >
+            <div key={item.label} className="group flex items-center gap-3 hover:bg-[#FAF8F5] rounded-xl px-3 py-2 -mx-3 transition-colors">
+              <span className="w-10 h-10 rounded-xl bg-[#FAF8F5] dark:bg-[#252538] border border-[#E5E1DC] dark:border-[#444460] text-[#C9A96E] dark:text-[#D4B87A] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
                 <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
                 </svg>
               </span>
-              <span className="text-[13px] font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{item.label}</span>
+              <span className="text-[13px] font-semibold text-[#374151] dark:text-[#C8C4BC] group-hover:text-[#1A1A2E] dark:group-hover:text-[#F0EDE8] transition-colors">{item.label}</span>
             </div>
           ))}
         </div>
@@ -676,13 +675,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           <section>
             <div className="flex items-end justify-between gap-4 mb-6 md:mb-8">
               <div>
-                <h2 className="text-2xl md:text-3xl lg:text-[32px] font-[850] tracking-tight leading-tight font-sans text-slate-900">
+                <h2 className="text-2xl md:text-3xl lg:text-[32px] font-[850] tracking-tight leading-tight font-sans text-[#1A1A2E]">
                   Hot Deals <span className="align-middle text-base font-bold text-[#FF334F]">🔥</span>
                 </h2>
-                <div className="mt-1.5 text-sm text-slate-500">The steepest real discounts we're tracking right now</div>
+                <div className="mt-1.5 text-sm text-[#6B7280]">The steepest real discounts we're tracking right now</div>
               </div>
               <div className="flex items-center gap-3 shrink-0">
-                <span className="hidden sm:block text-[12px] font-bold uppercase tracking-wider text-slate-400">Ends in</span>
+                <span className="hidden sm:block text-[12px] font-bold uppercase tracking-wider text-[#9CA3AF]">Ends in</span>
                 <DealsCountdown />
               </div>
             </div>
@@ -693,7 +692,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 const isTopDeal = disc >= 30;
                 return (
                   <a key={p.id} href={`/products/${p.slug}`} data-gravity-cursor="view"
-                    className="group relative flex flex-col bg-white rounded-2xl border border-slate-200/80 overflow-hidden hover:shadow-[0_20px_50px_-16px_rgba(36,107,255,0.35)] hover:-translate-y-1.5 hover:border-[#246BFF]/50 transition-all duration-300">
+                    className="group relative flex flex-col bg-white rounded-2xl border border-[#E5E1DC]/80 overflow-hidden hover:shadow-[0_20px_50px_-16px_rgba(36,107,255,0.35)] hover:-translate-y-1.5 hover:border-[#246BFF]/50 transition-all duration-300">
                     {/* Urgency glow for high-discount items */}
                     {isTopDeal && (
                       <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-[#FF334F]/5 to-transparent pointer-events-none z-[1]" />
@@ -721,7 +720,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                     </div>
                     <div className="relative z-[2] flex flex-col flex-1 gap-1 px-3.5 pb-3 pt-2">
                       <p className="text-[10px] font-bold text-[#246BFF] uppercase tracking-widest truncate">{p.brand}</p>
-                      <h3 className="text-[13px] font-bold text-slate-800 line-clamp-2 leading-snug min-h-[34px] group-hover:text-[#246BFF] transition-colors">{p.title}</h3>
+                      <h3 className="text-[13px] font-bold text-[#1A1A2E] line-clamp-2 leading-snug min-h-[34px] group-hover:text-[#246BFF] transition-colors">{p.title}</h3>
                       <Stars rating={p.rating} count={p.reviewCount} size={13} />
                       <PriceBlock price={p.currentPrice || p.price} was={p.referencePrice} />
                       <span className="mt-auto pt-2 w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#0A1F44] via-[#162d5a] to-[#1a3a6e] hover:from-[#0f1d35] hover:via-[#0A1F44] hover:to-[#162d5a] text-white text-[12px] font-bold py-3 shadow-[0_6px_20px_-6px_rgba(10,31,68,0.6)] transition-all group-hover:shadow-[0_10px_28px_-6px_rgba(10,31,68,0.7)] group-hover:-translate-y-0.5">
@@ -814,7 +813,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                   className={`px-4 py-2 rounded-xl text-[13px] font-bold transition-all ${
                     activeTab === i
                       ? 'bg-[#246BFF] text-white shadow-[0_8px_20px_-8px_rgba(36,107,255,0.6)]'
-                      : 'bg-white text-slate-600 border border-slate-200 hover:border-[#246BFF]/40 hover:text-[#246BFF]'
+                      : 'bg-white text-[#6B7280] border border-[#E5E1DC] hover:border-[#246BFF]/40 hover:text-[#246BFF]'
                   }`}
                 >
                   {cat.name}
@@ -828,7 +827,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                     ? Math.round((1 - Number(p.currentPrice) / Number(p.referencePrice)) * 100) : 0);
                   return (
                     <a key={p.id} href={`/products/${p.slug}`} data-gravity-cursor="view"
-                      className="group flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-[0_18px_44px_-16px_rgba(36,107,255,0.3)] hover:-translate-y-1 hover:border-[#246BFF]/40 transition-all duration-300">
+                      className="group flex flex-col bg-white rounded-2xl border border-[#E5E1DC] overflow-hidden hover:shadow-[0_18px_44px_-16px_rgba(36,107,255,0.3)] hover:-translate-y-1 hover:border-[#246BFF]/40 transition-all duration-300">
                       <div className="relative bg-white h-[200px] flex items-center justify-center overflow-hidden p-4">
                         {disc > 0 && (
                           <span className="absolute top-2.5 left-2.5 z-10 bg-[#FF334F] text-white text-[12px] font-black px-2.5 py-1 rounded-lg shadow-md">−{disc}%</span>
@@ -840,7 +839,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                       </div>
                       <div className="flex flex-col flex-1 gap-1.5 px-3.5 pb-3.5 pt-1">
                         <p className="text-[11px] font-bold text-[#246BFF] uppercase tracking-wide truncate">{p.brand}</p>
-                        <h3 className="text-[13px] font-bold text-slate-900 line-clamp-2 leading-snug min-h-[36px]">{p.title}</h3>
+                        <h3 className="text-[13px] font-bold text-[#1A1A2E] line-clamp-2 leading-snug min-h-[36px]">{p.title}</h3>
                         <Stars rating={p.rating} count={p.reviewCount} size={13} />
                         <PriceBlock price={p.currentPrice || p.price} was={p.referencePrice} />
                         <span className="mt-auto pt-1.5 w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#1a2b4a] to-[#0f1d35] hover:from-[#0f1d35] hover:to-[#0a1428] text-white text-[13px] font-bold py-3 shadow-[0_6px_16px_-6px_rgba(26,43,74,0.5)] transition-all group-hover:shadow-[0_10px_22px_-6px_rgba(26,43,74,0.6)]">
@@ -852,7 +851,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 })}
               </div>
             ) : (
-              <p className="text-[13px] text-slate-500 py-8 text-center bg-white rounded-2xl border border-slate-200">Products coming soon.</p>
+              <p className="text-[13px] text-[#6B7280] py-8 text-center bg-white rounded-2xl border border-[#E5E1DC]">Products coming soon.</p>
             )}
           </section>
         )}
@@ -908,42 +907,42 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
               <span className="inline-flex items-center gap-1.5 bg-[#246BFF] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-4">
                 Featured Comparison <span className="text-amber-300">⚔️</span>
               </span>
-              <h2 className="text-2xl md:text-[26px] font-[850] text-slate-900 leading-tight">Who Wins Head-to-Head?</h2>
-              <p className="mt-2.5 text-sm text-slate-600 max-w-md leading-relaxed">
+              <h2 className="text-2xl md:text-[26px] font-[850] text-[#1A1A2E] leading-tight">Who Wins Head-to-Head?</h2>
+              <p className="mt-2.5 text-sm text-[#6B7280] max-w-md leading-relaxed">
                 Pick two products and our lab breaks down specs, real user sentiment, prices and a clear winner — in one screen.
               </p>
               <div className="mt-6 grid grid-cols-2 gap-3 max-w-sm">
                 <div className="rounded-2xl bg-white/80 border border-[#246BFF]/15 p-3 text-center shadow-sm">
                   <p className="text-[11px] font-bold text-[#246BFF] uppercase">2–4 products</p>
-                  <p className="text-[12px] text-slate-500 mt-0.5">Side-by-side specs</p>
+                  <p className="text-[12px] text-[#6B7280] mt-0.5">Side-by-side specs</p>
                 </div>
                 <div className="rounded-2xl bg-white/80 border border-[#FF8A00]/25 p-3 text-center shadow-sm">
                   <p className="text-[11px] font-bold text-[#FF8A00] uppercase">1 clear winner</p>
-                  <p className="text-[12px] text-slate-500 mt-0.5">+ best budget pick</p>
+                  <p className="text-[12px] text-[#6B7280] mt-0.5">+ best budget pick</p>
                 </div>
               </div>
             </div>
             {sortedByScore.length >= 2 && (
               <div className="relative mt-6 flex items-center gap-3">
-                <div className="flex-1 flex items-center gap-3 rounded-2xl bg-white/90 border border-slate-100 p-3 shadow-sm">
-                  <div className="w-16 h-16 rounded-xl bg-white border border-slate-200 flex items-center justify-center p-1.5 shrink-0 overflow-hidden">
+                <div className="flex-1 flex items-center gap-3 rounded-2xl bg-white/90 border border-[#E5E1DC] p-3 shadow-sm">
+                  <div className="w-16 h-16 rounded-xl bg-white border border-[#E5E1DC] flex items-center justify-center p-1.5 shrink-0 overflow-hidden">
                     <img src={proxyImageUrl(sortedByScore[0].images?.[0] || sortedByScore[0].productImage) || NO_IMAGE} alt={sortedByScore[0].title} referrerPolicy="no-referrer" className="w-full h-full object-contain" onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
                   </div>
                   <div className="min-w-0">
                     <span className="inline-block bg-[#246BFF] text-white text-[9px] font-black px-1.5 py-0.5 rounded mb-1">A</span>
-                    <p className="text-[12px] font-bold text-slate-800 truncate">{sortedByScore[0].title}</p>
-                    <p className="text-[11px] text-slate-400">★ {(sortedByScore[0].rating || 0).toFixed(1)} · Score {(sortedByScore[0].editorScore || 0).toFixed(1)}</p>
+                    <p className="text-[12px] font-bold text-[#1A1A2E] truncate">{sortedByScore[0].title}</p>
+                    <p className="text-[11px] text-[#9CA3AF]">★ {(sortedByScore[0].rating || 0).toFixed(1)} · Score {(sortedByScore[0].editorScore || 0).toFixed(1)}</p>
                   </div>
                 </div>
-                <span className="shrink-0 text-[11px] font-black text-slate-400 bg-slate-100 rounded-full w-7 h-7 grid place-items-center">VS</span>
-                <div className="flex-1 flex items-center gap-3 rounded-2xl bg-white/90 border border-slate-100 p-3 shadow-sm">
-                  <div className="w-16 h-16 rounded-xl bg-white border border-slate-200 flex items-center justify-center p-1.5 shrink-0 overflow-hidden">
+                <span className="shrink-0 text-[11px] font-black text-[#9CA3AF] bg-[#FAF8F5] rounded-full w-7 h-7 grid place-items-center">VS</span>
+                <div className="flex-1 flex items-center gap-3 rounded-2xl bg-white/90 border border-[#E5E1DC] p-3 shadow-sm">
+                  <div className="w-16 h-16 rounded-xl bg-white border border-[#E5E1DC] flex items-center justify-center p-1.5 shrink-0 overflow-hidden">
                     <img src={proxyImageUrl(sortedByScore[1].images?.[0] || sortedByScore[1].productImage) || NO_IMAGE} alt={sortedByScore[1].title} referrerPolicy="no-referrer" className="w-full h-full object-contain" onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
                   </div>
                   <div className="min-w-0">
                     <span className="inline-block bg-[#FF8A00] text-white text-[9px] font-black px-1.5 py-0.5 rounded mb-1">B</span>
-                    <p className="text-[12px] font-bold text-slate-800 truncate">{sortedByScore[1].title}</p>
-                    <p className="text-[11px] text-slate-400">★ {(sortedByScore[1].rating || 0).toFixed(1)} · Score {(sortedByScore[1].editorScore || 0).toFixed(1)}</p>
+                    <p className="text-[12px] font-bold text-[#1A1A2E] truncate">{sortedByScore[1].title}</p>
+                    <p className="text-[11px] text-[#9CA3AF]">★ {(sortedByScore[1].rating || 0).toFixed(1)} · Score {(sortedByScore[1].editorScore || 0).toFixed(1)}</p>
                   </div>
                 </div>
               </div>
@@ -967,17 +966,17 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#4F7CFF] to-[#246BFF] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-4">
                   ✨ AI Product Finder
                 </span>
-                <h2 className="text-2xl md:text-[26px] font-[850] text-slate-900 leading-tight">Can’t Decide? Ask the Research Bot.</h2>
-                <p className="mt-2.5 text-sm text-slate-600 max-w-md leading-relaxed">
+                <h2 className="text-2xl md:text-[26px] font-[850] text-[#1A1A2E] leading-tight">Can’t Decide? Ask the Research Bot.</h2>
+                <p className="mt-2.5 text-sm text-[#6B7280] max-w-md leading-relaxed">
                   Tell us your budget and needs — our AI compares the catalog, quotes real prices, and lands on a pick with an honest verdict.
                 </p>
                 <div className="mt-5 max-w-sm">
                   <div className="bg-white/85 border border-white/90 rounded-2xl px-4 py-3 shadow-sm backdrop-blur">
-                    <p className="text-[12px] font-bold text-slate-400 mb-1">
+                    <p className="text-[12px] font-bold text-[#9CA3AF] mb-1">
                       <span className="inline-block w-5 h-5 rounded-full bg-[#246BFF] text-white text-center leading-5 text-[10px] mr-1">AI</span>
                       Sample question
                     </p>
-                    <p className="text-[13.5px] text-slate-700 leading-relaxed">“Which Korean moisturizer under $40 suits dry skin, with the highest editor score?”</p>
+                    <p className="text-[13.5px] text-[#374151] leading-relaxed">“Which Korean moisturizer under $40 suits dry skin, with the highest editor score?”</p>
                   </div>
                 </div>
                 <div className="relative mt-5 flex flex-wrap gap-3">
@@ -1011,7 +1010,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                   : (cat ? categoryImage(cat) : NO_IMAGE) || NO_IMAGE;
                 return (
                   <a key={post.id} href={`/post/${post.slug}`} data-gravity-cursor="view"
-                    className="group flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-[0_16px_40px_-18px_rgba(36,107,255,0.3)] hover:-translate-y-1 hover:border-[#246BFF]/40 transition-all duration-300">
+                    className="group flex flex-col bg-white rounded-2xl border border-[#E5E1DC] overflow-hidden hover:shadow-[0_16px_40px_-18px_rgba(36,107,255,0.3)] hover:-translate-y-1 hover:border-[#246BFF]/40 transition-all duration-300">
                     <div className="relative h-[165px] overflow-hidden bg-[#F1F6FF]">
                       <img src={guideImg} alt={post.title} loading="lazy" referrerPolicy="no-referrer"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -1021,9 +1020,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                       </span>
                     </div>
                     <div className="flex flex-col flex-1 p-3.5">
-                      <h3 className="text-[13px] font-bold text-slate-900 line-clamp-2 leading-snug group-hover:text-[#246BFF] transition-colors">{post.title}</h3>
-                      <p className="text-[12px] text-slate-500 line-clamp-2 mt-1.5 leading-relaxed">{post.excerpt}</p>
-                      <p className="mt-auto pt-2 text-[11px] font-bold text-slate-400">{post.readingTime || 6} min read</p>
+                      <h3 className="text-[13px] font-bold text-[#1A1A2E] line-clamp-2 leading-snug group-hover:text-[#246BFF] transition-colors">{post.title}</h3>
+                      <p className="text-[12px] text-[#6B7280] line-clamp-2 mt-1.5 leading-relaxed">{post.excerpt}</p>
+                      <p className="mt-auto pt-2 text-[11px] font-bold text-[#9CA3AF]">{post.readingTime || 6} min read</p>
                     </div>
                   </a>
                 );
@@ -1041,9 +1040,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
               {brandsAll.map(brand => (
                 <a key={brand.id} href={`/products?brand=${encodeURIComponent(brand.name)}`} data-gravity-cursor="explore"
-                  className="group flex flex-col items-center justify-center gap-2 bg-white rounded-2xl border border-slate-200 px-4 py-5 hover:border-[#246BFF]/40 hover:shadow-[0_12px_30px_-14px_rgba(36,107,255,0.3)] transition-all min-h-[104px]">
+                  className="group flex flex-col items-center justify-center gap-2 bg-white rounded-2xl border border-[#E5E1DC] px-4 py-5 hover:border-[#246BFF]/40 hover:shadow-[0_12px_30px_-14px_rgba(36,107,255,0.3)] transition-all min-h-[104px]">
                   {brand.logoUrl || brand.logo ? (
-                    <span className="w-14 h-14 rounded-full bg-white border border-slate-100 shadow-sm flex items-center justify-center overflow-hidden p-1.5 group-hover:scale-105 transition-transform duration-300">
+                    <span className="w-14 h-14 rounded-full bg-white border border-[#E5E1DC] shadow-sm flex items-center justify-center overflow-hidden p-1.5 group-hover:scale-105 transition-transform duration-300">
                       <img
                         src={proxyImageUrl(brand.logoUrl || brand.logo || '')}
                         alt={brand.name}
@@ -1058,7 +1057,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                       {brand.name?.[0]?.toUpperCase()}
                     </span>
                   )}
-                  <span className="text-[13px] font-bold text-slate-700 group-hover:text-[#246BFF] transition-colors truncate max-w-full">{brand.name}</span>
+                  <span className="text-[13px] font-bold text-[#374151] group-hover:text-[#246BFF] transition-colors truncate max-w-full">{brand.name}</span>
                 </a>
               ))}
             </div>
@@ -1068,7 +1067,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
 
         {/* ============================ NEWSLETTER STRIP (reference newsletter_promo) ============================ */}
         <ScrollReveal>
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0A1F44] via-[#164EE8] to-[#246BFF] px-7 md:px-12 py-10 md:py-12">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#1A1A2E] via-[#2D2D44] to-[#1A1A2E] dark:from-[#0A0A15] dark:via-[#1C1C2E] dark:to-[#0A0A15] px-7 md:px-12 py-10 md:py-12">
           <div className="absolute -top-24 -right-16 w-72 h-72 rounded-full bg-white/10 blur-3xl animate-[float_12s_ease-in-out_infinite]" />
           <div className="absolute -bottom-28 -left-16 w-64 h-64 rounded-full bg-[#FF8A00]/20 blur-3xl animate-[float_14s_ease-in-out_infinite_3s]" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
@@ -1086,7 +1085,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             </div>
             <form onSubmit={submitNewsletter} className="w-full">
               <div className="bg-white rounded-2xl p-1.5 flex items-stretch gap-1 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.4)]">
-                <span className="hidden sm:flex items-center pl-3 text-slate-400">
+                <span className="hidden sm:flex items-center pl-3 text-[#9CA3AF]">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
@@ -1098,7 +1097,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                   onChange={e => setNlEmail(e.target.value)}
                   placeholder="Enter your email address"
                   aria-label="Email address"
-                  className="flex-1 min-w-0 bg-transparent px-3 sm:px-2 py-3.5 text-[15px] text-slate-900 placeholder-slate-400 outline-none"
+                  className="flex-1 min-w-0 bg-transparent px-3 sm:px-2 py-3.5 text-[15px] text-[#1A1A2E] placeholder-[#9CA3AF] outline-none"
                 />
                 <button
                   type="submit"
@@ -1119,10 +1118,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
       </main>
 
       {/* ============================ AFFILIATE DISCLOSURE ============================ */}
-      <section className="border-t border-slate-200/80 bg-white py-8">
+      <section className="border-t border-[#E5E1DC]/80 dark:border-[#333348]/80 bg-white dark:bg-[#1C1C2E] py-8">
         <div className="commerce-container flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-[12px] text-slate-500 max-w-2xl text-center md:text-left">
-            <strong className="text-slate-700">Independent &amp; honest.</strong> DawnWire earns a small commission
+          <p className="text-[12px] text-[#6B7280] max-w-2xl text-center md:text-left">
+            <strong className="text-[#374151]">Independent &amp; honest.</strong> DawnWire earns a small commission
             when you buy through links marked &quot;on Amazon&quot; — at no extra cost to you. Prices checked daily; may change after publish.
           </p>
           <a href="/affiliate-disclosure" className="shrink-0 text-[13px] font-bold text-[#246BFF] hover:text-[#1a57e0] flex items-center gap-1 whitespace-nowrap">

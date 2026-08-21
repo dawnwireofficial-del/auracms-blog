@@ -1,13 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "DawnWire Product Importer",
-  "version": "3.0.0",
-  "description": "Import products from Amazon, Walmart, Best Buy, AliExpress, eBay into DawnWire. Supports URL import, bulk import, and auto-import.",
+  "name": "DawnWire Product Importer & Social Auto-Post",
+  "version": "4.0.0",
+  "description": "Import products from Amazon, Walmart, Best Buy, AliExpress, eBay into DawnWire. Auto-pin to Pinterest & post to Facebook/Instagram.",
   "permissions": [
     "storage",
     "activeTab",
     "tabs",
-    "notifications"
+    "notifications",
+    "scripting"
   ],
   "host_permissions": [
     "https://dawnwire.com/*",
@@ -45,7 +46,7 @@
     "https://www.ebay.com.au/*"
   ],
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "social-media-popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -95,7 +96,7 @@
     }
   ],
   "background": {
-    "service_worker": "background.js",
+    "service_worker": "social-background.js",
     "type": "module"
   },
   "icons": {

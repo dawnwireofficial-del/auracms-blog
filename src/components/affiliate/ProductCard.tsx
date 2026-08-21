@@ -28,7 +28,7 @@ export default function ProductCard({
 
   const renderStars = (rating?: number) => {
     if (!rating || rating <= 0) {
-      return <span className="text-[11px] text-slate-400 italic">No ratings yet</span>;
+      return <span className="text-[11px] text-[#9CA3AF] italic">No ratings yet</span>;
     }
     const full = Math.floor(rating);
     const half = rating % 1 >= 0.5;
@@ -36,11 +36,11 @@ export default function ProductCard({
       <div className="flex items-center gap-1">
         <div className="flex items-center gap-0.5">
           {[...Array(5)].map((_, i) => (
-            <Star key={i} className={`h-3.5 w-3.5 ${i < full ? 'text-amber-400 fill-amber-400' : i === full && half ? 'text-amber-400 fill-amber-400/50' : 'text-slate-200'}`} />
+            <Star key={i} className={`h-3.5 w-3.5 ${i < full ? 'text-amber-400 fill-amber-400' : i === full && half ? 'text-amber-400 fill-amber-400/50' : 'text-[#C8C4BC]'}`} />
           ))}
         </div>
-        <span className="text-[11px] text-slate-500 font-medium">{rating.toFixed(1)}</span>
-        {product.reviewCount ? <span className="text-[10px] text-slate-400">({Number(product.reviewCount).toLocaleString()})</span> : null}
+        <span className="text-[11px] text-[#6B7280] dark:text-[#8A857C] font-medium">{rating.toFixed(1)}</span>
+        {product.reviewCount ? <span className="text-[10px] text-[#9CA3AF] dark:text-[#6B7280]">({Number(product.reviewCount).toLocaleString()})</span> : null}
       </div>
     );
   };
@@ -67,15 +67,15 @@ export default function ProductCard({
     <motion.div
       whileHover={globalEnabled ? { y: -6, scale: 1.015 } : {}}
       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative bg-white border border-slate-100 hover:border-blue-200 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06),0_20px_48px_-16px_rgba(36,107,255,0.15)] transition-all duration-300 overflow-hidden flex flex-col"
+      className="group relative bg-white dark:bg-[#252538] border border-[#E5E1DC] dark:border-[#333348] hover:border-[#C9A96E] dark:hover:border-[#D4B87A] rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06),0_20px_48px_-16px_rgba(201,169,110,0.15)] transition-all duration-300 overflow-hidden flex flex-col"
     >
        {/* Image */}
-       <a href={`/products/${product.slug || product.id}`} className="relative aspect-square bg-gradient-to-b from-slate-50 to-white overflow-hidden">
+       <a href={`/products/${product.slug || product.id}`} className="relative aspect-square bg-gradient-to-b from-[#FAF8F5] to-white dark:from-[#1C1C2E] dark:to-[#252538] overflow-hidden">
          {product.productImage ? (
             <img src={proxyImageUrl(product.productImage)} alt={product.productName} className="w-full h-full object-contain p-5 group-hover:scale-110 transition-transform duration-500 ease-out" referrerPolicy="no-referrer" loading="lazy" onError={(e) => { const img = e.currentTarget; if (img.src.includes('/api/public/image-proxy')) { const m = img.src.match(/url=([^&]+)/); if (m) img.src = decodeURIComponent(m[1]); } else { (e.target as HTMLElement).style.display = 'none'; } }} />
          ) : (
-           <div className="w-full h-full flex items-center justify-center text-slate-300">
-             <ShoppingBag className="h-16 w-16" />
+           <div className="w-full h-full flex items-center justify-center text-[#D4CFC6]">
+             <ShoppingBag className="h-16 w-16 text-[#C8C4BC]" />
            </div>
          )}
        {/* Editor Score badge */}
@@ -83,7 +83,7 @@ export default function ProductCard({
          <div className="absolute top-3 left-3 z-10">
            <div className="flex items-center gap-1 bg-gradient-to-r from-[#FF8A00] to-[#FF6A00] text-white text-[10px] font-black px-2 py-1 rounded-lg shadow-lg shadow-orange-500/30">
              <span className="text-[9px]">★</span>
-             <span>{product.editorScore}/10</span>
+             <span className="font-['Playfair_Display',serif]">{product.editorScore}/10</span>
            </div>
          </div>
        )}
@@ -99,7 +99,7 @@ export default function ProductCard({
        {/* Wishlist */}
        {onWishlistToggle && (
          <button onClick={(e) => { e.preventDefault(); onWishlistToggle(product.id); }} className="absolute bottom-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110">
-           <Heart className={`h-4 w-4 ${inWishlist ? 'fill-red-500 text-red-500' : 'text-slate-400 hover:text-red-400'}`} />
+           <Heart className={`h-4 w-4 ${inWishlist ? 'fill-red-500 text-red-500' : 'text-[#9CA3AF] hover:text-red-400'}`} />
          </button>
        )}
        {/* Coupon tag */}
@@ -111,9 +111,9 @@ export default function ProductCard({
        )}
      </a>
      {/* Info */}
-      <div className="p-4 flex-1 flex flex-col gap-1.5">
-       {product.brand && <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">{product.brand}</p>}
-       <a href={`/products/${product.slug || product.id}`} className="text-[13px] font-semibold text-slate-800 line-clamp-2 hover:text-blue-600 transition-colors leading-snug min-h-[36px]">
+      <div className="p-4 flex-1 flex flex-col gap-1.5 bg-white dark:bg-[#252538]">
+       {product.brand && <p className="text-[10px] font-bold text-[#C9A96E] dark:text-[#D4B87A] uppercase tracking-widest">{product.brand}</p>}
+       <a href={`/products/${product.slug || product.id}`} className="text-[13px] font-semibold text-[#1A1A2E] dark:text-[#F0EDE8] line-clamp-2 hover:text-[#C9A96E] dark:hover:text-[#D4B87A] transition-colors leading-snug min-h-[36px] font-['Playfair_Display',serif]">
          {product.productName}
        </a>
        {/* Rating */}
@@ -123,13 +123,13 @@ export default function ProductCard({
        {/* Best For */}
        {product.bestFor && <p className="text-[9px] text-dw-text-muted mt-1">Best for: {product.bestFor}</p>}
        {/* Price Row */}
-       <div className="mt-auto pt-3 flex items-baseline gap-2 border-t border-slate-100">
+       <div className="mt-auto pt-3 flex items-baseline gap-2 border-t border-[#E5E1DC] dark:border-[#444460]">
          {validPrice ? (
-           <span className="text-xl font-black text-slate-900">${price.toFixed(2)}</span>
+           <span className="text-xl font-black text-[#1A1A2E]">${price.toFixed(2)}</span>
          ) : (
-           <span className="text-[13px] font-semibold text-slate-500">Check Price</span>
+           <span className="text-[13px] font-semibold text-[#6B7280] dark:text-[#8A857C]">Check Price</span>
          )}
-         {validOrigPrice && hasDiscount && <span className="text-[12px] text-slate-400 line-through">${origPrice.toFixed(2)}</span>}
+         {validOrigPrice && hasDiscount &&           <span className="text-[12px] text-[#9CA3AF] dark:text-[#6B7280] line-through">${origPrice.toFixed(2)}</span>}
        </div>
        {/* Stock */}
        {isOutOfStock && (
@@ -143,11 +143,11 @@ export default function ProductCard({
             href={cloakHref(product.slug, viewMode === 'list' ? 'list_card' : 'grid_card') || product.affiliateUrl || '#'}
             target="_blank" rel="sponsored noopener noreferrer"
             onClick={handleAffiliateClick}
-            className="flex-1 text-center py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#FF8A00] to-[#FF6A00] hover:from-[#e67b00] hover:to-[#e06000] text-white text-[11px] font-bold shadow-[0_4px_14px_-4px_rgba(255,138,0,0.5)] hover:shadow-[0_6px_20px_-4px_rgba(255,138,0,0.6)] transition-all duration-200 hover:-translate-y-0.5"
+            className="flex-1 text-center py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#1A1A2E] to-[#2D2D44] dark:from-[#D4B87A] dark:to-[#C9A96E] hover:from-[#2D2D44] hover:to-[#3A3A52] dark:hover:bg-[#C9A96E] text-[#C9A96E] dark:text-[#1A1A2E] text-[11px] font-bold shadow-[0_4px_14px_-4px_rgba(26,26,46,0.3)] hover:shadow-[0_6px_20px_-4px_rgba(26,26,46,0.4)] transition-all duration-200 hover:-translate-y-0.5 font-semibold uppercase tracking-wider"
           >
             {product.ctaText || 'Check Price on Amazon'}
           </a>
-         {onCompare && (            <button onClick={(e) => { e.preventDefault(); onCompare(product.id); }} className={`px-3 py-1.5 rounded-xl border text-[11px] font-semibold transition-all duration-200 ${compareSelected ? 'bg-blue-50 text-blue-600 border-blue-200' : 'border-slate-200 text-slate-500 hover:border-blue-200 hover:text-blue-600 hover:bg-blue-50/50'}`}>
+         {onCompare && (            <button onClick={(e) => { e.preventDefault(); onCompare(product.id); }} className={`px-3 py-1.5 rounded-xl border text-[11px] font-semibold transition-all duration-200 ${compareSelected ? 'bg-[#FAF8F5] dark:bg-[#252538] text-[#C9A96E] border-[#C9A96E]' : 'border-[#E5E1DC] dark:border-[#444460] text-[#6B7280] dark:text-[#8A857C] hover:border-[#C9A96E] hover:text-[#C9A96E] hover:bg-[#FAF8F5]/50 dark:hover:bg-[#252538]/50'}`}>
              {compareSelected ? '✓ Comparing' : 'Compare'}
            </button>
          )}
@@ -163,40 +163,40 @@ export default function ProductCard({
   const listView = (
     <motion.div
       whileHover={globalEnabled ? { y: -2 } : {}}
-      className="group flex gap-5 bg-white border border-slate-100 hover:border-blue-200 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06),0_20px_48px_-16px_rgba(36,107,255,0.15)] transition-all duration-300 p-5"
+      className="group flex gap-5 bg-white dark:bg-[#252538] border border-[#E5E1DC] dark:border-[#333348] hover:border-[#C9A96E] dark:hover:border-[#D4B87A] rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06),0_20px_48px_-16px_rgba(201,169,110,0.15)] transition-all duration-300 p-5"
     >
-      <a href={`/products/${product.slug || product.id}`} className="w-36 h-36 shrink-0 bg-gradient-to-b from-slate-50 to-white rounded-xl overflow-hidden flex items-center justify-center">
+      <a href={`/products/${product.slug || product.id}`} className="w-36 h-36 shrink-0 bg-gradient-to-b from-[#FAF8F5] to-white dark:from-[#1C1C2E] dark:to-[#252538] rounded-xl overflow-hidden flex items-center justify-center">
         {product.productImage ? (
           <img src={proxyImageUrl(product.productImage)} alt={product.productName} className="w-full h-full object-contain p-2" referrerPolicy="no-referrer" loading="lazy" onError={(e) => { const img = e.currentTarget; if (img.src.includes('/api/public/image-proxy')) { const m = img.src.match(/url=([^&]+)/); if (m) img.src = decodeURIComponent(m[1]); } else { (e.target as HTMLElement).style.display = 'none'; } }} />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-slate-300"><ShoppingBag className="h-10 w-10" /></div>
+          <div className="w-full h-full flex items-center justify-center text-[#C8C4BC]"><ShoppingBag className="h-10 w-10" /></div>
         )}
       </a>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           {product.editorScore && product.editorScore > 0 && (
-            <span className="text-[10px] font-black bg-gradient-to-r from-[#FF8A00] to-[#FF6A00] text-white px-2 py-0.5 rounded-md">★ {product.editorScore}/10</span>
+            <span className="text-[10px] font-black bg-[#1A1A2E] dark:bg-[#D4B87A] text-[#C9A96E] dark:text-[#1A1A2E] px-2 py-0.5 rounded-md font-['Playfair_Display',serif]">★ {product.editorScore}/10</span>
           )}
           {hasDiscount && (
-            <span className="text-[10px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-md">-{discount}%</span>
+            <span className="text-[10px] font-bold text-red-500 bg-red-50 dark:bg-red-950/50 px-2 py-0.5 rounded-md">-{discount}%</span>
           )}
           {product.couponCode && (
-            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">🏷 Coupon</span>
+            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md">🏷 Coupon</span>
           )}
         </div>
-        {product.brand && <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mt-1">{product.brand}</p>}
-        <a href={`/products/${product.slug || product.id}`} className="text-sm font-semibold text-slate-800 hover:text-blue-600 line-clamp-1 mt-0.5 transition-colors">
+        {product.brand && <p className="text-[10px] font-semibold text-[#C9A96E] dark:text-[#D4B87A] uppercase tracking-wider mt-1">{product.brand}</p>}
+        <a href={`/products/${product.slug || product.id}`} className="text-sm font-semibold text-[#1A1A2E] dark:text-[#F0EDE8] hover:text-[#C9A96E] dark:hover:text-[#D4B87A] line-clamp-1 mt-0.5 transition-colors font-['Playfair_Display',serif]">
           {product.productName}
         </a>
         {renderStars(product.rating)}
-        <p className="text-[10px] text-dw-text-muted mt-1 line-clamp-1">{product.reviewSummary || product.bestFor}</p>
+        <p className="text-[10px] text-[#6B7280] dark:text-[#8A857C] mt-1 line-clamp-1">{product.reviewSummary || product.bestFor}</p>
         <div className="mt-2 flex items-center gap-2">
           {validPrice ? (
-            <span className="text-xl font-black text-slate-900">${price.toFixed(2)}</span>
+            <span className="text-xl font-black text-[#1A1A2E] dark:text-[#F0EDE8] font-['Playfair_Display',serif]">${price.toFixed(2)}</span>
           ) : (
-            <span className="text-base font-bold text-slate-500">Check Price</span>
+            <span className="text-base font-bold text-[#6B7280] dark:text-[#8A857C]">Check Price</span>
           )}
-          {validOrigPrice && hasDiscount && <span className="text-xs text-dw-text-muted line-through">${origPrice.toFixed(2)}</span>}
+          {validOrigPrice && hasDiscount &&            <span className="text-xs text-[#9CA3AF] dark:text-[#6B7280] line-through">${origPrice.toFixed(2)}</span>}
         </div>
         {isOutOfStock && <span className="text-[10px] font-bold text-red-500">Out of Stock</span>}
         <div className="mt-2 flex items-center gap-2">
@@ -204,12 +204,12 @@ export default function ProductCard({
             href={cloakHref(product.slug, viewMode === 'list' ? 'list_card' : 'grid_card') || product.affiliateUrl || '#'}
             target="_blank" rel="sponsored noopener noreferrer"
             onClick={handleAffiliateClick}
-            className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#FF8A00] to-[#FF6A00] hover:from-[#e67b00] hover:to-[#e06000] text-white text-[11px] font-bold shadow-[0_4px_14px_-4px_rgba(255,138,0,0.5)] hover:shadow-[0_6px_20px_-4px_rgba(255,138,0,0.6)] transition-all duration-200"
+            className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#1A1A2E] to-[#2D2D44] dark:from-[#D4B87A] dark:to-[#C9A96E] text-[#C9A96E] dark:text-[#1A1A2E] text-[11px] font-bold shadow-[0_4px_14px_-4px_rgba(26,26,46,0.3)] hover:shadow-[0_6px_20px_-4px_rgba(26,26,46,0.4)] transition-all duration-200 font-semibold uppercase tracking-wider"
           >
             {product.ctaText || 'Check Price'}
           </a>
           {onWishlistToggle && (
-            <button onClick={() => onWishlistToggle(product.id)} className={`p-2.5 rounded-xl border transition-all duration-200 ${inWishlist ? 'text-red-500 border-red-200 bg-red-50' : 'border-slate-200 text-slate-400 hover:text-red-400 hover:border-red-200'}`}>
+            <button onClick={() => onWishlistToggle(product.id)} className={`p-2.5 rounded-xl border transition-all duration-200 ${inWishlist ? 'text-red-500 border-red-200 bg-red-50 dark:bg-red-950/50' : 'border-[#E5E1DC] dark:border-[#444460] text-[#9CA3AF] hover:text-red-400 hover:border-red-200'}`}>
               <Heart className={`h-4 w-4 ${inWishlist ? 'fill-red-500' : ''}`} />
             </button>
           )}

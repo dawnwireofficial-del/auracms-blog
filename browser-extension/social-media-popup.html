@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DawnWire Social Auto-Post</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 420px;
+      max-height: 600px;
+      overflow-y: auto;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #FAF8F5;
+      color: #1A1A2E;
+      padding: 16px;
+    }
+    h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    h1 .gold { color: #C9A96E; }
+    .subtitle { font-size: 11px; color: #6B7280; margin-bottom: 14px; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 14px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #E5E1DC;
+      background: white;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 0;
+      font-size: 11px;
+      font-weight: 600;
+      background: white;
+      color: #6B7280;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: #1A1A2E;
+      color: #C9A96E;
+    }
+    .tab-btn:hover:not(.active) { background: #F5F0EB; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Form elements */
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+      margin-top: 12px;
+    }
+    input[type="text"], input[type="password"], input[type="url"], select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #E5E1DC;
+      border-radius: 8px;
+      background: white;
+      color: #1A1A2E;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: #C9A96E; }
+    input::placeholder, textarea::placeholder { color: #9CA3AF; }
+    textarea {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    .btn-primary {
+      background: #1A1A2E;
+      color: #C9A96E;
+    }
+    .btn-primary:hover { background: #2D2D44; }
+    .btn-gold {
+      background: linear-gradient(135deg, #C9A96E, #D4B87A);
+      color: white;
+    }
+    .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(201,169,110,0.3); }
+    .btn-outline {
+      background: white;
+      color: #1A1A2E;
+      border: 1px solid #E5E1DC;
+    }
+    .btn-outline:hover { border-color: #C9A96E; }
+    .btn-full { width: 100%; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Cards */
+    .card {
+      background: white;
+      border: 1px solid #E5E1DC;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1A1A2E;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .badge-success { background: #ECFDF5; color: #059669; }
+    .badge-warning { background: #FEF3C7; color: #D97706; }
+    .badge-error { background: #FEE2E2; color: #DC2626; }
+    .badge-info { background: #EFF6FF; color: #2563EB; }
+
+    /* Platform selector */
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .platform-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 8px;
+      border: 1px solid #E5E1DC;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: white;
+    }
+    .platform-card:hover { border-color: #C9A96E; }
+    .platform-card.selected {
+      border-color: #C9A96E;
+      background: #FAF8F5;
+      box-shadow: 0 0 0 2px rgba(201,169,110,0.2);
+    }
+    .platform-card .icon { font-size: 20px; }
+    .platform-card .name { font-size: 10px; font-weight: 600; color: #374151; }
+    .platform-card .status { font-size: 9px; color: #9CA3AF; }
+
+    /* Product preview */
+    .product-preview {
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      background: #FAF8F5;
+      border-radius: 10px;
+      border: 1px solid #E5E1DC;
+    }
+    .product-preview img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      border-radius: 8px;
+      background: white;
+    }
+    .product-preview .info {
+      flex: 1;
+      min-width: 0;
+    }
+    .product-preview .title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1A1A2E;
+      line-clamp: 2;
+    }
+    .product-preview .meta {
+      font-size: 10px;
+      color: #6B7280;
+      margin-top: 2px;
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .stat-item {
+      text-align: center;
+      padding: 10px;
+      background: #FAF8F5;
+      border-radius: 8px;
+      border: 1px solid #E5E1DC;
+    }
+    .stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      font-family: 'Playfair Display', serif;
+      color: #1A1A2E;
+    }
+    .stat-label {
+      font-size: 9px;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Log */
+    .log {
+      max-height: 150px;
+      overflow-y: auto;
+      font-size: 11px;
+      font-family: 'SF Mono', monospace;
+      background: #1A1A2E;
+      color: #C8C4BC;
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 10px;
+    }
+    .log-entry { padding: 2px 0; border-bottom: 1px solid #333348; }
+    .log-entry:last-child { border-bottom: none; }
+    .log-success { color: #10B981; }
+    .log-error { color: #EF4444; }
+    .log-info { color: #C9A96E; }
+
+    /* Toggle */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #E5E1DC;
+    }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-label { font-size: 12px; font-weight: 500; }
+    .toggle-desc { font-size: 10px; color: #6B7280; }
+    .toggle {
+      width: 40px;
+      height: 22px;
+      border-radius: 11px;
+      background: #D4CFC6;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.2s;
+    }
+    .toggle.active { background: #C9A96E; }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: white;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .toggle.active::after { transform: translateX(18px); }
+
+    /* Status indicator */
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .status-dot.online { background: #10B981; }
+    .status-dot.offline { background: #EF4444; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #D4CFC6; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+
+    /* Animations */
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.2s ease; }
+  </style>
+</head>
+<body>
+  <h1><span class="gold">📌</span> DawnWire Social Auto-Post</h1>
+  <p class="subtitle">Auto-pin products to Pinterest & post to social media</p>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="post">🚀 Post</button>
+    <button class="tab-btn" data-tab="schedule">⏰ Schedule</button>
+    <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
+  </div>
+
+  <!-- TAB: Post Now -->
+  <div id="tab-post" class="tab-panel active">
+    <!-- Current Page Product -->
+    <div id="currentPageCard" class="card">
+      <div class="card-header">
+        <span class="card-title">Current Page Product</span>
+        <span id="storeBadge" class="badge badge-info">Detecting...</span>
+      </div>
+      <div class="product-preview" id="productPreview">
+        <img id="productImage" src="" alt="Product">
+        <div class="info">
+          <div class="title" id="productName">Loading product data...</div>
+          <div class="meta" id="productMeta"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Platform Selection -->
+    <label>Select Platforms</label>
+    <div class="platform-grid">
+      <div class="platform-card selected" data-platform="pinterest">
+        <span class="icon">📌</span>
+        <span class="name">Pinterest</span>
+        <span class="status" id="pinterestStatus">● Connected</span>
+      </div>
+      <div class="platform-card" data-platform="facebook">
+        <span class="icon">👤</span>
+        <span class="name">Facebook</span>
+        <span class="status" id="facebookStatus">○ Not set</span>
+      </div>
+      <div class="platform-card" data-platform="instagram">
+        <span class="icon">📸</span>
+        <span class="name">Instagram</span>
+        <span class="status" id="instagramStatus">○ Not set</span>
+      </div>
+    </div>
+
+    <!-- Caption -->
+    <label>Pin/Post Caption</label>
+    <textarea id="captionInput" placeholder="Auto-generated caption will appear here..."></textarea>
+
+    <!-- Post Button -->
+    <button id="postNowBtn" class="btn btn-gold btn-full" style="margin-top: 12px;">
+      🚀 Post to Selected Platforms
+    </button>
+
+    <!-- Quick Stats -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-item">
+        <div class="stat-value" id="statPins">0</div>
+        <div class="stat-label">Pins Today</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="statPosts">0</div>
+        <div class="stat-label">Posts Today</div>
+      </div>
+    </div>
+
+    <!-- Activity Log -->
+    <div class="log" id="activityLog">
+      <div class="log-entry log-info">Extension ready. Visit a product page to auto-post.</div>
+    </div>
+  </div>
+
+  <!-- TAB: Schedule -->
+  <div id="tab-schedule" class="tab-panel">
+    <div class="card">
+      <div class="card-title" style="margin-bottom: 10px;">⏰ Auto-Schedule Settings</div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Auto-Pin New Products</div>
+          <div class="toggle-desc">Automatically pin products with score ≥ 6</div>
+        </div>
+        <div class="toggle active" id="autoPinToggle"></div>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Pin Best Sellers First</div>
+          <div class="toggle-desc">Prioritize products with highest editor score</div>
+        </div>
+        <div class="toggle active" id="priorityToggle"></div>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Include Price in Pin</div>
+          <div class="toggle-desc">Show current price in pin description</div>
+        </div>
+        <div class="toggle active" id="priceToggle"></div>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Include DawnWire Score</div>
+          <div class="toggle-desc">Add editor score badge to pin</div>
+        </div>
+        <div class="toggle active" id="scoreToggle"></div>
+      </div>
+
+      <label>Pins Per Day (max)</label>
+      <input type="text" id="pinsPerDay" value="10" placeholder="10">
+
+      <label>Minimum Editor Score</label>
+      <input type="text" id="minScore" value="6" placeholder="6">
+    </div>
+
+    <button id="saveScheduleBtn" class="btn btn-primary btn-full">Save Schedule Settings</button>
+
+    <!-- Recent Pins -->
+    <div class="card" style="margin-top: 12px;">
+      <div class="card-title" style="margin-bottom: 8px;">📋 Recent Pins</div>
+      <div id="recentPins" class="log" style="max-height: 200px;">
+        <div class="log-entry log-info">No recent pins yet.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Settings -->
+  <div id="tab-settings" class="tab-panel">
+    <div class="card">
+      <div class="card-title" style="margin-bottom: 10px;">🔗 DawnWire Connection</div>
+      <label>API URL</label>
+      <input type="url" id="settingsApiUrl" value="https://www.dawnwire.com" placeholder="https://www.dawnwire.com">
+      <label>API Token</label>
+      <input type="password" id="settingsApiToken" placeholder="Paste your admin API token">
+      <button id="testConnectionBtn" class="btn btn-outline btn-full" style="margin-top: 8px;">Test Connection</button>
+      <div id="connectionStatus" style="margin-top: 6px; font-size: 11px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom: 10px;">📌 Pinterest Settings</div>
+      <label>Access Token</label>
+      <input type="password" id="pinterestToken" placeholder="Pinterest API access token">
+      <label>Board ID</label>
+      <input type="text" id="pinterestBoard" placeholder="Pinterest board ID">
+      <div style="margin-top: 8px; font-size: 10px; color: #6B7280;">
+        <p>Get your Board ID from: business.pinterest.com → Your boards → Copy URL</p>
+        <p>Format: https://pinterest.com/username/board-name/ → Board ID is the last part</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom: 10px;">👤 Facebook Settings</div>
+      <label>Page Access Token</label>
+      <input type="password" id="facebookToken" placeholder="Facebook Page access token">
+      <label>Page ID</label>
+      <input type="text" id="facebookPageId" placeholder="Facebook Page ID">
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom: 10px;">📸 Instagram Settings</div>
+      <label>Access Token</label>
+      <input type="password" id="instagramToken" placeholder="Instagram Graph API token">
+      <label>Business Account ID</label>
+      <input type="text" id="instagramBusinessId" placeholder="Instagram Business Account ID">
+    </div>
+
+    <button id="saveSettingsBtn" class="btn btn-primary btn-full">Save All Settings</button>
+  </div>
+
+  <script src="social-media-popup.js"></script>
+</body>
+</html>

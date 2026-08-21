@@ -74,6 +74,104 @@ async function uploadBase64ToImgBB(base64: string): Promise<string | null> {
   }
 }
 
+// ===== Cloudflare R2 upload (article hero images only, ~50MB total) =====
+// Uses S3-compatible API. Only stores generated article images, NOT product
+// images (those stay on Amazon CDN via proxy). Free tier: 10GB + 10M ops.
+const R2_ACCESS_KEY = process.env.CLOUDFLARE_R2_ACCESS_KEY_ID || '';
+const R2_SECRET_KEY = process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY || '';
+const R2_ENDPOINT = process.env.CLOUDFLARE_R2_ENDPOINT || '';
+const R2_BUCKET = process.env.CLOUDFLARE_R2_BUCKET || 'dawnwire-images';
+const R2_PUBLIC_URL = process.env.CLOUDFLARE_R2_PUBLIC_URL || ''; // optional custom domain
+
+function isR2Configured(): boolean {
+  return !!(R2_ACCESS_KEY && R2_SECRET_KEY && R2_ENDPOINT);
+}
+
+// AWS SigV4 signing for R2 (S3-compatible)
+async function signR2Request(method: string, path: string, body: ArrayBuffer, contentType: string): Promise<Record<string, string>> {
+  const crypto = await import('crypto');
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, '');
+  const dateStamp = amzDate.slice(0, 8);
+  const region = 'auto';
+  const service = 's3';
+  const host = new URL(R2_ENDPOINT).host;
+
+  const payloadHash = crypto.createHash('sha256').update(Buffer.from(body)).digest('hex');
+
+  const canonicalHeaders = `host:${host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`;
+  const signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
+  const canonicalRequest = `${method}\n${path}\n\n${canonicalHeaders}\n${signedHeaders}\n${payloadHash}`;
+
+  const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
+  const stringToSign = `AWS4-HMAC-SHA256\n${amzDate}\n${credentialScope}\n${crypto.createHash('sha256').update(canonicalRequest).digest('hex')}`;
+
+  function hmac(key: string | Buffer, data: string): Buffer {
+    return crypto.createHmac('sha256', key).update(data).digest();
+  }
+  const kDate = hmac(`AWS4${R2_SECRET_KEY}`, dateStamp);
+  const kRegion = hmac(kDate, region);
+  const kService = hmac(kRegion, service);
+  const kSigning = hmac(kService, 'aws4_request');
+  const signature = crypto.createHmac('sha256', kSigning).update(stringToSign).digest('hex');
+
+  return {
+    'x-amz-date': amzDate,
+    'x-amz-content-sha256': payloadHash,
+    'Authorization': `AWS4-HMAC-SHA256 Credential=${R2_ACCESS_KEY}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
+  };
+}
+
+async function uploadToR2(base64: string, key: string): Promise<string | null> {
+  if (!isR2Configured()) return null;
+  try {
+    const body = Buffer.from(base64, 'base64');
+    const contentType = base64.startsWith('/9j/') ? 'image/jpeg' : 'image/png';
+    const path = `/${R2_BUCKET}/${key}`;
+    const headers = await signR2Request('PUT', path, body.buffer as ArrayBuffer, contentType);
+    headers['Content-Type'] = contentType;
+
+    const resp = await fetch(`${R2_ENDPOINT}${path}`, {
+      method: 'PUT',
+      headers,
+      body,
+      signal: AbortSignal.timeout(20000),
+    });
+
+    if (!resp.ok) {
+      console.warn('[image-gen] R2 upload failed:', resp.status, await resp.text().catch(() => ''));
+      return null;
+    }
+
+    // Return public URL — either custom domain or R2.dev subdomain
+    if (R2_PUBLIC_URL) return `${R2_PUBLIC_URL}/${key}`;
+    return `${R2_ENDPOINT.replace('https://', `https://${R2_BUCKET}.`)}\/${key}`;
+  } catch (e: any) {
+    console.warn('[image-gen] R2 upload error:', e?.message);
+    return null;
+  }
+}
+
+// Unified upload: tries R2 first (article images), then imgbb (banners), then data URI
+async function uploadGeneratedImage(base64: string, purpose: 'article' | 'banner' = 'article'): Promise<string> {
+  const cleanBase64 = base64.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, '');
+
+  // R2 for article hero images (small volume, ~50MB total)
+  if (purpose === 'article' && isR2Configured()) {
+    const key = `articles/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+    const url = await uploadToR2(cleanBase64, key);
+    if (url) return url;
+  }
+
+  // imgbb for banners and general uploads
+  const imgbbUrl = await uploadBase64ToImgBB(cleanBase64);
+  if (imgbbUrl) return imgbbUrl;
+
+  // Data URI fallback (works in browsers, no external dependency)
+  const mime = cleanBase64.startsWith('/9j/') ? 'image/jpeg' : 'image/png';
+  return `data:${mime};base64,${cleanBase64}`;
+}
+
 export function buildDesignPrompt(product: any): string {
   const name = product.product_name || product.name || product.title || 'this product';
   const brand = product.brand ? ` by ${product.brand}` : '';
@@ -182,8 +280,8 @@ async function generateWithCloudflare(
       return null;
     }
     base64 = stripDataUriPrefix(String(base64));
-    const url2 = await uploadBase64ToImgBB(base64);
-    if (url2) return { url: url2, generated: true, source: 'cloudflare', fallback: 'none' };
+    const url2 = await uploadGeneratedImage(base64, 'article');
+    return { url: url2, generated: true, source: 'cloudflare', fallback: 'none' };
   } catch (e: any) {
     console.warn('[image-gen] Cloudflare image gen error:', e?.message || e);
   }
@@ -273,8 +371,8 @@ export async function generateDesignImage(
         }
         clearTimeout(t);
         if (image?.base64) {
-          const url = await uploadBase64ToImgBB(image.base64);
-          if (url) return { url, generated: true, source: 'gemini-image', fallback: 'none' };
+          const url = await uploadGeneratedImage(image.base64, 'article');
+          return { url, generated: true, source: 'gemini-image', fallback: 'none' };
         }
       } catch (e: any) {
         console.warn('[image-gen] Gemini image model failed:', e.message);
@@ -292,8 +390,8 @@ export async function generateDesignImage(
         clearTimeout(t);
         const bytes = resp?.generatedImages?.[0]?.image?.imageBytes;
         if (bytes) {
-          const url = await uploadBase64ToImgBB(bytes);
-          if (url) return { url, generated: true, source: 'imagen', fallback: 'none' };
+          const url = await uploadGeneratedImage(bytes, 'article');
+          return { url, generated: true, source: 'imagen', fallback: 'none' };
         }
       } catch (e: any) {
         console.warn('[image-gen] Imagen failed:', e.message);

@@ -101,16 +101,27 @@ export async function cohereChat(promptText: string, system?: string, timeoutMs?
   // Shared budget. Each provider gets a slice so a slow/broken provider can't
   // eat the whole budget and block the others (Vercel caps synchronous work at 60s).
   const budget = Math.max(9000, timeoutMs || 20000);
-  // Cohere/AI Gateway is the primary provider — it gets the full budget.
+  // DeepSeek is the primary provider — it gets the full budget.
   // Fallbacks get a slice so a broken provider can't blow the whole budget.
   const fallbackSlice = Math.max(6500, Math.floor(budget / 3));
   const errors: string[] = [];
 
-  // 1. Cloudflare Workers AI — fast text LLM. Completes in seconds so it fits
-  //    Vercel's 60s cap; used for synchronous article generation.
+  // 1. DeepSeek — primary provider (multi-key rotation + auto-failover).
+  if (isDeepSeekConfigured()) {
+    try {
+      const r = await deepseekText({ prompt: promptText, system, timeoutMs: budget, maxOutputTokens: maxTokens });
+      if (r) return r;
+      errors.push('deepseek: empty response');
+    } catch (e: any) {
+      errors.push(`deepseek: ${e.name === 'AbortError' ? 'timed out' : e.message}`);
+    }
+  }
+
+  // 2. Cloudflare Workers AI — fast text LLM. Completes in seconds so it fits
+  //    Vercel's 60s cap; used as first fallback for synchronous article generation.
   if (isCloudflareTextConfigured()) {
     try {
-      const r = await cloudflareText(promptText, system, Math.min(budget, 25000), maxTokens);
+      const r = await cloudflareText(promptText, system, Math.min(fallbackSlice, 25000), maxTokens);
       if (r) return r;
       errors.push('cloudflare: empty response');
     } catch (e: any) {
@@ -118,11 +129,11 @@ export async function cohereChat(promptText: string, system?: string, timeoutMs?
     }
   }
 
-  // 2. Cohere / AI Gateway — the intended production provider.
+  // 3. Cohere / AI Gateway — secondary fallback.
   if (AI_GATEWAY_API_KEY) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), budget);
+      const timeoutId = setTimeout(() => controller.abort(), fallbackSlice);
       let result;
       try {
         result = await generateText({
@@ -146,7 +157,7 @@ export async function cohereChat(promptText: string, system?: string, timeoutMs?
     }
   }
 
-  // 3. Gemini (if configured) — fall back rather than blocking the others.
+  // 4. Gemini — last resort fallback.
   if (isGeminiConfigured()) {
     try {
       const r = await geminiText(promptText, system, fallbackSlice, maxTokens);
@@ -154,17 +165,6 @@ export async function cohereChat(promptText: string, system?: string, timeoutMs?
       errors.push('gemini: empty response');
     } catch (e: any) {
       errors.push(`gemini: ${e.name === 'AbortError' ? 'timed out' : e.message}`);
-    }
-  }
-
-  // 4. DeepSeek.
-  if (isDeepSeekConfigured()) {
-    try {
-      const r = await deepseekText({ prompt: promptText, system, timeoutMs: fallbackSlice, maxOutputTokens: maxTokens });
-      if (r) return r;
-      errors.push('deepseek: empty response');
-    } catch (e: any) {
-      errors.push(`deepseek: ${e.name === 'AbortError' ? 'timed out' : e.message}`);
     }
   }
 
