@@ -131,6 +131,13 @@ export function getCacheStats() {
   return entries;
 }
 
+/** Invalidate product cache entries so next request fetches fresh data */
+export function invalidateProductCache(): void {
+  stores.delete('products:light');
+  stores.delete('products:full');
+  console.log('[Cache] Product cache invalidated');
+}
+
 /**
  * Regenerate the static product catalog from Supabase.
  * Called automatically after product imports.

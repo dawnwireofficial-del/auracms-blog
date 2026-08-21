@@ -472,10 +472,12 @@ router.get(['/product-reviews', '/products'], async (req, res) => {
           setTimeout(() => rej(new Error('Supabase timeout')), 8000)
         );
         const { data } = await Promise.race([queryPromise, timeoutPromise]) as any;
-        if (data && data.length > 0) return data;
+        // Reject suspiciously small results (likely Supabase cold start / pause)
+        if (data && data.length >= 10) return data;
+        console.log(`[API] Supabase returned only ${data?.length || 0} products, falling back to static catalog`);
       }
       // Fallback: static catalog.json
-      console.log(`[API] Supabase unavailable, using static catalog for ${cacheKey}`);
+      console.log(`[API] Using static catalog for ${cacheKey}`);
       const catalog = readStaticCatalog('catalog.json');
       if (catalog?.products) return catalog.products;
       // Last resort: try getPublishedProductReviews

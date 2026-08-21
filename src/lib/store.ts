@@ -186,8 +186,8 @@ export const store = {
       };
 
       let mapped: Product[] | null = null;
-      if (token) mapped = await tryFetch('/api/admin/product-reviews?limit=100&light=1', { 'Authorization': `Bearer ${token}` });
-      if (!mapped) mapped = await tryFetch('/api/public/product-reviews?limit=100&light=1');
+      if (token) mapped = await tryFetch('/api/admin/product-reviews?limit=1000&light=1', { 'Authorization': `Bearer ${token}` });
+      if (!mapped) mapped = await tryFetch('/api/public/product-reviews?limit=1000&light=1');
       if (mapped && mapped.length > 0 && requestId === _fetchRequestId) {
         globalStore.products = mapped;
         notify();
