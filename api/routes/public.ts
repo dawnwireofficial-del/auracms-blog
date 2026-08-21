@@ -7,6 +7,7 @@ import * as seo from '../../server/seo-engine';
 import { findEntities } from '../../server/entities';
 import { sendContactNotification, sendCommentNotification } from '../../server/email';
 import { sendDripEmail, getNextDripStep } from '../../server/drip-campaign';
+import { cachedQuery, readStaticCatalog } from '../../server/api-cache';
 
 const router = express.Router();
 
@@ -27,14 +28,23 @@ router.get('/posts/slug/:slug', async (req, res) => {
 // Cache categories for 5 minutes
 let _catCache: { data: any; ts: number } | null = null;
 router.get('/categories', async (_req, res) => {
-  if (_catCache && Date.now() - _catCache.ts < 300_000) {
+  try {
+    const cats = await cachedQuery('categories:list', async () => {
+      try {
+        const all = await dbInstance.getCategories();
+        return all.filter((c: any) => c.status === 'active');
+      } catch {
+        console.log('[API] Categories DB unavailable, using static fallback');
+        const staticCats = readStaticCatalog('categories.json');
+        return staticCats || [];
+      }
+    }, 300_000, 600_000);
     res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
-    return res.json(_catCache.data);
+    res.json(cats);
+  } catch {
+    res.set('Cache-Control', 'public, max-age=300');
+    res.json([]);
   }
-  const cats = (await dbInstance.getCategories()).filter((c: any) => c.status === 'active');
-  _catCache = { data: cats, ts: Date.now() };
-  res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
-  res.json(cats);
 });
 router.get('/tags', async (_req, res) => res.json(await dbInstance.getTags()));
 router.get('/pages', async (_req, res) => res.json((await dbInstance.getPages()).filter(p => p.status === 'published')));
@@ -133,7 +143,7 @@ router.get('/product-reviews/slug/:slug', async (req, res) => {
     if (sb) {
       // Try exact slug match first
       const { data } = await sb.from('product_reviews')
-        .select('id,product_name,slug,brand,price,original_price,rating,review_count,best_for,editor_score,final_verdict,seo_title,seo_description,seo_keywords,product_image,amazon_url,affiliate_url,status,stock_status,deal_badge,coupon_code,coupon_expiry,category_id,click_count,page_views,created_at,updated_at,asin,commerce_mode')
+        .select('id,product_name,slug,brand,price,original_price,rating,review_count,best_for,editor_score,final_verdict,seo_title,seo_description,seo_keywords,product_image,amazon_url,affiliate_url,status,stock_status,deal_badge,coupon_code,coupon_expiry,category_id,click_count,page_views,created_at,updated_at,asin')
         .eq('status', 'published')
         .or(`slug.eq.${decodedSlug},slug.eq.${rawSlug},id.eq.${rawSlug}`)
         .limit(1)
@@ -438,48 +448,56 @@ router.get('/categories/:slug/subcategories', async (req, res) => {
 });
 
 // Product reviews & products with filters, sorting, pagination, entity enrichment
+// Uses in-memory cache + static catalog fallback so site works even when Supabase is paused
 router.get(['/product-reviews', '/products'], async (req, res) => {
   const light = req.query.light === '1' || req.query.light === 'true';
+  const cacheKey = light ? 'products:light' : 'products:full';
+  const cacheTTL = light ? 300_000 : 120_000; // light=5min, full=2min
   
   let items: any[];
-  if (light) {
-    // Lightweight: select only needed columns directly from DB (10x faster)
-    const sb = await (seo as any).getClient?.() || null;
-    if (sb) {
-      const { data } = await sb.from('product_reviews')
-        .select('id, slug, product_name, brand, product_image, price, original_price, rating, review_count, editor_score, best_for, status, created_at, updated_at, discount_percentage, stock_status, deal_badge, coupon_code, affiliate_url, category_id, asin')
-        .eq('status', 'published')
-        .order('created_at', { ascending: false })
-        .range(0, Math.min(parseInt(req.query.limit as string) || 100, 100) - 1);
-      items = data || [];
-    } else {
-      items = await seo.getProductReviews();
-      items = items.filter((r: any) => r.status === 'published');
-      const LIGHT = ['review_article', 'final_verdict', 'pros', 'cons', 'faq', 'seo_description', 'seo_keywords', 'seo_title', 'specs', 'affiliate_disclosure', '_entities'];
-      items = items.map((r: any) => {
-        const slim: Record<string, any> = {};
-        Object.keys(r).forEach((k) => { if (!LIGHT.includes(k)) slim[k] = r[k]; });
-        return slim;
-      });
-    }
-  } else {
-    // Non-light: also use selective columns to avoid pulling specs/review_article
-    const sb2 = await (seo as any).getClient?.() || null;
-    if (sb2) {
-      const { data } = await sb2.from('product_reviews')
-        .select('id, slug, product_name, brand, product_image, price, original_price, rating, review_count, editor_score, best_for, status, created_at, updated_at, discount_percentage, stock_status, deal_badge, coupon_code, affiliate_url, category_id, asin, pros, cons, review_summary, final_verdict, amazon_url, commerce_mode, seo_title, seo_description, review_article, key_features')
-        .eq('status', 'published')
-        .order('created_at', { ascending: false })
-        .limit(500);
-      items = (data || []).map((r: any) => {
-        if (typeof r.review_summary === 'string' && r.review_summary.length > 500) r.review_summary = r.review_summary.slice(0, 500) + '…';
-        if (Array.isArray(r.key_features)) r.key_features = r.key_features.slice(0, 8);
-        return r;
-      });
-    } else {
-      items = await seo.getProductReviews();
-      items = items.filter((r: any) => r.status === 'published');
-    }
+  try {
+    items = await cachedQuery(cacheKey, async () => {
+      // Try Supabase first with timeout
+      const sb = await (seo as any).getClient?.() || null;
+      if (sb) {
+        const columns = light
+          ? 'id, slug, product_name, brand, product_image, price, original_price, rating, review_count, editor_score, best_for, status, created_at, updated_at, discount_percentage, stock_status, deal_badge, coupon_code, affiliate_url, category_id, asin'
+          : 'id, slug, product_name, brand, product_image, price, original_price, rating, review_count, editor_score, best_for, status, created_at, updated_at, discount_percentage, stock_status, deal_badge, coupon_code, affiliate_url, category_id, asin, pros, cons, review_summary, final_verdict, amazon_url, seo_title, seo_description, review_article, key_features';
+        const queryPromise = sb.from('product_reviews')
+          .select(columns)
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(light ? 1000 : 500);
+        const timeoutPromise = new Promise<never>((_, rej) =>
+          setTimeout(() => rej(new Error('Supabase timeout')), 8000)
+        );
+        const { data } = await Promise.race([queryPromise, timeoutPromise]) as any;
+        if (data && data.length > 0) return data;
+      }
+      // Fallback: static catalog.json
+      console.log(`[API] Supabase unavailable, using static catalog for ${cacheKey}`);
+      const catalog = readStaticCatalog('catalog.json');
+      if (catalog?.products) return catalog.products;
+      // Last resort: try getPublishedProductReviews
+      const fallback = await seo.getPublishedProductReviews();
+      return fallback.filter((r: any) => r.status === 'published');
+    }, cacheTTL, cacheTTL * 2);
+  } catch (e: any) {
+    console.error(`[API] product-reviews cache error:`, e.message);
+    // Absolute last resort
+    try {
+      const catalog = readStaticCatalog('catalog.json');
+      items = catalog?.products || [];
+    } catch { items = []; }
+  }
+  
+  // Truncate heavy fields for non-light
+  if (!light) {
+    items = items.map((r: any) => {
+      if (typeof r.review_summary === 'string' && r.review_summary.length > 500) r.review_summary = r.review_summary.slice(0, 500) + '…';
+      if (Array.isArray(r.key_features)) r.key_features = r.key_features.slice(0, 8);
+      return r;
+    });
   }
   // Entity enrichment (skip for light queries)
   if (!light) {

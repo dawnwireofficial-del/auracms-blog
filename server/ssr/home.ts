@@ -1,5 +1,6 @@
 import { dbInstance } from '../db';
 import { createClient } from '@supabase/supabase-js';
+import { readStaticCatalog } from '../api-cache';
 
 // Lightweight server-side renderer for the DawnWire homepage.
 // Produces semantic HTML (H1, headings, paragraphs, internal links) that is
@@ -34,18 +35,23 @@ async function loadHomeData() {
   let products: any[] = [];
   let posts: any[] = [];
 
+  // Categories: try DB first, fallback to static
   try {
     categories = (await dbInstance.getCategories()).filter((c: any) => c.status === 'active');
   } catch (e) {
     console.error('[SSR home] categories:', e);
   }
+  if (categories.length === 0) {
+    const staticCats = readStaticCatalog('categories.json');
+    if (staticCats) { categories = staticCats; console.log('[SSR] Using static categories'); }
+  }
 
+  // Products & Posts: try Supabase with 8s timeout, fallback to static
   try {
     const sb = createClient(
       process.env.SUPABASE_URL || '',
       process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || ''
     );
-    // Run both queries in parallel with 8-second timeout
     const queryPromise = Promise.all([
       sb.from('product_reviews')
         .select('id, slug, product_name, brand, product_image, price, editor_score, rating, review_count, best_for')
@@ -65,7 +71,18 @@ async function loadHomeData() {
     products = (prodRes.data || []).filter((r: any) => r.product_name);
     posts = (postRes.data || []).filter((p: any) => p.title && p.slug);
   } catch (e) {
-    console.error('[SSR home] queries:', e);
+    console.error('[SSR home] queries failed, using static fallback:', (e as Error).message);
+  }
+  
+  // Fallback: use static homepage.json if Supabase failed
+  if (products.length === 0 || posts.length === 0) {
+    const staticHome = readStaticCatalog('homepage.json');
+    if (staticHome) {
+      if (products.length === 0 && staticHome.products) products = staticHome.products;
+      if (posts.length === 0 && staticHome.posts) posts = staticHome.posts;
+      if (categories.length === 0 && staticHome.categories) categories = staticHome.categories;
+      console.log(`[SSR] Using static homepage data (${products.length} products, ${posts.length} posts)`);
+    }
   }
 
   const result = { categories, products, posts };

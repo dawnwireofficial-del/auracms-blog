@@ -6,6 +6,7 @@ import { renderHomePageHtml } from './server/ssr/home';
 import { renderProductPageHtml } from './server/ssr/product';
 import { renderCategoryPageHtml } from './server/ssr/category';
 import { renderPostPageHtml } from './server/ssr/post';
+import { warmCacheFromStatic } from './server/api-cache';
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const isProduction = process.env.NODE_ENV === 'production';
@@ -16,6 +17,9 @@ const distPath = path.join(process.cwd(), 'dist');
 if (!process.env.AI_GATEWAY_API_KEY && !process.env.COHERE_API_KEY) {
   console.warn('[Startup] WARNING: Neither AI_GATEWAY_API_KEY nor COHERE_API_KEY is set. All AI features (SEO optimization, article generation, sentiment analysis, FAQ generation, shopping assistant) will fail.');
 }
+
+// Warm up API cache from static catalog files (instant, no DB needed)
+warmCacheFromStatic();
 
 // Static assets
 // Server-render dynamic pages before the static middleware so crawlers receive
