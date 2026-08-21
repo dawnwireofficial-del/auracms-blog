@@ -682,6 +682,8 @@
   @keyframes commerceSpin  { to { transform: rotate(360deg); } }
   @keyframes commerceSoft  { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.04); opacity: .92; } }
   @keyframes commerceBounce{ 0%, 100% { transform: translateY(0); } 30% { transform: translateY(-7px); } 60% { transform: translateY(0); } }
+  @keyframes float { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-20px) scale(1.03); } }
+  @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(36,107,255,0.15); } 50% { box-shadow: 0 0 40px rgba(36,107,255,0.3); } }
 
   @media (prefers-reduced-motion: reduce) {
     .anim-pulse, .anim-float, .anim-spin, .anim-soft, .anim-bounce { animation: none; }

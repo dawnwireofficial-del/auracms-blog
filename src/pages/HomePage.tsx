@@ -84,10 +84,10 @@ function PriceBlock({ price, was, large }: { price?: number | string; was?: numb
 }
 
 const TRUST_ITEMS = [
-  { icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', label: 'Independently tested' },
-  { icon: 'M13 10V3L4 14h7v7l9-11h-7z', label: '98.2% pick accuracy' },
-  { icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9', label: 'Live price watch' },
-  { icon: 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z', label: 'AI research assistant' },
+  { icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', label: 'Independently tested', color: 'from-[#246BFF] to-[#4F7CFF]' },
+  { icon: 'M13 10V3L4 14h7v7l9-11h-7z', label: 'AI-powered scoring', color: 'from-[#FF8A00] to-[#FFB347]' },
+  { icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9', label: 'Live price tracking', color: 'from-[#059669] to-[#34D399]' },
+  { icon: 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z', label: 'AI research assistant', color: 'from-[#7C3AED] to-[#A78BFA]' },
 ];
 
 /* Countdown timer to end of today — powers the "Hot Deals" module (reference so-deals timer) */
@@ -386,9 +386,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         >
           {/* ── Slide 1: copy + search ── */}
           <div className="relative w-full shrink-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#FFFFFF] via-[#F1F6FF] to-[#FFF4E6]" />
-            <div className="absolute -top-32 -right-24 w-[520px] h-[520px] rounded-full bg-[#246BFF]/10 blur-3xl" />
-            <div className="absolute -bottom-40 -left-24 w-[460px] h-[460px] rounded-full bg-[#FF8A00]/10 blur-3xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#FFFFFF] via-[#F0F5FF] to-[#FFF4E6]" />
+            <div className="absolute -top-32 -right-24 w-[520px] h-[520px] rounded-full bg-[#246BFF]/[0.08] blur-3xl animate-[float_8s_ease-in-out_infinite]" />
+            <div className="absolute -bottom-40 -left-24 w-[460px] h-[460px] rounded-full bg-[#FF8A00]/[0.08] blur-3xl animate-[float_10s_ease-in-out_infinite_2s]" />
             <div
               className="absolute inset-0 opacity-[0.45]"
               style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(100,116,139,0.30) 1px, transparent 0)', backgroundSize: '28px 28px' }}
@@ -625,13 +625,15 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
       <section className="border-y border-slate-200/80 bg-white">
         <div className="commerce-container grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 py-5">
           {TRUST_ITEMS.map(item => (
-            <div key={item.label} className="flex items-center gap-3">
-              <span className="w-10 h-10 rounded-xl bg-[#EAF2FF] text-[#246BFF] flex items-center justify-center shrink-0 border border-[#246BFF]/10">
+            <div key={item.label} className="group flex items-center gap-3 hover:bg-[#F8FAFC] rounded-xl px-3 py-2 -mx-3 transition-colors">
+              <span className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.color} text-white flex items-center justify-center shrink-0 shadow-[0_4px_12px_-3px_rgba(0,0,0,0.15)] group-hover:scale-110 transition-transform duration-300`}
+                style={{ boxShadow: `0 4px 14px -3px ${item.color.includes('#246BFF') ? 'rgba(36,107,255,0.35)' : item.color.includes('#FF8A00') ? 'rgba(255,138,0,0.35)' : item.color.includes('#059669') ? 'rgba(5,150,105,0.35)' : 'rgba(124,58,237,0.35)'}` }}
+              >
                 <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
                 </svg>
               </span>
-              <span className="text-[14px] font-bold text-slate-700">{item.label}</span>
+              <span className="text-[13px] font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{item.label}</span>
             </div>
           ))}
         </div>
@@ -685,31 +687,46 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
               </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-              {topDeals.map(p => {
+              {topDeals.map((p, dealIdx) => {
                 const disc = p.discountPercentage || (Number(p.referencePrice) > Number(p.currentPrice)
                   ? Math.round((1 - Number(p.currentPrice) / Number(p.referencePrice)) * 100) : 0);
+                const isTopDeal = disc >= 30;
                 return (
                   <a key={p.id} href={`/products/${p.slug}`} data-gravity-cursor="view"
-                    className="group flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-[0_18px_44px_-16px_rgba(36,107,255,0.3)] hover:-translate-y-1 hover:border-[#246BFF]/40 transition-all duration-300">
-                    <div className="relative bg-white h-[225px] flex items-center justify-center overflow-hidden p-4">
+                    className="group relative flex flex-col bg-white rounded-2xl border border-slate-200/80 overflow-hidden hover:shadow-[0_20px_50px_-16px_rgba(36,107,255,0.35)] hover:-translate-y-1.5 hover:border-[#246BFF]/50 transition-all duration-300">
+                    {/* Urgency glow for high-discount items */}
+                    {isTopDeal && (
+                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-[#FF334F]/5 to-transparent pointer-events-none z-[1]" />
+                    )}
+                    <div className="relative bg-gradient-to-b from-[#FAFBFF] to-white h-[230px] flex items-center justify-center overflow-hidden p-4 z-[2]">
                       {disc > 0 && (
-                        <span className="absolute top-2.5 left-2.5 z-10 bg-[#FF334F] text-white text-[12px] font-black px-2.5 py-1 rounded-lg shadow-md">−{disc}%</span>
+                        <span className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1 bg-gradient-to-r from-[#FF334F] to-[#E8102E] text-white text-[11px] font-black px-2.5 py-1 rounded-lg shadow-[0_4px_12px_-3px_rgba(255,51,79,0.5)]">
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                          {disc}% OFF
+                        </span>
                       )}
                       {p.isDeal && (
-                        <span className="absolute top-2.5 right-2.5 z-10 bg-[#FF8A00] text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase">Deal</span>
+                        <span className="absolute top-2.5 right-2.5 z-10 bg-gradient-to-r from-[#FF8A00] to-[#FF6A00] text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-[0_3px_8px_-2px_rgba(255,138,0,0.5)]">DEAL</span>
+                      )}
+                      {/* DawnWire Score badge */}
+                      {(p.editorScore || 0) > 0 && (
+                        <span className="absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1 bg-white/90 backdrop-blur-sm border border-[#246BFF]/20 text-[#246BFF] text-[10px] font-black px-2 py-0.5 rounded-lg shadow-sm">
+                          ⭐ {(p.editorScore || 0).toFixed(1)}/10
+                        </span>
                       )}
                       <img src={proxyImageUrl(p.images?.[0] || p.productImage) || NO_IMAGE} alt={p.title} loading="lazy"
                         referrerPolicy="no-referrer"
-                        className="w-full h-full object-contain mix-blend-normal drop-shadow-[0_14px_20px_rgba(15,23,42,0.12)] transition-transform duration-500 group-hover:scale-108"
+                        className="w-full h-full object-contain drop-shadow-[0_8px_16px_rgba(15,23,42,0.1)] transition-all duration-500 group-hover:scale-110 group-hover:drop-shadow-[0_14px_24px_rgba(36,107,255,0.2)]"
                         onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
                     </div>
-                    <div className="flex flex-col flex-1 gap-1.5 px-3.5 pb-3.5 pt-1">
-                      <p className="text-[11px] font-bold text-[#246BFF] uppercase tracking-wide truncate">{p.brand}</p>
-                      <h3 className="text-[13px] font-bold text-slate-900 line-clamp-2 leading-snug min-h-[36px]">{p.title}</h3>
+                    <div className="relative z-[2] flex flex-col flex-1 gap-1 px-3.5 pb-3 pt-2">
+                      <p className="text-[10px] font-bold text-[#246BFF] uppercase tracking-widest truncate">{p.brand}</p>
+                      <h3 className="text-[13px] font-bold text-slate-800 line-clamp-2 leading-snug min-h-[34px] group-hover:text-[#246BFF] transition-colors">{p.title}</h3>
                       <Stars rating={p.rating} count={p.reviewCount} size={13} />
                       <PriceBlock price={p.currentPrice || p.price} was={p.referencePrice} />
-                      <span className="mt-auto pt-1.5 w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#1a2b4a] to-[#0f1d35] hover:from-[#0f1d35] hover:to-[#0a1428] text-white text-[13px] font-bold py-3 shadow-[0_6px_16px_-6px_rgba(26,43,74,0.5)] transition-all group-hover:shadow-[0_10px_22px_-6px_rgba(26,43,74,0.6)]">
+                      <span className="mt-auto pt-2 w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#0A1F44] via-[#162d5a] to-[#1a3a6e] hover:from-[#0f1d35] hover:via-[#0A1F44] hover:to-[#162d5a] text-white text-[12px] font-bold py-3 shadow-[0_6px_20px_-6px_rgba(10,31,68,0.6)] transition-all group-hover:shadow-[0_10px_28px_-6px_rgba(10,31,68,0.7)] group-hover:-translate-y-0.5">
                         Check Price on Amazon
+                        <svg className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                       </span>
                     </div>
                   </a>
@@ -1051,9 +1068,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
 
         {/* ============================ NEWSLETTER STRIP (reference newsletter_promo) ============================ */}
         <ScrollReveal>
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#164EE8] via-[#246BFF] to-[#4F7CFF] px-7 md:px-12 py-10 md:py-12">
-          <div className="absolute -top-24 -right-16 w-72 h-72 rounded-full bg-white/10 blur-3xl" />
-          <div className="absolute -bottom-28 -left-16 w-64 h-64 rounded-full bg-[#FF8A00]/25 blur-3xl" />
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0A1F44] via-[#164EE8] to-[#246BFF] px-7 md:px-12 py-10 md:py-12">
+          <div className="absolute -top-24 -right-16 w-72 h-72 rounded-full bg-white/10 blur-3xl animate-[float_12s_ease-in-out_infinite]" />
+          <div className="absolute -bottom-28 -left-16 w-64 h-64 rounded-full bg-[#FF8A00]/20 blur-3xl animate-[float_14s_ease-in-out_infinite_3s]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
           <div className="relative grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-8 items-center">
             <div>
               <span className="inline-flex items-center gap-2 bg-white/15 text-white text-[11px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-white/25">
