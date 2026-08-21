@@ -134,7 +134,7 @@ export default function Header({
         {/* Top bar: logo + search + actions */}
         <div className="flex items-center justify-between h-14 lg:h-16 gap-4">
           {/* Logo */}
-          <div onClick={() => { onNavigate('home'); setMobileMenuOpen(false); }} className="flex items-center gap-3 cursor-pointer shrink-0">
+          <div onClick={() => { onNavigate('home'); setMobileMenuOpen(false); }} className="flex items-center gap-3 cursor-pointer shrink-0 hover:opacity-80 transition-opacity duration-200">
             <img
               src={proxyImageUrl('/logo-transparent.png')}
               alt={settings?.siteName || 'DawnWire'}
@@ -149,7 +149,7 @@ export default function Header({
           {/* Search bar - desktop (Futuristic AI Search) */}
           <div ref={searchRef} className="hidden md:flex flex-1 max-w-3xl relative">
             <SearchPulse state={searchQuery.length > 0 ? 'typing' : 'idle'} className="w-full">
-            <form onSubmit={handleSearch} className="relative flex w-full h-12 bg-dw-card/90 backdrop-blur-md rounded-full border border-dw-border-soft items-center pl-2 pr-1 shadow-inner">
+            <form onSubmit={handleSearch} className="relative flex w-full h-12 bg-dw-card/90 backdrop-blur-md rounded-full border border-dw-border-soft items-center pl-2 pr-1 shadow-inner focus-within:border-[#246BFF]/40 focus-within:shadow-[0_0_20px_-4px_rgba(36,107,255,0.25)] focus-within:bg-white transition-all duration-300">
               
               <div className="flex-shrink-0 px-2">
                 <NeuralOrb size="compact" state={searchQuery.length > 2 ? 'processing' : 'idle'} />
@@ -176,7 +176,7 @@ export default function Header({
               <button type="button" className="p-2 text-cyan hover:text-primary transition-colors mr-1" title="Natural Language Search">
                 <Sparkles className="h-4 w-4" />
               </button>
-              <button type="submit" className="bg-primary hover:bg-primary2 text-white h-10 w-10 flex items-center justify-center rounded-full transition-all shadow-[0_0_15px_rgba(8,102,255,0.4)]">
+              <button type="submit" className="bg-primary hover:bg-primary2 text-white h-10 w-10 flex items-center justify-center rounded-full transition-all duration-200 shadow-[0_0_15px_rgba(8,102,255,0.4)] hover:shadow-[0_0_20px_rgba(8,102,255,0.6)] hover:scale-105 active:scale-95">
                 <Search className="h-4 w-4" />
               </button>
             </form>
@@ -207,7 +207,7 @@ export default function Header({
           <div className="hidden lg:flex items-center gap-2">
             {/* Navigation links */}
             {navLinks.map(link => (
-              <button key={link.label} onClick={() => onNavigate(link.route, (link as any).params)} className={`text-[11px] font-bold px-3 py-2 rounded-lg transition-colors flex items-center gap-1 ${
+              <button key={link.label} onClick={() => onNavigate(link.route, (link as any).params)} className={`relative text-[11px] font-bold px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 ${
                 link.highlight ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20' : textClass
               }`}>
                 {link.label}
@@ -215,32 +215,32 @@ export default function Header({
             ))}
 
             {/* Wishlist */}
-            <button onClick={() => onNavigate('wishlist')} className={`p-2 rounded-lg transition-colors ${textClass}`} title="Wishlist">
-              <Heart className="h-4 w-4" />
+            <button onClick={() => onNavigate('wishlist')} className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 hover:text-red-500 active:scale-95 ${textClass}`} title="Wishlist">
+              <Heart className="h-4 w-4 transition-transform duration-200" />
             </button>
 
             {/* Recently viewed */}
-            <button onClick={() => onNavigate('recently-viewed')} className={`p-2 rounded-lg transition-colors ${textClass}`} title="Recently Viewed">
+            <button onClick={() => onNavigate('recently-viewed')} className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 hover:text-cyan-500 active:scale-95 ${textClass}`} title="Recently Viewed">
               <History className="h-4 w-4" />
             </button>
 
             <div className="w-px h-5 bg-slate-200 dark:bg-zinc-700 mx-1" />
 
-            <button onClick={toggleDarkMode} className={`p-2 rounded-lg transition-colors ${textClass}`} aria-label="Toggle dark mode">
-              {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            <button onClick={toggleDarkMode} className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 hover:text-amber-500 active:scale-95 ${textClass}`} aria-label="Toggle dark mode">
+              {darkMode ? <Sun className="h-4 w-4 transition-transform duration-500 hover:rotate-90" /> : <Moon className="h-4 w-4 transition-transform duration-500 hover:-rotate-12" />}
             </button>
 
             {currentUser ? (
               <div className="flex items-center gap-2 ml-1">
                 {currentUser.role !== 'subscriber' && (
-                  <button onClick={() => onNavigate('admin')} className="primary-btn !py-1.5 !px-4 !text-[10px]">
+                  <button onClick={() => onNavigate('admin')} className="primary-btn !py-1.5 !px-4 !text-[10px] hover:scale-105 active:scale-95 transition-transform duration-200">
                     Console
                   </button>
                 )}
-                <img src={proxyImageUrl(currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100')} alt="" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} width={30} height={30} className="h-7 w-7 rounded-full object-cover border-2 border-gray-200 dark:border-zinc-600" />
+                <img src={proxyImageUrl(currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100')} alt="" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} width={30} height={30} className="h-7 w-7 rounded-full object-cover border-2 border-gray-200 dark:border-zinc-600 hover:border-[#246BFF] transition-colors duration-200 cursor-pointer" />
               </div>
             ) : (
-              <button onClick={onOpenLogin} className={`text-[10px] font-bold tracking-wider px-4 py-2 rounded-lg transition-all ${
+              <button onClick={onOpenLogin} className={`text-[10px] font-bold tracking-wider px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 ${
                 scrolled || !isHome
                   ? 'text-dw-text-muted hover:text-dw-text hover:bg-white/5'
                   : 'bg-white/10 backdrop-blur-md text-white hover:bg-white/20'
