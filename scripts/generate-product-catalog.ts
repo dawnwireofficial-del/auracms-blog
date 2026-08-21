@@ -19,8 +19,8 @@ const SB_URL = process.env.SUPABASE_URL || '';
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
 
 if (!SB_URL || !SB_KEY) {
-  console.error('Missing SUPABASE_URL or SUPABASE_ANON_KEY');
-  process.exit(1);
+  console.log('[generate-catalog] Skipping — no Supabase env vars (build-time)');
+  process.exit(0);
 }
 
 const sb = createClient(SB_URL, SB_KEY);
