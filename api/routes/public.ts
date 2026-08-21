@@ -1,5 +1,7 @@
 import express from 'express';
 import { Readable } from 'stream';
+import fs from 'fs';
+import path from 'path';
 import { dbInstance } from '../../server/db';
 import * as seo from '../../server/seo-engine';
 import { findEntities } from '../../server/entities';
@@ -118,40 +120,86 @@ router.get('/price-history/:id', async (req, res) => {
   }
 });
 
-// Product reviews with entity enrichment for slug lookup
+// Product reviews with entity enrichment for slug lookup (optimized: direct DB query)
 router.get('/product-reviews/slug/:slug', async (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-  const reviews = await seo.getPublishedProductReviews();
   const rawSlug = req.params.slug;
   const decodedSlug = decodeURIComponent(rawSlug).toLowerCase().trim();
-  const normTarget = decodedSlug.replace(/[^a-z0-9]/g, '');
-
-  // 1. Try exact match first
-  let found = (reviews as any[]).find(r => r.slug === rawSlug || r.slug === decodedSlug || r.id === rawSlug);
-
-  // 2. Try normalized alphanumeric match (strips punctuation differences like dots vs hyphens)
+  
+  // Direct query instead of fetching all products
+  let found: any = null;
+  try {
+    const sb = await (seo as any).getClient?.();
+    if (sb) {
+      // Try exact slug match first
+      const { data } = await sb.from('product_reviews')
+        .select('id,product_name,slug,brand,price,original_price,rating,review_count,best_for,editor_score,final_verdict,seo_title,seo_description,seo_keywords,product_image,amazon_url,affiliate_url,status,stock_status,deal_badge,coupon_code,coupon_expiry,category_id,click_count,page_views,created_at,updated_at,asin,commerce_mode')
+        .eq('status', 'published')
+        .or(`slug.eq.${decodedSlug},slug.eq.${rawSlug},id.eq.${rawSlug}`)
+        .limit(1)
+        .maybeSingle();
+      found = data;
+    }
+  } catch {}
+  
+  // Fallback: try normalized match
   if (!found) {
+    const reviews = await seo.getPublishedProductReviews();
+    const normTarget = decodedSlug.replace(/[^a-z0-9]/g, '');
     found = (reviews as any[]).find(r => {
       if (!r.slug) return false;
       const normSlug = r.slug.toLowerCase().replace(/[^a-z0-9]/g, '');
-      return normSlug === normTarget || normTarget.startsWith(normSlug) || normSlug.startsWith(normTarget) || normTarget.includes(normSlug) || normSlug.includes(normTarget);
+      return normSlug === normTarget || normTarget.startsWith(normSlug) || normSlug.startsWith(normTarget);
     });
   }
-
-  // 3. Try ASIN match
-  if (!found) {
-    found = (reviews as any[]).find(r => {
-      const asin = r.specifications?.ASIN || r.asin;
-      return asin && decodedSlug.includes(asin.toLowerCase());
-    });
-  }
-
+  
   if (!found) return res.status(404).json({ error: 'Product review not found' });
+  
+  // Merge with static specs file if available
+  const specsPath = path.join(process.cwd(), 'public', 'data', 'products', found.id, 'specs.json');
+  try {
+    if (fs.existsSync(specsPath)) {
+      const staticSpecs = JSON.parse(fs.readFileSync(specsPath, 'utf8'));
+      // Merge static data into the product
+      if (staticSpecs.gallery) found.specs = { ...found.specs, gallery: staticSpecs.gallery };
+      if (staticSpecs.reviews) found.specs = { ...found.specs, reviews: staticSpecs.reviews };
+      if (staticSpecs.detail_bullets) found.specs = { ...found.specs, detail_bullets: staticSpecs.detail_bullets };
+      if (staticSpecs.details) found.specs = { ...found.specs, details: staticSpecs.details };
+      if (staticSpecs.review_highlights) found.specs = { ...found.specs, review_highlights: staticSpecs.review_highlights };
+      if (staticSpecs.ingredients) found.specs = { ...found.specs, ingredients: staticSpecs.ingredients };
+      if (staticSpecs.root_gallery) found.gallery = staticSpecs.root_gallery;
+      if (staticSpecs.key_features) found.key_features = staticSpecs.key_features;
+      if (staticSpecs.review_summary) found.review_summary = staticSpecs.review_summary;
+      if (staticSpecs.pros) found.pros = staticSpecs.pros;
+      if (staticSpecs.cons) found.cons = staticSpecs.cons;
+      if (staticSpecs.review_article) found.review_article = staticSpecs.review_article;
+    }
+  } catch {}
+  
   const pros = Array.isArray(found.pros) ? found.pros : typeof found.pros === 'string' ? [found.pros] : [];
   const cons = Array.isArray(found.cons) ? found.cons : typeof found.cons === 'string' ? [found.cons] : [];
   const entityText = [found.product_name, found.brand, found.review_summary, found.final_verdict, ...pros, ...cons].filter(Boolean).join(' ');
   const entities = findEntities(entityText);
   res.json({ ...found, _entities: entities.map((e: any) => ({ name: e.name, sameAs: e.sameAs, type: e.type })) });
+});
+
+// Serve heavy product specs from static JSON files (migrated from Supabase)
+const SPECS_DATA_DIR = path.join(process.cwd(), 'public', 'data', 'products');
+router.get('/product-reviews/:id/specs', async (req, res) => {
+  const id = req.params.id;
+  if (!id || id.length < 10) return res.status(400).json({ error: 'Invalid product ID' });
+  const jsonPath = path.join(SPECS_DATA_DIR, id, 'specs.json');
+  try {
+    if (fs.existsSync(jsonPath)) {
+      res.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+      return res.json(JSON.parse(fs.readFileSync(jsonPath, 'utf8')));
+    }
+    // Fallback: return empty specs (product exists but no heavy data)
+    res.set('Cache-Control', 'public, max-age=3600');
+    res.json({});
+  } catch {
+    res.json({});
+  }
 });
 
 router.get('/portfolio', async (_req, res) => res.json(await seo.getPublishedPortfolioProjects()));
