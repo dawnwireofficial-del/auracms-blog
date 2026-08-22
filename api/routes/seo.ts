@@ -476,6 +476,9 @@ router.post('/product-reviews/import', authenticate, async (req, res) => {
       new Promise((_, reject) => setTimeout(() => reject(new Error('Import timed out after 60s')), 60000))
     ]);
     res.json(result);
+    // Instant-index the new product page (fire-and-forget)
+    const slug = (result as any)?.slug || (result as any)?.review?.slug;
+    if (slug) import('../../server/indexnow').then((m) => m.pingIndexNow(`https://www.dawnwire.com/products/${slug}`)).catch(() => {});
     // Auto-regenerate catalog in background (fire-and-forget)
     const { regenerateCatalog } = await import('../../server/api-cache');
     regenerateCatalog().catch(() => {});

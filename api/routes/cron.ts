@@ -137,6 +137,20 @@ router.post('/jobs', async (req, res) => {
     return runAudit({ checkedBy: 'cron' });
   });
 
+  // 6. IndexNow daily batch ping: freshest published URLs for Bing/Yandex
+  await run('indexNow', async () => {
+    const { getPublishedProductReviews } = await import('../../server/seo-engine');
+    const reviews = await getPublishedProductReviews().catch(() => []);
+    const urls = (reviews || [])
+      .sort((a: any, b: any) => new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime())
+      .slice(0, 50)
+      .map((r: any) => `https://www.dawnwire.com/products/${r.slug}`)
+      .concat(['https://www.dawnwire.com/', 'https://www.dawnwire.com/events', 'https://www.dawnwire.com/deals']);
+    const { pingIndexNow } = await import('../../server/indexnow');
+    pingIndexNow(urls);
+    return { pinged: urls.length };
+  });
+
   res.json({ success: true, durationMs: Date.now() - started, results });
 });
 

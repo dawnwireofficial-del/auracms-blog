@@ -46,6 +46,7 @@ router.post('/posts', authenticate, requireRole(['super_admin', 'admin', 'editor
   if (await dbInstance.getPostBySlug(slug)) return res.status(400).json({ error: 'Slug already exists' });
   const p = await dbInstance.createPost({ title, slug, excerpt: excerpt || '', content, featuredImage: featuredImage || '', featuredImageAlt: featuredImageAlt || '', categoryId: categoryId || '', tags: tags || [], status: status || 'draft', visibility: visibility || 'public', isFeatured: !!isFeatured, isTrending: !!isTrending, isEditorsPick: !!isEditorsPick, allowComments: allowComments !== false, seoTitle: seoTitle || '', seoDescription: seoDescription || '', seoKeywords: seoKeywords || '', publishedAt: status === 'published' ? new Date().toISOString() : undefined }, u.id);
   dbInstance.log('Post Created', `Created: "${p.title}"`, u.id, u.name);
+  if ((p as any).status === 'published') import('../../server/indexnow').then((m) => m.pingIndexNow(`https://www.dawnwire.com/post/${p.slug}`)).catch(() => {});
   res.json(p);
 });
 
@@ -60,6 +61,7 @@ router.put('/posts/:id', authenticate, requireRole(['super_admin', 'admin', 'edi
     title: b.title || post.title, slug: b.slug || post.slug, excerpt: b.excerpt !== undefined ? b.excerpt : post.excerpt, content: b.content || post.content, featuredImage: b.featuredImage !== undefined ? b.featuredImage : post.featuredImage, featuredImageAlt: b.featuredImageAlt !== undefined ? b.featuredImageAlt : post.featuredImageAlt, categoryId: b.categoryId !== undefined ? b.categoryId : post.categoryId, tags: b.tags || post.tags, status: b.status || post.status, visibility: b.visibility || post.visibility, isFeatured: b.isFeatured !== undefined ? !!b.isFeatured : post.isFeatured, isTrending: b.isTrending !== undefined ? !!b.isTrending : post.isTrending, isEditorsPick: b.isEditorsPick !== undefined ? !!b.isEditorsPick : post.isEditorsPick, allowComments: b.allowComments !== undefined ? !!b.allowComments : post.allowComments, seoTitle: b.seoTitle || post.seoTitle, seoDescription: b.seoDescription || post.seoDescription, seoKeywords: b.seoKeywords || post.seoKeywords, publishedAt: (b.status === 'published' && post.status !== 'published') ? new Date().toISOString() : post.publishedAt
   });
   dbInstance.log('Post Updated', `Updated: "${upd?.title}"`, u.id, u.name);
+  if (upd && (upd as any).status === 'published') import('../../server/indexnow').then((m) => m.pingIndexNow(`https://www.dawnwire.com/post/${upd.slug}`)).catch(() => {});
   res.json(upd);
 });
 

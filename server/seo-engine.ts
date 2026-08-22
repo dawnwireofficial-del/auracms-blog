@@ -639,11 +639,13 @@ export async function importProductReview(data: {
     slug = `${slug}-${counter}`;
   }
 
-  // Auto-host images: always upload Amazon CDN images to permanent storage
+  // Image hosting is OPT-IN (default off): imported products keep their
+  // original Amazon CDN URLs (proxied at render time). Set uploadImages=true
+  // in the payload only for special cases that need permanent re-hosting.
   let productImage = typeof data.product_image === 'string' ? data.product_image.trim() : null;
   let galleryImages: string[] = norm.gallery.length > 0 ? [...norm.gallery] : [];
-  const shouldUpload = data.uploadImages !== false; // default true for all imports
-  if (shouldUpload) {
+  const shouldUpload = data.uploadImages === true;
+  if (shouldUpload && process.env.IMGBB_API_KEY) {
     if (productImage && AMAZON_CDN_RE.test(productImage)) {
       const hosted = await uploadToImgBB(productImage);
       if (hosted) productImage = hosted;
