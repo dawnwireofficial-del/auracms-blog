@@ -1,18 +1,15 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { motion } from 'motion/react';
-import { DisclosureBanner } from '../components/common/DisclosureBanner';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAppStore } from '../lib/store';
-import { triggerPageLoadProgress } from '../lib/navigation';
 import { proxyImageUrl } from '../utils/safeRender';
 import { assignHomepageSlots } from '../lib/homepageSlots';
 import { AnimatedCategoryIcon } from '../components/common/AnimatedCategoryIcon';
 import MascotAnimation from '../components/MascotAnimation';
 import { useReducedMotion } from '../components/useReducedMotion';
 import BannerInlineEditor from '../components/admin/BannerInlineEditor';
-import { HeroBanner, DealStrip, CategoryCard, BrandedBanner, GRADIENTS } from '../components/branding/BrandedBanners';
-import { SeasonalBanner, UpcomingEventsBar } from '../components/branding/SeasonalBanners';
-import { ScrollReveal, StaggerReveal, ScaleReveal } from '../components/common/ScrollReveal';
-import type { Post } from '../types';
+import { DisclosureBanner } from '../components/common/DisclosureBanner';
+import { triggerPageLoadProgress } from '../lib/navigation';
+import { BRAND_KIT } from '../lib/brandKit';
+import type { Product, Post, Category } from '../types';
 
 interface HomePageProps {
   onOpenAiFinder: () => void;
@@ -20,23 +17,49 @@ interface HomePageProps {
 }
 
 const NO_IMAGE = 'data:image/svg+xml,' + encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="300" height="300" fill="#eef2f7"/><g fill="none" stroke="#cbd5e1" stroke-width="2"><circle cx="150" cy="138" r="46"/><path d="M66 238c8-48 46-72 84-72s76 24 84 72"/></g></svg>'
+  '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="300" height="300" fill="#f8fafc"/><g fill="none" stroke="#cbd5e1" stroke-width="2"><circle cx="150" cy="138" r="46"/><path d="M66 238c8-48 46-72 84-72s76 24 84 72"/></g></svg>'
 );
 
-function SectionHead({ title, sub, href, label, light }: { title: string; sub?: string; href?: string; label?: string; light?: boolean }) {
+/* ─────────────────────────────────────────────────────────────
+   1. Section Heading Component (Uniform Alignment & Styling)
+───────────────────────────────────────────────────────────── */
+function SectionHeading({
+  title,
+  subtitle,
+  badge,
+  viewAllHref,
+  viewAllText = 'View All'
+}: {
+  title: string;
+  subtitle?: string;
+  badge?: string;
+  viewAllHref?: string;
+  viewAllText?: string;
+}) {
   return (
-    <div className="flex items-end justify-between gap-4 mb-6 md:mb-8">
-      <div className="relative pl-5 border-l-[3px] border-[#C9A96E]">
-        <div className="absolute left-[-3px] top-0 w-[3px] h-6 bg-[#1A1A2E]" />
-        <h2 className="font-['Playfair_Display',Georgia,serif] text-2xl md:text-3xl lg:text-[32px] font-[700] tracking-[-0.02em] leading-tight ${light ? 'text-white' : 'text-[#1A1A2E]'}">
+    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6">
+      <div>
+        {badge && (
+          <span className="inline-block text-[11px] font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 border border-blue-200/60 dark:border-blue-800/60 px-2.5 py-0.5 rounded-md mb-1.5">
+            {badge}
+          </span>
+        )}
+        <h2 className="text-2xl sm:text-[28px] font-black tracking-tight text-slate-900 dark:text-white leading-tight">
           {title}
         </h2>
-        {sub && <div className={`mt-1.5 text-sm font-['Playfair_Display',Georgia,serif] italic ${light ? 'text-white/70' : 'text-[#6B7280]'}`}>{sub}</div>}
+        {subtitle && (
+          <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
+            {subtitle}
+          </p>
+        )}
       </div>
-      {href && (
-        <a href={href} className={`shrink-0 text-[13px] font-semibold uppercase tracking-[0.06em] flex items-center gap-1.5 whitespace-nowrap transition-colors ${light ? 'text-white hover:text-white/80' : 'text-[#C9A96E] hover:text-[#B8944E]'}`}>
-          {label || 'View All'}
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      {viewAllHref && (
+        <a
+          href={viewAllHref}
+          className="text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 inline-flex items-center gap-1 shrink-0 transition-colors group"
+        >
+          <span>{viewAllText}</span>
+          <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
           </svg>
         </a>
@@ -45,984 +68,1098 @@ function SectionHead({ title, sub, href, label, light }: { title: string; sub?: 
   );
 }
 
-function Stars({ rating, count, size = 15 }: { rating?: number; count?: number | string; size?: number }) {
-  const r = Number(rating) || 0;
-  const full = Math.round(r);
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <span className="inline-flex items-center gap-0.5 text-amber-400 leading-none" aria-label={`${r} out of 5 stars`}>
-        {[1, 2, 3, 4, 5].map(i => (
-          <svg key={i} width={size} height={size} viewBox="0 0 20 20" className={i <= full ? 'text-[#FF8A00]' : 'text-[#D4CFC6]'} fill="currentColor">
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118L2.977 10.1c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-          </svg>
-        ))}
-      </span>
-      <span className="text-[13px] text-[#6B7280]">
-        {r > 0 ? r.toFixed(1) : ''}
-        {count ? ` (${Number(count).toLocaleString()})` : ''}
-      </span>
-    </span>
-  );
-}
-
-function PriceBlock({ price, was, large }: { price?: number | string; was?: number | string; large?: boolean }) {
-  const p = Number(price);
-  const w = Number(was);
-  const showNow = !isNaN(p) && p > 0;
-  const showWas = !isNaN(w) && w > p;
-  return (
-    <div className="flex items-baseline gap-2">
-      {showNow ? (
-        <>
-          <span className={`${large ? 'text-2xl' : 'text-lg'} font-[850] tracking-tight text-[#1A1A2E]`}>${p.toFixed(2)}</span>
-          {showWas && <span className="text-sm text-[#9CA3AF] line-through">${w.toFixed(2)}</span>}
-        </>
-      ) : (
-        <span className="text-sm font-semibold text-[#6B7280]">Check Price on Amazon</span>
-      )}
-    </div>
-  );
-}
-
-const TRUST_ITEMS = [
-  { icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', label: 'Independently tested' },
-  { icon: 'M13 10V3L4 14h7v7l9-11h-7z', label: 'AI-powered scoring' },
-  { icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9', label: 'Live price tracking' },
-  { icon: 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z', label: 'AI research assistant' },
-];
-
-/* Countdown timer to end of today — powers the "Hot Deals" module (reference so-deals timer) */
+/* ─────────────────────────────────────────────────────────────
+   2. Countdown Timer Component
+───────────────────────────────────────────────────────────── */
 function DealsCountdown() {
   const [left, setLeft] = useState('00:00:00');
+
   useEffect(() => {
     const tick = () => {
       const now = new Date();
       const end = new Date(now);
       end.setHours(23, 59, 59, 999);
-      const d = Math.max(0, end.getTime() - now.getTime());
-      const h = Math.floor(d / 3600000);
-      const m = Math.floor((d % 3600000) / 60000);
-      const s = Math.floor((d % 60000) / 1000);
+      const diff = Math.max(0, end.getTime() - now.getTime());
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
       setLeft(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`);
     };
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
+
   const [hh, mm, ss] = left.split(':');
+
   return (
-    <div className="flex items-center gap-1.5 font-mono" aria-label="Deals end countdown">
-      {[hh, mm, ss].map((v, i) => (
-        <React.Fragment key={i}>
-          <span className="inline-flex items-center justify-center min-w-[42px] h-10 rounded-lg bg-[#1A1A2E] text-[#C9A96E] text-lg font-black shadow-[0_6px_14px_-6px_rgba(26,26,46,0.6)] tabular-nums font-['Playfair_Display',serif]">{v}</span>
-          {i < 2 && <span className="text-lg font-black text-[#9CA3AF]">:</span>}
+    <div className="inline-flex items-center gap-1.5" aria-label="Deals countdown">
+      <span className="text-xs font-bold uppercase tracking-wider text-slate-400 mr-1 hidden sm:inline">Ends in:</span>
+      {[
+        { val: hh, label: 'H' },
+        { val: mm, label: 'M' },
+        { val: ss, label: 'S' }
+      ].map((item, idx) => (
+        <React.Fragment key={item.label}>
+          <div className="flex items-center justify-center bg-slate-900 text-amber-400 font-mono font-black text-sm px-2 py-1 rounded-lg shadow-inner min-w-[32px]">
+            {item.val}
+          </div>
+          {idx < 2 && <span className="text-slate-400 font-bold">:</span>}
         </React.Fragment>
       ))}
     </div>
   );
 }
 
+/* ─────────────────────────────────────────────────────────────
+   3. ONE Shared Unified Reusable Product Card
+───────────────────────────────────────────────────────────── */
+function UnifiedProductCard({
+  product,
+  badge
+}: {
+  product: Product;
+  badge?: string;
+}) {
+  const p = product;
+  const currentPrice = Number(p.currentPrice || p.price || 0);
+  const referencePrice = Number(p.referencePrice || 0);
+  const discount = p.discountPercentage || (referencePrice > currentPrice ? Math.round((1 - currentPrice / referencePrice) * 100) : 0);
+  const savings = referencePrice > currentPrice ? (referencePrice - currentPrice).toFixed(2) : null;
+  const hasScore = (p.editorScore || 0) > 0;
+
+  return (
+    <div className="group relative flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-blue-400/80 dark:hover:border-blue-500/80 shadow-xs hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 overflow-hidden h-full">
+      {/* Top Image Container */}
+      <a
+        href={`/products/${p.slug}`}
+        className="relative bg-slate-50/70 dark:bg-slate-800/60 aspect-square flex items-center justify-center p-4 overflow-hidden"
+        data-gravity-cursor="view"
+      >
+        {/* Discount & Custom Badges */}
+        <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1 items-start">
+          {discount > 0 && (
+            <span className="bg-red-600 text-white font-extrabold text-[11px] px-2 py-0.5 rounded-md shadow-xs">
+              -{discount}%
+            </span>
+          )}
+          {badge && (
+            <span className="bg-blue-600 text-white font-bold text-[10px] px-2 py-0.5 rounded-md shadow-xs uppercase tracking-wide">
+              {badge}
+            </span>
+          )}
+        </div>
+
+        {/* Editor Score Badge */}
+        {hasScore && (
+          <span className="absolute top-2.5 right-2.5 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs border border-blue-100 dark:border-blue-900 text-blue-600 dark:text-blue-400 font-extrabold text-[11px] px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1">
+            <span className="text-amber-500">★</span> {(p.editorScore || 0).toFixed(1)}/10
+          </span>
+        )}
+
+        <img
+          src={proxyImageUrl(p.images?.[0] || p.productImage) || NO_IMAGE}
+          alt={p.title}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-500"
+          onError={(e) => { (e.target as HTMLImageElement).src = NO_IMAGE; }}
+        />
+      </a>
+
+      {/* Card Body */}
+      <div className="p-4 flex flex-col flex-1 gap-2">
+        <div className="flex items-center justify-between gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+          <span className="truncate">{p.brand || 'DawnWire Pick'}</span>
+          {p.isPrime && (
+            <span className="text-[10px] text-sky-600 italic bg-sky-50 dark:bg-sky-950/60 px-1.5 py-0.5 rounded font-extrabold shrink-0">
+              Prime
+            </span>
+          )}
+        </div>
+
+        <a href={`/products/${p.slug}`} className="block">
+          <h3 className="text-[13px] font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug min-h-[36px]">
+            {p.title}
+          </h3>
+        </a>
+
+        {/* Rating */}
+        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+          <div className="flex items-center text-amber-400">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <svg
+                key={star}
+                className={`w-3.5 h-3.5 ${star <= Math.round(p.rating || 0) ? 'text-amber-400 fill-current' : 'text-slate-200 dark:text-slate-700 fill-current'}`}
+                viewBox="0 0 20 20"
+              >
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118L2.977 10.1c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+              </svg>
+            ))}
+          </div>
+          <span className="font-semibold text-slate-700 dark:text-slate-300">{(p.rating || 0).toFixed(1)}</span>
+          {p.reviewCount ? <span className="text-slate-400">({Number(p.reviewCount).toLocaleString()})</span> : null}
+        </div>
+
+        {/* Price Block */}
+        <div className="mt-auto pt-2 border-t border-slate-100 dark:border-slate-800 flex items-baseline justify-between gap-2">
+          <div>
+            {currentPrice > 0 ? (
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-lg font-black text-slate-900 dark:text-white">${currentPrice.toFixed(2)}</span>
+                {referencePrice > currentPrice && (
+                  <span className="text-xs text-slate-400 line-through">${referencePrice.toFixed(2)}</span>
+                )}
+              </div>
+            ) : (
+              <span className="text-xs font-semibold text-slate-500">Check Price</span>
+            )}
+            {savings && (
+              <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 block">Save ${savings}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Conversion Action */}
+        <a
+          href={p.affiliateUrl || `https://www.amazon.com/dp/${p.asin || ''}?tag=dawnwire-20`}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+          className="w-full mt-1.5 inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold py-2.5 shadow-xs shadow-orange-500/20 transition-all hover:shadow-md hover:shadow-orange-500/30"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <span>Check Price on Amazon</span>
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   4. Category Section with Integrated Banner & Product Grid
+───────────────────────────────────────────────────────────── */
+function CategoryMerchandisingSection({
+  title,
+  subtitle,
+  categorySlug,
+  bannerTitle,
+  bannerSubtitle,
+  bannerBadge,
+  bannerCtaText = 'Explore Deals',
+  bannerGradient = 'from-blue-900 via-indigo-950 to-slate-900',
+  products,
+  viewAllHref
+}: {
+  title: string;
+  subtitle?: string;
+  categorySlug: string;
+  bannerTitle: string;
+  bannerSubtitle: string;
+  bannerBadge?: string;
+  bannerCtaText?: string;
+  bannerGradient?: string;
+  products: Product[];
+  viewAllHref: string;
+}) {
+  if (!products || products.length === 0) return null;
+
+  return (
+    <section className="py-8 border-t border-slate-200/80 dark:border-slate-800">
+      <SectionHeading
+        title={title}
+        subtitle={subtitle}
+        viewAllHref={viewAllHref}
+        viewAllText={`All ${title.split(' ')[0]}`}
+      />
+
+      {/* Category Promotional Strip Banner */}
+      <div className={`relative rounded-2xl bg-gradient-to-r ${bannerGradient} text-white p-6 sm:p-7 mb-6 overflow-hidden shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4`}>
+        <div className="relative z-10 max-w-xl">
+          {bannerBadge && (
+            <span className="inline-block text-[10px] font-black uppercase tracking-widest bg-white/20 px-2.5 py-0.5 rounded-md mb-2">
+              {bannerBadge}
+            </span>
+          )}
+          <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">
+            {bannerTitle}
+          </h3>
+          <p className="text-xs sm:text-sm text-white/80 mt-1">
+            {bannerSubtitle}
+          </p>
+        </div>
+        <a
+          href={viewAllHref}
+          className="relative z-10 inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-sm transition-all w-fit shrink-0"
+        >
+          <span>{bannerCtaText}</span>
+          <span>&rarr;</span>
+        </a>
+      </div>
+
+      {/* Product Grid (4-6 Products) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+        {products.slice(0, 6).map((product) => (
+          <UnifiedProductCard key={product.id} product={product} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Main HomePage Component
+───────────────────────────────────────────────────────────── */
 export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbot }) => {
-  const { products, categories, deals, banners } = useAppStore();
-  const [heroQuery, setHeroQuery] = useState('');
+  const { products, categories, banners } = useAppStore();
   const [brands, setBrands] = useState<{ id: string; name: string; slug: string; logoUrl?: string; logo?: string }[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
-  const prefersReduced = useReducedMotion();
 
+  // Hero Search & Newsletter State
+  const [heroSearchQuery, setHeroSearchQuery] = useState('');
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterStatus, setNewsletterStatus] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
+
+  // Slider State
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isHoveringSlider, setIsHoveringSlider] = useState(false);
+  const prefersReduced = useReducedMotion();
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
+
+  // Banner slots from admin
+  const bannerSlots = useMemo(() => assignHomepageSlots(banners), [banners]);
+
+  // Fetch Public Brands & Guides
   useEffect(() => {
-    fetch('/api/public/brands?limit=20')
+    fetch('/api/public/brands?limit=24')
       .then(r => r.json())
       .then(data => setBrands(Array.isArray(data) ? data : (data?.data || [])))
       .catch(() => {});
-  }, []);
 
-  // Latest editorial guides come from public posts
-  useEffect(() => {
-    fetch('/api/public/posts?limit=8')
+    fetch('/api/public/posts?limit=6')
       .then(r => r.json())
-      .then(data => {
-        const arr = Array.isArray(data) ? data : (data?.data || []);
-        setPosts(arr.slice(0, 6));
-      })
+      .then(data => setPosts(Array.isArray(data) ? data : (data?.data || [])))
       .catch(() => {});
   }, []);
 
+  // Sorted Products by Editor Score
   const sortedByScore = useMemo(
     () => [...products].sort((a, b) => (b.editorScore || 0) - (a.editorScore || 0)),
     [products]
   );
 
-  /* Hero deal = the single on-page deal with the most steam, or any product */
-  const heroItem = useMemo(() => {
-    if (deals.length) {
-      const linked = deals
-        .map(d => products.find(pd => pd.id === d.productId))
-        .filter(Boolean);
-      if (linked.length) return linked[0] as (typeof products)[number];
-    }
-    const dealy = sortedByScore.filter(p => p.isDeal || p.discountPercentage || (Number(p.referencePrice) > Number(p.currentPrice)));
-    if (dealy.length) return dealy[0];
-    return sortedByScore[0];
-  }, [deals, products, sortedByScore]);
-
-  /* Today's best deals — steepest real discounts, biggest first */
+  // Top Deals
   const topDeals = useMemo(() => {
-    const byDiscount = [...sortedByScore]
-      .filter(p => p.isDeal || p.discountPercentage || (Number(p.referencePrice) > Number(p.currentPrice)))
-      .sort((a, b) => (b.discountPercentage || 0) - (a.discountPercentage || 0));
-    const list = byDiscount.length ? byDiscount : sortedByScore;
-    return list.slice(0, 6);
+    const dealList = sortedByScore.filter(p => p.isDeal || p.discountPercentage || (Number(p.referencePrice) > Number(p.currentPrice)));
+    const sortedDeals = dealList.sort((a, b) => (b.discountPercentage || 0) - (a.discountPercentage || 0));
+    return (sortedDeals.length > 0 ? sortedDeals : sortedByScore).slice(0, 6);
   }, [sortedByScore]);
 
-  /* Promo tiles get real product imagery */
-  const promoPool = sortedByScore;
+  // Category Filtering Helper for Merchandise Sections
+  const getProductsForKeywords = (keywords: string[], fallbackOffset = 0, count = 6) => {
+    const matched = products.filter(p => {
+      const pCat = (p.mainCategory || p.category || '').toLowerCase();
+      const pTitle = (p.title || '').toLowerCase();
+      const pBestFor = (p.bestFor || '').toLowerCase();
+      const pBrand = (p.brand || '').toLowerCase();
+      return keywords.some(kw => pCat.includes(kw) || pTitle.includes(kw) || pBestFor.includes(kw) || pBrand.includes(kw));
+    }).sort((a, b) => (b.editorScore || 0) - (a.editorScore || 0));
 
-  /* Shop-by-category horizontal set — up to 10 */
-  const shopCategories = useMemo(() => {
-    const prefs = ['electron', 'beauty', 'home', 'kitchen', 'fashion', 'health', 'sport', 'toy', 'automotive', 'office', 'baby'];
-    const picked: (typeof categories)[number][] = [];
-    prefs.forEach(pref => {
-      if (picked.length >= 10) return;
-      const c = categories.find(cat => cat.name.toLowerCase().includes(pref));
-      if (c && !picked.some(p => p.id === c.id)) picked.push(c);
+    if (matched.length >= 4) return matched.slice(0, count);
+    // Return matched + fallback to ensure well-stocked visual density
+    const pool = [...matched, ...sortedByScore.slice(fallbackOffset, fallbackOffset + count)];
+    const unique = pool.filter((item, index, self) => index === self.findIndex(t => t.id === item.id));
+    return unique.slice(0, count);
+  };
+
+  const electronicsProducts = useMemo(() => getProductsForKeywords(['electron', 'audio', 'headphone', 'phone', 'laptop', 'monitor', 'tv', 'watch', 'camera'], 0, 6), [products, sortedByScore]);
+  const beautyProducts = useMemo(() => getProductsForKeywords(['beauty', 'skincare', 'hair', 'cream', 'serum', 'lotion', 'makeup', 'cleanser'], 3, 6), [products, sortedByScore]);
+  const homeProducts = useMemo(() => getProductsForKeywords(['home', 'kitchen', 'cookware', 'coffee', 'blender', 'vacuum', 'appliance', 'air fryer'], 6, 6), [products, sortedByScore]);
+  const gamingProducts = useMemo(() => getProductsForKeywords(['game', 'gaming', 'keyboard', 'mouse', 'controller', 'console', 'gpu', 'headset'], 9, 6), [products, sortedByScore]);
+  const officeProducts = useMemo(() => getProductsForKeywords(['office', 'desk', 'chair', 'ergonomic', 'productivity', 'printer', 'hub', 'stand'], 12, 6), [products, sortedByScore]);
+  const healthProducts = useMemo(() => getProductsForKeywords(['health', 'fitness', 'wellness', 'supplement', 'vitamin', 'exercise', 'massage'], 15, 6), [products, sortedByScore]);
+
+  // Full Category Taxonomy for Shop by Category Rail
+  const fullTaxonomyCategories = useMemo(() => {
+    const list = [
+      { id: 'cat-elec', name: 'Electronics', slug: 'electronics', icon: 'zap' },
+      { id: 'cat-beauty', name: 'Beauty & Personal Care', slug: 'beauty-personal-care', icon: 'sparkles' },
+      { id: 'cat-home', name: 'Home & Kitchen', slug: 'home-kitchen', icon: 'home' },
+      { id: 'cat-fashion', name: 'Fashion & Clothing', slug: 'fashion-clothing', icon: 'shopping-bag' },
+      { id: 'cat-health', name: 'Health & Wellness', slug: 'health-wellness', icon: 'heart' },
+      { id: 'cat-gaming', name: 'Gaming & VR', slug: 'gaming', icon: 'gamepad' },
+      { id: 'cat-office', name: 'Office & Productivity', slug: 'office-productivity', icon: 'briefcase' },
+      { id: 'cat-sports', name: 'Sports & Outdoors', slug: 'sports-outdoors', icon: 'activity' },
+      { id: 'cat-auto', name: 'Automotive', slug: 'automotive', icon: 'truck' },
+      { id: 'cat-toys', name: 'Toys & Games', slug: 'toys-games', icon: 'smile' },
+      { id: 'cat-baby', name: 'Baby Products', slug: 'baby-products', icon: 'gift' },
+      { id: 'cat-computer', name: 'Computer Accessories', slug: 'computer-accessories', icon: 'cpu' },
+      { id: 'cat-ai', name: 'AI & Software Tools', slug: 'ai-software-tools', icon: 'layers' },
+      { id: 'cat-books', name: 'Books & Reading', slug: 'books-reading', icon: 'book' }
+    ];
+
+    // Merge in any custom categories from backend
+    categories.forEach(c => {
+      if (!list.some(item => item.slug === c.slug || item.name.toLowerCase() === c.name.toLowerCase())) {
+        list.push({ id: c.id, name: c.name, slug: c.slug, icon: c.icon || 'tag' });
+      }
     });
-    categories.forEach(c => { if (picked.length >= 10) return; if (!picked.some(p => p.id === c.id)) picked.push(c); });
-    return picked.slice(0, 10);
+
+    return list;
   }, [categories]);
 
-  const categoryImage = (cat: (typeof categories)[number]): string => {
-    const banner = cat.image || cat.desktopBanner;
-    if (banner) return proxyImageUrl(banner) || NO_IMAGE;
-    return '';
-  };
-
-  const productCountFor = (catName: string) =>
-    products.filter(p => (p.mainCategory || '').toLowerCase().includes(catName.toLowerCase())).length;
-
-  /* Popular rails — Electronics + Beauty (fallback to first two filled categories) */
-  const rails = useMemo(() => {
-    const findCat = (needle: string) => categories.find(c => c.name.toLowerCase().includes(needle));
-    const prefs = ['electron', 'beauty'];
-    let chosen: (typeof categories)[number][] = [];
-    prefs.forEach(pref => { const c = findCat(pref); if (c && !chosen.some(x => x.id === c.id)) chosen.push(c); });
-    if (chosen.length < 2) {
-      const filled = categories.filter(c => products.some(p => p.categoryId === c.id || (p.mainCategory || '').toLowerCase().includes(c.name.toLowerCase())));
-      filled.forEach(c => { if (chosen.length >= 2) return; if (!chosen.some(x => x.id === c.id)) chosen.push(c); });
-      categories.forEach(c => { if (chosen.length >= 2) return; if (!chosen.some(x => x.id === c.id)) chosen.push(c); });
-    }
-    return chosen.slice(0, 2).map(cat => ({
-      cat,
-      prods: sortedByScore
-        .filter(p => p.categoryId === cat.id || (p.mainCategory || '').toLowerCase().includes(cat.name.toLowerCase()))
-        .slice(0, 5)
-    }));
-  }, [categories, products, sortedByScore]);
-
-  const brandsAll = useMemo(() => {
-    const productBrands = [...new Set(products.map(p => p.brand).filter(Boolean))]
-      .map(name => ({ id: 'brand-' + name, name, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-') }));
-    const merged: { id: string; name: string; slug: string; logoUrl?: string; logo?: string }[] = [];
-    brands.forEach(b => { if (!merged.some(x => x.name.toLowerCase() === b.name.toLowerCase())) merged.push(b); });
-    productBrands.forEach(b => { if (!merged.some(x => x.name.toLowerCase() === b.name.toLowerCase())) merged.push(b); });
-    return merged.slice(0, 12);
-  }, [brands, products]);
-
-  const submitHeroSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = heroQuery.trim();
-    if (q) triggerPageLoadProgress();
-    window.location.href = q ? `/search?q=${encodeURIComponent(q)}` : '/products';
-  };
-
-  /* Admin-managed banner slots → fall back to auto-generated designs */
-  const bannerSlots = useMemo(() => assignHomepageSlots(banners), [banners]);
-
-  /* Promotional campaign banners — prefer admin banners, else themed with real product imagery */
-  const promoBanners: { label: string; title: string; cta: string; href: string; image: string; tint: string }[] = (() => {
-    const fromAdmin = bannerSlots.promos.map((b, i) => b ? {
-      label: b.badgeText || b.subtitle || (i === 0 ? 'Limited Time' : i === 1 ? 'Early Access' : 'Members Only'),
-      title: b.heading || b.title || 'Shop the Event',
-      cta: b.ctaText || 'Shop Now',
-      href: b.targetUrl || b.ctaLink || '/deals',
-      image: proxyImageUrl(b.desktopImage),
-      tint: i === 0 ? 'from-[#246BFF]/85' : i === 1 ? 'from-[#FF8A00]/85' : 'from-[#111827]/80',
-    } : null);
-    if (fromAdmin.some(Boolean)) return fromAdmin.map((b, i) => b || defaultPromo(i));
-    return [0, 1, 2].map((i) => defaultPromo(i));
-
-    function defaultPromo(i: number) {
-      const img = (p?: (typeof products)[number]) => proxyImageUrl(p?.images?.[0] || p?.productImage) || NO_IMAGE;
-      const defs: { label: string; title: string; cta: string; href: string; image: string; tint: string }[] = [
-        { label: 'Prime Day Prep', title: 'Get Early Access to Prime Day Prices', cta: 'Explore Deals', href: '/deals', image: img(topDeals[0] || promoPool[0]), tint: 'from-[#246BFF]/85' },
-        { label: 'Back to School', title: 'Laptops, Noise-Cancelling & More', cta: 'Shop Now', href: '/products', image: img(topDeals[1] || promoPool[1]), tint: 'from-[#FF8A00]/85' },
-        { label: 'Beauty Event', title: 'Korean Skincare Up to 30% Off', cta: 'Shop Beauty', href: '/categories/beauty-personal-care', image: img(topDeals[2] || promoPool[2]), tint: 'from-[#111827]/80' },
-      ];
-      return defs[i];
-    }
-  })();
-
-  /* 2×2 hero promo tiles — admin placements win, else product-driven */
-  const heroTiles = bannerSlots.heroTiles.map((b, i) => {
-    const defs = [
-      { label: '⚡ Flash Deals', sub: 'Up to 60% off', href: '/deals', img: promoPool[1] || topDeals[0], tint: 'from-[#FF8A00]/90' },
-      { label: '📉 Price Drops', sub: 'Tracked daily', href: '/deals', img: promoPool[0] || topDeals[1], tint: 'from-[#246BFF]/90' },
-      { label: '🏆 Best Sellers', sub: `${sortedByScore.length}+ top-rated`, href: '/products?sort=rating', img: sortedByScore[2], tint: 'from-[#111827]/85' },
-      { label: '🔥 Editors’ Picks', sub: 'Lab-verified winners', href: '/products', img: sortedByScore[3], tint: 'from-[#4F7CFF]/90' },
-    ];
-    const def = defs[i];
-    if (b && b.desktopImage) {
-      return {
-        label: b.badgeText || b.subtitle || def.label,
-        sub: b.heading || b.title || def.sub,
-        href: b.targetUrl || b.ctaLink || def.href,
-        img: undefined as (typeof products)[number] | undefined,
-        imageUrl: proxyImageUrl(b.desktopImage),
-        tint: def.tint,
-      };
-    }
-    return { ...def, imageUrl: '' };
-  });
-
-  /* ── Full-width hero slider slides ── */
+  // Slides setup
   const heroSlides = useMemo(() => {
-    const slides: { kind: 'banner'; image: string; heading: string; sub: string; cta: string; href: string; badge?: string }[] = [];
-    const pushBanner = (img?: string, heading?: string, sub?: string, cta?: string, href?: string, badge?: string) => {
-      if (img && img !== NO_IMAGE) {
-        slides.push({
-          kind: 'banner',
-          image: img,
-          heading: heading || 'Shop the Best Deals',
-          sub: sub || '',
-          cta: cta || 'Shop Now',
-          href: href || '/deals',
-          badge,
-        });
+    const list: {
+      id: string;
+      heading: string;
+      subheading: string;
+      ctaText: string;
+      ctaHref: string;
+      badge: string;
+      image: string;
+      featuredProduct?: Product;
+      imageOnly?: boolean;
+      mobileImage?: string;
+    }[] = [
+      {
+        id: 'main-copy',
+        heading: bannerSlots.heroMain?.heading || 'Discover Better Deals & Verified Reviews',
+        subheading: bannerSlots.heroMain?.subtitle || 'Compare live prices, lab test scores, and buying advice before you buy — saving you time and money.',
+        ctaText: bannerSlots.heroMain?.ctaText || "Explore Today's Deals",
+        ctaHref: bannerSlots.heroMain?.targetUrl || '/deals',
+        badge: bannerSlots.heroMain?.badgeText || 'AI-Powered Affiliate Research',
+        image: proxyImageUrl(bannerSlots.heroMain?.desktopImage) || (topDeals[0] ? proxyImageUrl(topDeals[0].images?.[0]) : ''),
+        featuredProduct: topDeals[0]
       }
-    };
-    const hm = bannerSlots.heroMain;
-    pushBanner(hm?.desktopImage, hm?.heading || hm?.title, hm?.subtitle || hm?.description, hm?.ctaText, hm?.targetUrl || hm?.ctaLink, hm?.badgeText);
-    bannerSlots.heroTiles.forEach(t => {
-      pushBanner(t?.desktopImage, t?.heading || t?.title, t?.subtitle || t?.description, t?.ctaText, t?.targetUrl || t?.ctaLink, t?.badgeText);
-    });
-    return slides;
-  }, [bannerSlots]);
+    ];
 
-  /* ── Tabbed category rails (reference listing-tabs) ── */
-  const tabCategories = useMemo(() => {
-    const withProducts = categories.filter(c =>
-      products.some(p => p.categoryId === c.id || (p.mainCategory || '').toLowerCase().includes(c.name.toLowerCase()))
-    );
-    const base = withProducts.length >= 2 ? withProducts : (rails.length ? rails.map(r => r.cat) : categories);
-    return base.slice(0, 4);
-  }, [categories, products, rails]);
+    if (bannerSlots.heroTiles[0]?.desktopImage) {
+      list.push({
+        id: 'admin-slide-1',
+        heading: bannerSlots.heroTiles[0].heading || bannerSlots.heroTiles[0].title || 'Exclusive Season Highlights',
+        subheading: bannerSlots.heroTiles[0].subtitle || bannerSlots.heroTiles[0].description || 'Hand-picked discounts and recommendations directly from our editorial testing lab.',
+        ctaText: bannerSlots.heroTiles[0].ctaText || 'Shop Now',
+        ctaHref: bannerSlots.heroTiles[0].targetUrl || '/deals',
+        badge: bannerSlots.heroTiles[0].badgeText || 'Featured Promotion',
+        image: proxyImageUrl(bannerSlots.heroTiles[0].desktopImage) || '',
+        featuredProduct: undefined
+      });
+    }
 
-  const [activeTab, setActiveTab] = useState(0);
-  useEffect(() => { if (activeTab >= tabCategories.length && tabCategories.length > 0) setActiveTab(0); }, [activeTab, tabCategories.length]);
+    // Brand-kit designed hero banners (image-only, no text overlay, never cropped)
+    for (let i = 0; i < BRAND_KIT.heroes.length; i++) {
+      const h = BRAND_KIT.heroes[i];
+      list.push({
+        id: `brand-hero-${i}`,
+        heading: '',
+        subheading: '',
+        ctaText: 'Shop Now',
+        ctaHref: h.href,
+        badge: '',
+        image: proxyImageUrl(h.desktop) || '',
+        featuredProduct: undefined,
+        imageOnly: true,
+        mobileImage: proxyImageUrl(h.mobile) || ''
+      });
+    }
 
-  const tabProducts = useMemo(() => {
-    if (!tabCategories[activeTab]) return [];
-    const cat = tabCategories[activeTab];
-    return sortedByScore
-      .filter(p => p.categoryId === cat.id || (p.mainCategory || '').toLowerCase().includes(cat.name.toLowerCase()))
-      .slice(0, 8);
-  }, [tabCategories, activeTab, sortedByScore]);
+    return list;
+  }, [bannerSlots, topDeals]);
 
-  /* ── Hero slider autoplay ── */
-  const [slideIdx, setSlideIdx] = useState(0);
-  const [hovering, setHovering] = useState(false);
-  const totalSlides = heroSlides.length + 1; // +1 copy slide
+  const totalSlides = heroSlides.length;
+
+  // Autoplay Slider
   useEffect(() => {
-    if (prefersReduced || hovering || totalSlides <= 1) return;
-    const id = setInterval(() => setSlideIdx(i => (i + 1) % totalSlides), 5000);
-    return () => clearInterval(id);
-  }, [prefersReduced, hovering, totalSlides]);
-  useEffect(() => {
-    if (slideIdx >= totalSlides) setSlideIdx(0);
-  }, [slideIdx, totalSlides]);
+    if (prefersReduced || isHoveringSlider || totalSlides <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % totalSlides);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [prefersReduced, isHoveringSlider, totalSlides]);
 
-  const goSlide = (i: number) => setSlideIdx(((i % totalSlides) + totalSlides) % totalSlides);
+  const goToSlide = (idx: number) => {
+    setCurrentSlide(((idx % totalSlides) + totalSlides) % totalSlides);
+  };
 
-  /* ── Newsletter strip state ── */
-  const [nlEmail, setNlEmail] = useState('');
-  const [nlMsg, setNlMsg] = useState<{ ok: boolean; text: string } | null>(null);
-  const [nlBusy, setNlBusy] = useState(false);
-  const submitNewsletter = async (e: React.FormEvent) => {
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    if (diff > 45) {
+      goToSlide(currentSlide + 1);
+    } else if (diff < -45) {
+      goToSlide(currentSlide - 1);
+    }
+  };
+
+  // Search Submit
+  const handleHeroSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nlEmail.trim() || nlBusy) return;
-    setNlBusy(true);
-    setNlMsg(null);
+    if (heroSearchQuery.trim()) {
+      triggerPageLoadProgress();
+      window.location.href = `/search?q=${encodeURIComponent(heroSearchQuery.trim())}`;
+    }
+  };
+
+  // Newsletter Submit
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsletterEmail.trim() || newsletterLoading) return;
+    setNewsletterLoading(true);
+    setNewsletterStatus(null);
     try {
       const res = await fetch('/api/public/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: nlEmail.trim() }),
+        body: JSON.stringify({ email: newsletterEmail.trim() })
       });
-      setNlMsg(res.ok
-        ? { ok: true, text: 'You’re in! Watch your inbox for the hottest deals.' }
-        : { ok: false, text: 'Something went wrong — please try again.' });
-      if (res.ok) setNlEmail('');
+      if (res.ok) {
+        setNewsletterStatus({ ok: true, msg: '🎉 You are subscribed! Check your inbox for price drop alerts.' });
+        setNewsletterEmail('');
+      } else {
+        setNewsletterStatus({ ok: false, msg: 'Unable to subscribe right now. Please try again.' });
+      }
     } catch {
-      setNlMsg({ ok: false, text: 'Network error — please try again.' });
+      setNewsletterStatus({ ok: false, msg: 'Network error. Please check your connection.' });
     } finally {
-      setNlBusy(false);
+      setNewsletterLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#1A1A2E] overflow-x-clip">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-orange-500 selection:text-white">
+      {/* ─────────────────────────────────────────────────────────────
+          FTC Affiliate Disclosure Banner
+      ───────────────────────────────────────────────────────────── */}
       <DisclosureBanner />
 
-      {/* ============================ FULL-WIDTH HERO SLIDER (reference so-homeslider) ============================ */}
-      <section
-        className="relative overflow-hidden"
-        onMouseEnter={() => setHovering(true)}
-        onMouseLeave={() => setHovering(false)}
-        aria-roledescription="carousel"
-        aria-label="Featured highlights"
-      >
-        {/* Slide track */}
-        <div
-          className="flex transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
-          style={{ transform: `translateX(-${slideIdx * 100}%)` }}
+      {/* Global Container Wrapper: Unified max-w grid across entire page */}
+      <div className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 space-y-12 py-4 sm:py-6">
+        
+        {/* ─────────────────────────────────────────────────────────────
+            5. HERO COMMERCE AREA (Reduced height, ~68% / ~32% split)
+        ───────────────────────────────────────────────────────────── */}
+        <section
+          className="pt-2"
+          onMouseEnter={() => setIsHoveringSlider(true)}
+          onMouseLeave={() => setIsHoveringSlider(false)}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
-          {/* ── Slide 1: copy + search ── */}
-          <div className="relative w-full shrink-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#FFFFFF] via-[#F0F5FF] to-[#FFF4E6]" />
-            <div className="absolute -top-32 -right-24 w-[520px] h-[520px] rounded-full bg-[#246BFF]/[0.08] blur-3xl animate-[float_8s_ease-in-out_infinite]" />
-            <div className="absolute -bottom-40 -left-24 w-[460px] h-[460px] rounded-full bg-[#FF8A00]/[0.08] blur-3xl animate-[float_10s_ease-in-out_infinite_2s]" />
-            <div
-              className="absolute inset-0 opacity-[0.45]"
-              style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(100,116,139,0.30) 1px, transparent 0)', backgroundSize: '28px 28px' }}
-            />
-            <div className="relative commerce-container grid grid-cols-1 lg:grid-cols-[minmax(0,1.8fr)_minmax(350px,1fr)] gap-[18px] items-stretch py-10 lg:py-14">
-              <motion.div
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="relative rounded-[24px] overflow-hidden border border-white/70 shadow-[0_20px_60px_-24px_rgba(36,107,255,0.28)] bg-gradient-to-br from-white via-[#F4F8FF] to-[#FFF3E6] min-h-[380px] md:min-h-[460px] flex flex-col"
-                data-gravity-cursor="explore"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-[1.05fr_0.95fr] gap-2 px-7 md:px-10 pt-8 md:pt-10 pb-0 items-center flex-1">
-                  {/* Left: copy */}
-                  <div className="pb-6">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-[#246BFF]/25 bg-white/80 px-3.5 py-1.5 text-[13px] font-bold text-[#246BFF] shadow-sm">
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#246BFF] opacity-75" />
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#246BFF]" />
-                      </span>
-                      {bannerSlots.heroMain?.subtitle || 'AI-powered deals & independent benchmarks'}
-                    </div>
-                    <h1 className="mt-5 text-4xl sm:text-5xl xl:text-[58px] font-[900] tracking-tight leading-[1.02] text-[#1A1A2E] font-sans">
-                      {bannerSlots.heroMain?.heading ? (
-                        bannerSlots.heroMain.heading
-                      ) : (
-                        <>
-                          Done-For-You Shopping.
-                          <span className="block mt-2 bg-gradient-to-r from-[#246BFF] via-[#1a57e0] to-[#FF8A00] bg-clip-text text-transparent">
-                            Honest Scores. Verified Deals.
-                          </span>
-                        </>
-                      )}
-                    </h1>
-                    <p className="mt-5 max-w-lg text-[16px] leading-relaxed text-[#6B7280]">
-                      {bannerSlots.heroMain?.description || 'DawnWire researches, price-checks and scores the best products of 2026 — so you buy the right thing, at the right price, in seconds instead of hours.'}
-                    </p>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5">
+            {/* Main Hero Slider (68% width on desktop) */}
+            <div className="lg:col-span-8 relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-[#0A1F44] to-blue-950 text-white overflow-hidden shadow-lg border border-slate-800 flex flex-col justify-between min-h-[420px] md:min-h-[460px]">
+              {/* Subtle ambient glows */}
+              <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-blue-500/15 blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-orange-500/10 blur-3xl pointer-events-none" />
 
-                    {/* Hero search */}
-                    <form onSubmit={submitHeroSearch} className="mt-7 max-w-xl">
-                      <div className="bg-white/80 backdrop-blur rounded-2xl p-1.5 flex items-stretch gap-1 border border-white/80 shadow-[0_10px_30px_-8px_rgba(36,107,255,0.18)]">
-                        <span className="hidden sm:flex items-center pl-3 text-[#9CA3AF]">
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                          </svg>
-                        </span>
-                        <input
-                          value={heroQuery}
-                          onChange={e => setHeroQuery(e.target.value)}
-                          placeholder="Search products, deals, reviews or guides…"
-                          aria-label="Search DawnWire"
-                          className="flex-1 min-w-0 bg-transparent px-3 sm:px-2 py-3 text-[15px] text-[#1A1A2E] placeholder-[#9CA3AF] outline-none"
-                        />
-                        <button type="submit" className="bg-[#246BFF] hover:bg-[#164EE8] text-white font-bold px-6 py-2.5 rounded-xl shrink-0">Search</button>
-                      </div>
-                      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-[#6B7280]">
-                        <span className="font-bold text-[#6B7280]">Trending:</span>
-                        {['Wireless Headphones', 'Korean Skincare', 'Air Fryers'].map(t => (
-                          <button key={t} type="button" onClick={() => setHeroQuery(t)} className="hover:text-[#246BFF] font-semibold transition-colors">{t}</button>
-                        ))}
-                      </div>
-                    </form>
-
-                    {/* Hero CTAs */}
-                    <div className="mt-6 flex flex-wrap items-center gap-3">
-                      <button onClick={onOpenAiFinder} className="inline-flex items-center gap-2 rounded-xl bg-[#FF8A00] hover:bg-[#e67b00] text-white font-bold px-6 py-3 text-[15px] shadow-[0_8px_22px_-8px_rgba(255,138,0,0.6)] transition-all hover:-translate-y-0.5">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                        Find My Perfect Product
-                      </button>
-                      <a href="/products?sort=rating" className="inline-flex items-center gap-2 rounded-xl border border-[#E5E1DC] text-[#374151] hover:border-[#246BFF] hover:text-[#246BFF] font-bold px-6 py-3 text-[15px] transition-all">
-                        Browse Best Sellers
-                      </a>
-                    </div>
-                  </div>
-
-                  {/* Right: large product imagery (or admin hero banner) */}
-                  <BannerInlineEditor placement="hero_main" banner={bannerSlots.heroMain}>
-                  {bannerSlots.heroMain?.desktopImage ? (
-                    <div className="relative px-4 pb-2">
-                      <a
-                        href={bannerSlots.heroMain.targetUrl || bannerSlots.heroMain.ctaLink || '/deals'}
-                        className="block relative"
-                        data-gravity-cursor="view"
-                      >
-                        <div className="relative mx-auto max-w-[460px] aspect-[7/4] rounded-[24px] bg-white border border-[#E5E1DC]/80 shadow-[0_24px_70px_-24px_rgba(36,107,255,0.4)] overflow-hidden">
-                          <img
-                            src={proxyImageUrl(bannerSlots.heroMain.desktopImage) || NO_IMAGE}
-                            alt={bannerSlots.heroMain.altText || bannerSlots.heroMain.heading || 'Featured banner'}
-                            referrerPolicy="no-referrer"
-                            className="w-full h-full object-cover"
-                            onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }}
-                          />
-                          {bannerSlots.heroMain.badgeText && (
-                            <span className="absolute top-3 right-3 bg-[#FF8A00] text-white text-[12px] font-black px-3 py-1 rounded-full shadow-lg">{bannerSlots.heroMain.badgeText}</span>
-                          )}
-                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent pt-10 px-5 pb-4">
-                            <p className="text-white text-lg font-[850] leading-tight">{bannerSlots.heroMain.heading || bannerSlots.heroMain.title}</p>
-                            {(bannerSlots.heroMain.subtitle || bannerSlots.heroMain.description) && (
-                              <p className="text-white/85 text-[13px] mt-1">{bannerSlots.heroMain.subtitle || bannerSlots.heroMain.description}</p>
-                            )}
-                          </div>
-                        </div>
-                      </a>
-                    </div>
-                  ) : heroItem ? (
-                    <div className="relative px-4 pb-2">
-                      <a href={`/products/${heroItem.slug}`} className="block relative" data-gravity-cursor="view">
-                        <div className="relative mx-auto max-w-[360px] aspect-square rounded-[24px] bg-white border border-[#E5E1DC]/80 shadow-[0_24px_70px_-24px_rgba(36,107,255,0.4)] p-4">
-                          <img
-                            src={proxyImageUrl(heroItem.images?.[0] || heroItem.productImage) || NO_IMAGE}
-                            alt={heroItem.title}
-                            referrerPolicy="no-referrer"
-                            className="w-full h-full object-contain rounded-2xl"
-                            onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }}
-                          />
-                          {heroItem.discountPercentage ? (
-                            <span className="absolute -top-3 right-4 bg-[#FF334F] text-white text-[13px] font-black px-3 py-1 rounded-full shadow-lg rotate-3">
-                              −{heroItem.discountPercentage}%
-                            </span>
-                          ) : null}
-                          <div className="absolute -bottom-4 -left-4 bg-white rounded-2xl border border-[#E5E1DC] shadow-xl px-4 py-2.5">
-                            <p className="text-[10px] font-bold uppercase tracking-wide text-[#9CA3AF]">DawnWire Score</p>
-                            <p className="text-xl font-[900] text-[#246BFF]">{(heroItem.editorScore || 0).toFixed(1)}<span className="text-sm text-[#9CA3AF]"> /10</span></p>
-                          </div>
-                        </div>
-                      </a>
-                      <div className="hidden lg:flex items-center justify-center gap-4 mt-8">
-                        {topDeals.map((p, i) => i < 3 ? (
-                          <a key={p.id} href={`/products/${p.slug}`} className="w-14 h-14 rounded-xl bg-white border border-[#E5E1DC] shadow-sm overflow-hidden p-1" data-gravity-cursor="view">
-                            <img src={proxyImageUrl(p.images?.[0] || p.productImage) || NO_IMAGE} alt={p.title} referrerPolicy="no-referrer" className="w-full h-full object-contain"
-                              onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
-                          </a>
-                        ) : null)}
-                      </div>
-                    </div>
-                  ) : null}
-                  </BannerInlineEditor>
-                </div>
-
-                {/* Bottom trust chips */}
-                <div className="mt-auto px-7 md:px-10 py-5 border-t border-[#246BFF]/10 bg-white/55">
-                  <ul className="flex flex-wrap gap-x-6 gap-y-2">
-                    {['1,200+ products scored', '45+ categories', 'Tracked daily from Amazon', 'Independent verdicts'].map(t => (
-                      <li key={t} className="flex items-center gap-1.5 text-[13px] font-semibold text-[#6B7280]">
-                        <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                        </svg>
-                        {t}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-
-          {/* ── Slides 2+: admin banner slides (full-bleed) ── */}
-          {heroSlides.map((slide, i) => (
-            <div key={i} className="relative w-full shrink-0">
-              <img
-                src={slide.image}
-                alt={slide.heading}
-                referrerPolicy="no-referrer"
-                className="absolute inset-0 w-full h-full object-cover"
-                onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/10" />
-              <div className="relative commerce-container flex items-end min-h-[560px] py-12">
-                <motion.div
-                  initial={{ opacity: 0, y: 18 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.55 }}
-                  className="max-w-xl"
+              {/* Slider Content */}
+              {heroSlides[currentSlide]?.imageOnly && heroSlides[currentSlide]?.image ? (
+                <a
+                  href={heroSlides[currentSlide].ctaHref}
+                  className="absolute inset-0 z-10 block bg-[#0A1F44] dark:bg-[#0A1F44]"
+                  aria-label={heroSlides[currentSlide].ctaText || 'Featured banner'}
                 >
-                  {slide.badge && (
-                    <span className="inline-block bg-[#FF8A00] text-white text-[11px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-4 shadow-lg">{slide.badge}</span>
-                  )}
-                  <h2 className="text-3xl md:text-5xl font-[900] tracking-tight leading-[1.05] text-white drop-shadow-lg">{slide.heading}</h2>
-                  {slide.sub && <p className="mt-3 text-white/85 text-base md:text-lg max-w-md leading-relaxed">{slide.sub}</p>}
+                  <picture>
+                    <source media="(max-width: 767px)" srcSet={heroSlides[currentSlide].mobileImage || heroSlides[currentSlide].image} />
+                    <img
+                      src={heroSlides[currentSlide].image}
+                      alt="Featured deals banner"
+                      loading={currentSlide === 0 ? 'eager' : 'lazy'}
+                      className="w-full h-full object-contain"
+                    />
+                  </picture>
+                </a>
+              ) : (
+              <div className="relative p-6 sm:p-10 flex-1 flex flex-col justify-center z-10">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-bold w-fit mb-3">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>{heroSlides[currentSlide]?.badge}</span>
+                </div>
+
+                <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-black tracking-tight leading-[1.08] max-w-xl text-white">
+                  {heroSlides[currentSlide]?.heading}
+                </h1>
+
+                <p className="mt-3 text-xs sm:text-sm text-slate-300 leading-relaxed max-w-lg">
+                  {heroSlides[currentSlide]?.subheading}
+                </p>
+
+                {/* Hero Search Bar */}
+                <form onSubmit={handleHeroSearch} className="mt-5 max-w-lg">
+                  <div className="bg-white dark:bg-slate-800 rounded-2xl p-1.5 flex items-center gap-2 shadow-lg border border-slate-200 dark:border-slate-700">
+                    <span className="pl-3 text-slate-400">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="Search 1,200+ reviewed Amazon products & deals..."
+                      value={heroSearchQuery}
+                      onChange={(e) => setHeroSearchQuery(e.target.value)}
+                      className="flex-1 bg-transparent px-2 py-2 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 outline-none"
+                    />
+                    <button
+                      type="submit"
+                      className="bg-[#246BFF] hover:bg-[#164EE8] text-white font-bold text-xs px-4 sm:px-5 py-2.5 rounded-xl shrink-0 transition-colors shadow-xs"
+                    >
+                      Search
+                    </button>
+                  </div>
+                </form>
+
+                {/* Main CTAs */}
+                <div className="mt-5 flex flex-wrap items-center gap-3">
                   <a
-                    href={slide.href}
-                    className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#FF8A00] hover:bg-[#e67b00] text-white font-bold px-7 py-3.5 text-[15px] shadow-[0_12px_30px_-10px_rgba(255,138,0,0.7)] transition-all hover:-translate-y-0.5"
+                    href={heroSlides[currentSlide]?.ctaHref || '/deals'}
+                    className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs sm:text-sm px-6 py-3 rounded-xl shadow-md shadow-orange-500/25 transition-all hover:-translate-y-0.5"
                   >
-                    {slide.cta}
+                    <span>{heroSlides[currentSlide]?.ctaText}</span>
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
                   </a>
-                </motion.div>
+                  <button
+                    onClick={onOpenAiFinder}
+                    className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/15 text-white font-bold text-xs sm:text-sm px-4 sm:px-5 py-3 rounded-xl border border-white/20 transition-all backdrop-blur-xs"
+                  >
+                    <svg className="w-4 h-4 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span>AI Product Quiz</span>
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+              )}
 
-        {/* Slider arrows */}
-        {totalSlides > 1 && (
-          <>
-            <button
-              onClick={() => goSlide(slideIdx - 1)}
-              aria-label="Previous slide"
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/85 hover:bg-white text-[#374151] shadow-lg flex items-center justify-center backdrop-blur transition-all active:scale-95"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button
-              onClick={() => goSlide(slideIdx + 1)}
-              aria-label="Next slide"
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/85 hover:bg-white text-[#374151] shadow-lg flex items-center justify-center backdrop-blur transition-all active:scale-95"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-            {/* Dots */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-              {Array.from({ length: totalSlides }).map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => goSlide(i)}
-                  aria-label={`Go to slide ${i + 1}`}
-                  className={`h-2 rounded-full transition-all duration-300 ${slideIdx === i ? 'w-7 bg-[#246BFF]' : 'w-2 bg-[#9CA3AF]/60 hover:bg-[#6B7280]'}`}
-                />
+              {/* Slider Dots */}
+              {totalSlides > 1 && (
+                <div className="relative z-10 px-6 sm:px-10 pb-5 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {heroSlides.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => goToSlide(idx)}
+                        aria-label={`Slide ${idx + 1}`}
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          currentSlide === idx ? 'w-8 bg-orange-500' : 'w-2 bg-white/40 hover:bg-white/70'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                    <button
+                      onClick={() => goToSlide(currentSlide - 1)}
+                      className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
+                      aria-label="Previous slide"
+                    >
+                      ‹
+                    </button>
+                    <button
+                      onClick={() => goToSlide(currentSlide + 1)}
+                      className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
+                      aria-label="Next slide"
+                    >
+                      ›
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Side Promo Cards (32% width on desktop) — brand-kit designed banners, object-contain (never cropped) */}
+            <div className="lg:col-span-4 grid grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-3.5">
+              {BRAND_KIT.sidePromos.map((card) => (
+                <a
+                  key={card.href}
+                  href={card.href}
+                  className="group relative rounded-2xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 flex items-center justify-center"
+                >
+                  <img
+                    src={proxyImageUrl(card.src)}
+                    alt={card.alt}
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-contain group-hover:scale-[1.02] transition-transform duration-300"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                </a>
               ))}
             </div>
-          </>
-        )}
-      </section>
+          </div>
+        </section>
 
-      {/* ============================ TRUST STRIP ============================ */}
-      <section className="border-y border-[#E5E1DC]/80 dark:border-[#333348]/80 bg-white dark:bg-[#1C1C2E]">
-        <div className="commerce-container grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 py-5">
-          {TRUST_ITEMS.map(item => (
-            <div key={item.label} className="group flex items-center gap-3 hover:bg-[#FAF8F5] rounded-xl px-3 py-2 -mx-3 transition-colors">
-              <span className="w-10 h-10 rounded-xl bg-[#FAF8F5] dark:bg-[#252538] border border-[#E5E1DC] dark:border-[#444460] text-[#C9A96E] dark:text-[#D4B87A] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
-                <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
-                </svg>
-              </span>
-              <span className="text-[13px] font-semibold text-[#374151] dark:text-[#C8C4BC] group-hover:text-[#1A1A2E] dark:group-hover:text-[#F0EDE8] transition-colors">{item.label}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ============================ DEAL STRIP ============================ */}
-      <section className="commerce-container mt-6">
-        <DealStrip products={products} />
-      </section>
-
-      {/* ============================ SEASONAL BANNER ============================ */}
-      <section className="commerce-container">
-        <SeasonalBanner products={products} />
-      </section>
-
-      <main className="commerce-container space-y-14 md:space-y-20 py-12 md:py-16">
-        {/* ============================ PROMO BANNERS (BrandedBanner) ============================ */}
-        <ScrollReveal>
-        <section>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {promoBanners.slice(0, 2).map((banner, i) => (
-              <BrandedBanner
-                key={banner.title + i}
-                title={banner.title}
-                subtitle={banner.label}
-                cta={banner.cta}
-                href={banner.href}
-                gradient={i === 0 ? 'premium' : 'deal'}
-                height="h-[200px] lg:h-[220px]"
-                showProduct={false}
-              />
+        {/* ─────────────────────────────────────────────────────────────
+            6. TRUST STRIP (Compact 6-Item Credibility Bar)
+        ───────────────────────────────────────────────────────────── */}
+        <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5">
+            {[
+              {
+                title: 'Independently Reviewed',
+                desc: 'Lab-tested specs & verdicts',
+                icon: '🛡️'
+              },
+              {
+                title: 'Live Price Checks',
+                desc: '24/7 Amazon sync',
+                icon: '⚡'
+              },
+              {
+                title: 'Price History Tracking',
+                desc: 'Real deal verification',
+                icon: '📉'
+              },
+              {
+                title: 'Amazon Verified Links',
+                desc: 'Official direct checkout',
+                icon: '🔗'
+              },
+              {
+                title: 'Expert Buying Guides',
+                desc: 'Unbiased category roundups',
+                icon: '📚'
+              },
+              {
+                title: 'Secure Affiliate Links',
+                desc: '100% free buyer service',
+                icon: '🔒'
+              }
+            ].map((item) => (
+              <div key={item.title} className="flex items-center gap-2.5 p-1.5">
+                {BRAND_KIT.trustIcons[item.title] ? (
+                  <img
+                    src={BRAND_KIT.trustIcons[item.title]}
+                    alt={item.title}
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    className="w-10 h-10 rounded-lg object-contain shrink-0 bg-white dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700 p-0.5"
+                    onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }}
+                  />
+                ) : (
+                  <span className="text-xl shrink-0">{item.icon}</span>
+                )}
+                <div className="min-w-0">
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">{item.title}</h4>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{item.desc}</p>
+                </div>
+              </div>
             ))}
           </div>
         </section>
-        </ScrollReveal>
 
-        {/* ============================ TODAY'S BEST DEALS (reference so-deals + countdown) ============================ */}
-        <ScrollReveal delay={0.1}>
-        {topDeals.length > 0 && (
-          <section>
-            <div className="flex items-end justify-between gap-4 mb-6 md:mb-8">
-              <div>
-                <h2 className="text-2xl md:text-3xl lg:text-[32px] font-[850] tracking-tight leading-tight font-sans text-[#1A1A2E]">
-                  Hot Deals <span className="align-middle text-base font-bold text-[#FF334F]">🔥</span>
-                </h2>
-                <div className="mt-1.5 text-sm text-[#6B7280]">The steepest real discounts we're tracking right now</div>
-              </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <span className="hidden sm:block text-[12px] font-bold uppercase tracking-wider text-[#9CA3AF]">Ends in</span>
-                <DealsCountdown />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-              {topDeals.map((p, dealIdx) => {
-                const disc = p.discountPercentage || (Number(p.referencePrice) > Number(p.currentPrice)
-                  ? Math.round((1 - Number(p.currentPrice) / Number(p.referencePrice)) * 100) : 0);
-                const isTopDeal = disc >= 30;
-                return (
-                  <a key={p.id} href={`/products/${p.slug}`} data-gravity-cursor="view"
-                    className="group relative flex flex-col bg-white rounded-2xl border border-[#E5E1DC]/80 overflow-hidden hover:shadow-[0_20px_50px_-16px_rgba(36,107,255,0.35)] hover:-translate-y-1.5 hover:border-[#246BFF]/50 transition-all duration-300">
-                    {/* Urgency glow for high-discount items */}
-                    {isTopDeal && (
-                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-[#FF334F]/5 to-transparent pointer-events-none z-[1]" />
-                    )}
-                    <div className="relative bg-gradient-to-b from-[#FAFBFF] to-white h-[230px] flex items-center justify-center overflow-hidden p-4 z-[2]">
-                      {disc > 0 && (
-                        <span className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1 bg-gradient-to-r from-[#FF334F] to-[#E8102E] text-white text-[11px] font-black px-2.5 py-1 rounded-lg shadow-[0_4px_12px_-3px_rgba(255,51,79,0.5)]">
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
-                          {disc}% OFF
-                        </span>
-                      )}
-                      {p.isDeal && (
-                        <span className="absolute top-2.5 right-2.5 z-10 bg-gradient-to-r from-[#FF8A00] to-[#FF6A00] text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-[0_3px_8px_-2px_rgba(255,138,0,0.5)]">DEAL</span>
-                      )}
-                      {/* DawnWire Score badge */}
-                      {(p.editorScore || 0) > 0 && (
-                        <span className="absolute bottom-2.5 left-2.5 z-10 flex items-center gap-1 bg-white/90 backdrop-blur-sm border border-[#246BFF]/20 text-[#246BFF] text-[10px] font-black px-2 py-0.5 rounded-lg shadow-sm">
-                          ⭐ {(p.editorScore || 0).toFixed(1)}/10
-                        </span>
-                      )}
-                      <img src={proxyImageUrl(p.images?.[0] || p.productImage) || NO_IMAGE} alt={p.title} loading="lazy"
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-contain drop-shadow-[0_8px_16px_rgba(15,23,42,0.1)] transition-all duration-500 group-hover:scale-110 group-hover:drop-shadow-[0_14px_24px_rgba(36,107,255,0.2)]"
-                        onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
-                    </div>
-                    <div className="relative z-[2] flex flex-col flex-1 gap-1 px-3.5 pb-3 pt-2">
-                      <p className="text-[10px] font-bold text-[#246BFF] uppercase tracking-widest truncate">{p.brand}</p>
-                      <h3 className="text-[13px] font-bold text-[#1A1A2E] line-clamp-2 leading-snug min-h-[34px] group-hover:text-[#246BFF] transition-colors">{p.title}</h3>
-                      <Stars rating={p.rating} count={p.reviewCount} size={13} />
-                      <PriceBlock price={p.currentPrice || p.price} was={p.referencePrice} />
-                      <span className="mt-auto pt-2 w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#0A1F44] via-[#162d5a] to-[#1a3a6e] hover:from-[#0f1d35] hover:via-[#0A1F44] hover:to-[#162d5a] text-white text-[12px] font-bold py-3 shadow-[0_6px_20px_-6px_rgba(10,31,68,0.6)] transition-all group-hover:shadow-[0_10px_28px_-6px_rgba(10,31,68,0.7)] group-hover:-translate-y-0.5">
-                        Check Price on Amazon
-                        <svg className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-                      </span>
-                    </div>
-                  </a>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* ============================ BANNER ROW 2 (reference home1-banner-2) ============================ */}
+        {/* ─────────────────────────────────────────────────────────────
+            7. SHOP BY CATEGORY (Full Taxonomy Grid & Rail)
+        ───────────────────────────────────────────────────────────── */}
         <section>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[0, 1].map((idx) => {
-              const tile = heroTiles[idx];
-              return (
-              <BannerInlineEditor
-                key={tile.label + idx}
-                placement={(`hero_tile_${idx + 1}`) as any}
-                banner={bannerSlots.heroTiles[idx]}
-                align="left"
-              >
-              <a href={tile.href} data-gravity-cursor="explore"
-                className="relative overflow-hidden rounded-2xl min-h-[190px] flex items-end border border-white/80 bg-gradient-to-br from-black/60 to-transparent shadow-[0_14px_40px_-18px_rgba(36,107,255,0.3)] group">
-                {tile.imageUrl ? (
-                  <img src={tile.imageUrl} alt={tile.label} loading="lazy" referrerPolicy="no-referrer"
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                ) : tile.img ? (
-                  <img src={proxyImageUrl(tile.img.images?.[0] || tile.img.productImage) || NO_IMAGE} alt={tile.label}
-                    referrerPolicy="no-referrer" loading="lazy"
-                    className="absolute right-0 top-0 w-full h-full object-cover opacity-30 transition-transform duration-700 group-hover:scale-110"
-                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                ) : null}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
-              <div className="relative z-10 p-5 md:p-6">
-                <span className="inline-block bg-[#FF8A00] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full mb-2 shadow-sm">{tile.label}</span>
-                <h3 className="text-xl md:text-2xl font-[900] text-white leading-tight drop-shadow-md max-w-[75%]">{tile.sub}</h3>
-                <span className="mt-2.5 inline-flex items-center gap-1.5 text-[12px] font-bold text-white bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-3 py-1.5 transition-colors group-hover:bg-white/25">
-                  Shop now
-                  <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                  </svg>
-                </span>
-              </div>
-            </a>
-            </BannerInlineEditor>
-              );
-            })}
-          </div>
-        </section>
-        </ScrollReveal>
+          <SectionHeading
+            title="Shop by Category"
+            subtitle="Explore our comprehensive testing taxonomy across 14+ departments"
+            viewAllHref="/categories"
+            viewAllText="View All Categories"
+          />
 
-        {/* ============================ SHOP BY CATEGORY (Branded Cards) ============================ */}
-        <ScrollReveal>
-        <section>
-          <SectionHead title="Shop by Category" sub="From tech to self-care — every pick independently scored" href="/categories" label="All Categories" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {shopCategories.slice(0, 10).map((cat, i) => {
-              const gradients: (keyof typeof GRADIENTS)[] = ['tech', 'premium', 'deal', 'nature', 'sunset', 'dark', 'beauty', 'hero', 'tech', 'premium'];
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
+            {fullTaxonomyCategories.map((cat) => {
+              const count = products.filter(p => (p.mainCategory || '').toLowerCase().includes(cat.name.toLowerCase())).length;
               return (
-                <CategoryCard
+                <a
                   key={cat.id}
-                  name={cat.name}
-                  slug={cat.slug}
-                  image={categoryImage(cat)}
-                  productCount={productCountFor(cat.name)}
-                  gradient={gradients[i % gradients.length]}
-                />
-              );
-            })}
-          </div>
-        </section>
-        </ScrollReveal>
-
-        {/* ============================ TABBED PRODUCT RAILS (reference so-listing-tabs) ============================ */}
-        {tabCategories.length > 0 && (
-          <section>
-            <SectionHead title="Popular Right Now" sub="Top-rated picks across our best categories" href="/products?sort=rating" label="All Products" />
-            {/* Tabs */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              {tabCategories.map((cat, i) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveTab(i)}
-                  className={`px-4 py-2 rounded-xl text-[13px] font-bold transition-all ${
-                    activeTab === i
-                      ? 'bg-[#246BFF] text-white shadow-[0_8px_20px_-8px_rgba(36,107,255,0.6)]'
-                      : 'bg-white text-[#6B7280] border border-[#E5E1DC] hover:border-[#246BFF]/40 hover:text-[#246BFF]'
-                  }`}
+                  href={`/categories/${cat.slug}`}
+                  className="group flex flex-col items-center justify-center p-3.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500 shadow-xs hover:shadow-md transition-all duration-300 text-center"
                 >
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-            {tabProducts.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                {tabProducts.map(p => {
-                  const disc = p.discountPercentage || (Number(p.referencePrice) > Number(p.currentPrice)
-                    ? Math.round((1 - Number(p.currentPrice) / Number(p.referencePrice)) * 100) : 0);
-                  return (
-                    <a key={p.id} href={`/products/${p.slug}`} data-gravity-cursor="view"
-                      className="group flex flex-col bg-white rounded-2xl border border-[#E5E1DC] overflow-hidden hover:shadow-[0_18px_44px_-16px_rgba(36,107,255,0.3)] hover:-translate-y-1 hover:border-[#246BFF]/40 transition-all duration-300">
-                      <div className="relative bg-white h-[200px] flex items-center justify-center overflow-hidden p-4">
-                        {disc > 0 && (
-                          <span className="absolute top-2.5 left-2.5 z-10 bg-[#FF334F] text-white text-[12px] font-black px-2.5 py-1 rounded-lg shadow-md">−{disc}%</span>
-                        )}
-                        <img src={proxyImageUrl(p.images?.[0] || p.productImage) || NO_IMAGE} alt={p.title} loading="lazy"
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-contain mix-blend-normal drop-shadow-[0_14px_20px_rgba(15,23,42,0.12)] transition-transform duration-500 group-hover:scale-108"
-                          onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
-                      </div>
-                      <div className="flex flex-col flex-1 gap-1.5 px-3.5 pb-3.5 pt-1">
-                        <p className="text-[11px] font-bold text-[#246BFF] uppercase tracking-wide truncate">{p.brand}</p>
-                        <h3 className="text-[13px] font-bold text-[#1A1A2E] line-clamp-2 leading-snug min-h-[36px]">{p.title}</h3>
-                        <Stars rating={p.rating} count={p.reviewCount} size={13} />
-                        <PriceBlock price={p.currentPrice || p.price} was={p.referencePrice} />
-                        <span className="mt-auto pt-1.5 w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#1a2b4a] to-[#0f1d35] hover:from-[#0f1d35] hover:to-[#0a1428] text-white text-[13px] font-bold py-3 shadow-[0_6px_16px_-6px_rgba(26,43,74,0.5)] transition-all group-hover:shadow-[0_10px_22px_-6px_rgba(26,43,74,0.6)]">
-                          Check Price on Amazon
-                        </span>
-                      </div>
-                    </a>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-[13px] text-[#6B7280] py-8 text-center bg-white rounded-2xl border border-[#E5E1DC]">Products coming soon.</p>
-            )}
-          </section>
-        )}
-
-        {/* ============================ BANNER ROW 3 (reference banner-tab) ============================ */}
-        <section>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[1, 2].map((idx) => {
-              const tile = heroTiles[idx];
-              return (
-              <BannerInlineEditor
-                key={tile.label + idx}
-                placement={(`hero_tile_${idx + 1}`) as any}
-                banner={bannerSlots.heroTiles[idx]}
-                align="left"
-              >
-              <a href={tile.href} data-gravity-cursor="explore"
-                className="relative overflow-hidden rounded-2xl min-h-[190px] flex items-end border border-white/80 bg-gradient-to-br from-black/60 to-transparent shadow-[0_14px_40px_-18px_rgba(36,107,255,0.3)] group">
-                {tile.imageUrl ? (
-                  <img src={tile.imageUrl} alt={tile.label} loading="lazy" referrerPolicy="no-referrer"
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                ) : tile.img ? (
-                  <img src={proxyImageUrl(tile.img.images?.[0] || tile.img.productImage) || NO_IMAGE} alt={tile.label}
-                    referrerPolicy="no-referrer" loading="lazy"
-                    className="absolute right-0 top-0 w-full h-full object-cover opacity-30 transition-transform duration-700 group-hover:scale-110"
-                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                ) : null}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
-                <div className="relative z-10 p-5 md:p-6">
-                  <span className="inline-block bg-[#FF8A00] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full mb-2 shadow-sm">{tile.label}</span>
-                  <h3 className="text-xl md:text-2xl font-[900] text-white leading-tight drop-shadow-md max-w-[75%]">{tile.sub}</h3>
-                  <span className="mt-2.5 inline-flex items-center gap-1.5 text-[12px] font-bold text-white bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-3 py-1.5 transition-colors group-hover:bg-white/25">
-                    Shop now
-                    <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                    </svg>
+                  <div className="w-12 h-12 rounded-xl bg-blue-50/80 dark:bg-slate-800 group-hover:bg-blue-100 dark:group-hover:bg-blue-950 flex items-center justify-center transition-colors mb-2">
+                    <AnimatedCategoryIcon
+                      slug={cat.slug}
+                      icon={cat.icon || 'tag'}
+                      className="w-6 h-6 text-blue-600 dark:text-blue-400"
+                    />
+                  </div>
+                  <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
+                    {cat.name}
                   </span>
-                </div>
-              </a>
-              </BannerInlineEditor>
+                  <span className="text-[10px] font-semibold text-slate-400 mt-0.5">
+                    {count > 0 ? `${count} picks` : 'Explore'}
+                  </span>
+                </a>
               );
             })}
           </div>
         </section>
 
-        {/* ============================ COMPARISON + AI ============================ */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {/* Featured comparison — LIGHT gradient, NO navy, product cutouts */}
-          <div className="relative overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#EAF2FF_0%,#F7FAFF_55%,#FFF3E6_100%)] border border-[#246BFF]/15 p-7 md:p-9 min-h-[320px] flex flex-col shadow-[0_16px_50px_-24px_rgba(36,107,255,0.35)]">
-            <div className="absolute -right-12 -top-14 w-52 h-52 rounded-full bg-[#246BFF]/10 blur-2xl" />
-            <div className="relative flex-1">
-              <span className="inline-flex items-center gap-1.5 bg-[#246BFF] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-4">
-                Featured Comparison <span className="text-amber-300">⚔️</span>
+        {/* ─────────────────────────────────────────────────────────────
+            8. TODAY'S BEST DEALS (6-Column High-Density Grid)
+        ───────────────────────────────────────────────────────────── */}
+        <section className="pt-2">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6">
+            <div>
+              <span className="inline-block text-[11px] font-extrabold uppercase tracking-wider text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/60 border border-orange-200/60 dark:border-orange-800/60 px-2.5 py-0.5 rounded-md mb-1.5">
+                🔥 Live Price Drops
               </span>
-              <h2 className="text-2xl md:text-[26px] font-[850] text-[#1A1A2E] leading-tight">Who Wins Head-to-Head?</h2>
-              <p className="mt-2.5 text-sm text-[#6B7280] max-w-md leading-relaxed">
-                Pick two products and our lab breaks down specs, real user sentiment, prices and a clear winner — in one screen.
+              <h2 className="text-2xl sm:text-[28px] font-black tracking-tight text-slate-900 dark:text-white">
+                Today's Best Amazon Deals
+              </h2>
+              <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                Steepest verified price drops updated live from Amazon
               </p>
-              <div className="mt-6 grid grid-cols-2 gap-3 max-w-sm">
-                <div className="rounded-2xl bg-white/80 border border-[#246BFF]/15 p-3 text-center shadow-sm">
-                  <p className="text-[11px] font-bold text-[#246BFF] uppercase">2–4 products</p>
-                  <p className="text-[12px] text-[#6B7280] mt-0.5">Side-by-side specs</p>
-                </div>
-                <div className="rounded-2xl bg-white/80 border border-[#FF8A00]/25 p-3 text-center shadow-sm">
-                  <p className="text-[11px] font-bold text-[#FF8A00] uppercase">1 clear winner</p>
-                  <p className="text-[12px] text-[#6B7280] mt-0.5">+ best budget pick</p>
-                </div>
-              </div>
             </div>
-            {sortedByScore.length >= 2 && (
-              <div className="relative mt-6 flex items-center gap-3">
-                <div className="flex-1 flex items-center gap-3 rounded-2xl bg-white/90 border border-[#E5E1DC] p-3 shadow-sm">
-                  <div className="w-16 h-16 rounded-xl bg-white border border-[#E5E1DC] flex items-center justify-center p-1.5 shrink-0 overflow-hidden">
-                    <img src={proxyImageUrl(sortedByScore[0].images?.[0] || sortedByScore[0].productImage) || NO_IMAGE} alt={sortedByScore[0].title} referrerPolicy="no-referrer" className="w-full h-full object-contain" onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="inline-block bg-[#246BFF] text-white text-[9px] font-black px-1.5 py-0.5 rounded mb-1">A</span>
-                    <p className="text-[12px] font-bold text-[#1A1A2E] truncate">{sortedByScore[0].title}</p>
-                    <p className="text-[11px] text-[#9CA3AF]">★ {(sortedByScore[0].rating || 0).toFixed(1)} · Score {(sortedByScore[0].editorScore || 0).toFixed(1)}</p>
-                  </div>
-                </div>
-                <span className="shrink-0 text-[11px] font-black text-[#9CA3AF] bg-[#FAF8F5] rounded-full w-7 h-7 grid place-items-center">VS</span>
-                <div className="flex-1 flex items-center gap-3 rounded-2xl bg-white/90 border border-[#E5E1DC] p-3 shadow-sm">
-                  <div className="w-16 h-16 rounded-xl bg-white border border-[#E5E1DC] flex items-center justify-center p-1.5 shrink-0 overflow-hidden">
-                    <img src={proxyImageUrl(sortedByScore[1].images?.[0] || sortedByScore[1].productImage) || NO_IMAGE} alt={sortedByScore[1].title} referrerPolicy="no-referrer" className="w-full h-full object-contain" onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="inline-block bg-[#FF8A00] text-white text-[9px] font-black px-1.5 py-0.5 rounded mb-1">B</span>
-                    <p className="text-[12px] font-bold text-[#1A1A2E] truncate">{sortedByScore[1].title}</p>
-                    <p className="text-[11px] text-[#9CA3AF]">★ {(sortedByScore[1].rating || 0).toFixed(1)} · Score {(sortedByScore[1].editorScore || 0).toFixed(1)}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div className="relative mt-6 flex flex-wrap gap-3">
-              <a href="/compare" className="inline-flex items-center gap-2 rounded-xl bg-[#246BFF] hover:bg-[#164EE8] text-white font-bold px-6 py-3 text-sm shadow-[0_10px_26px_-10px_rgba(36,107,255,0.6)] transition-all hover:-translate-y-0.5">
-                Open the Compare Tool
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5-5 5M6 12h12" /></svg>
-              </a>
-              <a href="/compare" className="inline-flex items-center gap-2 rounded-xl border border-[#246BFF]/40 text-[#246BFF] hover:bg-[#246BFF]/5 font-bold px-6 py-3 text-sm transition-all">
-                View Latest Matchups
+            <div className="flex items-center gap-4 shrink-0">
+              <DealsCountdown />
+              <a
+                href="/deals"
+                className="text-xs sm:text-sm font-bold text-orange-600 hover:text-orange-700 dark:text-orange-400 inline-flex items-center gap-1 transition-colors"
+              >
+                <span>All Deals &rarr;</span>
               </a>
             </div>
           </div>
 
-          {/* AI product finder — light lavender/white, NO navy, mascot on the right */}
-          <div className="relative overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#EAF2FF_0%,#FFFFFF_55%,#F3EEFF_100%)] border border-[#246BFF]/15 p-7 md:p-9 min-h-[320px] flex flex-col shadow-[0_16px_50px_-24px_rgba(36,107,255,0.35)]">
-            <div className="absolute -right-12 -bottom-14 w-56 h-56 rounded-full bg-[#4F7CFF]/10 blur-2xl" />
-            <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-6 items-center flex-1">
-              <div className="relative">
-                <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#4F7CFF] to-[#246BFF] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-4">
-                  ✨ AI Product Finder
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {topDeals.map((product) => (
+              <UnifiedProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+
+        {/* ─────────────────────────────────────────────────────────────
+            8b. FEATURE BANNERS (AI Finder + Price Drop, brand kit)
+        ───────────────────────────────────────────────────────────── */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <a
+            href={BRAND_KIT.featureBanners.aiFinder.href}
+            className="group relative rounded-2xl overflow-hidden border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xs hover:shadow-lg transition-all duration-300 flex items-center justify-center"
+          >
+            <img
+              src={proxyImageUrl(BRAND_KIT.featureBanners.aiFinder.src)}
+              alt="AI Product Finder — answer 3 questions and get matched picks"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              className="w-full h-auto object-contain group-hover:scale-[1.01] transition-transform duration-300"
+              onError={(e) => { (e.target as HTMLImageElement).closest('a')!.style.display = 'none'; }}
+            />
+          </a>
+          <a
+            href={BRAND_KIT.featureBanners.priceDrop.href}
+            className="group relative rounded-2xl overflow-hidden border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xs hover:shadow-lg transition-all duration-300 flex items-center justify-center"
+          >
+            <img
+              src={proxyImageUrl(BRAND_KIT.featureBanners.priceDrop.src)}
+              alt="Live price-drop alerts on Amazon products"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              className="w-full h-auto object-contain group-hover:scale-[1.01] transition-transform duration-300"
+              onError={(e) => { (e.target as HTMLImageElement).closest('a')!.style.display = 'none'; }}
+            />
+          </a>
+        </section>
+
+        {/* ─────────────────────────────────────────────────────────────
+            9. CATEGORY MERCHANDISING SECTIONS (Repeated Retail Blocks)
+        ───────────────────────────────────────────────────────────── */}
+        
+        {/* Section A: Electronics Deals */}
+        <CategoryMerchandisingSection
+          title="Electronics Deals & Top Tech"
+          subtitle="Lab-tested headphones, 4K monitors, laptops, and smart home gear"
+          categorySlug="electronics"
+          bannerTitle="Upgrade Your Tech for Less"
+          bannerSubtitle="Save up to 40% on noise-cancelling headphones, displays, and smart accessories."
+          bannerBadge="Tech Spotlight"
+          bannerGradient="from-blue-900 via-indigo-950 to-slate-900"
+          products={electronicsProducts}
+          viewAllHref="/categories/electronics"
+        />
+
+        {/* Section B: Beauty & Personal Care */}
+        <CategoryMerchandisingSection
+          title="Beauty & Personal Care Picks"
+          subtitle="Dermatologist-recommended skincare, haircare, and personal grooming tools"
+          categorySlug="beauty-personal-care"
+          bannerTitle="Top Beauty Finds Worth Buying"
+          bannerSubtitle="Honest reviews on verified Korean skincare, restorative serums, and styling tools."
+          bannerBadge="Beauty Lab"
+          bannerGradient="from-rose-950 via-pink-950 to-slate-900"
+          products={beautyProducts}
+          viewAllHref="/categories/beauty-personal-care"
+        />
+
+        {/* ─────────────────────────────────────────────────────────────
+            11. PROMO BANNER ROW (Between Merchandise Sections)
+        ───────────────────────────────────────────────────────────── */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 sm:p-8 flex flex-col justify-between shadow-md">
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-2.5 py-0.5 rounded mb-2 inline-block">
+                Exclusive Event
+              </span>
+              <h3 className="text-xl sm:text-2xl font-black text-white">Prime Day & Flash Savings</h3>
+              <p className="text-xs sm:text-sm text-white/80 mt-1">
+                Score discounts on top-rated gear before deals sell out.
+              </p>
+            </div>
+            <a href="/deals" className="mt-4 inline-flex items-center gap-1 text-xs font-bold bg-white text-blue-700 px-4 py-2.5 rounded-xl w-fit shadow-xs">
+              <span>Shop Flash Deals</span>
+              <span>&rarr;</span>
+            </a>
+          </div>
+
+          <div className="rounded-2xl bg-gradient-to-r from-slate-900 to-blue-950 text-white p-6 sm:p-8 flex flex-col justify-between shadow-md border border-slate-800">
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-2.5 py-0.5 rounded mb-2 inline-block">
+                Buyer Guides
+              </span>
+              <h3 className="text-xl sm:text-2xl font-black text-white">Best of 2026 Roundups</h3>
+              <p className="text-xs sm:text-sm text-white/80 mt-1">
+                Comprehensive comparison guides across 40+ departments.
+              </p>
+            </div>
+            <a href="/best" className="mt-4 inline-flex items-center gap-1 text-xs font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2.5 rounded-xl w-fit shadow-xs">
+              <span>Read Best-Of Guides</span>
+              <span>&rarr;</span>
+            </a>
+          </div>
+        </section>
+
+        {/* Section C: Home & Kitchen */}
+        <CategoryMerchandisingSection
+          title="Home & Kitchen Essentials"
+          subtitle="Top-rated cookware, espresso machines, blenders, and smart appliances"
+          categorySlug="home-kitchen"
+          bannerTitle="Smart Upgrades for Everyday Living"
+          bannerSubtitle="High-performance kitchen gadgets and home essentials tested for durability."
+          bannerBadge="Home Lab"
+          bannerGradient="from-amber-950 via-orange-950 to-slate-900"
+          products={homeProducts}
+          viewAllHref="/categories/home-kitchen"
+        />
+
+        {/* Section D: Gaming & PC Setup */}
+        <CategoryMerchandisingSection
+          title="Gaming & PC Accessories"
+          subtitle="High-precision gaming mice, mechanical keyboards, monitors, and headsets"
+          categorySlug="gaming"
+          bannerTitle="Level Up Your Battlestation"
+          bannerSubtitle="Competitive gear and ergonomic accessories benchmarked for speed and comfort."
+          bannerBadge="Gaming Picks"
+          bannerGradient="from-purple-950 via-slate-950 to-blue-950"
+          products={gamingProducts}
+          viewAllHref="/categories/gaming"
+        />
+
+        {/* Section E: Office & Productivity */}
+        <CategoryMerchandisingSection
+          title="Office & Productivity Tools"
+          subtitle="Ergonomic chairs, standing desks, USB-C docks, and daily work gear"
+          categorySlug="office-productivity"
+          bannerTitle="Work Smarter Every Day"
+          bannerSubtitle="Tested workstation tools that boost focus and streamline your workflow."
+          bannerBadge="Work Setup"
+          bannerGradient="from-slate-900 via-blue-950 to-slate-900"
+          products={officeProducts}
+          viewAllHref="/categories/office-productivity"
+        />
+
+        {/* ─────────────────────────────────────────────────────────────
+            12 & 13. FEATURED COMPARISON + AI PRODUCT FINDER
+        ───────────────────────────────────────────────────────────── */}
+        <section className="pt-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left: Featured Comparison */}
+            <div className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-50/80 via-white to-indigo-50/60 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 border border-blue-200/80 dark:border-slate-800 p-6 sm:p-8 flex flex-col justify-between shadow-xs">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-bold w-fit mb-3">
+                  <span>⚔️ Head-to-Head Comparison</span>
                 </span>
-                <h2 className="text-2xl md:text-[26px] font-[850] text-[#1A1A2E] leading-tight">Can’t Decide? Ask the Research Bot.</h2>
-                <p className="mt-2.5 text-sm text-[#6B7280] max-w-md leading-relaxed">
-                  Tell us your budget and needs — our AI compares the catalog, quotes real prices, and lands on a pick with an honest verdict.
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                  Compare Top Products Side-by-Side
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
+                  Can't decide between two options? Our lab comparison breaks down specs, verified ratings, editor verdicts, and price history in one clean matrix.
                 </p>
-                <div className="mt-5 max-w-sm">
-                  <div className="bg-white/85 border border-white/90 rounded-2xl px-4 py-3 shadow-sm backdrop-blur">
-                    <p className="text-[12px] font-bold text-[#9CA3AF] mb-1">
-                      <span className="inline-block w-5 h-5 rounded-full bg-[#246BFF] text-white text-center leading-5 text-[10px] mr-1">AI</span>
-                      Sample question
-                    </p>
-                    <p className="text-[13.5px] text-[#374151] leading-relaxed">“Which Korean moisturizer under $40 suits dry skin, with the highest editor score?”</p>
+
+                {sortedByScore.length >= 2 && (
+                  <div className="mt-5 grid grid-cols-2 gap-3 bg-white dark:bg-slate-800/80 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-900 border dark:border-slate-700 p-1 shrink-0 overflow-hidden">
+                        <img
+                          src={proxyImageUrl(sortedByScore[0]?.images?.[0] || sortedByScore[0]?.productImage) || NO_IMAGE}
+                          alt="Product A"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[9px] font-black bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Option A</span>
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate mt-0.5">{sortedByScore[0]?.title}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 border-l border-slate-100 dark:border-slate-700 pl-3">
+                      <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-900 border dark:border-slate-700 p-1 shrink-0 overflow-hidden">
+                        <img
+                          src={proxyImageUrl(sortedByScore[1]?.images?.[0] || sortedByScore[1]?.productImage) || NO_IMAGE}
+                          alt="Product B"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[9px] font-black bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">Option B</span>
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate mt-0.5">{sortedByScore[1]?.title}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 flex items-center gap-3">
+                <a
+                  href="/compare"
+                  className="inline-flex items-center gap-2 bg-[#246BFF] hover:bg-[#164EE8] text-white font-bold text-xs px-5 py-3 rounded-xl shadow-md shadow-blue-500/20 transition-all hover:-translate-y-0.5"
+                >
+                  <span>Launch Compare Tool</span>
+                  <span>&rarr;</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Right: AI Product Finder */}
+            <div className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-[#0A1F44] to-blue-950 text-white p-6 sm:p-8 flex flex-col justify-between shadow-xl border border-slate-800">
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-center">
+                <div className="sm:col-span-8">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-bold w-fit mb-3">
+                    <span>✨ DawnWire AI Research</span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                    Instant AI Product Advisor
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
+                    Tell our AI assistant your exact budget and must-have features. Get honest, unbiased recommendations calculated from our lab scores in seconds.
+                  </p>
+
+                  <div className="mt-3.5 bg-white/10 rounded-xl p-3 border border-white/10 text-xs text-slate-300">
+                    <span className="text-amber-300 font-bold block mb-0.5">💡 Sample Query:</span>
+                    <span>"What are the best noise-cancelling headphones under $150 for travel?"</span>
                   </div>
                 </div>
-                <div className="relative mt-5 flex flex-wrap gap-3">
-                  <button onClick={onOpenAiFinder} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] hover:from-[#164EE8] hover:to-[#246BFF] text-white font-bold px-6 py-3 text-sm shadow-[0_10px_26px_-10px_rgba(36,107,255,0.6)] transition-all hover:-translate-y-0.5">
-                    Open Product Finder
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-                  </button>
-                  <button onClick={onOpenChatbot} className="inline-flex items-center gap-2 rounded-xl border border-[#4F7CFF]/40 text-[#246BFF] hover:bg-[#246BFF]/5 font-bold px-6 py-3 text-sm transition-all">
-                    Ask DawnWire AI
-                  </button>
+
+                <div className="sm:col-span-4 flex justify-center">
+                  <MascotAnimation className="w-28 h-28 drop-shadow-2xl" />
                 </div>
               </div>
-              <div className="relative hidden md:block">
-                <div className="absolute inset-0 bg-gradient-to-b from-[#4F7CFF]/10 to-transparent rounded-full blur-2xl" />
-                <MascotAnimation className="relative w-full max-w-[260px] mx-auto drop-shadow-[0_24px_40px_rgba(36,107,255,0.35)]" />
+
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <button
+                  onClick={onOpenAiFinder}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs px-5 py-3 rounded-xl shadow-lg shadow-orange-500/25 transition-all hover:-translate-y-0.5"
+                >
+                  <span>Start Product Finder</span>
+                  <span>&rarr;</span>
+                </button>
+                <button
+                  onClick={onOpenChatbot}
+                  className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-4 py-3 rounded-xl border border-white/20 transition-all"
+                >
+                  <span>Ask DawnWire AI</span>
+                </button>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ============================ LATEST BUYING GUIDES (reference so-latest-blog) ============================ */}
-        <ScrollReveal delay={0.1}>
+        {/* ─────────────────────────────────────────────────────────────
+            14. PRICE DROP / WATCHLIST SECTION
+        ───────────────────────────────────────────────────────────── */}
+        <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white p-8 sm:p-10 relative overflow-hidden shadow-xl border border-blue-800">
+          <div className="relative z-10 max-w-2xl">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-bold mb-3">
+              <span>📉 Automated Deal Tracker</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Never Miss a Price Drop. Track Historical Lows.
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-300 mt-2.5 leading-relaxed">
+              DawnWire monitors thousands of Amazon products 24/7. We detect false markups and notify buyers when items reach their lowest price in 90 days.
+            </p>
+
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <a
+                href="/deals"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs px-6 py-3 rounded-xl shadow-md transition-all"
+              >
+                <span>Browse Tracked Price Drops</span>
+                <span>&rarr;</span>
+              </a>
+              <a
+                href="/wishlist"
+                className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-5 py-3 rounded-xl border border-white/20 transition-all"
+              >
+                <span>View My Wishlist</span>
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* ─────────────────────────────────────────────────────────────
+            15. LATEST BUYING GUIDES (Clean Editorial Grid)
+        ───────────────────────────────────────────────────────────── */}
         {posts.length > 0 && (
-          <section>
-            <SectionHead title="Latest Buying Guides" sub="What to look for before you buy" href="/guides" label="All Guides" />
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-              {posts.map(post => {
+          <section className="pt-2">
+            <SectionHeading
+              title="Latest Buying Guides & Expert Reviews"
+              subtitle="In-depth testing, lab breakdowns, and buyer checklists"
+              viewAllHref="/guides"
+              viewAllText="All Buying Guides"
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {posts.slice(0, 3).map((post) => {
                 const cat = categories.find(c => c.id === post.categoryId);
-                const guideImg = post.featuredImage
-                  ? proxyImageUrl(post.featuredImage)
-                  : (cat ? categoryImage(cat) : NO_IMAGE) || NO_IMAGE;
                 return (
-                  <a key={post.id} href={`/post/${post.slug}`} data-gravity-cursor="view"
-                    className="group flex flex-col bg-white rounded-2xl border border-[#E5E1DC] overflow-hidden hover:shadow-[0_16px_40px_-18px_rgba(36,107,255,0.3)] hover:-translate-y-1 hover:border-[#246BFF]/40 transition-all duration-300">
-                    <div className="relative h-[165px] overflow-hidden bg-[#F1F6FF]">
-                      <img src={guideImg} alt={post.title} loading="lazy" referrerPolicy="no-referrer"
+                  <a
+                    key={post.id}
+                    href={`/post/${post.slug}`}
+                    className="group flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500 shadow-xs hover:shadow-lg transition-all duration-300 overflow-hidden"
+                  >
+                    <div className="relative aspect-video bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <img
+                        src={proxyImageUrl(post.featuredImage) || NO_IMAGE}
+                        alt={post.title}
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        onError={e => { (e.target as HTMLImageElement).src = NO_IMAGE; }} />
-                      <span className="absolute top-2 left-2 bg-white/90 backdrop-blur text-[#246BFF] text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md">
-                        {cat?.name || 'Guide'}
+                        onError={(e) => { (e.target as HTMLImageElement).src = NO_IMAGE; }}
+                      />
+                      <span className="absolute top-3 left-3 bg-slate-900/90 text-white font-bold text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wide backdrop-blur-xs">
+                        {cat?.name || 'Buying Guide'}
                       </span>
                     </div>
-                    <div className="flex flex-col flex-1 p-3.5">
-                      <h3 className="text-[13px] font-bold text-[#1A1A2E] line-clamp-2 leading-snug group-hover:text-[#246BFF] transition-colors">{post.title}</h3>
-                      <p className="text-[12px] text-[#6B7280] line-clamp-2 mt-1.5 leading-relaxed">{post.excerpt}</p>
-                      <p className="mt-auto pt-2 text-[11px] font-bold text-[#9CA3AF]">{post.readingTime || 6} min read</p>
+
+                    <div className="p-5 flex flex-col flex-1">
+                      <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
+                        {post.title}
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-2 leading-relaxed">
+                        {post.excerpt}
+                      </p>
+
+                      <div className="mt-auto pt-4 flex items-center justify-between text-xs text-slate-400 font-semibold border-t border-slate-100 dark:border-slate-800">
+                        <span>{post.readingTime || 5} min read</span>
+                        <span className="text-blue-600 dark:text-blue-400 font-bold group-hover:translate-x-0.5 transition-transform">
+                          Read Guide &rarr;
+                        </span>
+                      </div>
                     </div>
                   </a>
                 );
@@ -1030,106 +1167,102 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             </div>
           </section>
         )}
-        </ScrollReveal>
 
-        {/* ============================ SHOP BY BRAND (reference top-brand slider) ============================ */}
-        <ScrollReveal delay={0.15}>
-        {brandsAll.length > 0 && (
-          <section>
-            <SectionHead title="Shop by Brand" sub="Brands we've tested and recommend" href="/brands" label="All Brands" />
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-              {brandsAll.map(brand => (
-                <a key={brand.id} href={`/products?brand=${encodeURIComponent(brand.name)}`} data-gravity-cursor="explore"
-                  className="group flex flex-col items-center justify-center gap-2 bg-white rounded-2xl border border-[#E5E1DC] px-4 py-5 hover:border-[#246BFF]/40 hover:shadow-[0_12px_30px_-14px_rgba(36,107,255,0.3)] transition-all min-h-[104px]">
+        {/* ─────────────────────────────────────────────────────────────
+            16. SHOP BY BRAND (Clean Logo Grid)
+        ───────────────────────────────────────────────────────────── */}
+        {brands.length > 0 && (
+          <section className="pt-2">
+            <SectionHeading
+              title="Shop Tested Brands"
+              subtitle="Verified gear from premier consumer brands"
+              viewAllHref="/brands"
+              viewAllText="All Brands"
+            />
+
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+              {brands.slice(0, 16).map((brand) => (
+                <a
+                  key={brand.id}
+                  href={`/products?brand=${encodeURIComponent(brand.name)}`}
+                  className="group flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500 shadow-xs hover:shadow-md transition-all duration-300 min-h-[86px] text-center"
+                >
                   {brand.logoUrl || brand.logo ? (
-                    <span className="w-14 h-14 rounded-full bg-white border border-[#E5E1DC] shadow-sm flex items-center justify-center overflow-hidden p-1.5 group-hover:scale-105 transition-transform duration-300">
+                    <div className="w-10 h-10 flex items-center justify-center overflow-hidden mb-1">
                       <img
                         src={proxyImageUrl(brand.logoUrl || brand.logo || '')}
                         alt={brand.name}
-                        referrerPolicy="no-referrer"
                         loading="lazy"
-                        onError={e => { (e.target as HTMLImageElement).parentElement!.classList.add('hidden'); }}
-                        className="w-full h-full object-contain"
+                        referrerPolicy="no-referrer"
+                        className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform"
+                        onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                       />
-                    </span>
+                    </div>
                   ) : (
-                    <span className="w-11 h-11 rounded-full bg-[#EAF2FF] text-[#246BFF] grid place-items-center text-base font-black shrink-0">
-                      {brand.name?.[0]?.toUpperCase()}
-                    </span>
+                    <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-slate-800 text-blue-600 dark:text-blue-400 font-black text-xs flex items-center justify-center mb-1">
+                      {brand.name[0]?.toUpperCase()}
+                    </div>
                   )}
-                  <span className="text-[13px] font-bold text-[#374151] group-hover:text-[#246BFF] transition-colors truncate max-w-full">{brand.name}</span>
+                  <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate max-w-full">
+                    {brand.name}
+                  </span>
                 </a>
               ))}
             </div>
           </section>
         )}
-        </ScrollReveal>
 
-        {/* ============================ NEWSLETTER STRIP (reference newsletter_promo) ============================ */}
-        <ScrollReveal>
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#1A1A2E] via-[#2D2D44] to-[#1A1A2E] dark:from-[#0A0A15] dark:via-[#1C1C2E] dark:to-[#0A0A15] px-7 md:px-12 py-10 md:py-12">
-          <div className="absolute -top-24 -right-16 w-72 h-72 rounded-full bg-white/10 blur-3xl animate-[float_12s_ease-in-out_infinite]" />
-          <div className="absolute -bottom-28 -left-16 w-64 h-64 rounded-full bg-[#FF8A00]/20 blur-3xl animate-[float_14s_ease-in-out_infinite_3s]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
-          <div className="relative grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-8 items-center">
-            <div>
-              <span className="inline-flex items-center gap-2 bg-white/15 text-white text-[11px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-white/25">
-                ✉️ Deals straight to your inbox
+        {/* ─────────────────────────────────────────────────────────────
+            17. NEWSLETTER BLOCK (Full-Width Navy Block)
+        ───────────────────────────────────────────────────────────── */}
+        <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-8 sm:p-12 relative overflow-hidden shadow-xl border border-slate-800">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-7">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/20 text-orange-300 text-xs font-bold mb-3 border border-orange-400/30">
+                ✉️ Exclusive Deal Alerts
               </span>
-              <h2 className="mt-4 text-2xl md:text-4xl font-[900] tracking-tight text-white leading-tight">
+              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
                 Never Miss a Price Drop
               </h2>
-              <p className="mt-2.5 text-white/80 text-sm md:text-base max-w-lg leading-relaxed">
-                Join our newsletter and get the hottest Amazon deals, buying guides and early access — before they sell out.
+              <p className="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed max-w-lg">
+                Get expert picks, price alerts, and the best Amazon deals delivered straight to your inbox.
               </p>
             </div>
-            <form onSubmit={submitNewsletter} className="w-full">
-              <div className="bg-white rounded-2xl p-1.5 flex items-stretch gap-1 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.4)]">
-                <span className="hidden sm:flex items-center pl-3 text-[#9CA3AF]">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                </span>
-                <input
-                  type="email"
-                  required
-                  value={nlEmail}
-                  onChange={e => setNlEmail(e.target.value)}
-                  placeholder="Enter your email address"
-                  aria-label="Email address"
-                  className="flex-1 min-w-0 bg-transparent px-3 sm:px-2 py-3.5 text-[15px] text-[#1A1A2E] placeholder-[#9CA3AF] outline-none"
-                />
-                <button
-                  type="submit"
-                  disabled={nlBusy}
-                  className="bg-[#246BFF] hover:bg-[#164EE8] disabled:opacity-60 text-white font-bold px-6 py-3 rounded-xl shrink-0 transition-colors"
-                >
-                  {nlBusy ? 'Sending…' : 'Subscribe'}
-                </button>
-              </div>
-              {nlMsg && (
-                <p className={`mt-3 text-[13px] font-bold ${nlMsg.ok ? 'text-emerald-200' : 'text-amber-200'}`}>{nlMsg.text}</p>
-              )}
-              <p className="mt-3 text-[12px] text-white/60">No spam, ever. Unsubscribe anytime.</p>
-            </form>
+
+            <div className="lg:col-span-5">
+              <form onSubmit={handleNewsletterSubmit} className="space-y-2">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl p-1.5 flex items-center gap-2 shadow-lg border border-slate-200 dark:border-slate-700">
+                  <input
+                    type="email"
+                    required
+                    placeholder="Enter your email address..."
+                    value={newsletterEmail}
+                    onChange={(e) => setNewsletterEmail(e.target.value)}
+                    disabled={newsletterLoading}
+                    className="flex-1 bg-transparent px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={newsletterLoading}
+                    className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs px-5 py-3 rounded-xl shrink-0 transition-all disabled:opacity-60"
+                  >
+                    {newsletterLoading ? 'Subscribing...' : 'Subscribe'}
+                  </button>
+                </div>
+                {newsletterStatus && (
+                  <p className={`text-xs font-bold ${newsletterStatus.ok ? 'text-emerald-300' : 'text-rose-300'}`}>
+                    {newsletterStatus.msg}
+                  </p>
+                )}
+                <p className="text-[11px] text-slate-400">
+                  No spam, ever. Unsubscribe anytime.
+                </p>
+              </form>
+            </div>
           </div>
         </section>
-        </ScrollReveal>
-      </main>
 
-      {/* ============================ AFFILIATE DISCLOSURE ============================ */}
-      <section className="border-t border-[#E5E1DC]/80 dark:border-[#333348]/80 bg-white dark:bg-[#1C1C2E] py-8">
-        <div className="commerce-container flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-[12px] text-[#6B7280] max-w-2xl text-center md:text-left">
-            <strong className="text-[#374151]">Independent &amp; honest.</strong> DawnWire earns a small commission
-            when you buy through links marked &quot;on Amazon&quot; — at no extra cost to you. Prices checked daily; may change after publish.
-          </p>
-          <a href="/affiliate-disclosure" className="shrink-0 text-[13px] font-bold text-[#246BFF] hover:text-[#1a57e0] flex items-center gap-1 whitespace-nowrap">
-            Full Disclosure
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-          </a>
-        </div>
-      </section>
+      </div>
     </div>
   );
 };

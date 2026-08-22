@@ -9,6 +9,7 @@ import { triggerPageLoadProgress } from '../lib/navigation';
 import { AmbientGlow } from '../components/visual/AmbientGlow';
 import { TechnicalGrid } from '../components/visual/TechnicalGrid';
 import { GradientDivider } from '../components/visual/GradientDivider';
+import { BRAND_KIT } from '../lib/brandKit';
 
 interface ProductCatalogPageProps {
   initialCategory?: string;
@@ -176,6 +177,25 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
           )}
         </div>
       </div>
+
+      {/* Category strip banner (brand kit, 1760×142 — rendered uncropped) */}
+      {selectedCategory !== 'all' && (() => {
+        const catSlug = categories.find(c => c.id === selectedCategory)?.slug || '';
+        const strip = (BRAND_KIT.categoryStrips as Record<string, string>)[catSlug];
+        if (!strip) return null;
+        return (
+          <div className="max-w-7xl mx-auto px-4 -mt-2 mb-2">
+            <img
+              src={strip}
+              alt={`${catSlug.replace(/-/g, ' ')} collection banner`}
+              loading="eager"
+              referrerPolicy="no-referrer"
+              className="w-full h-auto object-contain rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-sm"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          </div>
+        );
+      })()}
 
       <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Col: Filters Sidebar */}

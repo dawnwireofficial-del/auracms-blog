@@ -785,13 +785,13 @@ router.get('/go/product/:slug', async (req, res) => {
       deviceType: 'desktop',
     });
 
-    const { isAmazonDomain, cleanPublicUrl, isManualAffiliateLink } = await import('../../server/affiliate-health');
-    // Manual link is the ONLY outbound destination. Fallbacks are clean, untagged.
-    let destination: string | null = null;
-    if (product.affiliate_url && isAmazonDomain(product.affiliate_url) && isManualAffiliateLink(product.affiliate_url)) destination = product.affiliate_url;
-    if (!destination && product.amazon_url && isAmazonDomain(product.amazon_url)) destination = cleanPublicUrl(product.amazon_url);
-    if (!destination && product.affiliate_url && isAmazonDomain(product.affiliate_url)) destination = cleanPublicUrl(product.affiliate_url);
-    if (!destination && product.amazon_url) destination = cleanPublicUrl(product.amazon_url);
+    const { isAmazonDomain, ensureTaggedAmazonUrl } = await import('../../server/affiliate-health');
+    // EVERY outbound Amazon click must carry the partner tag (commission).
+    // Prefer the stored affiliate link, fall back to the public URL — both are
+    // rebuilt as canonical /dp/<ASIN>?tag=<partner-tag> by the helper.
+    const rawDest = product.affiliate_url || product.amazon_url || '';
+    if (!rawDest || !isAmazonDomain(rawDest)) return res.status(404).json({ error: 'No Amazon destination URL' });
+    const destination = ensureTaggedAmazonUrl(rawDest, product.asin || product.specs?.asin || null);
     if (!destination) return res.status(404).json({ error: 'No destination URL' });
     return res.redirect(302, destination);
   } catch (e: any) {

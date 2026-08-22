@@ -735,11 +735,18 @@ export async function importProductReview(data: {
     if (brandId) review.brand_id = brandId;
   }
 
-  const rawUrl = review.affiliate_url || '';
-  if (rawUrl && rawUrl.includes('amazon') && !rawUrl.includes('tag=')) {
-    review.affiliate_url = rawUrl + (rawUrl.includes('?') ? '&' : '?') + 'tag=dawnwire-20';
-  } else if (rawUrl && rawUrl.includes('amazon') && !rawUrl.includes('dawnwire-20')) {
-    review.affiliate_url = rawUrl.replace(/tag=[^&]+/, 'tag=dawnwire-20');
+  // Tag BOTH URL fields with the partner tag at rest so every stored link
+  // earns commission (rebuilds canonical /dp/<ASIN>?tag=… via the helper).
+  {
+    const { ensureTaggedAmazonUrl } = await import('./affiliate-health');
+    const asinHint = (specs as any)?.asin || norm.asin || null;
+    if (review.affiliate_url && String(review.affiliate_url).includes('amazon')) {
+      review.affiliate_url = ensureTaggedAmazonUrl(String(review.affiliate_url), asinHint) || review.affiliate_url;
+    }
+    const amzUrl = (review as any).amazon_url;
+    if (amzUrl && String(amzUrl).includes('amazon')) {
+      (review as any).amazon_url = ensureTaggedAmazonUrl(String(amzUrl), asinHint) || amzUrl;
+    }
   }
 
   // ====== UPSERT: re-importing an existing product refreshes it in place ======

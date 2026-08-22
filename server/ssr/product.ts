@@ -100,6 +100,8 @@ export async function renderProductPageHtml(slug: string): Promise<SsrResult | n
   const imgSrc = image && image.startsWith('http') ? image : image ? `${baseUrl}${image}` : '';
 
   const jsonLdSchemas: string[] = [];
+  const { ensureTaggedAmazonUrl } = await import('../affiliate-health');
+  const offerUrl = ensureTaggedAmazonUrl(p.affiliate_url || p.amazon_url || (p.asin ? `https://www.amazon.com/dp/${p.asin}` : ''), p.asin || p.specs?.asin || null);
 
   // Product schema (enables rich product results in Google)
   const productSchema: Record<string, any> = {
@@ -110,7 +112,7 @@ export async function renderProductPageHtml(slug: string): Promise<SsrResult | n
     description: reviewSummary || finalVerdict || `${name} review by DawnWire`,
     ...(brand ? { brand: { '@type': 'Brand', name: brand } } : {}),
     ...(imgSrc ? { image: imgSrc } : {}),
-    ...(price ? { offers: { '@type': 'Offer', priceCurrency: 'USD', price: parseFloat(String(price).replace(/[^0-9.]/g, '')) || undefined, url: `https://www.amazon.com/dp/${p.asin || ''}?tag=dawnwire-20`, seller: { '@type': 'Organization', name: 'Amazon' } } } : {}),
+    ...(price ? { offers: { '@type': 'Offer', priceCurrency: 'USD', price: parseFloat(String(price).replace(/[^0-9.]/g, '')) || undefined, ...(offerUrl ? { url: offerUrl } : {}), seller: { '@type': 'Organization', name: 'Amazon' } } } : {}),
     ...(rating ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: rating, bestRating: 5, reviewCount: reviewCount || 1 } } : {}),
     ...(reviewCount ? { review: { '@type': 'Review', author: { '@type': 'Organization', name: 'DawnWire Editorial Team' }, reviewRating: { '@type': 'Rating', ratingValue: rating || 0, bestRating: 5 }, reviewBody: reviewSummary || finalVerdict || '' } } : {}),
   };
