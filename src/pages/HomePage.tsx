@@ -565,6 +565,26 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
               <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-blue-500/15 blur-3xl pointer-events-none" />
               <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-orange-500/10 blur-3xl pointer-events-none" />
 
+              {/* Floating Editor's Pick (desktop, copy slides only) */}
+              {!heroSlides[currentSlide]?.imageOnly && topDeals[0] && (
+                <a
+                  href={`/products/${topDeals[0].slug}`}
+                  className="hidden xl:flex absolute right-10 top-1/2 -translate-y-1/2 z-10 flex-col items-center gap-2.5 group"
+                >
+                  <div className="relative w-44 h-44 2xl:w-52 2xl:h-52 bg-white/10 backdrop-blur-md border border-white/20 rounded-[28px] p-4 shadow-2xl group-hover:scale-[1.04] group-hover:border-white/40 transition-all duration-300">
+                    <img
+                      src={proxyImageUrl(topDeals[0].images?.[0] || topDeals[0].productImage)}
+                      alt={topDeals[0].title || topDeals[0].productName || 'Editor pick'}
+                      className="w-full h-full object-contain drop-shadow-2xl"
+                      onError={(e) => { (e.target as HTMLImageElement).closest('a')!.style.display = 'none'; }}
+                    />
+                  </div>
+                  <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-black tracking-wider px-3.5 py-1.5 rounded-full shadow-lg shadow-orange-500/30 uppercase">
+                    ★ Editor's #1 Pick
+                  </span>
+                </a>
+              )}
+
               {/* Slider Content */}
               {heroSlides[currentSlide]?.imageOnly && heroSlides[currentSlide]?.image ? (
                 <a
@@ -775,18 +795,31 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
             {fullTaxonomyCategories.map((cat) => {
               const count = products.filter(p => (p.mainCategory || '').toLowerCase().includes(cat.name.toLowerCase())).length;
+              const dbCat = categories.find(c => c.slug === cat.slug);
+              const brandIcon = dbCat?.image || '';
               return (
                 <a
                   key={cat.id}
                   href={`/categories/${cat.slug}`}
-                  className="group flex flex-col items-center justify-center p-3.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500 shadow-xs hover:shadow-md transition-all duration-300 text-center"
+                  className="group flex flex-col items-center justify-center p-3.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-center"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-blue-50/80 dark:bg-slate-800 group-hover:bg-blue-100 dark:group-hover:bg-blue-950 flex items-center justify-center transition-colors mb-2">
-                    <AnimatedCategoryIcon
-                      slug={cat.slug}
-                      icon={cat.icon || 'tag'}
-                      className="w-6 h-6 text-blue-600 dark:text-blue-400"
-                    />
+                  <div className="w-12 h-12 rounded-xl bg-blue-50/80 dark:bg-slate-800 group-hover:bg-blue-100 dark:group-hover:bg-blue-950 flex items-center justify-center transition-colors mb-2 overflow-hidden">
+                    {brandIcon ? (
+                      <img
+                        src={brandIcon}
+                        alt={cat.name}
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-contain p-0.5 group-hover:scale-110 transition-transform duration-300"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    ) : (
+                      <AnimatedCategoryIcon
+                        slug={cat.slug}
+                        icon={cat.icon || 'tag'}
+                        className="w-6 h-6 text-blue-600 dark:text-blue-400"
+                      />
+                    )}
                   </div>
                   <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
                     {cat.name}
@@ -1132,15 +1165,18 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                     href={`/post/${post.slug}`}
                     className="group flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500 shadow-xs hover:shadow-lg transition-all duration-300 overflow-hidden"
                   >
-                    <div className="relative aspect-video bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                      <img
-                        src={proxyImageUrl(post.featuredImage) || NO_IMAGE}
-                        alt={post.title}
-                        loading="lazy"
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        onError={(e) => { (e.target as HTMLImageElement).src = NO_IMAGE; }}
-                      />
+                    <div className="relative aspect-video bg-gradient-to-br from-[#0A1F44] via-[#123A7A] to-[#246BFF] overflow-hidden">
+                      {post.featuredImage ? (
+                        <img
+                          src={proxyImageUrl(post.featuredImage)}
+                          alt={post.title}
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      ) : null}
+                      <span className="absolute inset-0 flex items-center justify-center text-5xl opacity-70 select-none pointer-events-none">📚</span>
                       <span className="absolute top-3 left-3 bg-slate-900/90 text-white font-bold text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wide backdrop-blur-xs">
                         {cat?.name || 'Buying Guide'}
                       </span>
