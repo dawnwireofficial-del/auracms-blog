@@ -6,6 +6,7 @@ import { renderHomePageHtml } from './server/ssr/home';
 import { renderProductPageHtml } from './server/ssr/product';
 import { renderCategoryPageHtml } from './server/ssr/category';
 import { renderPostPageHtml } from './server/ssr/post';
+import { renderProductsHubHtml, renderEventsHubHtml } from './server/ssr/hubs';
 import { warmCacheFromStatic } from './server/api-cache';
 import { SsrResult, applyHeadTags } from './server/ssr/head';
 
@@ -79,6 +80,10 @@ app.get('/categories/:slug', (req, res, next) => serveSsr(() => renderCategoryPa
 
 // Editorial post pages (/post/:slug)
 app.get('/post/:slug', (req, res, next) => serveSsr(() => renderPostPageHtml(req.params.slug), res, next, `/post/${req.params.slug}`));
+
+// Hub pages (/products catalog landing and /events directory)
+app.get('/products', (req, res, next) => { if (req.path === '/products') return serveSsr(renderProductsHubHtml, res, next, '/products'); next(); });
+app.get('/events', (req, res, next) => { if (req.path === '/events' || req.path === '/events/') return serveSsr(renderEventsHubHtml, res, next, '/events'); next(); });
 
 app.use(express.static(distPath));
 

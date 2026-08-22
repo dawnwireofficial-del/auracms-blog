@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { proxyImageUrl } from '../utils/safeRender';
+import AntigravityCanvas from '../components/visual/AntigravityCanvas';
 
 const NO_IMAGE = 'data:image/svg+xml,' + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="300" height="300" fill="#f8fafc"/><g fill="none" stroke="#cbd5e1" stroke-width="2"><circle cx="150" cy="138" r="46"/><path d="M66 238c8-48 46-72 84-72s76 24 84 72"/></g></svg>'
@@ -248,6 +249,7 @@ export default function EventsPage({ eventSlug }: { eventSlug?: string }) {
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
       <section className="relative overflow-hidden bg-gradient-to-br from-[#0A1F44] via-[#123A7A] to-[#246BFF] text-white">
+        <AntigravityCanvas />
         <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-orange-500/20 blur-3xl pointer-events-none" />
         <div className="max-w-7xl mx-auto px-4 py-14 relative z-10">
           <span className="inline-block text-[11px] font-extrabold uppercase tracking-wider bg-white/15 border border-white/25 px-2.5 py-0.5 rounded-md mb-2">🗓️ Sale Calendar</span>

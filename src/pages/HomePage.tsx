@@ -9,6 +9,7 @@ import BannerInlineEditor from '../components/admin/BannerInlineEditor';
 import { DisclosureBanner } from '../components/common/DisclosureBanner';
 import { triggerPageLoadProgress } from '../lib/navigation';
 import { BRAND_KIT } from '../lib/brandKit';
+import AntigravityCanvas from '../components/visual/AntigravityCanvas';
 import type { Product, Post, Category } from '../types';
 
 interface HomePageProps {
@@ -275,29 +276,48 @@ function CategoryMerchandisingSection({
         viewAllText={`All ${title.split(' ')[0]}`}
       />
 
-      {/* Category Promotional Strip Banner */}
-      <div className={`relative rounded-2xl bg-gradient-to-r ${bannerGradient} text-white p-6 sm:p-7 mb-6 overflow-hidden shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4`}>
-        <div className="relative z-10 max-w-xl">
-          {bannerBadge && (
-            <span className="inline-block text-[10px] font-black uppercase tracking-widest bg-white/20 px-2.5 py-0.5 rounded-md mb-2">
-              {bannerBadge}
-            </span>
-          )}
-          <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">
-            {bannerTitle}
-          </h3>
-          <p className="text-xs sm:text-sm text-white/80 mt-1">
-            {bannerSubtitle}
-          </p>
-        </div>
-        <a
-          href={viewAllHref}
-          className="relative z-10 inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-sm transition-all w-fit shrink-0"
-        >
-          <span>{bannerCtaText}</span>
-          <span>&rarr;</span>
-        </a>
-      </div>
+      {/* Category Promotional Banner — designed brand banner when available, else gradient card */}
+      {(() => {
+        const strip = (BRAND_KIT.categoryStrips as Record<string, string>)[categorySlug];
+        if (strip) {
+          return (
+            <a href={viewAllHref} className="block mb-6 group" aria-label={bannerTitle}>
+              <img
+                src={strip}
+                alt={bannerTitle}
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                className="w-full h-auto object-contain rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm group-hover:shadow-md transition-shadow"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+            </a>
+          );
+        }
+        return (
+          <div className={`relative rounded-2xl bg-gradient-to-r ${bannerGradient} text-white p-6 sm:p-7 mb-6 overflow-hidden shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4`}>
+            <div className="relative z-10 max-w-xl">
+              {bannerBadge && (
+                <span className="inline-block text-[10px] font-black uppercase tracking-widest bg-white/20 px-2.5 py-0.5 rounded-md mb-2">
+                  {bannerBadge}
+                </span>
+              )}
+              <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">
+                {bannerTitle}
+              </h3>
+              <p className="text-xs sm:text-sm text-white/80 mt-1">
+                {bannerSubtitle}
+              </p>
+            </div>
+            <a
+              href={viewAllHref}
+              className="relative z-10 inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-sm transition-all w-fit shrink-0"
+            >
+              <span>{bannerCtaText}</span>
+              <span>&rarr;</span>
+            </a>
+          </div>
+        );
+      })()}
 
       {/* Product Grid (4-6 Products) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
@@ -360,28 +380,27 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
   }, [sortedByScore]);
 
   // Category Filtering Helper for Merchandise Sections
-  const getProductsForKeywords = (keywords: string[], fallbackOffset = 0, count = 6) => {
+  const getProductsForKeywords = (keywords: string[], fallbackOffset = 0, count = 6, categorySlug?: string) => {
+    // Only true matches — never pad with unrelated top-scored products.
+    const catName = categorySlug ? categories.find(c => c.slug === categorySlug)?.name?.toLowerCase() : '';
     const matched = products.filter(p => {
-      const pCat = (p.mainCategory || p.category || '').toLowerCase();
+      const pCatId = (p as any).categoryId || '';
+      const pCatName = (p.mainCategory || p.category || '').toLowerCase();
+      if (categorySlug && (pCatId === categorySlug || pCatName === catName)) return true;
       const pTitle = (p.title || '').toLowerCase();
       const pBestFor = (p.bestFor || '').toLowerCase();
-      const pBrand = (p.brand || '').toLowerCase();
-      return keywords.some(kw => pCat.includes(kw) || pTitle.includes(kw) || pBestFor.includes(kw) || pBrand.includes(kw));
+      return keywords.some(kw => pTitle.includes(kw) || pBestFor.includes(kw));
     }).sort((a, b) => (b.editorScore || 0) - (a.editorScore || 0));
 
-    if (matched.length >= 4) return matched.slice(0, count);
-    // Return matched + fallback to ensure well-stocked visual density
-    const pool = [...matched, ...sortedByScore.slice(fallbackOffset, fallbackOffset + count)];
-    const unique = pool.filter((item, index, self) => index === self.findIndex(t => t.id === item.id));
-    return unique.slice(0, count);
+    return matched.slice(0, count);
   };
 
-  const electronicsProducts = useMemo(() => getProductsForKeywords(['electron', 'audio', 'headphone', 'phone', 'laptop', 'monitor', 'tv', 'watch', 'camera'], 0, 6), [products, sortedByScore]);
-  const beautyProducts = useMemo(() => getProductsForKeywords(['beauty', 'skincare', 'hair', 'cream', 'serum', 'lotion', 'makeup', 'cleanser'], 3, 6), [products, sortedByScore]);
-  const homeProducts = useMemo(() => getProductsForKeywords(['home', 'kitchen', 'cookware', 'coffee', 'blender', 'vacuum', 'appliance', 'air fryer'], 6, 6), [products, sortedByScore]);
-  const gamingProducts = useMemo(() => getProductsForKeywords(['game', 'gaming', 'keyboard', 'mouse', 'controller', 'console', 'gpu', 'headset'], 9, 6), [products, sortedByScore]);
-  const officeProducts = useMemo(() => getProductsForKeywords(['office', 'desk', 'chair', 'ergonomic', 'productivity', 'printer', 'hub', 'stand'], 12, 6), [products, sortedByScore]);
-  const healthProducts = useMemo(() => getProductsForKeywords(['health', 'fitness', 'wellness', 'supplement', 'vitamin', 'exercise', 'massage'], 15, 6), [products, sortedByScore]);
+  const electronicsProducts = useMemo(() => getProductsForKeywords(['electron', 'audio', 'headphone', 'phone', 'laptop', 'monitor', 'tv', 'watch', 'camera'], 0, 6, 'electronics'), [products, categories]);
+  const beautyProducts = useMemo(() => getProductsForKeywords(['beauty', 'skincare', 'hair', 'cream', 'serum', 'lotion', 'makeup', 'cleanser'], 3, 6, 'beauty-personal-care'), [products, categories]);
+  const homeProducts = useMemo(() => getProductsForKeywords(['home', 'kitchen', 'cookware', 'coffee', 'blender', 'vacuum', 'appliance', 'air fryer'], 6, 6, 'home-kitchen'), [products, categories]);
+  const gamingProducts = useMemo(() => getProductsForKeywords(['game', 'gaming', 'keyboard', 'mouse', 'controller', 'console', 'gpu', 'headset'], 9, 6, 'gaming'), [products, categories]);
+  const officeProducts = useMemo(() => getProductsForKeywords(['office', 'desk', 'chair', 'ergonomic', 'productivity', 'printer', 'hub', 'stand'], 12, 6, 'office-productivity'), [products, categories]);
+  const healthProducts = useMemo(() => getProductsForKeywords(['health', 'fitness', 'wellness', 'supplement', 'vitamin', 'exercise', 'massage'], 15, 6, 'health-wellness'), [products, categories]);
 
   // Full Category Taxonomy for Shop by Category Rail
   const fullTaxonomyCategories = useMemo(() => {
@@ -561,6 +580,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5">
             {/* Main Hero Slider (68% width on desktop) */}
             <div className="lg:col-span-8 relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-[#0A1F44] to-blue-950 text-white overflow-hidden shadow-lg border border-slate-800 flex flex-col justify-between min-h-[420px] md:min-h-[460px]">
+              {/* Ambient antigravity particle field */}
+              <AntigravityCanvas />
               {/* Subtle ambient glows */}
               <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-blue-500/15 blur-3xl pointer-events-none" />
               <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-orange-500/10 blur-3xl pointer-events-none" />
@@ -723,6 +744,30 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         </section>
 
         {/* ─────────────────────────────────────────────────────────────
+            5b. TRENDING SEARCHES (internal-linking chip rail)
+        ───────────────────────────────────────────────────────────── */}
+        <section className="flex flex-wrap items-center gap-2 -mt-6 relative z-10">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mr-1">Trending:</span>
+          {[
+            ['Air Fryer', '/categories/home-kitchen'],
+            ['Korean Skincare', '/categories/beauty-personal-care'],
+            ['Gaming Headsets', '/categories/gaming'],
+            ['Back to School', '/events/back-to-school'],
+            ['Black Friday', '/events/black-friday'],
+            ['School Supplies', '/categories/school-office-supplies'],
+            ['Coffee Gear', '/categories/home-kitchen'],
+          ].map(([label, href]) => (
+            <a
+              key={href}
+              href={href}
+              className="px-3 py-1.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 shadow-xs transition-colors"
+            >
+              {label}
+            </a>
+          ))}
+        </section>
+
+        {/* ─────────────────────────────────────────────────────────────
             6. TRUST STRIP (Compact 6-Item Credibility Bar)
         ───────────────────────────────────────────────────────────── */}
         <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
@@ -792,44 +837,46 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             viewAllText="View All Categories"
           />
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
-            {fullTaxonomyCategories.map((cat) => {
-              const count = products.filter(p => (p.mainCategory || '').toLowerCase().includes(cat.name.toLowerCase())).length;
-              const dbCat = categories.find(c => c.slug === cat.slug);
-              const brandIcon = dbCat?.image || '';
-              return (
-                <a
-                  key={cat.id}
-                  href={`/categories/${cat.slug}`}
-                  className="group flex flex-col items-center justify-center p-3.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-center"
-                >
-                  <div className="w-12 h-12 rounded-xl bg-blue-50/80 dark:bg-slate-800 group-hover:bg-blue-100 dark:group-hover:bg-blue-950 flex items-center justify-center transition-colors mb-2 overflow-hidden">
-                    {brandIcon ? (
-                      <img
-                        src={brandIcon}
-                        alt={cat.name}
-                        loading="lazy"
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-contain p-0.5 group-hover:scale-110 transition-transform duration-300"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                      />
-                    ) : (
-                      <AnimatedCategoryIcon
-                        slug={cat.slug}
-                        icon={cat.icon || 'tag'}
-                        className="w-6 h-6 text-blue-600 dark:text-blue-400"
-                      />
-                    )}
-                  </div>
-                  <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
-                    {cat.name}
-                  </span>
-                  <span className="text-[10px] font-semibold text-slate-400 mt-0.5">
-                    {count > 0 ? `${count} picks` : 'Explore'}
-                  </span>
-                </a>
-              );
-            })}
+          {/* Auto-scrolling category marquee (pauses on hover) */}
+          <div className="dw-marquee relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 py-4">
+            <div className="dw-marquee-track flex items-stretch gap-3 w-max px-3">
+              {[...fullTaxonomyCategories, ...fullTaxonomyCategories].map((cat, i) => {
+                const dbCat = categories.find(c => c.slug === cat.slug);
+                const brandIcon = dbCat?.image || '';
+                return (
+                  <a
+                    key={`${cat.id}-${i}`}
+                    href={`/categories/${cat.slug}`}
+                    className="group flex flex-col items-center justify-center w-[104px] shrink-0 p-2.5 rounded-xl hover:bg-blue-50/70 dark:hover:bg-slate-800 transition-colors text-center"
+                  >
+                    <div className="w-14 h-14 rounded-full bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center overflow-hidden mb-1.5 group-hover:border-blue-400 transition-colors">
+                      {brandIcon ? (
+                        <img
+                          src={brandIcon}
+                          alt={cat.name}
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-contain p-1 group-hover:scale-110 transition-transform duration-300"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      ) : (
+                        <AnimatedCategoryIcon
+                          slug={cat.slug}
+                          icon={cat.icon || 'tag'}
+                          className="w-6 h-6 text-blue-600 dark:text-blue-400"
+                        />
+                      )}
+                    </div>
+                    <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-tight">
+                      {cat.name}
+                    </span>
+                  </a>
+                );
+              })}
+            </div>
+            {/* Edge fade masks */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#F8FAFC] dark:from-slate-950 to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#F8FAFC] dark:from-slate-950 to-transparent" />
           </div>
         </section>
 

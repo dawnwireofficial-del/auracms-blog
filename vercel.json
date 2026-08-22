@@ -76,6 +76,10 @@
       "dest": "/api/index.js"
     },
     {
+      "src": "^/(products|events)/?$",
+      "dest": "/api/index.js"
+    },
+    {
       "src": "^/go/(.*)$",
       "dest": "/api/index.js"
     },
