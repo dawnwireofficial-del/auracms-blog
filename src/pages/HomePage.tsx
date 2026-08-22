@@ -431,64 +431,15 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
     return list;
   }, [categories]);
 
-  // Slides setup
+  // Slides setup — pure designed banner display (no text/search/CTA overlays).
   const heroSlides = useMemo(() => {
-    const list: {
-      id: string;
-      heading: string;
-      subheading: string;
-      ctaText: string;
-      ctaHref: string;
-      badge: string;
-      image: string;
-      featuredProduct?: Product;
-      imageOnly?: boolean;
-      mobileImage?: string;
-    }[] = [
-      {
-        id: 'main-copy',
-        heading: bannerSlots.heroMain?.heading || 'Discover Better Deals & Verified Reviews',
-        subheading: bannerSlots.heroMain?.subtitle || 'Compare live prices, lab test scores, and buying advice before you buy — saving you time and money.',
-        ctaText: bannerSlots.heroMain?.ctaText || "Explore Today's Deals",
-        ctaHref: bannerSlots.heroMain?.targetUrl || '/deals',
-        badge: bannerSlots.heroMain?.badgeText || 'AI-Powered Affiliate Research',
-        image: proxyImageUrl(bannerSlots.heroMain?.desktopImage) || (topDeals[0] ? proxyImageUrl(topDeals[0].images?.[0]) : ''),
-        featuredProduct: topDeals[0]
-      }
-    ];
-
-    if (bannerSlots.heroTiles[0]?.desktopImage) {
-      list.push({
-        id: 'admin-slide-1',
-        heading: bannerSlots.heroTiles[0].heading || bannerSlots.heroTiles[0].title || 'Exclusive Season Highlights',
-        subheading: bannerSlots.heroTiles[0].subtitle || bannerSlots.heroTiles[0].description || 'Hand-picked discounts and recommendations directly from our editorial testing lab.',
-        ctaText: bannerSlots.heroTiles[0].ctaText || 'Shop Now',
-        ctaHref: bannerSlots.heroTiles[0].targetUrl || '/deals',
-        badge: bannerSlots.heroTiles[0].badgeText || 'Featured Promotion',
-        image: proxyImageUrl(bannerSlots.heroTiles[0].desktopImage) || '',
-        featuredProduct: undefined
-      });
-    }
-
-    // Brand-kit designed hero banners (image-only, no text overlay, never cropped)
-    for (let i = 0; i < BRAND_KIT.heroes.length; i++) {
-      const h = BRAND_KIT.heroes[i];
-      list.push({
-        id: `brand-hero-${i}`,
-        heading: '',
-        subheading: '',
-        ctaText: 'Shop Now',
-        ctaHref: h.href,
-        badge: '',
-        image: proxyImageUrl(h.desktop) || '',
-        featuredProduct: undefined,
-        imageOnly: true,
-        mobileImage: proxyImageUrl(h.mobile) || ''
-      });
-    }
-
-    return list;
-  }, [bannerSlots, topDeals]);
+    return BRAND_KIT.heroes.map((h, i) => ({
+      id: `brand-hero-${i}`,
+      ctaHref: h.href,
+      image: proxyImageUrl(h.desktop) || '',
+      mobileImage: proxyImageUrl(h.mobile) || '',
+    }));
+  }, []);
 
   const totalSlides = heroSlides.length;
 
@@ -578,40 +529,17 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           onTouchEnd={handleTouchEnd}
         >
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5">
-            {/* Main Hero Slider (68% width on desktop) */}
-            <div className="lg:col-span-8 relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-[#0A1F44] to-blue-950 text-white overflow-hidden shadow-lg border border-slate-800 flex flex-col justify-between min-h-[420px] md:min-h-[460px]">
-              {/* Ambient antigravity particle field */}
+            {/* Main Hero Slider (68% width on desktop) — pure banner display */}
+            <div className="lg:col-span-8 relative rounded-2xl sm:rounded-3xl bg-[#0A1F44] text-white overflow-hidden shadow-lg border border-slate-800 min-h-[440px] md:min-h-[520px] xl:min-h-[600px] lg:h-[calc(100%-0px)]">
+              {/* Ambient antigravity particle field (visible in letterbox areas) */}
               <AntigravityCanvas />
-              {/* Subtle ambient glows */}
-              <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-blue-500/15 blur-3xl pointer-events-none" />
-              <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-orange-500/10 blur-3xl pointer-events-none" />
 
-              {/* Floating Editor's Pick (desktop, copy slides only) */}
-              {!heroSlides[currentSlide]?.imageOnly && topDeals[0] && (
-                <a
-                  href={`/products/${topDeals[0].slug}`}
-                  className="hidden xl:flex absolute right-10 top-1/2 -translate-y-1/2 z-10 flex-col items-center gap-2.5 group"
-                >
-                  <div className="relative w-44 h-44 2xl:w-52 2xl:h-52 bg-white/10 backdrop-blur-md border border-white/20 rounded-[28px] p-4 shadow-2xl group-hover:scale-[1.04] group-hover:border-white/40 transition-all duration-300">
-                    <img
-                      src={proxyImageUrl(topDeals[0].images?.[0] || topDeals[0].productImage)}
-                      alt={topDeals[0].title || topDeals[0].productName || 'Editor pick'}
-                      className="w-full h-full object-contain drop-shadow-2xl"
-                      onError={(e) => { (e.target as HTMLImageElement).closest('a')!.style.display = 'none'; }}
-                    />
-                  </div>
-                  <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-black tracking-wider px-3.5 py-1.5 rounded-full shadow-lg shadow-orange-500/30 uppercase">
-                    ★ Editor's #1 Pick
-                  </span>
-                </a>
-              )}
-
-              {/* Slider Content */}
-              {heroSlides[currentSlide]?.imageOnly && heroSlides[currentSlide]?.image ? (
+              {/* Slider Content — designed banner, full bleed, never cropped */}
+              {heroSlides[currentSlide]?.image ? (
                 <a
                   href={heroSlides[currentSlide].ctaHref}
-                  className="absolute inset-0 z-10 block bg-[#0A1F44] dark:bg-[#0A1F44]"
-                  aria-label={heroSlides[currentSlide].ctaText || 'Featured banner'}
+                  className="absolute inset-0 z-10 block"
+                  aria-label="Featured deals banner"
                 >
                   <picture>
                     <source media="(max-width: 767px)" srcSet={heroSlides[currentSlide].mobileImage || heroSlides[currentSlide].image} />
@@ -619,72 +547,12 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                       src={heroSlides[currentSlide].image}
                       alt="Featured deals banner"
                       loading={currentSlide === 0 ? 'eager' : 'lazy'}
+                      fetchPriority={currentSlide === 0 ? 'high' : undefined}
                       className="w-full h-full object-contain"
                     />
                   </picture>
                 </a>
-              ) : (
-              <div className="relative p-6 sm:p-10 flex-1 flex flex-col justify-center z-10">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-bold w-fit mb-3">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>{heroSlides[currentSlide]?.badge}</span>
-                </div>
-
-                <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-black tracking-tight leading-[1.08] max-w-xl text-white">
-                  {heroSlides[currentSlide]?.heading}
-                </h1>
-
-                <p className="mt-3 text-xs sm:text-sm text-slate-300 leading-relaxed max-w-lg">
-                  {heroSlides[currentSlide]?.subheading}
-                </p>
-
-                {/* Hero Search Bar */}
-                <form onSubmit={handleHeroSearch} className="mt-5 max-w-lg">
-                  <div className="bg-white dark:bg-slate-800 rounded-2xl p-1.5 flex items-center gap-2 shadow-lg border border-slate-200 dark:border-slate-700">
-                    <span className="pl-3 text-slate-400">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    </span>
-                    <input
-                      type="text"
-                      placeholder="Search 1,200+ reviewed Amazon products & deals..."
-                      value={heroSearchQuery}
-                      onChange={(e) => setHeroSearchQuery(e.target.value)}
-                      className="flex-1 bg-transparent px-2 py-2 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 outline-none"
-                    />
-                    <button
-                      type="submit"
-                      className="bg-[#246BFF] hover:bg-[#164EE8] text-white font-bold text-xs px-4 sm:px-5 py-2.5 rounded-xl shrink-0 transition-colors shadow-xs"
-                    >
-                      Search
-                    </button>
-                  </div>
-                </form>
-
-                {/* Main CTAs */}
-                <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <a
-                    href={heroSlides[currentSlide]?.ctaHref || '/deals'}
-                    className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs sm:text-sm px-6 py-3 rounded-xl shadow-md shadow-orange-500/25 transition-all hover:-translate-y-0.5"
-                  >
-                    <span>{heroSlides[currentSlide]?.ctaText}</span>
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  </a>
-                  <button
-                    onClick={onOpenAiFinder}
-                    className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/15 text-white font-bold text-xs sm:text-sm px-4 sm:px-5 py-3 rounded-xl border border-white/20 transition-all backdrop-blur-xs"
-                  >
-                    <svg className="w-4 h-4 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                    <span>AI Product Quiz</span>
-                  </button>
-                </div>
-              </div>
-              )}
+              ) : null}
 
               {/* Slider Dots */}
               {totalSlides > 1 && (
@@ -721,20 +589,20 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
               )}
             </div>
 
-            {/* Side Promo Cards (32% width on desktop) — brand-kit designed banners, object-contain (never cropped) */}
-            <div className="lg:col-span-4 grid grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-3.5">
+            {/* Side Promo Cards (32% width on desktop) — 2×2 compact grid, height matches hero */}
+            <div className="lg:col-span-4 grid grid-cols-2 auto-rows-fr gap-3 sm:gap-3.5 lg:h-full">
               {BRAND_KIT.sidePromos.map((card) => (
                 <a
                   key={card.href}
                   href={card.href}
-                  className="group relative rounded-2xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 flex items-center justify-center"
+                  className="group relative rounded-2xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center min-h-[120px]"
                 >
                   <img
                     src={proxyImageUrl(card.src)}
                     alt={card.alt}
                     loading="lazy"
                     referrerPolicy="no-referrer"
-                    className="w-full h-full object-contain group-hover:scale-[1.02] transition-transform duration-300"
+                    className="w-full h-full object-contain p-1 group-hover:scale-[1.03] transition-transform duration-300"
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                   />
                 </a>
