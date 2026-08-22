@@ -1,6 +1,7 @@
 import { dbInstance } from '../db';
 import { getPublishedProductReviews, getProductReviewBySlug } from '../seo-engine';
 import { esc, val, mdToSimpleHtml, ssrFooter } from './common';
+import { SsrResult, truncateText } from './head';
 
 // Server-side renderer for /products/:slug (product review detail pages).
 // Mirrors the matching logic in api/routes/public.ts so SSR and the API agree
@@ -28,7 +29,7 @@ function findProduct(reviews: any[], rawSlug: string): any {
   return found;
 }
 
-export async function renderProductPageHtml(slug: string): Promise<string | null> {
+export async function renderProductPageHtml(slug: string): Promise<SsrResult | null> {
   // Fast path: fetch single product by slug (no need to load all 636)
   let p: any = null;
   try {
@@ -167,7 +168,7 @@ export async function renderProductPageHtml(slug: string): Promise<string | null
 
   if (related.length) {
     const items = related
-      .map((r) => `<li><a href="/product/${esc(r.slug)}">${esc(val(r, 'productName') || r.product_name)}${Number(val(r, 'editorScore') || 0) ? ` — Editor score ${Number(val(r, 'editorScore'))}/10` : ''}</a></li>`)
+      .map((r) => `<li><a href="/products/${esc(r.slug)}">${esc(val(r, 'productName') || r.product_name)}${Number(val(r, 'editorScore') || 0) ? ` — Editor score ${Number(val(r, 'editorScore'))}/10` : ''}</a></li>`)
       .join('\n');
     parts.push(`<h2>You may also like</h2><ul class="ssr-links">${items}</ul>`);
   }
@@ -176,7 +177,16 @@ export async function renderProductPageHtml(slug: string): Promise<string | null
     ? `<li><a href="/products?cat=${categorySlug ? esc(categorySlug) : ''}">Compare prices across ${esc(name)}</a></li>`
     : '';
 
-  return `${jsonLdSchemas.join('\n')}\n<article class="ssr-content" id="product-seo-content">
+  const shortName = name.length > 80 ? truncateText(name, 78) : name;
+  const head = {
+    title: `${shortName} Review — Editor Score ${score || rating * 2}/10 | DawnWire`,
+    description: truncateText(reviewSummary || finalVerdict || `${shortName} review by DawnWire — pros, cons, price and editor verdict.`, 300),
+    canonical: productUrl,
+    ogType: 'product',
+    ...(imgSrc ? { ogImage: imgSrc } : {}),
+  };
+
+  return { head, body: `${jsonLdSchemas.join('\n')}\n<article class="ssr-content" id="product-seo-content">
 <h1>${esc(name)} Review</h1>
 ${parts.join('\n')}
 <section><h2>More from DawnWire</h2><ul class="ssr-links">
@@ -187,5 +197,5 @@ ${parts.join('\n')}
 ${discount}
 </ul></section>
 ${ssrFooter()}
-</article>`;
+</article>` };
 }

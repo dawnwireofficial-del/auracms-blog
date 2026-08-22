@@ -1,11 +1,12 @@
 import { dbInstance } from '../db';
 import { esc, mdToSimpleHtml, ssrFooter } from './common';
+import { SsrResult, truncateText } from './head';
 
 // Server-side renderer for /post/:slug (editorial article pages).
 // Returns null when the slug does not resolve to a published public post so the
 // caller falls back to the SPA shell (which then shows its 404 state).
 
-export async function renderPostPageHtml(slug: string): Promise<string | null> {
+export async function renderPostPageHtml(slug: string): Promise<SsrResult | null> {
   let post: any = null;
   try {
     post = await dbInstance.getPostBySlug(slug);
@@ -45,11 +46,24 @@ export async function renderPostPageHtml(slug: string): Promise<string | null> {
     tags.length ? `<span>Tags: ${tags.map((t: any) => esc(t)).join(', ')}</span>` : '',
   ].filter(Boolean).join(' · ');
 
-  return `<article class="ssr-content" id="post-seo-content">
+  const baseUrl = 'https://www.dawnwire.com';
+  const postUrl = `${baseUrl}/post/${post.slug || slug}`;
+  const featuredImage = post.featuredImage || post.featured_image || '';
+  const ogImage = featuredImage.startsWith('http') ? featuredImage : featuredImage ? `${baseUrl}${featuredImage}` : undefined;
+
+  const head = {
+    title: truncateText(`${title} | DawnWire`, 180),
+    description: truncateText(excerpt || content.replace(/[#*`\[\]>]/g, '').slice(0, 200), 300),
+    canonical: postUrl,
+    ogType: 'article',
+    ...(ogImage ? { ogImage } : {}),
+  };
+
+  return { head, body: `<article class="ssr-content" id="post-seo-content">
 <h1>${esc(title)}</h1>
 ${meta ? `<div class="meta">${meta}</div>` : ''}
 ${excerpt ? `<p><strong>${esc(excerpt)}</strong></p>` : ''}
 ${content ? mdToSimpleHtml(content) : ''}
 ${ssrFooter()}
-</article>`;
+</article>` };
 }

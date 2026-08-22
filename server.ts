@@ -7,6 +7,7 @@ import { renderProductPageHtml } from './server/ssr/product';
 import { renderCategoryPageHtml } from './server/ssr/category';
 import { renderPostPageHtml } from './server/ssr/post';
 import { warmCacheFromStatic } from './server/api-cache';
+import { SsrResult, applyHeadTags } from './server/ssr/head';
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const isProduction = process.env.NODE_ENV === 'production';
@@ -29,7 +30,7 @@ warmCacheFromStatic();
 const ssrCache = new Map<string, { html: string; ts: number }>();
 const SSR_TTL = 5 * 60 * 1000;
 
-function serveSsr(render: () => Promise<string | null>, res: express.Response, next: express.NextFunction, cacheKey?: string) {
+function serveSsr(render: () => Promise<SsrResult | null>, res: express.Response, next: express.NextFunction, cacheKey?: string) {
   const indexPath = path.join(distPath, 'index.html');
   if (!fs.existsSync(indexPath)) return next();
 
@@ -41,19 +42,22 @@ function serveSsr(render: () => Promise<string | null>, res: express.Response, n
   }
 
   (async () => {
-    let ssrBody = '';
+    let result: SsrResult | null = null;
     try {
       const renderPromise = render();
       const timeoutPromise = new Promise<null>((_, reject) =>
         setTimeout(() => reject(new Error('SSR render timeout')), 10000)
       );
-      ssrBody = (await Promise.race([renderPromise, timeoutPromise])) || '';
+      result = (await Promise.race([renderPromise, timeoutPromise])) || null;
     } catch (e) {
       console.error('[SSR] render failed:', e);
     }
-    if (!ssrBody) return next();
+    if (!result || !result.body) return next();
     const html = fs.readFileSync(indexPath, 'utf8');
-    const full = html.replace('<div id="root"></div>', `<div id="root">${ssrBody}</div>`);
+    // Per-page head tags (title/description/canonical/OG) — critical for SEO:
+    // without this every SSR page claims the homepage canonical.
+    const withHead = applyHeadTags(html, result.head);
+    const full = withHead.replace('<div id="root"></div>', () => `<div id="root">${result!.body}</div>`);
     ssrCache.set(key, { html: full, ts: Date.now() });
     // Evict oldest entries if cache grows too large
     if (ssrCache.size > 200) {

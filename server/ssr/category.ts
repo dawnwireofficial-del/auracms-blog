@@ -1,13 +1,14 @@
 import { dbInstance } from '../db';
 import { getPublishedProductReviews } from '../seo-engine';
 import { esc, val, mdToSimpleHtml, ssrFooter } from './common';
+import { SsrResult, truncateText } from './head';
 
 // Server-side renderer for /categories/:slug (category landing pages).
 // Mirrors the category->product matching logic in api/routes/public.ts
 // (category_id match, then best_for word overlap, then name/department fallbacks).
 // Returns null when the category is not found so the caller falls back to the SPA.
 
-export async function renderCategoryPageHtml(slug: string): Promise<string | null> {
+export async function renderCategoryPageHtml(slug: string): Promise<SsrResult | null> {
   let cats: any[] = [];
   try {
     cats = await dbInstance.getCategories();
@@ -59,7 +60,7 @@ export async function renderCategoryPageHtml(slug: string): Promise<string | nul
       const price = val(r, 'price');
       const rating = Number(val(r, 'rating') || 0);
       const score = Number(val(r, 'editorScore') || 0);
-      return `<li><a href="/product/${esc(r.slug)}">${esc(name)}</a>${brand ? ` (${esc(brand)})` : ''}${price ? ` — ${esc(price)}` : ''}${rating ? ` — ${rating}/5 stars` : ''}${score ? ` — Editor score ${score}/10` : ''}</li>`;
+      return `<li><a href="/products/${esc(r.slug)}">${esc(name)}</a>${brand ? ` (${esc(brand)})` : ''}${price ? ` — ${esc(price)}` : ''}${rating ? ` — ${rating}/5 stars` : ''}${score ? ` — Editor score ${score}/10` : ''}</li>`;
     })
     .join('\n');
 
@@ -101,7 +102,14 @@ export async function renderCategoryPageHtml(slug: string): Promise<string | nul
     })}</script>`);
   }
 
-  return `${jsonLdSchemas.join('\n')}\n<article class="ssr-content" id="category-seo-content">
+  const head = {
+    title: truncateText(`Best ${catName} Products — Reviews & Buying Guide | DawnWire`, 180),
+    description: truncateText(description || `DawnWire's expert picks for the best ${catName} products on the market. Compare prices, read in-depth reviews, and find the right product for your needs.`, 300),
+    canonical: catUrl,
+    ogType: 'website',
+  };
+
+  return { head, body: `${jsonLdSchemas.join('\n')}\n<article class="ssr-content" id="category-seo-content">
 <h1>${esc(catName)} — Product Reviews &amp; Buying Guide</h1>
 ${description ? `<p>${esc(description)}</p>` : `<p>DawnWire's expert picks for the best ${esc(catName)} products on the market. Compare prices, read in-depth reviews, and find the right product for your needs.</p>`}
 ${seoContent ? `<div class="seo-content">${mdToSimpleHtml(seoContent)}</div>` : ''}
@@ -115,5 +123,5 @@ ${subcats ? `<h2>Subcategories</h2><ul class="ssr-links">${subcats}</ul>` : ''}
 <li><a href="/deals">Today's verified Amazon deals</a></li>
 </ul></section>
 ${ssrFooter()}
-</article>`;
+</article>` };
 }

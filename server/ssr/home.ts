@@ -1,6 +1,7 @@
 import { dbInstance } from '../db';
 import { createClient } from '@supabase/supabase-js';
 import { readStaticCatalog } from '../api-cache';
+import { SsrResult } from './head';
 
 // Lightweight server-side renderer for the DawnWire homepage.
 // Produces semantic HTML (H1, headings, paragraphs, internal links) that is
@@ -125,7 +126,7 @@ function buildGuideLinks(posts: any[]): string {
   return `<section><h2>Latest buying guides</h2><ul class="ssr-links">${items}<li><a href="/guides">View all guides</a></li></ul></section>`;
 }
 
-export async function renderHomePageHtml(): Promise<string> {
+export async function renderHomePageHtml(): Promise<SsrResult> {
   const { categories, products, posts } = await loadHomeData();
   const productCount = products.length;
   const categoryCount = categories.length;
@@ -180,6 +181,12 @@ export async function renderHomePageHtml(): Promise<string> {
     .join('\n');
 
   const baseUrl = 'https://www.dawnwire.com';
+  const head = {
+    title: 'DawnWire.com — AI-Powered Amazon Product Reviews, Price-Drop Alerts & Buying Guides',
+    description: 'DawnWire (dawnwire.com) is an AI-powered Amazon product review platform — independently scoring 800+ products across 30+ categories. Expert buying guides, live price-drop alerts, and honest editor scores. Not a retailer — we help you find the best deal on Amazon.',
+    canonical: `${baseUrl}/`,
+    ogType: 'website',
+  };
 
   // JSON-LD: WebSite + SearchAction
   const webSiteSchema = JSON.stringify({
@@ -283,7 +290,7 @@ export async function renderHomePageHtml(): Promise<string> {
     itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: baseUrl }],
   });
 
-  return `<script type="application/ld+json">${webSiteSchema}</script>
+  return { head, body: `<script type="application/ld+json">${webSiteSchema}</script>
 <script type="application/ld+json">${orgSchema}</script>
 <script type="application/ld+json">${faqSchema}</script>
 <script type="application/ld+json">${breadcrumbSchema}</script>
@@ -301,5 +308,5 @@ ${itemListSchema}
   rewritten each season to match what's actually in stock. Use the links below to jump into a category, read our
   latest reviews, or start with one of our top-rated picks.</p>
 ${links}
-</article>`;
+</article>` };
 }
