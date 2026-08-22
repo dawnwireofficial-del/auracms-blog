@@ -1167,3 +1167,15 @@
 .dw-marquee-track { animation: dw-marquee 45s linear infinite; will-change: transform; }
 .dw-marquee:hover .dw-marquee-track { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .dw-marquee-track { animation: none; } }
+
+/* Premium thin scrollbar for dropdown/mega-menu panels */
+.hw-mega-scroll { scrollbar-width: thin; scrollbar-color: rgba(148,163,184,.6) transparent; }
+.hw-mega-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+.hw-mega-scroll::-webkit-scrollbar-thumb { background: rgba(148,163,184,.55); border-radius: 999px; }
+.hw-mega-scroll::-webkit-scrollbar-thumb:hover { background: rgba(100,116,139,.8); }
+.hw-mega-scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* Unified section rhythm */
+.dw-section { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+@media (min-width: 768px) { .dw-section { padding-top: 3.5rem; padding-bottom: 3.5rem; } }
+

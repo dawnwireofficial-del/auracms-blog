@@ -214,24 +214,26 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
   const currentMegaCategory = categories.find((c) => c.id === activeMegaCat) || categories[0] || null;
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/90 dark:bg-[#1C1C2E]/90 backdrop-blur-xl border-b border-[#E5E1DC]/80 dark:border-[#333348] shadow-sm shadow-slate-900/5 transition-all duration-300">
-      {/* Top Announcement Bar — editorial warm cream wash */}
-      <div className="bg-[#FAF8F5] text-[#374151] text-xs font-medium py-1.5 px-4 border-b border-[#E5E1DC]">
+    <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800 shadow-xs shadow-slate-900/5 transition-all duration-300">
+      {/* Top Utility Bar */}
+      <div className="bg-slate-900 text-slate-300 text-xs font-medium py-1 px-4 border-b border-slate-800">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <span className="bg-[#1A1A2E] text-[#C9A96E] font-black text-[10px] px-1.5 py-0.5 rounded uppercase shrink-0 font-['Playfair_Display',serif]">
-              NEW
+          <div className="flex items-center gap-3 text-slate-300 text-[11px]">
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span>Independent Reviews</span>
             </span>
-            <span className="truncate text-[#374151]">
-              AI-Powered Amazon Deals & Independent Benchmarks for 2026
-            </span>
+            <span className="text-slate-600 hidden sm:inline">•</span>
+            <span className="hidden sm:inline text-slate-300">Live Price Tracking</span>
+            <span className="text-slate-600 hidden sm:inline">•</span>
+            <span className="hidden sm:inline text-slate-300">Expert Buying Guides</span>
           </div>
-          <div className="hidden sm:flex items-center gap-4 text-[#6B7280] text-[11px]">
-            <a href="/about" className="hover:text-[#1A1A2E] transition-colors">How We Review</a>
-            <span className="text-[#C9A96E]">•</span>
-            <a href="/about" className="hover:text-[#1A1A2E] transition-colors">Editorial Policy</a>
-            <span className="text-[#C9A96E]">•</span>
-            <a href="/affiliate-disclosure" className="hover:text-[#1A1A2E] transition-colors">Affiliate Disclosure</a>
+          <div className="flex items-center gap-4 text-slate-400 text-[11px]">
+            <a href="/affiliate-disclosure" className="hover:text-white transition-colors">Affiliate Disclosure</a>
+            <span className="text-slate-600">•</span>
+            <a href="/about" className="hover:text-white transition-colors">How We Review</a>
+            <span className="text-slate-600 hidden sm:inline">•</span>
+            <a href="/contact" className="hidden sm:inline hover:text-white transition-colors">Help Center</a>
           </div>
         </div>
       </div>
@@ -245,12 +247,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
 
         {/* Search Bar with Category Selector & Live Search Autocomplete */}
         <div ref={searchWrapperRef} className="hidden lg:block relative flex-1 max-w-2xl">
-          <form onSubmit={handleSearchSubmit} className="flex items-center bg-[#FAF8F5] dark:bg-[#252538] rounded-xl border border-[#E5E1DC] dark:border-[#333348] overflow-hidden focus-within:ring-2 focus-within:ring-[#D4B87A]/40 focus-within:border-[#D4B87A] transition-all">
+          <form onSubmit={handleSearchSubmit} className="flex items-center bg-slate-50 dark:bg-slate-800/90 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:border-blue-500 transition-all">
             <select
               value={selectedSearchCat}
               onChange={(e) => setSelectedSearchCat(e.target.value)}
               aria-label="Search category"
-              className="bg-[#EAF2FF]/70 dark:bg-[#333348] text-xs font-bold text-[#1A1A2E] dark:text-[#C8C4BC] px-3 py-2.5 outline-none border-r border-[#C9A96E]/15 dark:border-[#444460] cursor-pointer"
+              className="bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200 px-3.5 py-2.5 outline-none border-r border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors"
             >
               <option value="all">All Categories</option>
               {categories.map((c) => (
@@ -267,22 +269,22 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
                 setSearchQuery(e.target.value);
                 setIsSearchFocused(true);
               }}
-              className="flex-1 bg-transparent px-4 py-2.5 text-sm text-[#1A1A2E] dark:text-[#F0EDE8] placeholder-[#8A857C] outline-none"
+              className="flex-1 bg-transparent px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 outline-none"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="text-xs text-[#9CA3AF] hover:text-[#6B7280] dark:hover:text-[#F0EDE8] font-bold px-2 py-1"
+                className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold px-2 py-1"
                 title="Clear search query"
               >
                 ✕
               </button>
             )}
-            <kbd className="hidden xl:inline-block bg-[#F5F0EB]/80 dark:bg-[#333348] text-[#6B7280] dark:text-[#8A857C] text-[10px] font-mono font-bold px-2 py-1 rounded-md border border-[#E5E1DC] dark:border-[#444460] shrink-0 mr-2 shadow-xs" title="Shortcut: Cmd+K or Ctrl+K">
+            <kbd className="hidden xl:inline-block bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 text-[10px] font-mono font-bold px-2 py-1 rounded-md border border-slate-200 dark:border-slate-600 shrink-0 mr-2 shadow-xs" title="Shortcut: Cmd+K or Ctrl+K">
               ⌘K
             </kbd>
-            <button type="submit" className="bg-[#1A1A2E] hover:bg-[#2D2D44] dark:bg-[#D4B87A] dark:hover:bg-[#C9A96E] text-[#C9A96E] dark:text-[#1A1A2E] px-5 py-2.5 flex items-center gap-1.5 transition-colors font-semibold text-sm shrink-0">
+            <button type="submit" className="bg-[#246BFF] hover:bg-[#164EE8] text-white px-5 py-2.5 flex items-center gap-1.5 transition-colors font-bold text-sm shrink-0">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -292,7 +294,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
 
           {/* Live Search Autocomplete Overlay & Recent Searches */}
           {isSearchFocused && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1C1C2E] border border-[#E5E1DC]/90 dark:border-[#333348] rounded-2xl shadow-2xl p-3 z-50 max-h-[440px] overflow-y-auto space-y-3 animate-in fade-in slide-in-from-top-1 duration-150">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-3 z-50 max-h-[440px] overflow-y-auto space-y-3 animate-in fade-in slide-in-from-top-1 duration-150">
               {/* If search query is empty, show Recent Searches & Trending Topics */}
               {normalizedQuery.length === 0 ? (
                 <div className="space-y-4">
@@ -589,7 +591,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
       </div>
 
       {/* Navigation Links Bar + Mega Menu Trigger */}
-      <div className="hidden lg:block bg-[#FAF8F5]/80 dark:bg-[#1C1C2E]/80 border-t border-[#E5E1DC]/60 dark:border-[#333348]/60 text-sm font-semibold">
+      <div className="hidden lg:block bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800 text-sm font-semibold">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-6">
             {/* Shop by Category Mega Menu Button */}
@@ -599,9 +601,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
               onMouseLeave={() => setIsMegaMenuOpen(false)}
             >
               <button
-                className="hw-glass-btn px-4 py-2"
+                className="hw-glass-btn px-4 py-2 text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400"
               >
-<svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
                 <span>Shop by Category</span>
@@ -610,9 +612,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
                 </svg>
               </button>
               {isMegaMenuOpen && (
-                <div className="absolute top-full left-0 w-[900px] bg-white/95 dark:bg-[#1C1C2E]/95 backdrop-blur-xl border border-[#E5E1DC] dark:border-[#333348] shadow-2xl rounded-b-2xl rounded-tr-2xl overflow-hidden grid grid-cols-12 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                  {/* Category Sidebar List */}
-                  <div className="col-span-4 bg-[#FAF8F5] dark:bg-[#252538] border-r border-[#E5E1DC] dark:border-[#333348] py-3">
+                <div className="absolute top-full left-0 w-[900px] max-h-[78vh] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-2xl rounded-b-2xl rounded-tr-2xl overflow-hidden grid grid-cols-12 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  {/* Category Sidebar List — scrollable so every category is reachable */}
+                  <div className="col-span-4 bg-slate-50 dark:bg-slate-800/80 border-r border-slate-200 dark:border-slate-800 py-3 max-h-[78vh] overflow-y-auto overscroll-contain hw-mega-scroll">
                     {categories.map((cat) => (
                       <button
                         key={cat.id}
@@ -622,21 +624,21 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
                           navigate(`/categories/${cat.slug}`);
                         }}
                         className={`w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold text-left transition-colors ${
-                          activeMegaCat === cat.id ? 'bg-white dark:bg-[#1C1C2E] text-[#C9A96E] dark:text-[#D4B87A] border-l-4 border-[#C9A96E]' : 'text-[#374151] dark:text-[#C8C4BC] hover:bg-[#F5F0EB] dark:hover:bg-[#252538]'
+                          activeMegaCat === cat.id ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-l-4 border-blue-600' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60'
                         }`}
                       >
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-3">
                           <AnimatedCategoryIcon
                             slug={cat.slug}
                             icon={cat.icon || 'tag'}
                             image={cat.image}
                             animationStyle={cat.animationStyle}
-                            className="w-4 h-4 text-blue-500"
-                            imgClassName="w-8 h-8 drop-shadow-md shrink-0"
+                            className="w-5 h-5 text-blue-500"
+                            imgClassName="w-10 h-10 drop-shadow-md shrink-0"
                           />
-                          <span>{cat.name}</span>
+                          <span className="text-[13px]">{cat.name}</span>
                         </div>
-                        <svg className="w-3.5 h-3.5 text-[#9CA3AF]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                       </button>
@@ -644,13 +646,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
                   </div>
 
                   {/* Category Detail Panel */}
-                  {currentMegaCategory && <div className="col-span-8 p-6">
-                    <div className="flex items-center justify-between border-b border-[#E5E1DC] dark:border-[#333348] pb-3 mb-4">
+                  {currentMegaCategory && <div className="col-span-8 p-6 max-h-[78vh] overflow-y-auto overscroll-contain hw-mega-scroll">
+                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
                       <div>
-                        <h4 className="text-base font-extrabold font-['Playfair_Display',serif] text-[#1A1A2E] dark:text-[#F0EDE8]">
+                        <h4 className="text-base font-extrabold text-slate-900 dark:text-white">
                           {currentMegaCategory.name}
                         </h4>
-                        <p className="text-xs text-[#6B7280] line-clamp-1">
+                        <p className="text-xs text-slate-500 line-clamp-1">
                           {currentMegaCategory.description}
                         </p>
                       </div>
@@ -671,12 +673,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
                         <a
                           key={sub.id}
                           href={`/categories/${currentMegaCategory.slug}/${sub.slug}`}
-                          className="p-3 rounded-xl bg-[#FAF8F5] dark:bg-[#252538] hover:bg-[#F5F0EB] dark:hover:bg-[#333348] border border-[#E5E1DC]/60 dark:border-[#444460]/60 transition-all group"
+                          className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-blue-50/60 dark:hover:bg-slate-700/60 border border-slate-200/80 dark:border-slate-700 transition-all group"
                         >
-                          <div className="text-xs font-bold text-[#1A1A2E] dark:text-[#F0EDE8] group-hover:text-[#C9A96E] dark:group-hover:text-[#D4B87A]">
+                          <div className="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400">
                             {sub.name}
                           </div>
-                          <div className="text-[11px] text-[#6B7280] line-clamp-1 mt-0.5">
+                          <div className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
                             {sub.description}
                           </div>
                         </a>
@@ -686,26 +688,26 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
                     {/* Popular Products in this category */}
                     {categoryProducts.length > 0 && (
                       <div className="mb-4">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280] dark:text-[#9CA3AF] block mb-2">Popular Products</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-2">Popular Products</span>
                         <div className="grid grid-cols-3 gap-2">
                           {categoryProducts.map((p: any) => (
                             <a
                               key={p.id}
                               href={`/products/${p.slug}`}
-                              className="flex items-center gap-2 p-2 rounded-lg bg-[#FAF8F5] dark:bg-[#1C1C2E]/40 hover:bg-[#FAF8F5] dark:hover:bg-[#252538]/40 border border-[#E5E1DC] dark:border-[#333348]/50 transition-all group"
+                              className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 hover:bg-blue-50/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 transition-all group"
                             >
-                              <div className="w-10 h-10 rounded-lg bg-white dark:bg-[#1C1C2E] flex items-center justify-center overflow-hidden shrink-0 border border-[#E5E1DC] dark:border-[#333348]">
+                              <div className="w-10 h-10 rounded-lg bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
                                 {p.product_image || p.productImage ? (
                                   <img src={proxyImageUrl(p.product_image || p.productImage)} alt={p.product_name || p.productName} referrerPolicy="no-referrer" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                                 ) : (
-                                  <svg className="w-5 h-5 text-[#D4CFC6]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <svg className="w-5 h-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                   </svg>
                                 )}
                               </div>
                               <div className="min-w-0 flex-1">
-                                <p className="text-[10px] font-semibold text-[#374151] dark:text-[#C8C4BC] truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{p.product_name || p.productName}</p>
-                                <span className="text-[9px] text-[#9CA3AF] dark:text-[#8A857C]">
+                                <p className="text-[10px] font-semibold text-slate-800 dark:text-slate-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{p.product_name || p.productName}</p>
+                                <span className="text-[9px] text-slate-400">
                                   {p.price ? `$${parseFloat(p.price).toFixed(2)}` : ''}
                                 </span>
                               </div>
@@ -738,7 +740,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
             </div>
 
             {/* Direct Category & Feature Links */}
-            <a href="/products" className="py-2 text-[#374151] dark:text-[#C8C4BC] hover:text-[#C9A96E] dark:hover:text-[#D4B87A] transition-colors">
+            <a href="/products" className="py-2 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
               All Products
             </a>
             <a href="/deals" className="py-2 text-orange-600 dark:text-orange-400 font-extrabold flex items-center gap-1 hover:text-orange-700">
@@ -747,24 +749,27 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
               </svg>
               <span>Today's Deals</span>
             </a>
-            <a href="/products?sort=rating" className="py-2 text-[#374151] dark:text-[#C8C4BC] hover:text-[#C9A96E] dark:hover:text-[#D4B87A] transition-colors">
+            <a href="/products?sort=rating" className="py-2 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
               Best Products
             </a>
-            <a href="/compare" className="py-2 text-[#374151] dark:text-[#C8C4BC] hover:text-[#C9A96E] dark:hover:text-[#D4B87A] transition-colors">
+            <a href="/compare" className="py-2 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
               Comparisons
             </a>
-            <a href="/reviews" className="py-2 text-[#374151] dark:text-[#C8C4BC] hover:text-[#C9A96E] dark:hover:text-[#D4B87A] transition-colors">
+            <a href="/reviews" className="py-2 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
               Expert Reviews
             </a>
-            <a href="/guides" className="py-2 text-[#374151] dark:text-[#C8C4BC] hover:text-[#C9A96E] dark:hover:text-[#D4B87A] transition-colors">
+            <a href="/guides" className="py-2 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
               Buying Guides
             </a>
-            <a href="/brands" className="py-2 text-[#374151] dark:text-[#C8C4BC] hover:text-[#C9A96E] dark:hover:text-[#D4B87A] transition-colors">
+            <a href="/brands" className="py-2 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
               Brands
+            </a>
+            <a href="/deals" className="py-2 text-emerald-600 dark:text-emerald-400 font-bold hover:text-emerald-700 transition-colors">
+              Price Tracker
             </a>
           </div>
 
-          <a href="/admin" className="text-xs font-bold text-[#6B7280] hover:text-blue-600 dark:hover:text-blue-400 py-2">
+          <a href="/admin" className="text-xs font-bold text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 py-2">
             Admin Portal &rarr;
           </a>
         </div>

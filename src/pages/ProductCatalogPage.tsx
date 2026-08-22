@@ -68,6 +68,17 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
     setSelectedBrand(initialBrand);
   }, [initialCategory, initialQuery, initialBrand, categories]);
 
+  // When the user picks a category in the sidebar, glide down to the results
+  // grid so they immediately see matching products.
+  const gridTopRef = React.useRef<HTMLDivElement | null>(null);
+  const handleCategoryPicked = (catId: string) => {
+    setSelectedCategory(catId);
+    setPage(0);
+    setTimeout(() => {
+      gridTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 60);
+  };
+
   useEffect(() => {
     if (selectedCompareIds.length === 2) {
       setIsCompareModalOpen(true);
@@ -184,13 +195,13 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
         const strip = (BRAND_KIT.categoryStrips as Record<string, string>)[catSlug];
         if (!strip) return null;
         return (
-          <div className="max-w-7xl mx-auto px-4 -mt-2 mb-2">
+          <div className="max-w-7xl mx-auto px-4 pt-4">
             <img
               src={strip}
               alt={`${catSlug.replace(/-/g, ' ')} collection banner`}
               loading="eager"
               referrerPolicy="no-referrer"
-              className="w-full h-auto object-contain rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-sm"
+              className="w-full h-auto object-contain rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
           </div>
@@ -199,7 +210,7 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
 
       <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Col: Filters Sidebar */}
-        <div className="lg:col-span-3 space-y-6 lg:sticky lg:top-24 lg:self-start max-h-[calc(100vh-120px)] overflow-y-auto pb-2">
+        <div className="lg:col-span-3 space-y-6 lg:sticky lg:top-24 lg:self-start max-h-[calc(100vh-120px)] overflow-y-auto overscroll-contain hw-mega-scroll pb-2">
           <div className="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-5">
             <h3 className="font-extrabold text-sm text-slate-900 dark:text-slate-100 uppercase tracking-wider">
               Filter Products
@@ -222,7 +233,7 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
               <label className="text-xs font-bold text-slate-500 block mb-1.5">Category</label>
               <select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={(e) => handleCategoryPicked(e.target.value)}
                 className="w-full bg-slate-100 dark:bg-slate-800 px-3.5 py-2 rounded-xl text-xs text-slate-900 dark:text-slate-100 outline-none border border-slate-200 dark:border-slate-700 cursor-pointer font-bold"
               >
                 <option value="all">All Categories</option>
@@ -307,7 +318,7 @@ export const ProductCatalogPage: React.FC<ProductCatalogPageProps> = ({
         </div>
 
         {/* Right Col: Catalog Items Grid */}
-        <div className="lg:col-span-9 space-y-6">
+        <div className="lg:col-span-9 space-y-6" ref={gridTopRef}>
           {/* Controls Bar */}
           <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
             <span className="text-xs font-bold text-slate-500">

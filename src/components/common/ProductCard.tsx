@@ -297,13 +297,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       {/* Details */}
       <div className="p-5 flex-1 flex flex-col justify-between">
         <div>
-          <div className="flex items-center justify-between gap-1 text-xs text-slate-500 dark:text-slate-400 mb-1">
-            <span className="font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{product.brand}</span>
-            <span>{product.subcategory}</span>
+          <div className="flex items-center justify-between gap-1 text-[13px] text-slate-500 dark:text-slate-400 mb-1.5">
+            <span className="font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{product.brand}</span>
+            <span className="font-semibold">{product.subcategory}</span>
           </div>
 
           <a href={`/products/${product.slug}`} className="block">
-            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
+            <h3 className="text-[15px] font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
               {product.title}
             </h3>
           </a>
@@ -320,22 +320,22 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <div>
               {(product.currentPrice || product.price) ? (
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-xl font-black text-slate-900 dark:text-slate-100">
+                  <span className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
                     ${Number(product.currentPrice || product.price || 0).toFixed(2)}
                   </span>
                   {product.referencePrice && Number(product.referencePrice) > Number(product.currentPrice || 0) && (
-                    <span className="text-xs text-slate-400 line-through">
+                    <span className="text-[13px] text-slate-400 line-through font-semibold">
                       ${Number(product.referencePrice).toFixed(2)}
                     </span>
                   )}
                   {product.referencePrice && Number(product.referencePrice) > Number(product.currentPrice || 0) && (
-                    <span className="ml-1 text-[11px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded-md">
+                    <span className="ml-1 text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded-md">
                       −{Math.round((1 - Number(product.currentPrice) / Number(product.referencePrice)) * 100)}%
                     </span>
                   )}
                 </div>
               ) : (
-                <span className="text-xs font-semibold text-slate-500">Check Price on Amazon</span>
+                <span className="text-sm font-semibold text-slate-500">Check Price on Amazon</span>
               )}
             </div>
 
