@@ -21,6 +21,7 @@ import AnalyticsAlerts from '../components/AnalyticsAlerts';
 import AmazonSyncDashboard from '../components/AmazonSyncDashboard';
 import AutoImportPanel from '../components/admin/AutoImportPanel';
 import WordPressImportTool from '../components/admin/WordPressImportTool';
+import EventsManager from '../components/admin/EventsManager';
 import MediaGallery from '../components/MediaGallery';
 import AdminPosts from '../components/admin/AdminPosts';
 import AdminCategories from '../components/admin/AdminCategories';
@@ -120,14 +121,14 @@ export const AdminDashboardPage: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
     if (tab) {
-      const valid = ['bulk-import','auto-articles','dashboard','posts','categories','comments','product-review','product-articles','article-generator','testimonials','affiliate','pages','subscribers','drips','alerts','contact','settings','seo-engine','logs','brands','banners','deals','homepage','sections','clusters','amazon-sync','media','auto-import','social-media'];
+      const valid = ['bulk-import','auto-articles','dashboard','posts','categories','comments','product-review','product-articles','article-generator','testimonials','affiliate','pages','subscribers','drips','alerts','contact','settings','seo-engine','logs','brands','banners','events','deals','homepage','sections','clusters','amazon-sync','media','auto-import','social-media'];
       if (valid.includes(tab)) return tab as typeof activeTab;
     }
     if (tab === 'bulk-import') return 'bulk-import';
     if (tab === 'auto-articles') return 'auto-articles';
     return 'products';
   };
-  const [activeTab, setActiveTab] = useState<'products' | 'activity-feed' | 'scraper' | 'auto-articles' | 'reviews' | 'banners' | 'analytics' | 'seo' | 'firebase' | 'profile' | 'extension' | 'bulk-import' | 'dashboard' | 'posts' | 'categories' | 'comments' | 'product-review' | 'product-articles' | 'article-generator' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'brands' | 'deals' | 'homepage' | 'sections' | 'clusters' | 'amazon-sync' | 'media' | 'auto-import' | 'wp-import' | 'seo-engine' | 'social-media'>(getInitialTab);
+  const [activeTab, setActiveTab] = useState<'products' | 'activity-feed' | 'scraper' | 'auto-articles' | 'reviews' | 'banners' | 'events' | 'analytics' | 'seo' | 'firebase' | 'profile' | 'extension' | 'bulk-import' | 'dashboard' | 'posts' | 'categories' | 'comments' | 'product-review' | 'product-articles' | 'article-generator' | 'testimonials' | 'affiliate' | 'pages' | 'subscribers' | 'drips' | 'alerts' | 'contact' | 'settings' | 'logs' | 'brands' | 'deals' | 'homepage' | 'sections' | 'clusters' | 'amazon-sync' | 'media' | 'auto-import' | 'wp-import' | 'seo-engine' | 'social-media'>(getInitialTab);
 
   // Form states
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
@@ -830,6 +831,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
             { id: 'scraper', label: 'Amazon ASIN Scraper' },
             { id: 'reviews', label: `Editorial Articles (${editorialPosts.length})` },
             { id: 'banners', label: `Banners & Sliders (${banners.length})` },
+            { id: 'events', label: '🗓️ Events' },
             { id: 'amazon-sync', label: '🔄 Amazon Sync' },
             { id: 'bulk-import', label: '📦 Bulk Import' },
             { id: 'auto-import', label: '🤖 Auto Import' },
@@ -875,6 +877,13 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
             </button>
           ))}
         </div>
+
+        {/* Tab: Shopping Events manager */}
+        {activeTab === 'events' && (
+          <div className="space-y-6">
+            <EventsManager token={token} />
+          </div>
+        )}
 
         {/* Tab: Real-time Activity Feed & User Insights */}
         {activeTab === 'activity-feed' && (

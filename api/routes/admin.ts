@@ -397,6 +397,26 @@ router.delete('/homepage-sections/:id', authenticate, requireRole(['super_admin'
 
 // Homepage Hero Slides
 router.get('/homepage-hero', authenticate, async (_req, res) => { try { res.json(await dbInstance.getHomepageHeroSlides()); } catch (e: any) { res.status(500).json({ error: e.message }); } });
+
+// ====== Shopping Events admin (CRUD + toggle + curation) ======
+router.get('/events', authenticate, async (_req, res) => { try { const { listEvents } = await import('../../server/events-db'); res.json(await listEvents(false)); } catch (e: any) { res.status(500).json({ error: e.message }); } });
+router.post('/events', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => { try { const m = await import('../../server/events-db'); res.json(await m.createEvent(req.body)); } catch (e: any) { res.status(500).json({ error: e.message }); } });
+router.put('/events/:id', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => { try { const m = await import('../../server/events-db'); res.json(await m.updateEvent(req.params.id, req.body)); } catch (e: any) { res.status(500).json({ error: e.message }); } });
+router.delete('/events/:id', authenticate, requireRole(['super_admin', 'admin']), async (req, res) => { try { const m = await import('../../server/events-db'); res.json({ success: await m.deleteEvent(req.params.id) }); } catch (e: any) { res.status(500).json({ error: e.message }); } });
+router.put('/events/:id/products', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const ids: string[] = Array.isArray(req.body?.productIds) ? req.body.productIds.filter((x: any) => typeof x === 'string') : [];
+    if (ids.length > 100) return res.status(400).json({ error: 'Max 100 products per event' });
+    const { setEventProducts } = await import('../../server/events-db');
+    res.json({ count: await setEventProducts(req.params.id, ids) });
+  } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+router.get('/events/:id/products', authenticate, async (req, res) => {
+  try {
+    const { getEventProductIds } = await import('../../server/events-db');
+    res.json({ productIds: await getEventProductIds(req.params.id) });
+  } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
 router.post('/homepage-hero', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => { try { res.json(await dbInstance.createHomepageHeroSlide(req.body)); } catch (e: any) { res.status(500).json({ error: e.message }); } });
 router.put('/homepage-hero/:id', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => { try { res.json(await dbInstance.updateHomepageHeroSlide(req.params.id, req.body)); } catch (e: any) { res.status(500).json({ error: e.message }); } });
 router.delete('/homepage-hero/:id', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => { try { res.json({ success: await dbInstance.deleteHomepageHeroSlide(req.params.id) }); } catch (e: any) { res.status(500).json({ error: e.message }); } });

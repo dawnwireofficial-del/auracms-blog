@@ -384,6 +384,30 @@ router.get('/brands', async (req, res) => {
   res.json(active);
 });
 
+// ====== Shopping Events (year-round sale directories) ======
+router.get('/events', async (_req, res) => {
+  try {
+    const { listEvents } = await import('../../server/events-db');
+    res.set('Cache-Control', 'public, max-age=120, s-maxage=300');
+    res.json(await listEvents(true));
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.get('/events/:slug', async (req, res) => {
+  try {
+    const { getEventBySlug, getEventProducts } = await import('../../server/events-db');
+    const event = await getEventBySlug(req.params.slug);
+    if (!event || !event.is_active) return res.status(404).json({ error: 'Event not found' });
+    const products = await getEventProducts(event, 24);
+    res.set('Cache-Control', 'public, max-age=120, s-maxage=600');
+    res.json({ event, products });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Category with banners, sections, subcategories, featured products
 router.get('/categories/:slug', async (req, res) => {
   const cats = await dbInstance.getCategories();

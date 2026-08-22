@@ -28,6 +28,7 @@ const BuyingGuidesPage = lazy(() => import('./pages/EditorialPages').then(m => (
 const PostDetailPage = lazy(() => import('./pages/PostDetailPage'));
 const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })));
 const BrandsPage = lazy(() => import('./components/pages/BrandsPage'));
+const EventsPage = lazy(() => import('./pages/EventsPage'));
 const ChatbotDrawer = lazy(() => import('./components/ai/ChatbotDrawer').then(m => ({ default: m.ChatbotDrawer })));
 const AIProductFinderModal = lazy(() => import('./components/ai/AIProductFinderModal').then(m => ({ default: m.AIProductFinderModal })));
 const AboutPage = lazy(() => import('./components/pages/AboutPage'));
@@ -224,7 +225,7 @@ export function App() {
   const renderRoute = () => {
     // 404 fallback
     const validPaths = [
-      '/products', '/products/', '/categories', '/categories/', '/deals', '/compare', '/reviews', '/guides', '/wishlist', '/admin', '/account', '/login', '/contact', '/buyers-guide', '/buying-guides', '/portfolio', '/service', '/services', '/services/', '/search', '/trending', '/best', '/brands', '/browse', '/product', '/post', '/about', '/privacy-policy', '/privacy', '/terms', '/affiliate-disclosure', '/editorial-policy', '/advertise', '/submit-product', '/recently-viewed', '/sitemap.xml', '/robots.txt', '/llms.txt'
+      '/products', '/products/', '/categories', '/categories/', '/deals', '/compare', '/reviews', '/guides', '/wishlist', '/admin', '/account', '/login', '/contact', '/buyers-guide', '/buying-guides', '/portfolio', '/service', '/services', '/services/', '/search', '/trending', '/best', '/brands', '/browse', '/product', '/post', '/events', '/about', '/privacy-policy', '/privacy', '/terms', '/affiliate-disclosure', '/editorial-policy', '/advertise', '/submit-product', '/recently-viewed', '/sitemap.xml', '/robots.txt', '/llms.txt'
     ];
     const isKnownRoute = validPaths.some(p => pathname === p || pathname.startsWith(p + '/'));
     if (!isKnownRoute && pathname !== '/') {
@@ -235,6 +236,16 @@ export function App() {
     if (pathname.startsWith('/products/') || pathname.startsWith('/product/')) {
       const slug = pathname.startsWith('/products/') ? pathname.replace('/products/', '') : pathname.replace('/product/', '');
       return <ProductDetailPage productSlug={slug} onOpenChatbotForProduct={openChatbotWithProduct} />;
+    }
+
+    // Shopping events (/events hub and /events/:slug landing)
+    if (pathname === '/events' || pathname === '/events/') {
+      return <EventsPage />;
+    }
+    if (pathname.startsWith('/events/')) {
+      const slug = decodeURIComponent(pathname.replace('/events/', '').split('/')[0]);
+      if (slug) return <EventsPage eventSlug={slug} />;
+      return <EventsPage />;
     }
 
     // Categories (/categories or /categories/:slug or /categories/:parentSlug/:subSlug)

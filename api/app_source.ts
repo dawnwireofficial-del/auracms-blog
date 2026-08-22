@@ -326,6 +326,17 @@ app.get('/sitemap.xml', async (_req, res) => {
       ...cats.map((c: any) => `<url><loc>${baseUrl}/buyers-guide/${c.slug}</loc><priority>0.6</priority></url>`),
       // Best-of roundup pages (high-value money keywords)
       ...cats.map((c: any) => `<url><loc>${baseUrl}/best/${c.slug}</loc><priority>0.9</priority></url>`),
+      // Shopping-event landing pages (seasonal money pages)
+      ...(await (async () => {
+        try {
+          const { listEvents } = await import('../server/events-db');
+          const evts = await listEvents(true);
+          return [
+            `<url><loc>${baseUrl}/events</loc><priority>0.8</priority></url>`,
+            ...evts.map((e) => `<url><loc>${baseUrl}/events/${e.slug}</loc><priority>0.9</priority></url>`),
+          ];
+        } catch { return [`<url><loc>${baseUrl}/events</loc><priority>0.8</priority></url>`]; }
+      })()),
     ];
     res.header('Content-Type', 'application/xml');
     res.send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.join('')}</urlset>`);
