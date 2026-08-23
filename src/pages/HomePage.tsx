@@ -528,93 +528,88 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5">
-            {/* Main Hero Slider (68% width on desktop) — pure banner display */}
-            <div className="lg:col-span-8 relative rounded-2xl sm:rounded-3xl bg-[#0A1F44] text-white overflow-hidden shadow-lg border border-slate-800 min-h-[440px] md:min-h-[520px] xl:min-h-[600px] lg:h-[calc(100%-0px)]">
-              {/* Ambient antigravity particle field (visible in letterbox areas) */}
-              <AntigravityCanvas />
-
-              {/* Slider Content — designed banner, full bleed, never cropped */}
-              {heroSlides[currentSlide]?.image ? (
-                <a
-                  href={heroSlides[currentSlide].ctaHref}
-                  className="absolute inset-0 z-10 block"
-                  aria-label="Featured deals banner"
-                >
-                  <picture>
-                    <source media="(max-width: 767px)" srcSet={heroSlides[currentSlide].mobileImage || heroSlides[currentSlide].image} />
-                    <img
-                      src={heroSlides[currentSlide].image}
-                      alt="Featured deals banner"
-                      loading={currentSlide === 0 ? 'eager' : 'lazy'}
-                      fetchPriority={currentSlide === 0 ? 'high' : undefined}
-                      className="w-full h-full object-contain"
-                    />
-                  </picture>
-                </a>
-              ) : null}
-
-              {/* Slider Dots */}
-              {totalSlides > 1 && (
-                <div className="relative z-10 px-6 sm:px-10 pb-5 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {heroSlides.map((_, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => goToSlide(idx)}
-                        aria-label={`Slide ${idx + 1}`}
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          currentSlide === idx ? 'w-8 bg-orange-500' : 'w-2 bg-white/40 hover:bg-white/70'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                    <button
-                      onClick={() => goToSlide(currentSlide - 1)}
-                      className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
-                      aria-label="Previous slide"
-                    >
-                      ‹
-                    </button>
-                    <button
-                      onClick={() => goToSlide(currentSlide + 1)}
-                      className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
-                      aria-label="Next slide"
-                    >
-                      ›
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Side Promo Cards (32% width on desktop) — 2×2 compact grid, height matches hero */}
-            <div className="lg:col-span-4 grid grid-cols-2 auto-rows-fr gap-3 sm:gap-3.5 lg:h-full">
-              {BRAND_KIT.sidePromos.map((card) => (
-                <a
-                  key={card.href}
-                  href={card.href}
-                  className="group relative rounded-2xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center min-h-[120px]"
-                >
+          {/* ── HERO: full-width, native 1916×821 banner carousel ── */}
+          <div className="relative rounded-2xl sm:rounded-3xl bg-[#0A1F44] text-white overflow-hidden shadow-lg border border-slate-800 aspect-[16/9] sm:aspect-[1916/821]">
+            {/* Slider Content — designed banner, full bleed, exact ratio (no crop) */}
+            {heroSlides[currentSlide]?.image ? (
+              <a
+                href={heroSlides[currentSlide].ctaHref}
+                className="absolute inset-0 z-10 block"
+                aria-label="Featured deals banner"
+              >
+                <picture>
+                  <source media="(max-width: 767px)" srcSet={heroSlides[currentSlide].mobileImage || heroSlides[currentSlide].image} />
                   <img
-                    src={proxyImageUrl(card.src)}
-                    alt={card.alt}
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-contain p-1 group-hover:scale-[1.03] transition-transform duration-300"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    src={heroSlides[currentSlide].image}
+                    alt="Featured deals banner"
+                    loading={currentSlide === 0 ? 'eager' : 'lazy'}
+                    fetchPriority={currentSlide === 0 ? 'high' : undefined}
+                    className="w-full h-full object-cover"
                   />
-                </a>
-              ))}
-            </div>
+                </picture>
+              </a>
+            ) : null}
+
+            {/* Slider Dots + Arrows */}
+            {totalSlides > 1 && (
+              <div className="absolute bottom-4 left-0 right-0 z-20 px-5 sm:px-8 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {heroSlides.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => goToSlide(idx)}
+                      aria-label={`Slide ${idx + 1}`}
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        currentSlide === idx ? 'w-8 bg-orange-500' : 'w-2 bg-white/50 hover:bg-white/80'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                  <button
+                    onClick={() => goToSlide(currentSlide - 1)}
+                    className="w-8 h-8 rounded-lg bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white flex items-center justify-center border border-white/10"
+                    aria-label="Previous slide"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    onClick={() => goToSlide(currentSlide + 1)}
+                    className="w-8 h-8 rounded-lg bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white flex items-center justify-center border border-white/10"
+                    aria-label="Next slide"
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── PROMO ROW: the four 784×502 banners directly under the hero ── */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-3.5 mt-3.5 sm:mt-4">
+            {BRAND_KIT.sidePromos.map((card) => (
+              <a
+                key={card.href}
+                href={card.href}
+                className="group relative rounded-2xl overflow-hidden shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 block aspect-[784/502]"
+              >
+                <img
+                  src={proxyImageUrl(card.src)}
+                  alt={card.alt}
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-300"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+              </a>
+            ))}
           </div>
         </section>
 
         {/* ─────────────────────────────────────────────────────────────
             5b. TRENDING SEARCHES (internal-linking chip rail)
         ───────────────────────────────────────────────────────────── */}
-        <section className="flex flex-wrap items-center gap-2 -mt-6 relative z-10">
+        <section className="flex flex-wrap items-center gap-2">
           <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mr-1">Trending:</span>
           {[
             ['Air Fryer', '/categories/home-kitchen'],
@@ -672,22 +667,22 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 icon: '🔒'
               }
             ].map((item) => (
-              <div key={item.title} className="flex items-center gap-2.5 p-1.5">
+              <div key={item.title} className="flex items-center gap-3.5 p-2">
                 {BRAND_KIT.trustIcons[item.title] ? (
                   <img
                     src={BRAND_KIT.trustIcons[item.title]}
                     alt={item.title}
                     loading="lazy"
                     referrerPolicy="no-referrer"
-                    className="w-10 h-10 rounded-lg object-contain shrink-0 bg-white dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700 p-0.5"
+                    className="w-16 h-16 rounded-xl object-contain shrink-0 bg-white dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700 shadow-sm p-1"
                     onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }}
                   />
                 ) : (
-                  <span className="text-xl shrink-0">{item.icon}</span>
+                  <span className="text-3xl shrink-0">{item.icon}</span>
                 )}
                 <div className="min-w-0">
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">{item.title}</h4>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{item.desc}</p>
+                  <h4 className="text-sm font-extrabold text-slate-900 dark:text-white truncate">{item.title}</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{item.desc}</p>
                 </div>
               </div>
             ))}
@@ -715,27 +710,27 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                   <a
                     key={`${cat.id}-${i}`}
                     href={`/categories/${cat.slug}`}
-                    className="group flex flex-col items-center justify-center w-[104px] shrink-0 p-2.5 rounded-xl hover:bg-blue-50/70 dark:hover:bg-slate-800 transition-colors text-center"
+                    className="group flex flex-col items-center justify-center w-[150px] shrink-0 p-3 rounded-2xl hover:bg-blue-50/70 dark:hover:bg-slate-800 transition-colors text-center"
                   >
-                    <div className="w-14 h-14 rounded-full bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center overflow-hidden mb-1.5 group-hover:border-blue-400 transition-colors">
+                    <div className="w-24 h-24 rounded-full bg-white dark:bg-slate-800 border-2 border-slate-200/80 dark:border-slate-700 shadow-sm flex items-center justify-center overflow-hidden mb-2.5 group-hover:border-blue-400 group-hover:shadow-md transition-all">
                       {brandIcon ? (
                         <img
                           src={brandIcon}
                           alt={cat.name}
                           loading="lazy"
                           referrerPolicy="no-referrer"
-                          className="w-full h-full object-contain p-1 group-hover:scale-110 transition-transform duration-300"
+                          className="w-full h-full object-contain p-1.5 group-hover:scale-110 transition-transform duration-300"
                           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         />
                       ) : (
                         <AnimatedCategoryIcon
                           slug={cat.slug}
                           icon={cat.icon || 'tag'}
-                          className="w-6 h-6 text-blue-600 dark:text-blue-400"
+                          className="w-10 h-10 text-blue-600 dark:text-blue-400"
                         />
                       )}
                     </div>
-                    <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-tight">
+                    <span className="text-[13px] font-extrabold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-tight">
                       {cat.name}
                     </span>
                   </a>
