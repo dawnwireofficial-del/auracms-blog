@@ -1,12 +1,18 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createSupabaseClient } from '../db/mysql-adapter';
 
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const useMysql = !!process.env.MYSQL_URL;
 
 let client: SupabaseClient | null = null;
+let mysqlClient: ReturnType<typeof createSupabaseClient> | null = null;
 
-export function getSupabase(): SupabaseClient {
+// Returns supabase-js client OR the MySQL adapter (same fluent surface).
+// Typed as any so call sites work identically in both modes.
+export function getSupabase(): any {
+  if (useMysql) {
+    if (!mysqlClient) mysqlClient = createSupabaseClient();
+    return mysqlClient;
+  }
   if (!client) {
     const url = process.env.SUPABASE_URL || '';
     const key = process.env.SUPABASE_ANON_KEY || '';
@@ -21,8 +27,13 @@ export function getSupabase(): SupabaseClient {
 }
 
 let adminClient: SupabaseClient | null = null;
+let mysqlAdminClient: ReturnType<typeof createSupabaseClient> | null = null;
 
-export async function getSupabaseAdmin(): Promise<SupabaseClient> {
+export async function getSupabaseAdmin(): Promise<any> {
+  if (useMysql) {
+    if (!mysqlAdminClient) mysqlAdminClient = createSupabaseClient();
+    return mysqlAdminClient;
+  }
   if (!adminClient) {
     const url = process.env.SUPABASE_URL || '';
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || '';

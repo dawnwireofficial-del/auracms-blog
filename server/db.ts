@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { SupabaseDatabase } from './db/supabase-db';
 import { Database as LegacyDatabase, dbInstance as legacyDb } from './db/legacy-db';
+import { MySQLDatabase } from './db/mysql-database';
 
 interface IDatabase {
   getContentUpgrades(): any;
@@ -16,13 +17,25 @@ interface IDatabase {
   [key: string]: any;
 }
 
-type DatabaseInstance = SupabaseDatabase | LegacyDatabase;
+type DatabaseInstance = SupabaseDatabase | LegacyDatabase | MySQLDatabase;
 
 let dbInstance: DatabaseInstance;
 let useSupabase = false;
 let supabaseReady = false;
+let useMysql = !!process.env.MYSQL_URL;
 
-if (process.env.SUPABASE_URL) {
+if (process.env.MYSQL_URL) {
+  try {
+    dbInstance = new MySQLDatabase();
+    useMysql = true;
+    console.log('[DB] MySQL backend initialized');
+  } catch (e) {
+    console.log('[DB] MySQL init failed, falling back to Supabase:', (e as Error).message);
+    useMysql = false;
+  }
+}
+
+if (!useMysql && process.env.SUPABASE_URL) {
   try {
     dbInstance = new SupabaseDatabase();
     useSupabase = true;
@@ -32,7 +45,7 @@ if (process.env.SUPABASE_URL) {
     dbInstance = legacyDb;
     console.log('[DB] Supabase init failed, using legacy:', (e as Error).message);
   }
-} else {
+} else if (!useMysql) {
   dbInstance = legacyDb;
   console.log('[DB] Supabase not configured, using local JSON file backend');
 }
@@ -51,5 +64,5 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash);
 }
 
-export { dbInstance, useSupabase, supabaseReady };
+export { dbInstance, useSupabase, supabaseReady, useMysql };
 export type { DatabaseInstance };

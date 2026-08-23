@@ -591,7 +591,7 @@ router.get('/affiliate/health', authenticate, requireRole(['super_admin', 'admin
 
     // Merge health flags from affiliate_health
     const { data: healthRows } = await sb.from('affiliate_health').select('product_id, marked_for_update, manual_note, marked_by, marked_at, last_checked_at, checked_by');
-    const healthMap = new Map((healthRows || []).map((h: any) => [h.product_id, h]));
+    const healthMap = new Map<string, any>((healthRows || []).map((h: any) => [h.product_id, h] as [string, any]));
     evaluated.forEach((row: any) => {
       const h = healthMap.get(row.id);
       row.marked_for_update = !!(h && h.marked_for_update);

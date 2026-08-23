@@ -73,7 +73,7 @@ export async function getActiveAlerts(): Promise<PriceAlert[]> {
   if (client) {
     try {
       const { data } = await client.from('price_alerts').select('*').eq('status', 'active');
-      if (data) return data.map(d => ({
+      if (data) return data.map((d: any) => ({
         id: d.id,
         productId: d.product_id,
         userId: d.user_id || undefined,

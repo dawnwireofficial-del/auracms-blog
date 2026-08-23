@@ -46,7 +46,7 @@ export async function getTrafficData(days: number = 30): Promise<{
     }
 
     const totalViews = views.length;
-    const uniqueSessions = new Set(views.map(v => v.session_id).filter(Boolean));
+    const uniqueSessions = new Set(views.map((v: any) => v.session_id).filter(Boolean));
     const totalVisitors = uniqueSessions.size;
 
     const dailyMap = new Map<string, { views: number; sessions: Set<string> }>();

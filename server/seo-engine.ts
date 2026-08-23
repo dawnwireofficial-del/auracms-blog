@@ -10,7 +10,7 @@ function slugify(text: string): string {
 }
 
 export async function getClient(): Promise<SupabaseClient> {
-  if (!seoClient) seoClient = await getSupabaseAdmin();
+  if (!seoClient) seoClient = await getSupabaseAdmin() as SupabaseClient;
   return seoClient;
 }
 

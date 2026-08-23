@@ -252,7 +252,7 @@ export async function runAutoSocialPost(): Promise<{
     .eq('status', 'published');
 
   const postedIds = new Set((posted || []).map((p: any) => p.product_id));
-  const toPost = products.filter(p => !postedIds.has(p.id)).slice(0, config.maxPostsPerRun);
+  const toPost = products.filter((p: any) => !postedIds.has(p.id)).slice(0, config.maxPostsPerRun);
 
   for (const product of toPost) {
     if (processedToday >= config.maxPostsPerRun) break;
