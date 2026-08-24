@@ -770,16 +770,18 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
 
   // 2. AUTHENTICATED ADMIN DASHBOARD
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-[#F6F8FC] via-[#F1F5FB] to-[#EDF1F8] dark:from-[#070B14] dark:via-[#0A1020] dark:to-[#070B14] text-slate-900 dark:text-slate-100 pb-24">
       {/* Top Banner */}
-      <div className="bg-[#0A1F44] text-white py-8 px-4 border-b border-blue-900">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#0A1F44] via-[#123A7A] to-[#246BFF] text-white py-8 px-4">
+        <div className="absolute -top-20 -right-16 w-72 h-72 rounded-full bg-orange-500/15 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-10 w-64 h-64 rounded-full bg-emerald-400/10 blur-3xl pointer-events-none" />
+        <div className="relative max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 text-xs font-bold text-amber-400 mb-1">
+            <div className="inline-flex items-center gap-2 text-xs font-bold text-amber-300 mb-1">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
               DawnWire Super Admin Control Center
             </div>
-            <h1 className="text-2xl font-black font-display">Platform Operations & Catalog Engine</h1>
+            <h1 className="text-2xl font-black font-display tracking-tight">Platform Operations &amp; Catalog Engine</h1>
           </div>
 
           <div className="flex items-center gap-4 text-xs">
@@ -820,7 +822,7 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
 
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
         {/* Navigation Tabs */}
-        <div className="flex flex-nowrap gap-2 p-1.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm text-xs font-extrabold overflow-x-auto no-scrollbar">
+        <div className="sticky top-3 z-40 flex flex-nowrap gap-2 p-1.5 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-lg shadow-slate-900/5 text-xs font-extrabold overflow-x-auto no-scrollbar">
           {[
             { id: 'dashboard', label: '📊 Dashboard' },
             { id: 'products', label: `Products (${products.length})` },
@@ -866,10 +868,10 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${new Date().toISO
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 ${
+              className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 font-semibold whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  ? 'bg-gradient-to-r from-[#246BFF] to-[#4F7CFF] text-white shadow-lg shadow-blue-500/25 scale-[1.02]'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm border border-transparent hover:border-blue-200/60 dark:hover:border-slate-700'
               }`}
             >
               {tab.id === 'scraper' && <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />}

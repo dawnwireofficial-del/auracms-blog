@@ -198,30 +198,36 @@
   <body>
     <script>!function(){var t,e=localStorage.getItem("theme");(e==="dark"||!e&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.documentElement.classList.add("dark")}()</script>
     <div id="root"></div>
-    <!-- Pre-React loader: shows immediately while JS bundles load -->
-    <div id="dawn-loader" style="position:fixed;inset:0;z-index:9999;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.4s ease,visibility 0.4s ease">
+    <!-- Pre-React loader: premium DawnWire orbit loader -->
+    <div id="dawn-loader" style="position:fixed;inset:0;z-index:9999;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s ease,visibility 0.5s ease">
       <style>
-        @keyframes dw-spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-        @keyframes dw-pulse{0%,100%{opacity:0.4;transform:scale(0.8)}50%{opacity:1;transform:scale(1.1)}}
-        @keyframes dw-bar{0%{width:0%;left:0}50%{width:60%;left:20%}100%{width:0%;left:100%}}
-        @keyframes dw-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-        @keyframes dw-shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-        .dw-loader-logo{width:64px;height:64px;animation:dw-pulse 1.5s ease-in-out infinite}
-        .dw-loader-ring{width:80px;height:80px;border:3px solid #e2e8f0;border-top-color:#246BFF;border-right-color:#FF8A00;border-radius:50%;animation:dw-spin 1s linear infinite}
-        .dw-loader-bar{width:180px;height:4px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-top:24px}
-        .dw-loader-bar::after{content:'';display:block;height:100%;background:linear-gradient(90deg,#246BFF,#FF8A00,#246BFF);background-size:200% 100%;animation:dw-shimmer 1.5s linear infinite;border-radius:999px}
-        .dw-loader-text{font-family:system-ui,-apple-system,sans-serif;font-size:13px;font-weight:600;color:#64748b;margin-top:16px;letter-spacing:0.05em}
-        .dw-loader-sub{font-family:system-ui,-apple-system,sans-serif;font-size:11px;color:#94a3b8;margin-top:4px}
+        @keyframes dw-orbit-a { from { transform: rotate(0deg) translateX(52px) rotate(0deg); } to { transform: rotate(360deg) translateX(52px) rotate(-360deg); } }
+        @keyframes dw-orbit-b { from { transform: rotate(360deg) translateX(34px) rotate(-360deg); } to { transform: rotate(0deg) translateX(34px) rotate(0deg); } }
+        @keyframes dw-core-pulse { 0%,100% { transform: scale(1); filter: drop-shadow(0 0 14px rgba(36,107,255,0.35)); } 50% { transform: scale(1.07); filter: drop-shadow(0 0 26px rgba(255,138,0,0.45)); } }
+        @keyframes dw-word-shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+        @keyframes dw-fade-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes dw-track { 0% { left: -40%; width: 40%; } 50% { left: 30%; width: 45%; } 100% { left: 100%; width: 40%; } }
+        .dw-loader-stage { position: relative; width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; }
+        .dw-loader-core { width: 74px; height: 74px; object-fit: contain; animation: dw-core-pulse 2.2s ease-in-out infinite; border-radius: 18px; }
+        .dw-orbit-ring { position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(36,107,255,0.12); }
+        .dw-orbit-ring.r2 { inset: 22px; border-color: rgba(255,138,0,0.15); }
+        .dw-orb { position: absolute; top: 50%; left: 50%; width: 11px; height: 11px; margin: -5.5px; border-radius: 50%; background: linear-gradient(135deg, #246BFF, #4F7CFF); box-shadow: 0 0 12px rgba(36,107,255,0.65); animation: dw-orbit-a 2.6s linear infinite; }
+        .dw-orb.b { width: 8px; height: 8px; margin: -4px; background: linear-gradient(135deg, #FF8A00, #FFB347); box-shadow: 0 0 10px rgba(255,138,0,0.6); animation: dw-orbit-b 1.9s linear infinite; }
+        .dw-word { margin-top: 26px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size: 26px; font-weight: 900; letter-spacing: 0.14em; background: linear-gradient(100deg,#0A1F44 30%,#246BFF 46%,#FF8A00 52%,#0A1F44 66%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: dw-word-shimmer 2.4s linear infinite; }
+        .dw-tag { margin-top: 6px; font-family: system-ui,-apple-system,sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.32em; text-transform: uppercase; color: #94a3b8; animation: dw-fade-up 0.9s ease 0.25s both; }
+        .dw-progress { position: relative; width: 210px; height: 3px; margin-top: 24px; border-radius: 999px; background: #EEF2F7; overflow: hidden; }
+        .dw-progress::after { content: ''; position: absolute; top: 0; bottom: 0; border-radius: 999px; background: linear-gradient(90deg,#246BFF,#FF8A00); animation: dw-track 1.6s ease-in-out infinite; }
       </style>
-      <div style="position:relative;width:80px;height:80px;margin-bottom:20px">
-        <div class="dw-loader-ring"></div>
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
-          <img src="/logo/dw-mark.png" alt="" class="dw-loader-logo" onerror="this.style.display='none'" />
-        </div>
+      <div class="dw-loader-stage">
+        <div class="dw-orbit-ring"></div>
+        <div class="dw-orbit-ring r2"></div>
+        <img src="/logo/dw-mark.png" alt="DawnWire" class="dw-loader-core" onerror="this.style.display='none'" />
+        <div class="dw-orb"></div>
+        <div class="dw-orb b"></div>
       </div>
-      <div class="dw-loader-text">Loading DawnWire</div>
-      <div class="dw-loader-sub">AI-powered product reviews &amp; deals</div>
-      <div class="dw-loader-bar"></div>
+      <div class="dw-word">DAWNWIRE</div>
+      <div class="dw-tag">Discover · Compare · Shop Smart</div>
+      <div class="dw-progress"></div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -29,6 +29,7 @@ const PostDetailPage = lazy(() => import('./pages/PostDetailPage'));
 const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })));
 const BrandsPage = lazy(() => import('./components/pages/BrandsPage'));
 const EventsPage = lazy(() => import('./pages/EventsPage'));
+import SiteEffects from './components/SiteEffects';
 const ChatbotDrawer = lazy(() => import('./components/ai/ChatbotDrawer').then(m => ({ default: m.ChatbotDrawer })));
 const AIProductFinderModal = lazy(() => import('./components/ai/AIProductFinderModal').then(m => ({ default: m.AIProductFinderModal })));
 const AboutPage = lazy(() => import('./components/pages/AboutPage'));
@@ -44,8 +45,24 @@ const PrivacyPage = lazy(() => import('./components/pages/ContentPages').then(m 
 const TermsPage = lazy(() => import('./components/pages/ContentPages').then(m => ({ default: m.TermsPage })));
 
 const PageLoader: React.FC = () => (
-  <div className="min-h-[60vh] flex items-center justify-center">
-    <div className="w-10 h-10 rounded-full border-4 border-blue-200 dark:border-slate-700 border-t-blue-600 animate-spin" />
+  <div className="min-h-[70vh] flex flex-col items-center justify-center">
+    <style>{`
+      @keyframes dwl-orbit-a { from { transform: rotate(0deg) translateX(46px) rotate(0deg); } to { transform: rotate(360deg) translateX(46px) rotate(-360deg); } }
+      @keyframes dwl-orbit-b { from { transform: rotate(360deg) translateX(30px) rotate(-360deg); } to { transform: rotate(0deg) translateX(30px) rotate(0deg); } }
+      @keyframes dwl-core { 0%,100% { transform: scale(1); filter: drop-shadow(0 0 12px rgba(36,107,255,0.3)); } 50% { transform: scale(1.06); filter: drop-shadow(0 0 22px rgba(255,138,0,0.4)); } }
+      @keyframes dwl-track { 0% { left: -40%; width: 40%; } 50% { left: 30%; width: 45%; } 100% { left: 100%; width: 40%; } }
+    `}</style>
+    <div className="relative w-[130px] h-[130px] flex items-center justify-center">
+      <div className="absolute inset-0 rounded-full border border-blue-500/10" />
+      <div className="absolute inset-[20px] rounded-full border border-orange-500/10" />
+      <img src="/logo/dw-mark.png" alt="DawnWire" className="w-[64px] h-[64px] object-contain rounded-2xl" style={{ animation: 'dwl-core 2.2s ease-in-out infinite' }} />
+      <div className="absolute top-1/2 left-1/2 w-[10px] h-[10px] -mt-[5px] -ml-[5px] rounded-full bg-gradient-to-br from-[#246BFF] to-[#4F7CFF] shadow-[0_0_10px_rgba(36,107,255,0.6)]" style={{ animation: 'dwl-orbit-a 2.6s linear infinite' }} />
+      <div className="absolute top-1/2 left-1/2 w-[7px] h-[7px] -mt-[3.5px] -ml-[3.5px] rounded-full bg-gradient-to-br from-[#FF8A00] to-[#FFB347] shadow-[0_0_8px_rgba(255,138,0,0.55)]" style={{ animation: 'dwl-orbit-b 1.9s linear infinite' }} />
+    </div>
+    <div className="mt-5 text-xl font-black tracking-[0.14em] bg-gradient-to-r from-[#0A1F44] via-[#246BFF] to-[#0A1F44] bg-[length:200%_auto] bg-clip-text text-transparent animate-[dwl-shimmer_2.4s_linear_infinite]" style={{ animationName: 'none' }}>DAWNWIRE</div>
+    <div className="relative w-[190px] h-[3px] mt-4 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+      <div className="absolute inset-y-0 rounded-full bg-gradient-to-r from-[#246BFF] to-[#FF8A00]" style={{ animation: 'dwl-track 1.6s ease-in-out infinite' }} />
+    </div>
   </div>
 );
 
@@ -557,7 +574,8 @@ export function App() {
       />
 
       <main id="main-content" className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
-        <Suspense fallback={<PageLoader />}>
+        <SiteEffects />
+      <Suspense fallback={<PageLoader />}>
           {renderRoute()}
         </Suspense>
       </main>

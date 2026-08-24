@@ -1179,3 +1179,18 @@
 .dw-section { padding-top: 2.5rem; padding-bottom: 2.5rem; }
 @media (min-width: 768px) { .dw-section { padding-top: 3.5rem; padding-bottom: 3.5rem; } }
 
+/* Scroll-reveal: elements with [data-reveal] fade-up into view */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1), transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+  }
+  [data-reveal].dw-revealed { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom selection + smooth scroll */
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+

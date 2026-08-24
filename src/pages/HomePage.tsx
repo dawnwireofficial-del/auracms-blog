@@ -268,7 +268,7 @@ function CategoryMerchandisingSection({
   if (!products || products.length === 0) return null;
 
   return (
-    <section className="py-8 border-t border-slate-200/80 dark:border-slate-800">
+    <section data-reveal className="py-8 border-t border-slate-200/80 dark:border-slate-800">
       <SectionHeading
         title={title}
         subtitle={subtitle}
@@ -529,7 +529,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           onTouchEnd={handleTouchEnd}
         >
           {/* ── HERO: full-width, native 1916×821 banner carousel ── */}
-          <div className="relative rounded-2xl sm:rounded-3xl bg-[#0A1F44] text-white overflow-hidden shadow-lg border border-slate-800 aspect-[16/9] sm:aspect-[1916/821]">
+          <div className="relative rounded-2xl sm:rounded-3xl bg-[#0A1F44] text-white overflow-hidden shadow-lg aspect-[16/9] sm:aspect-[1916/821]">
             {/* Slider Content — designed banner, full bleed, exact ratio (no crop) */}
             {heroSlides[currentSlide]?.image ? (
               <a
@@ -609,7 +609,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         {/* ─────────────────────────────────────────────────────────────
             5b. TRENDING SEARCHES (internal-linking chip rail)
         ───────────────────────────────────────────────────────────── */}
-        <section className="flex flex-wrap items-center gap-2">
+        <section data-reveal className="flex flex-wrap items-center gap-2">
           <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mr-1">Trending:</span>
           {[
             ['Air Fryer', '/categories/home-kitchen'],
@@ -633,7 +633,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         {/* ─────────────────────────────────────────────────────────────
             6. TRUST STRIP (Compact 6-Item Credibility Bar)
         ───────────────────────────────────────────────────────────── */}
-        <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
+        <section data-reveal className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5">
             {[
               {
@@ -746,7 +746,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         {/* ─────────────────────────────────────────────────────────────
             8. TODAY'S BEST DEALS (6-Column High-Density Grid)
         ───────────────────────────────────────────────────────────── */}
-        <section className="pt-2">
+        <section data-reveal className="pt-2">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6">
             <div>
               <span className="inline-block text-[11px] font-extrabold uppercase tracking-wider text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/60 border border-orange-200/60 dark:border-orange-800/60 px-2.5 py-0.5 rounded-md mb-1.5">
@@ -780,7 +780,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         {/* ─────────────────────────────────────────────────────────────
             8b. FEATURE BANNERS (AI Finder + Price Drop, brand kit)
         ───────────────────────────────────────────────────────────── */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <section data-reveal className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <a
             href={BRAND_KIT.featureBanners.aiFinder.href}
             className="group relative rounded-2xl overflow-hidden border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xs hover:shadow-lg transition-all duration-300 flex items-center justify-center"
@@ -842,7 +842,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         {/* ─────────────────────────────────────────────────────────────
             11. PROMO BANNER ROW (Between Merchandise Sections)
         ───────────────────────────────────────────────────────────── */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <section data-reveal className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 sm:p-8 flex flex-col justify-between shadow-md">
             <div>
               <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-2.5 py-0.5 rounded mb-2 inline-block">
@@ -918,7 +918,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         {/* ─────────────────────────────────────────────────────────────
             12 & 13. FEATURED COMPARISON + AI PRODUCT FINDER
         ───────────────────────────────────────────────────────────── */}
-        <section className="pt-4">
+        <section data-reveal className="pt-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left: Featured Comparison */}
             <div className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-50/80 via-white to-indigo-50/60 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 border border-blue-200/80 dark:border-slate-800 p-6 sm:p-8 flex flex-col justify-between shadow-xs">
@@ -1024,7 +1024,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         {/* ─────────────────────────────────────────────────────────────
             14. PRICE DROP / WATCHLIST SECTION
         ───────────────────────────────────────────────────────────── */}
-        <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white p-8 sm:p-10 relative overflow-hidden shadow-xl border border-blue-800">
+        <section data-reveal className="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white p-8 sm:p-10 relative overflow-hidden shadow-xl border border-blue-800">
           <div className="relative z-10 max-w-2xl">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-bold mb-3">
               <span>📉 Automated Deal Tracker</span>
@@ -1058,7 +1058,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             15. LATEST BUYING GUIDES (Clean Editorial Grid)
         ───────────────────────────────────────────────────────────── */}
         {posts.length > 0 && (
-          <section className="pt-2">
+          <section data-reveal className="pt-2">
             <SectionHeading
               title="Latest Buying Guides & Expert Reviews"
               subtitle="In-depth testing, lab breakdowns, and buyer checklists"
@@ -1118,7 +1118,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             16. SHOP BY BRAND (Clean Logo Grid)
         ───────────────────────────────────────────────────────────── */}
         {brands.length > 0 && (
-          <section className="pt-2">
+          <section data-reveal className="pt-2">
             <SectionHeading
               title="Shop Tested Brands"
               subtitle="Verified gear from premier consumer brands"
@@ -1161,7 +1161,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         {/* ─────────────────────────────────────────────────────────────
             17. NEWSLETTER BLOCK (Full-Width Navy Block)
         ───────────────────────────────────────────────────────────── */}
-        <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-8 sm:p-12 relative overflow-hidden shadow-xl border border-slate-800">
+        <section data-reveal className="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-8 sm:p-12 relative overflow-hidden shadow-xl border border-slate-800">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-7">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/20 text-orange-300 text-xs font-bold mb-3 border border-orange-400/30">
