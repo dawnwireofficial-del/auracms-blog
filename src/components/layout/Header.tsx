@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
-import { DawnWireLogo } from '../common/SvgIcons';
 import { AnimatedCategoryIcon } from '../common/AnimatedCategoryIcon';
 import { useAppStore } from '../../lib/store';
 import { navigate } from '../../lib/navigation';
@@ -240,11 +239,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
 
       {/* Main Header Row */}
       <div className="max-w-7xl mx-auto px-4 py-1.5 flex items-center justify-between gap-3">
-        {/* Logo */}
-        <div className="shrink-0">
-          <DawnWireLogo className="w-[72px] h-[62px]" />
-        </div>
-
         {/* Search Bar with Category Selector & Live Search Autocomplete */}
         <div ref={searchWrapperRef} className="hidden lg:block relative flex-1 max-w-2xl">
           <form onSubmit={handleSearchSubmit} className="flex items-center bg-slate-50 dark:bg-slate-800/90 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:border-blue-500 transition-all">
@@ -769,10 +763,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
             </a>
           </div>
 
-          <a href="/admin" className="text-xs font-bold text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 py-2">
-            Admin Portal &rarr;
-          </a>
-        </div>
+          </div>
       </div>
 
       {/* Mobile Drawer */}
