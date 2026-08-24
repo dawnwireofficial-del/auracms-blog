@@ -229,6 +229,23 @@
       <div class="dw-tag">Discover · Compare · Shop Smart</div>
       <div class="dw-progress"></div>
     </div>
+    <!-- End of premium DawnWire orbit loader -->
+    <script type="module">
+      // Hide the pre-React loader after the app mounts or on window load
+      const loader = document.getElementById('dawn-loader');
+      if (loader) {
+        const hideLoader = () => {
+          loader.style.opacity = '0';
+          loader.style.visibility = 'hidden';
+        };
+        if (document.readyState === 'complete') {
+          hideLoader();
+        } else {
+          window.addEventListener('load', hideLoader);
+          setTimeout(hideLoader, 5000);
+        }
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

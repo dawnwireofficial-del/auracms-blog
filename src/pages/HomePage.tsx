@@ -473,6 +473,16 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
     }
   };
 
+  const [isHeroScrolled, setIsHeroScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setIsHeroScrolled(window.scrollY > 40);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   // Search Submit
   const handleHeroSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -515,7 +525,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
       <DisclosureBanner />
 
       {/* Global Container Wrapper: Unified max-w grid across entire page */}
-      <div className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 space-y-12 py-4 sm:py-6">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-6 space-y-12 py-4 sm:py-6">
         
         {/* ─────────────────────────────────────────────────────────────
             5. HERO COMMERCE AREA (Reduced height, ~68% / ~32% split)
@@ -529,7 +539,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           onTouchEnd={handleTouchEnd}
         >
           {/* ── HERO: full-width, native 1916×821 banner carousel ── */}
-          <div className="relative rounded-2xl sm:rounded-3xl bg-[#0A1F44] text-white overflow-hidden shadow-lg aspect-[16/9] sm:aspect-[1916/821]">
+          <div className={`relative rounded-2xl sm:rounded-3xl bg-[#0A1F44] text-white overflow-hidden shadow-lg aspect-[16/9] sm:aspect-[1916/821] ${isHeroScrolled ? 'hero-gradient-shift scrolled' : 'hero-gradient-shift'}`}>
             {/* Slider Content — designed banner, full bleed, exact ratio (no crop) */}
             {heroSlides[currentSlide]?.image ? (
               <a
@@ -544,7 +554,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                     alt="Featured deals banner"
                     loading={currentSlide === 0 ? 'eager' : 'lazy'}
                     fetchPriority={currentSlide === 0 ? 'high' : undefined}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-opacity duration-700 ease-out hover:opacity-90 group-hover:opacity-100"
                   />
                 </picture>
               </a>
