@@ -710,9 +710,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             viewAllText="View All Categories"
           />
 
-          {/* Auto-scrolling category marquee (pauses on hover) */}
-          <div className="dw-marquee relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 py-4">
-            <div className="dw-marquee-track flex items-stretch gap-3 w-max px-3">
+          {/* Auto-scrolling category marquee (pauses on hover) — circles only */}
+          <div className="dw-marquee relative overflow-hidden py-6">
+            <div className="dw-marquee-track flex items-center gap-6 w-max px-4">
               {[...fullTaxonomyCategories, ...fullTaxonomyCategories].map((cat, i) => {
                 const dbCat = categories.find(c => c.slug === cat.slug);
                 const brandIcon = dbCat?.image || '';
@@ -720,9 +720,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                   <a
                     key={`${cat.id}-${i}`}
                     href={`/categories/${cat.slug}`}
-                    className="group flex flex-col items-center justify-center w-[150px] shrink-0 p-3 rounded-2xl hover:bg-blue-50/70 dark:hover:bg-slate-800 transition-colors text-center"
+                    className="group flex flex-col items-center justify-center shrink-0 transition-colors text-center"
                   >
-                    <div className="w-24 h-24 rounded-full bg-white dark:bg-slate-800 border-2 border-slate-200/80 dark:border-slate-700 shadow-sm flex items-center justify-center overflow-hidden mb-2.5 group-hover:border-blue-400 group-hover:shadow-md transition-all">
+                    <div className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-white dark:bg-slate-800 border-2 border-slate-200/80 dark:border-slate-700 shadow-sm flex items-center justify-center overflow-hidden mb-3 group-hover:border-blue-400 group-hover:shadow-lg transition-all group-hover:scale-105">
                       {brandIcon ? (
                         <img
                           src={brandIcon}
@@ -736,7 +736,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                         <AnimatedCategoryIcon
                           slug={cat.slug}
                           icon={cat.icon || 'tag'}
-                          className="w-10 h-10 text-blue-600 dark:text-blue-400"
+                          className="w-12 h-12 md:w-14 md:h-14 text-blue-600 dark:text-blue-400"
                         />
                       )}
                     </div>
