@@ -46,11 +46,11 @@ function SectionHeading({
             {badge}
           </span>
         )}
-        <h2 className="text-2xl sm:text-[28px] font-black tracking-tight text-slate-900 dark:text-white leading-tight">
+        <h2 className="text-2xl sm:text-[28px] font-black tracking-tight text-slate-900 dark:text-white leading-tight" data-text-reveal>
           {title}
         </h2>
         {subtitle && (
-          <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
+          <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium" data-text-reveal>
             {subtitle}
           </p>
         )}
@@ -532,6 +532,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             5. HERO COMMERCE AREA (Reduced height, ~68% / ~32% split)
         ───────────────────────────────────────────────────────────── */}
         <section
+          data-reveal
+          data-parallax="0.15"
           className="pt-2"
           onMouseEnter={() => setIsHoveringSlider(true)}
           onMouseLeave={() => setIsHoveringSlider(false)}
@@ -651,8 +653,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
 {/* ─────────────────────────────────────────────────────────────
             6. TRUST STRIP — 5 equal columns, single row, premium
         ───────────────────────────────────────────────────────────── */}
-        <section data-reveal className="bg-white dark:bg-slate-900 border-y border-slate-200/60 dark:border-slate-800/60 px-4 md:px-6">
-          <div className="grid grid-cols-5 gap-0">
+        <section data-reveal data-stagger className="bg-white dark:bg-slate-900 border-y border-slate-200/60 dark:border-slate-800/60 px-4 md:px-6">
+          <div className="grid grid-cols-5 gap-0" data-stagger>
               {[
                 { title: 'Independently Reviewed', desc: 'Lab-tested specs & verdicts', iconKey: 'Independently Reviewed' },
                 { title: 'Live Price Checks', desc: '24/7 Amazon sync', iconKey: 'Live Price Checks' },
@@ -699,8 +701,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           />
 
           {/* Auto-scrolling category marquee (pauses on hover) — circles only */}
-          <div className="dw-marquee relative overflow-hidden py-8">
-            <div className="dw-marquee-track flex items-center gap-8 w-max px-6">
+          <div data-horizontal-scroll className="dw-marquee relative overflow-hidden py-8">
+            <div data-horizontal-wrapper className="dw-marquee-track flex items-center gap-8 w-max px-6">
               {[...fullTaxonomyCategories, ...fullTaxonomyCategories].map((cat, i) => {
                 const dbCat = categories.find(c => c.slug === cat.slug);
                 const brandIcon = dbCat?.image || '';
