@@ -363,7 +363,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
 
     fetch('/api/public/posts?limit=6')
       .then(r => r.json())
-      .then(data => setPosts(Array.isArray(data) ? data : (data?.data || [])))
+      .then(data => {
+        const allPosts = Array.isArray(data) ? data : (data?.data || []);
+        // Filter for buying guides only (posts tagged with 'buying guide')
+        const buyingGuides = allPosts.filter((p: any) => 
+          Array.isArray(p.tags) && p.tags.some((t: string) => t.toLowerCase().includes('buying guide'))
+        );
+        setPosts(buyingGuides);
+      })
       .catch(() => {});
   }, []);
 
@@ -1060,8 +1067,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         {posts.length > 0 && (
           <section data-reveal className="pt-2">
             <SectionHeading
-              title="Latest Buying Guides & Expert Reviews"
-              subtitle="In-depth testing, lab breakdowns, and buyer checklists"
+              title="Latest Buying Guides"
+              subtitle="Hand-picked roundups, lab breakdowns, and buyer checklists"
               viewAllHref="/guides"
               viewAllText="All Buying Guides"
             />
