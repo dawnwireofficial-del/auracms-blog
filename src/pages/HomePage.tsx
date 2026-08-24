@@ -640,11 +640,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           ))}
         </section>
 
-        {/* ─────────────────────────────────────────────────────────────
-            6. TRUST STRIP (Compact 6-Item Credibility Bar)
+{/* ─────────────────────────────────────────────────────────────
+            6. TRUST STRIP (5-Item Credibility Bar — Amazon Verified Links removed)
         ───────────────────────────────────────────────────────────── */}
-        <section data-reveal className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5">
+        <section data-reveal className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 md:p-8 shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-6">
             {[
               {
                 title: 'Independently Reviewed',
@@ -662,11 +662,6 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 icon: '📉'
               },
               {
-                title: 'Amazon Verified Links',
-                desc: 'Official direct checkout',
-                icon: '🔗'
-              },
-              {
                 title: 'Expert Buying Guides',
                 desc: 'Unbiased category roundups',
                 icon: '📚'
@@ -677,22 +672,24 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                 icon: '🔒'
               }
             ].map((item) => (
-              <div key={item.title} className="flex items-center gap-3.5 p-2">
-                {BRAND_KIT.trustIcons[item.title] ? (
-                  <img
-                    src={BRAND_KIT.trustIcons[item.title]}
-                    alt={item.title}
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                    className="w-16 h-16 rounded-xl object-contain shrink-0 bg-white dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700 shadow-sm p-1"
-                    onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }}
-                  />
-                ) : (
-                  <span className="text-3xl shrink-0">{item.icon}</span>
-                )}
-                <div className="min-w-0">
-                  <h4 className="text-sm font-extrabold text-slate-900 dark:text-white truncate">{item.title}</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{item.desc}</p>
+              <div key={item.title} className="group flex flex-col items-center text-center p-4 md:p-6 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 hover:border-blue-400/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300">
+                <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center shrink-0 mb-3 md:mb-4 bg-gradient-to-br from-blue-50 to-orange-50 dark:from-blue-900/30 dark:to-orange-900/30 border-2 border-slate-200/80 dark:border-slate-700 group-hover:border-blue-400 group-hover:shadow-lg group-hover:shadow-blue-500/20 transition-all duration-300">
+                  {BRAND_KIT.trustIcons[item.title] ? (
+                    <img
+                      src={BRAND_KIT.trustIcons[item.title]}
+                      alt={item.title}
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                      className="w-12 h-12 md:w-14 md:h-14 rounded-xl object-contain"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  ) : (
+                    <span className="text-4xl md:text-5xl" aria-hidden="true">{item.icon}</span>
+                  )}
+                </div>
+                <div className="w-full">
+                  <p className="text-lg md:text-xl font-extrabold text-slate-800 dark:text-slate-100 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{item.title}</p>
+                  <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 leading-relaxed">{item.desc}</p>
                 </div>
               </div>
             ))}
