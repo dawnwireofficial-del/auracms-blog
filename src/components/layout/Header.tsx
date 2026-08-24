@@ -216,11 +216,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800 shadow-xs shadow-slate-900/5 transition-all duration-300">
       {/* Top Utility Bar */}
-      <div className="bg-slate-900 text-slate-300 text-xs font-medium py-1 px-4 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 text-slate-300 text-[11px]">
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+      <div className="bg-slate-900 text-slate-300 text-[10px] font-medium py-0.5 px-4 border-b border-slate-800">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-slate-300 text-[10px]">
+            <span className="flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-emerald-400" />
               <span>Independent Reviews</span>
             </span>
             <span className="text-slate-600 hidden sm:inline">•</span>
@@ -228,7 +228,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
             <span className="text-slate-600 hidden sm:inline">•</span>
             <span className="hidden sm:inline text-slate-300">Expert Buying Guides</span>
           </div>
-          <div className="flex items-center gap-4 text-slate-400 text-[11px]">
+          <div className="flex items-center gap-3 text-slate-400 text-[10px]">
             <a href="/affiliate-disclosure" className="hover:text-white transition-colors">Affiliate Disclosure</a>
             <span className="text-slate-600">•</span>
             <a href="/about" className="hover:text-white transition-colors">How We Review</a>
@@ -239,10 +239,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
       </div>
 
       {/* Main Header Row */}
-      <div className="max-w-7xl mx-auto px-4 py-1 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 py-1.5 flex items-center justify-between gap-3">
         {/* Logo */}
         <div className="shrink-0">
-          <DawnWireLogo className="w-[96px] h-[82px]" />
+          <DawnWireLogo className="w-[72px] h-[62px]" />
         </div>
 
         {/* Search Bar with Category Selector & Live Search Autocomplete */}
@@ -281,10 +281,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
                 ✕
               </button>
             )}
-            <kbd className="hidden xl:inline-block bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 text-[10px] font-mono font-bold px-2 py-1 rounded-md border border-slate-200 dark:border-slate-600 shrink-0 mr-2 shadow-xs" title="Shortcut: Cmd+K or Ctrl+K">
+            <kbd className="hidden xl:inline-block bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-600 shrink-0 mr-1.5 shadow-xs" title="Shortcut: Cmd+K or Ctrl+K">
               ⌘K
             </kbd>
-            <button type="submit" className="bg-[#246BFF] hover:bg-[#164EE8] text-white px-5 py-2.5 flex items-center gap-1.5 transition-colors font-bold text-sm shrink-0">
+            <button type="submit" className="bg-[#246BFF] hover:bg-[#164EE8] text-white px-4 py-2 flex items-center gap-1 transition-colors font-bold text-xs shrink-0">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -479,12 +479,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
         </div>
 
 {/* Action Buttons */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* AI Product Finder Button */}
           {onOpenAiFinder && (
             <button
               onClick={onOpenAiFinder}
-              className="hw-glass-btn hw-glass-cta px-3.5 py-2 hidden sm:inline-flex"
+              className="hw-glass-btn hw-glass-cta px-3 py-1.5 hidden sm:inline-flex"
             >
               <span className="whitespace-nowrap flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -499,7 +499,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
           {onOpenChatbot && (
             <button
               onClick={onOpenChatbot}
-              className="hw-glass-btn hw-glass-cta px-3.5 py-2"
+              className="hw-glass-btn hw-glass-cta px-3 py-1.5"
             >
               <span className="whitespace-nowrap flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -538,7 +538,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
           {/* Account */}
           <a
             href={currentUser ? '/account' : '/login'}
-            className="hw-glass-btn px-3.5 py-2"
+            className="hw-glass-btn px-3 py-1.5"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -591,7 +591,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
       </div>
 
       {/* Navigation Links Bar + Mega Menu Trigger */}
-      <div className="hidden lg:block bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800 text-sm font-semibold">
+      <div className="hidden lg:block bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800 text-[11px] font-semibold py-1.5">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-6">
             {/* Shop by Category Mega Menu Button */}
@@ -601,7 +601,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
               onMouseLeave={() => setIsMegaMenuOpen(false)}
             >
               <button
-                className="hw-glass-btn px-4 py-2 text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400"
+                className="hw-glass-btn px-3 py-1.5 text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400"
               >
                 <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
@@ -740,31 +740,31 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
             </div>
 
             {/* Direct Category & Feature Links */}
-            <a href="/products" className="py-2 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <a href="/products" className="py-1 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
               All Products
             </a>
-            <a href="/deals" className="py-2 text-orange-600 dark:text-orange-400 font-extrabold flex items-center gap-1 hover:text-orange-700">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <a href="/deals" className="py-1 text-orange-600 dark:text-orange-400 font-extrabold flex items-center gap-1 hover:text-orange-700">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               <span>Today's Deals</span>
             </a>
-            <a href="/products?sort=rating" className="py-2 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <a href="/products?sort=rating" className="py-1 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
               Best Products
             </a>
-            <a href="/compare" className="py-2 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <a href="/compare" className="py-1 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
               Comparisons
             </a>
-            <a href="/reviews" className="py-2 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <a href="/reviews" className="py-1 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
               Expert Reviews
             </a>
-            <a href="/guides" className="py-2 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <a href="/guides" className="py-1 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
               Buying Guides
             </a>
-            <a href="/brands" className="py-2 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <a href="/brands" className="py-1 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
               Brands
             </a>
-            <a href="/deals" className="py-2 text-emerald-600 dark:text-emerald-400 font-bold hover:text-emerald-700 transition-colors">
+            <a href="/deals" className="py-1 text-emerald-600 dark:text-emerald-400 font-bold hover:text-emerald-700 transition-colors">
               Price Tracker
             </a>
           </div>
