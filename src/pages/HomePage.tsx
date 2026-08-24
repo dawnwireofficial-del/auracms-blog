@@ -324,9 +324,11 @@ function CategoryMerchandisingSection({
       })()}
 
       {/* Product Grid (4-6 Products) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4" data-stagger>
         {products.slice(0, 6).map((product) => (
-          <UnifiedProductCard key={product.id} product={product} />
+          <div key={product.id} data-stagger-item>
+            <UnifiedProductCard product={product} />
+          </div>
         ))}
       </div>
     </section>
@@ -357,16 +359,22 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
   // Banner slots from admin
   const bannerSlots = useMemo(() => assignHomepageSlots(banners), [banners]);
 
-  // Fetch Public Brands & Guides
+  // Fetch Public Brands & Buying Guides (filtered)
   useEffect(() => {
     fetch('/api/public/brands?limit=24')
       .then(r => r.json())
       .then(data => setBrands(Array.isArray(data) ? data : (data?.data || [])))
       .catch(() => {});
 
-    fetch('/api/public/posts?limit=6')
+    fetch('/api/public/posts?limit=50')
       .then(r => r.json())
-      .then(data => setPosts(Array.isArray(data) ? data : (data?.data || [])))
+      .then(body => {
+        const all = Array.isArray(body.data) ? body.data : Array.isArray(body) ? body : [];
+        const buyingGuides = all
+          .filter((p: Post) => p.status === 'published' && p.tags?.some((t: string) => t.toLowerCase().includes('buying guide') || t.toLowerCase().includes('best')))
+          .sort((a: Post, b: Post) => new Date(b.publishedAt || b.createdAt).getTime() - new Date(a.publishedAt || a.createdAt).getTime());
+        setPosts(buyingGuides.slice(0, 6));
+      })
       .catch(() => {});
   }, []);
 
@@ -708,8 +716,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           />
 
           {/* Auto-scrolling category marquee (pauses on hover) — circles only */}
-          <div data-horizontal-scroll className="dw-marquee relative overflow-hidden py-8">
-            <div data-horizontal-wrapper className="dw-marquee-track flex items-center gap-8 w-max px-6">
+          <div className="dw-marquee relative overflow-hidden py-8">
+            <div className="dw-marquee-track flex items-center gap-8 w-max px-6">
               {[...fullTaxonomyCategories, ...fullTaxonomyCategories].map((cat, i) => {
                 const dbCat = categories.find(c => c.slug === cat.slug);
                 const brandIcon = dbCat?.image || '';
@@ -777,9 +785,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4" data-stagger>
             {topDeals.map((product, idx) => (
-              <UnifiedProductCard key={product.id} product={product} eager={idx < 6} />
+              <div key={product.id} data-stagger-item>
+                <UnifiedProductCard product={product} eager={idx < 6} />
+              </div>
             ))}
           </div>
         </section>
@@ -1065,7 +1075,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             15. LATEST BUYING GUIDES (Clean Editorial Grid)
         ───────────────────────────────────────────────────────────── */}
         {posts.length > 0 && (
-          <section data-reveal className="pt-2">
+          <section data-reveal data-stagger className="pt-2">
             <SectionHeading
               title="Latest Buying Guides & Expert Reviews"
               subtitle="In-depth testing, lab breakdowns, and buyer checklists"
@@ -1074,43 +1084,62 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {posts.slice(0, 3).map((post) => {
+              {posts.slice(0, 3).map((post, idx) => {
                 const cat = categories.find(c => c.id === post.categoryId);
+                const gradients = [
+                  'from-[#0A1F44] via-[#123A7A] to-[#246BFF]',
+                  'from-[#1A1A2E] via-[#2D2D44] to-[#4F7CFF]',
+                  'from-[#0A1F44] via-[#1A3A6A] to-[#FF8A00]',
+                ];
                 return (
                   <a
                     key={post.id}
                     href={`/post/${post.slug}`}
-                    className="group flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500 shadow-xs hover:shadow-lg transition-all duration-300 overflow-hidden"
+                    data-stagger-item
+                    className="group flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500 shadow-xs hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-500 overflow-hidden"
                   >
-                    <div className="relative aspect-video bg-gradient-to-br from-[#0A1F44] via-[#123A7A] to-[#246BFF] overflow-hidden">
+                    <div className={`relative aspect-video bg-gradient-to-br ${gradients[idx % 3]} overflow-hidden`}>
                       {post.featuredImage ? (
                         <img
                           src={proxyImageUrl(post.featuredImage)}
                           alt={post.title}
                           loading="lazy"
                           referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         />
-                      ) : null}
-                      <span className="absolute inset-0 flex items-center justify-center text-5xl opacity-70 select-none pointer-events-none">📚</span>
-                      <span className="absolute top-3 left-3 bg-slate-900/90 text-white font-bold text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wide backdrop-blur-xs">
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-6xl opacity-60 select-none group-hover:scale-110 transition-transform duration-500">📚</span>
+                        </div>
+                      )}
+                      {/* Gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      {/* Category badge */}
+                      <span className="absolute top-3 left-3 bg-white/95 dark:bg-slate-900/95 text-slate-900 dark:text-white font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider backdrop-blur-xs shadow-sm">
                         {cat?.name || 'Buying Guide'}
+                      </span>
+                      {/* Reading time */}
+                      <span className="absolute bottom-3 right-3 bg-black/50 text-white text-[10px] font-bold px-2.5 py-1 rounded-full backdrop-blur-xs">
+                        {post.readingTime || 5} min read
                       </span>
                     </div>
 
                     <div className="p-5 flex flex-col flex-1">
-                      <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
+                      <h3 className="text-[15px] font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
                         {post.title}
                       </h3>
                       <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-2 leading-relaxed">
                         {post.excerpt}
                       </p>
 
-                      <div className="mt-auto pt-4 flex items-center justify-between text-xs text-slate-400 font-semibold border-t border-slate-100 dark:border-slate-800">
-                        <span>{post.readingTime || 5} min read</span>
-                        <span className="text-blue-600 dark:text-blue-400 font-bold group-hover:translate-x-0.5 transition-transform">
-                          Read Guide &rarr;
+                      <div className="mt-auto pt-4 flex items-center justify-between text-xs border-t border-slate-100 dark:border-slate-800">
+                        <span className="text-slate-400 font-semibold">
+                          {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
+                        </span>
+                        <span className="text-blue-600 dark:text-blue-400 font-bold inline-flex items-center gap-1 group-hover:gap-2 transition-all">
+                          Read Guide
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                         </span>
                       </div>
                     </div>
@@ -1133,11 +1162,12 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
               viewAllText="All Brands"
             />
 
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3" data-stagger>
               {brands.slice(0, 16).map((brand) => (
                 <a
                   key={brand.id}
                   href={`/products?brand=${encodeURIComponent(brand.name)}`}
+                  data-stagger-item
                   className="group flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500 shadow-xs hover:shadow-md transition-all duration-300 min-h-[86px] text-center"
                 >
                   {brand.logoUrl || brand.logo ? (
