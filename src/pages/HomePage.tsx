@@ -649,34 +649,39 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         </section>
 
 {/* ─────────────────────────────────────────────────────────────
-            6. TRUST STRIP (5-Item Credibility Bar — professional horizontal)
+            6. TRUST STRIP — 5 equal columns, single row, premium
         ───────────────────────────────────────────────────────────── */}
-        <section data-reveal className="py-8 md:py-10 bg-white/50 dark:bg-slate-900/50 border-y border-slate-200/60 dark:border-slate-800/60">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10">
+        <section data-reveal className="bg-white dark:bg-slate-900 border-y border-slate-200/60 dark:border-slate-800/60">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-5 gap-0">
               {[
                 { title: 'Independently Reviewed', desc: 'Lab-tested specs & verdicts', iconKey: 'Independently Reviewed' },
                 { title: 'Live Price Checks', desc: '24/7 Amazon sync', iconKey: 'Live Price Checks' },
                 { title: 'Price History Tracking', desc: 'Real deal verification', iconKey: 'Price History Tracking' },
                 { title: 'Expert Buying Guides', desc: 'Unbiased category roundups', iconKey: 'Expert Buying Guides' },
                 { title: 'Secure Affiliate Links', desc: '100% free buyer service', iconKey: 'Secure Affiliate Links' }
-              ].map((item) => (
-                <div key={item.title} className="group flex items-center gap-4 min-w-[260px] max-w-[300px] flex-shrink-0">
-                  <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br from-blue-50 to-orange-50 dark:from-blue-900/30 dark:to-orange-900/30 border border-slate-200/80 dark:border-slate-700 group-hover:border-blue-400 group-hover:shadow-lg group-hover:shadow-blue-500/20 transition-all duration-300 overflow-hidden">
+              ].map((item, idx) => (
+                <div
+                  key={item.title}
+                  className={`relative flex items-center gap-3 px-4 py-5 min-h-[90px] ${
+                    idx < 4 ? 'border-r border-slate-200/60 dark:border-slate-800/60' : ''
+                  }`}
+                >
+                  <div className="shrink-0 w-[64px] h-[64px] flex items-center justify-center">
                     {BRAND_KIT.trustIcons[item.iconKey] ? (
                       <img
                         src={BRAND_KIT.trustIcons[item.iconKey]}
                         alt={item.title}
                         loading="lazy"
                         referrerPolicy="no-referrer"
-                        className="w-8 h-8 md:w-10 md:h-10 object-contain"
+                        className="w-full h-full object-contain"
                         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       />
                     ) : null}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-base md:text-lg font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors whitespace-nowrap">{item.title}</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 leading-tight truncate">{item.desc}</p>
+                    <p className="text-[15px] font-bold text-slate-900 dark:text-slate-100 leading-none whitespace-nowrap overflow-hidden text-ellipsis">{item.title}</p>
+                    <p className="text-[12px] text-slate-500 dark:text-slate-400 leading-none mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">{item.desc}</p>
                   </div>
                 </div>
               ))}
