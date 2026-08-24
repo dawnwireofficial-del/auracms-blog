@@ -270,9 +270,8 @@ function CategoryMerchandisingSection({
   viewAllHref: string;
 }) {
   if (!products || products.length === 0) return null;
-
-  return (
-    <section data-reveal className="py-8 border-t border-slate-200/80 dark:border-slate-800">
+return (
+    <section data-reveal data-stagger className="py-8 border-t border-slate-200/80 dark:border-slate-800">
       <SectionHeading
         title={title}
         subtitle={subtitle}
@@ -300,6 +299,7 @@ function CategoryMerchandisingSection({
         return (
           <div className={`relative rounded-2xl bg-gradient-to-r ${bannerGradient} text-white p-6 sm:p-7 mb-6 overflow-hidden shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4`}>
             <div className="relative z-10 max-w-xl">
+
               {bannerBadge && (
                 <span className="inline-block text-[10px] font-black uppercase tracking-widest bg-white/20 px-2.5 py-0.5 rounded-md mb-2">
                   {bannerBadge}
@@ -568,17 +568,18 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                   exit={{ opacity: 0, scale: 0.98 }}
                   transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <picture>
-                    <source media="(max-width: 767px)" srcSet={heroSlides[currentSlide].mobileImage || heroSlides[currentSlide].image} />
-                    <img
-                      src={heroSlides[currentSlide].image}
-                      alt={heroSlides[currentSlide].alt}
-                      loading={currentSlide === 0 ? 'eager' : 'lazy'}
-                      fetchPriority={currentSlide === 0 ? 'high' : undefined}
-                      className="w-full h-full object-cover"
-                      data-img-parallax="0.4"
-                    />
-                  </picture>
+<picture>
+                      <source media="(max-width: 767px)" srcSet={heroSlides[currentSlide].mobileImage || heroSlides[currentSlide].image} />
+                      <img
+                        src={heroSlides[currentSlide].image}
+                        alt={heroSlides[currentSlide].alt}
+                        loading={currentSlide === 0 ? 'eager' : 'lazy'}
+                        fetchPriority={currentSlide === 0 ? 'high' : undefined}
+                        className="w-full h-full object-cover"
+                        data-img-parallax="0.4"
+                        data-img-reveal
+                      />
+                    </picture>
                 </motion.a>
               )}
             </AnimatePresence>
@@ -632,6 +633,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                   loading="lazy"
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-300"
+                  data-img-reveal
                   onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               </a>
@@ -859,8 +861,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         {/* ─────────────────────────────────────────────────────────────
             11. PROMO BANNER ROW (Between Merchandise Sections)
         ───────────────────────────────────────────────────────────── */}
-        <section data-reveal className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 sm:p-8 flex flex-col justify-between shadow-md">
+        <section data-reveal data-stagger className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div data-stagger-item className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 sm:p-8 flex flex-col justify-between shadow-md">
             <div>
               <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-2.5 py-0.5 rounded mb-2 inline-block">
                 Exclusive Event
@@ -876,7 +878,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             </a>
           </div>
 
-          <div className="rounded-2xl bg-gradient-to-r from-slate-900 to-blue-950 text-white p-6 sm:p-8 flex flex-col justify-between shadow-md border border-slate-800">
+          <div data-stagger-item className="rounded-2xl bg-gradient-to-r from-slate-900 to-blue-950 text-white p-6 sm:p-8 flex flex-col justify-between shadow-md border border-slate-800">
             <div>
               <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-2.5 py-0.5 rounded mb-2 inline-block">
                 Buyer Guides
@@ -935,10 +937,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         {/* ─────────────────────────────────────────────────────────────
             12 & 13. FEATURED COMPARISON + AI PRODUCT FINDER
         ───────────────────────────────────────────────────────────── */}
-        <section data-reveal className="pt-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <section data-reveal data-stagger className="pt-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" data-stagger>
             {/* Left: Featured Comparison */}
-            <div className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-50/80 via-white to-indigo-50/60 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 border border-blue-200/80 dark:border-slate-800 p-6 sm:p-8 flex flex-col justify-between shadow-xs">
+            <div data-stagger-item className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-50/80 via-white to-indigo-50/60 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 border border-blue-200/80 dark:border-slate-800 p-6 sm:p-8 flex flex-col justify-between shadow-xs">
               <div>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-bold w-fit mb-3">
                   <span>⚔️ Head-to-Head Comparison</span>
@@ -995,7 +997,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
             </div>
 
             {/* Right: AI Product Finder */}
-            <div className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-[#0A1F44] to-blue-950 text-white p-6 sm:p-8 flex flex-col justify-between shadow-xl border border-slate-800">
+            <div data-stagger-item className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-[#0A1F44] to-blue-950 text-white p-6 sm:p-8 flex flex-col justify-between shadow-xl border border-slate-800">
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-center">
                 <div className="sm:col-span-8">
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-bold w-fit mb-3">
@@ -1041,7 +1043,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         {/* ─────────────────────────────────────────────────────────────
             14. PRICE DROP / WATCHLIST SECTION
         ───────────────────────────────────────────────────────────── */}
-        <section data-reveal className="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white p-8 sm:p-10 relative overflow-hidden shadow-xl border border-blue-800">
+        <section data-reveal data-stagger className="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white p-8 sm:p-10 relative overflow-hidden shadow-xl border border-blue-800">
           <div className="relative z-10 max-w-2xl">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-bold mb-3">
               <span>📉 Automated Deal Tracker</span>
@@ -1198,7 +1200,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         {/* ─────────────────────────────────────────────────────────────
             17. NEWSLETTER BLOCK (Full-Width Navy Block)
         ───────────────────────────────────────────────────────────── */}
-        <section data-reveal className="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-8 sm:p-12 relative overflow-hidden shadow-xl border border-slate-800">
+        <section data-reveal data-stagger className="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-8 sm:p-12 relative overflow-hidden shadow-xl border border-slate-800">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-7">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/20 text-orange-300 text-xs font-bold mb-3 border border-orange-400/30">
