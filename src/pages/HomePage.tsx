@@ -363,14 +363,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
 
     fetch('/api/public/posts?limit=6')
       .then(r => r.json())
-      .then(data => {
-        const allPosts = Array.isArray(data) ? data : (data?.data || []);
-        // Filter for buying guides only (posts tagged with 'buying guide')
-        const buyingGuides = allPosts.filter((p: any) => 
-          Array.isArray(p.tags) && p.tags.some((t: string) => t.toLowerCase().includes('buying guide'))
-        );
-        setPosts(buyingGuides);
-      })
+      .then(data => setPosts(Array.isArray(data) ? data : (data?.data || [])))
       .catch(() => {});
   }, []);
 
@@ -658,9 +651,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
 {/* ─────────────────────────────────────────────────────────────
             6. TRUST STRIP — 5 equal columns, single row, premium
         ───────────────────────────────────────────────────────────── */}
-        <section data-reveal className="bg-white dark:bg-slate-900 border-y border-slate-200/60 dark:border-slate-800/60">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-5 gap-0">
+        <section data-reveal className="bg-white dark:bg-slate-900 border-y border-slate-200/60 dark:border-slate-800/60 px-4 md:px-6">
+          <div className="grid grid-cols-5 gap-0">
               {[
                 { title: 'Independently Reviewed', desc: 'Lab-tested specs & verdicts', iconKey: 'Independently Reviewed' },
                 { title: 'Live Price Checks', desc: '24/7 Amazon sync', iconKey: 'Live Price Checks' },
@@ -692,7 +684,6 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                   </div>
                 </div>
               ))}
-            </div>
           </div>
         </section>
 
@@ -1067,8 +1058,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         {posts.length > 0 && (
           <section data-reveal className="pt-2">
             <SectionHeading
-              title="Latest Buying Guides"
-              subtitle="Hand-picked roundups, lab breakdowns, and buyer checklists"
+              title="Latest Buying Guides & Expert Reviews"
+              subtitle="In-depth testing, lab breakdowns, and buyer checklists"
               viewAllHref="/guides"
               viewAllText="All Buying Guides"
             />
