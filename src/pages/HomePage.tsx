@@ -711,8 +711,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           />
 
           {/* Auto-scrolling category marquee (pauses on hover) — circles only */}
-          <div className="dw-marquee relative overflow-hidden py-6">
-            <div className="dw-marquee-track flex items-center gap-6 w-max px-4">
+          <div className="dw-marquee relative overflow-hidden py-8">
+            <div className="dw-marquee-track flex items-center gap-8 w-max px-6">
               {[...fullTaxonomyCategories, ...fullTaxonomyCategories].map((cat, i) => {
                 const dbCat = categories.find(c => c.slug === cat.slug);
                 const brandIcon = dbCat?.image || '';
@@ -722,7 +722,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                     href={`/categories/${cat.slug}`}
                     className="group flex flex-col items-center justify-center shrink-0 transition-colors text-center"
                   >
-                    <div className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-white dark:bg-slate-800 border-2 border-slate-200/80 dark:border-slate-700 shadow-sm flex items-center justify-center overflow-hidden mb-3 group-hover:border-blue-400 group-hover:shadow-lg transition-all group-hover:scale-105">
+                    <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-white dark:bg-slate-800 border-2 border-slate-200/80 dark:border-slate-700 shadow-sm flex items-center justify-center overflow-hidden mb-4 group-hover:border-blue-400 group-hover:shadow-xl transition-all group-hover:scale-110">
                       {brandIcon ? (
                         <img
                           src={brandIcon}
@@ -736,11 +736,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                         <AnimatedCategoryIcon
                           slug={cat.slug}
                           icon={cat.icon || 'tag'}
-                          className="w-12 h-12 md:w-14 md:h-14 text-blue-600 dark:text-blue-400"
+                          className="w-14 h-14 md:w-18 md:h-18 text-blue-600 dark:text-blue-400"
                         />
                       )}
                     </div>
-                    <span className="text-[13px] font-extrabold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-tight">
+                    <span className="text-[14px] md:text-[15px] font-extrabold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-tight">
                       {cat.name}
                     </span>
                   </a>
