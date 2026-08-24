@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../lib/store';
 import { proxyImageUrl } from '../utils/safeRender';
 import { assignHomepageSlots } from '../lib/homepageSlots';
@@ -540,25 +541,32 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         >
           {/* ── HERO: full-width, native 1916×821 banner carousel ── */}
           <div className={`relative rounded-2xl sm:rounded-3xl bg-[#0A1F44] text-white overflow-hidden shadow-lg aspect-[16/9] sm:aspect-[1916/821] ${isHeroScrolled ? 'hero-gradient-shift scrolled' : 'hero-gradient-shift'}`}>
-            {/* Slider Content — designed banner, full bleed, exact ratio (no crop) */}
-            {heroSlides[currentSlide]?.image ? (
-              <a
-                href={heroSlides[currentSlide].ctaHref}
-                className="absolute inset-0 z-10 block"
-                aria-label="Featured deals banner"
-              >
-                <picture>
-                  <source media="(max-width: 767px)" srcSet={heroSlides[currentSlide].mobileImage || heroSlides[currentSlide].image} />
-                  <img
-                    src={heroSlides[currentSlide].image}
-                    alt="Featured deals banner"
-                    loading={currentSlide === 0 ? 'eager' : 'lazy'}
-                    fetchPriority={currentSlide === 0 ? 'high' : undefined}
-                    className="w-full h-full object-cover transition-opacity duration-700 ease-out hover:opacity-90 group-hover:opacity-100"
-                  />
-                </picture>
-              </a>
-            ) : null}
+            {/* Slider Content — designed banner, full bleed, exact ratio (no crop) with smooth transitions */}
+            <AnimatePresence mode="wait">
+              {heroSlides[currentSlide]?.image && (
+                <motion.a
+                  key={currentSlide}
+                  href={heroSlides[currentSlide].ctaHref}
+                  className="absolute inset-0 z-10 block"
+                  aria-label="Featured deals banner"
+                  initial={{ opacity: 0, scale: 1.02 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <picture>
+                    <source media="(max-width: 767px)" srcSet={heroSlides[currentSlide].mobileImage || heroSlides[currentSlide].image} />
+                    <img
+                      src={heroSlides[currentSlide].image}
+                      alt="Featured deals banner"
+                      loading={currentSlide === 0 ? 'eager' : 'lazy'}
+                      fetchPriority={currentSlide === 0 ? 'high' : undefined}
+                      className="w-full h-full object-cover hover:opacity-90 transition-opacity duration-500"
+                    />
+                  </picture>
+                </motion.a>
+              )}
+            </AnimatePresence>
 
             {/* Slider Dots + Arrows */}
             {totalSlides > 1 && (
