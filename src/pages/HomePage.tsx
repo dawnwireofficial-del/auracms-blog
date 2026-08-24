@@ -654,14 +654,23 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         <section data-reveal className="py-6 md:py-8">
           <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
             {[
-              { title: 'Independently Reviewed', desc: 'Lab-tested specs & verdicts', icon: '🛡️' },
-              { title: 'Live Price Checks', desc: '24/7 Amazon sync', icon: '⚡' },
-              { title: 'Price History Tracking', desc: 'Real deal verification', icon: '📉' },
-              { title: 'Expert Buying Guides', desc: 'Unbiased category roundups', icon: '📚' },
-              { title: 'Secure Affiliate Links', desc: '100% free buyer service', icon: '🔒' }
+              { title: 'Independently Reviewed', desc: 'Lab-tested specs & verdicts', iconKey: 'Independently Reviewed' },
+              { title: 'Live Price Checks', desc: '24/7 Amazon sync', iconKey: 'Live Price Checks' },
+              { title: 'Price History Tracking', desc: 'Real deal verification', iconKey: 'Price History Tracking' },
+              { title: 'Expert Buying Guides', desc: 'Unbiased category roundups', iconKey: 'Expert Buying Guides' },
+              { title: 'Secure Affiliate Links', desc: '100% free buyer service', iconKey: 'Secure Affiliate Links' }
             ].map((item) => (
               <div key={item.title} className="group flex items-center gap-3 whitespace-nowrap">
-                <span className="text-2xl md:text-3xl" aria-hidden="true">{item.icon}</span>
+                {BRAND_KIT.trustIcons[item.iconKey] ? (
+                  <img
+                    src={BRAND_KIT.trustIcons[item.iconKey]}
+                    alt={item.title}
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    className="h-8 md:h-10 w-auto object-contain"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                ) : null}
                 <div>
                   <p className="text-sm md:text-base font-extrabold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{item.title}</p>
                   <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 leading-tight">{item.desc}</p>
