@@ -374,13 +374,31 @@ router.get('/brands', async (req, res) => {
   const active = brands.filter((b: any) => b.status === 'active');
   const limit = parseInt(req.query.limit as string);
   const offset = parseInt(req.query.offset as string) || 0;
+  const search = (req.query.search as string) || '';
   // Paginated mode: { data, total, limit, offset } — used by /brands page.
   if (limit > 0) {
-    const sorted = active.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
+    let sorted = active.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
+    if (search) {
+      const q = search.toLowerCase();
+      sorted = sorted.filter((b: any) =>
+        (b.name || '').toLowerCase().includes(q) ||
+        (b.slug || '').toLowerCase().includes(q) ||
+        (b.description || '').toLowerCase().includes(q)
+      );
+    }
+    const total = sorted.length;
     const page = sorted.slice(offset, offset + limit);
-    return res.json({ data: page, total: active.length, limit, offset });
+    return res.json({ data: page, total, limit, offset });
   }
   // Legacy mode: plain array (homepage/category consumers).
+  if (search) {
+    const q = search.toLowerCase();
+    return res.json(active.filter((b: any) =>
+      (b.name || '').toLowerCase().includes(q) ||
+      (b.slug || '').toLowerCase().includes(q) ||
+      (b.description || '').toLowerCase().includes(q)
+    ));
+  }
   res.json(active);
 });
 

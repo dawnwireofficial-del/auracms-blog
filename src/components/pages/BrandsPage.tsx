@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Building2, ChevronRight, ChevronLeft, ShoppingBag } from 'lucide-react';
-import { motion } from 'motion/react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Building2, ChevronRight, ChevronLeft, ShoppingBag, Search, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import ScrollReveal from '../ScrollReveal';
 import { proxyImageUrl } from '../../utils/safeRender';
 
@@ -12,13 +12,16 @@ export default function BrandsPage({ onNavigate }: { onNavigate: (r: string, p?:
   const [page, setPage] = useState(0);
   const [total, setTotal] = useState(0);
   const [productCounts, setProductCounts] = useState<Record<string, number>>({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
-  const fetchPage = useCallback(async (p: number) => {
+  const fetchPage = useCallback(async (p: number, query = '') => {
     setLoading(true);
     setBrands([]);
     setProductCounts({});
     try {
-      const res = await fetch(`/api/public/brands?limit=${PER_PAGE}&offset=${p * PER_PAGE}`);
+      const searchParam = query ? `&search=${encodeURIComponent(query)}` : '';
+      const res = await fetch(`/api/public/brands?limit=${PER_PAGE}&offset=${p * PER_PAGE}${searchParam}`);
       if (res.ok) {
         const data = await res.json();
         const list = Array.isArray(data) ? data : (data?.data || []);
@@ -44,16 +47,29 @@ export default function BrandsPage({ onNavigate }: { onNavigate: (r: string, p?:
   }, []);
 
   useEffect(() => {
-    fetchPage(0);
-  }, [fetchPage]);
+    fetchPage(0, searchQuery);
+  }, [fetchPage, searchQuery]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(0);
+    setIsSearching(false);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setPage(0);
+  };
 
   const totalPages = Math.ceil(total / PER_PAGE);
   const goToPage = (p: number) => {
     if (p < 0 || p >= totalPages) return;
     setPage(p);
-    fetchPage(p);
+    fetchPage(p, searchQuery);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const hasResults = brands.length > 0;
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950">
@@ -66,6 +82,38 @@ export default function BrandsPage({ onNavigate }: { onNavigate: (r: string, p?:
             </p>
           </div>
         </ScrollReveal>
+
+        {/* Search Bar */}
+        <form onSubmit={handleSearch} className="mb-8">
+          <div className="relative max-w-xl mx-auto">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setIsSearching(true)}
+              onBlur={() => setTimeout(() => setIsSearching(false), 200)}
+              placeholder="Search brands by name..."
+              className="w-full pl-12 pr-12 py-3 text-base border border-slate-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-800/50 text-slate-800 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#246BFF] focus:border-transparent transition-all"
+              aria-label="Search brands"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={clearSearch}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 transition-colors"
+                aria-label="Clear search"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+          {searchQuery && (
+            <p className="text-center text-sm text-slate-500 dark:text-zinc-400 mt-2">
+              Showing results for <span className="font-medium">"{searchQuery}"</span> — {total} brand{total !== 1 ? 's' : ''} found
+            </p>
+          )}
+        </form>
 
         {loading && brands.length === 0 ? (
           <div className="text-center py-20">

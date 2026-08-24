@@ -123,9 +123,21 @@ export default function BuyerGuidePage({ category, onNavigate }: BuyerGuidePageP
                 key={p.id}
                 className="bg-white dark:bg-zinc-800/50 rounded-xl border border-slate-200 dark:border-zinc-700 overflow-hidden hover:shadow-lg hover:border-[#246BFF]/20 transition-all group"
               >
-                {p.product_image && (
+                {p.product_image ? (
                   <div className="h-44 bg-white dark:bg-zinc-900 p-6 border-b border-slate-100 dark:border-zinc-700/50">
                     <img src={proxyImageUrl(p.product_image)} alt={p.product_name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" loading="lazy" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  </div>
+                ) : (
+                  <div className="h-44 bg-zinc-800/50 dark:bg-zinc-900 rounded-xl border border-zinc-700/50 flex items-center justify-center p-6">
+                    <div className="text-zinc-500 text-sm opacity-60">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1" ry="1"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1" ry="1"/>
+                      </svg>
+                      No image
+                    </div>
                   </div>
                 )}
                 <div className="p-4 space-y-3">

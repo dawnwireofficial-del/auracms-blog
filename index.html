@@ -28,6 +28,91 @@
     <meta property="article:published_time" content="2024-01-01T00:00:00Z" />
     <meta property="article:modified_time" content="2026-07-25T00:00:00Z" />
 
+    <!-- ============ Premium motion layer: Lenis core styles + custom cursor tokens ============ -->
+    <style>
+      /* --- Lenis smooth-scroll structural requirements --- */
+      html.lenis, html.lenis body { height: auto; }
+      .lenis.lenis-smooth { scroll-behavior: auto !important; }
+      .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+      .lenis.lenis-stopped { overflow: hidden; }
+
+      /* --- Custom cursor design tokens --- */
+      :root {
+        --dw-cursor-ring-size: 36px;
+        --dw-cursor-dot-size: 6px;
+        --dw-cursor-color: #246BFF;
+        --dw-cursor-accent: #FF8A00;
+        --dw-cursor-ring-ease: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .dark {
+        --dw-cursor-color: #4F7CFF;
+        --dw-cursor-accent: #D4B87A;
+      }
+      .dw-cursor-wrap {
+        position: fixed;
+        top: 0; left: 0;
+        z-index: 10000;
+        pointer-events: none;
+        opacity: 0;
+        will-change: transform;
+      }
+      .dw-cursor-ring {
+        position: fixed;
+        top: calc(var(--dw-cursor-ring-size) / -2);
+        left: calc(var(--dw-cursor-ring-size) / -2);
+        width: var(--dw-cursor-ring-size);
+        height: var(--dw-cursor-ring-size);
+        border-radius: 9999px;
+        border: 1.5px solid var(--dw-cursor-color);
+        opacity: 0.55;
+        transition: width 0.28s var(--dw-cursor-ring-ease), height 0.28s var(--dw-cursor-ring-ease),
+                    border-color 0.28s ease, background-color 0.28s ease, opacity 0.28s ease;
+        will-change: transform;
+      }
+      .dw-cursor-dot {
+        position: fixed;
+        top: calc(var(--dw-cursor-dot-size) / -2);
+        left: calc(var(--dw-cursor-dot-size) / -2);
+        width: var(--dw-cursor-dot-size);
+        height: var(--dw-cursor-dot-size);
+        border-radius: 9999px;
+        background: var(--dw-cursor-color);
+        box-shadow: 0 0 10px rgba(36, 107, 255, 0.6);
+        will-change: transform;
+      }
+      .dw-cursor-hover .dw-cursor-ring {
+        width: 56px;
+        height: 56px;
+        background: rgba(36, 107, 255, 0.08);
+        border-color: var(--dw-cursor-accent);
+        opacity: 0.9;
+      }
+      .dw-cursor-hover .dw-cursor-dot {
+        background: var(--dw-cursor-accent);
+        box-shadow: 0 0 12px rgba(255, 138, 0, 0.65);
+      }
+      .dw-cursor-down .dw-cursor-ring { width: 28px; height: 28px; }
+
+      /* Hide native cursor ONLY on precise pointers; keep text caret usable in inputs */
+      @media (hover: hover) and (pointer: fine) {
+        html.dw-cursor-on body { cursor: none; }
+        html.dw-cursor-on input,
+        html.dw-cursor-on textarea,
+        html.dw-cursor-on select { cursor: auto; }
+        html.dw-cursor-on input[type="checkbox"],
+        html.dw-cursor-on input[type="radio"] { cursor: pointer; }
+      }
+      /* Fully hide the custom cursor wrapper on touch devices */
+      @media (hover: none), (pointer: coarse) {
+        .dw-cursor-wrap { display: none !important; }
+      }
+      /* Respect reduced-motion users */
+      @media (prefers-reduced-motion: reduce) {
+        .dw-cursor-wrap { display: none !important; }
+      }
+    </style>
+    <!-- ============ End premium motion layer styles ============ -->
+
     <style>
       /* Styles for the server-rendered homepage block that appears before the
          React app mounts. (The client app replaces this content on load.) */
@@ -197,6 +282,11 @@
   </head>
   <body>
     <script>!function(){var t,e=localStorage.getItem("theme");(e==="dark"||!e&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.documentElement.classList.add("dark")}()</script>
+    <!-- Custom magnetic cursor wrapper (hidden on touch devices via CSS media query) -->
+    <div class="dw-cursor-wrap" aria-hidden="true">
+      <div class="dw-cursor-ring"></div>
+      <div class="dw-cursor-dot"></div>
+    </div>
     <div id="root"></div>
     <!-- Pre-React loader: premium DawnWire orbit loader -->
     <div id="dawn-loader" style="position:fixed;inset:0;z-index:9999;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s ease,visibility 0.5s ease">
@@ -230,22 +320,162 @@
       <div class="dw-progress"></div>
     </div>
     <!-- End of premium DawnWire orbit loader -->
-    <script type="module">
-      // Hide the pre-React loader after the app mounts or on window load
-      const loader = document.getElementById('dawn-loader');
-      if (loader) {
-        const hideLoader = () => {
-          loader.style.opacity = '0';
-          loader.style.visibility = 'hidden';
+    <!-- ============ CDN: GSAP + ScrollTrigger + Lenis ============ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
+    <!-- ============ Premium motion initialization ============ -->
+    <script>
+    (function () {
+      'use strict';
+
+      // Bail on reduced-motion or if critical libs failed to load
+      var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var isFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+      if (prefersReduced || !window.gsap || !window.ScrollTrigger || !window.Lenis) return;
+
+      gsap.registerPlugin(window.ScrollTrigger);
+
+      // ---------- Lenis smooth scroll ----------
+      var lenis = new Lenis({
+        duration: 1.15,
+        easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
+        smoothWheel: true,
+        smoothTouch: false
+      });
+      // Expose for debugging / other scripts
+      window.__lenis = lenis;
+
+      // Keep ScrollTrigger in sync with Lenis
+      lenis.on('scroll', function () { ScrollTrigger.update(); });
+
+      // Drive Lenis RAF from GSAP ticker (avoids double RAF)
+      gsap.ticker.add(function (time) { lenis.raf(time * 1000); });
+      gsap.ticker.lagSmoothing(0);
+
+      // SPA route changes -> instant scroll to top
+      (function () {
+        var origPush = history.pushState;
+        var origReplace = history.replaceState;
+        history.pushState = function () {
+          origPush.apply(this, arguments);
+          requestAnimationFrame(function () { lenis.scrollTo(0, { immediate: true }); });
         };
-        if (document.readyState === 'complete') {
-          hideLoader();
-        } else {
-          window.addEventListener('load', hideLoader);
-          setTimeout(hideLoader, 5000);
+        history.replaceState = function () {
+          origReplace.apply(this, arguments);
+          requestAnimationFrame(function () { lenis.scrollTo(0, { immediate: true }); });
+        };
+        window.addEventListener('popstate', function () {
+          requestAnimationFrame(function () { lenis.scrollTo(0, { immediate: true }); });
+        });
+      })();
+
+      // ---------- Custom magnetic cursor (desktop only) ----------
+      if (isFinePointer) {
+        document.documentElement.classList.add('dw-cursor-on');
+
+        var wrap = document.querySelector('.dw-cursor-wrap');
+        var ring = document.querySelector('.dw-cursor-ring');
+        var dot = document.querySelector('.dw-cursor-dot');
+
+        if (wrap && ring && dot) {
+          var rx = gsap.quickTo(ring, 'x', { duration: 0.45, ease: 'power3.out' });
+          var ry = gsap.quickTo(ring, 'y', { duration: 0.45, ease: 'power3.out' });
+          var dx = gsap.quickTo(dot, 'x', { duration: 0.12, ease: 'power2.out' });
+          var dy = gsap.quickTo(dot, 'y', { duration: 0.12, ease: 'power2.out' });
+
+          var shown = false;
+          window.addEventListener('mousemove', function (e) {
+            if (!shown) {
+              shown = true;
+              gsap.to(wrap, { opacity: 1, duration: 0.35, ease: 'power2.out' });
+            }
+            rx(e.clientX);
+            ry(e.clientY);
+            dx(e.clientX);
+            dy(e.clientY);
+          }, { passive: true });
+
+          // Hover state on interactive elements
+          var INTERACTIVE = 'a, button, [role="button"], input[type="submit"], .hw-glass-btn, [data-magnetic]';
+          document.addEventListener('mouseover', function (e) {
+            if (e.target.closest && e.target.closest(INTERACTIVE)) {
+              document.documentElement.classList.add('dw-cursor-hover');
+            }
+          });
+          document.addEventListener('mouseout', function (e) {
+            if (e.target.closest && e.target.closest(INTERACTIVE)) {
+              document.documentElement.classList.remove('dw-cursor-hover');
+            }
+          });
+
+          // Magnetic pull for elements with [data-magnetic]
+          var magEl = null;
+          window.addEventListener('mousemove', function (e) {
+            var el = e.target.closest && e.target.closest('[data-magnetic]');
+            if (el !== magEl) {
+              if (magEl) gsap.to(magEl, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.4)' });
+              magEl = el;
+            }
+            if (magEl) {
+              var r = magEl.getBoundingClientRect();
+              var cx = r.left + r.width / 2;
+              var cy = r.top + r.height / 2;
+              gsap.to(magEl, {
+                x: (e.clientX - cx) * 0.28,
+                y: (e.clientY - cy) * 0.28,
+                duration: 0.35,
+                ease: 'power3.out'
+              });
+            }
+          }, { passive: true });
         }
       }
+
+      // ---------- Intro stagger fade-in for main containers ----------
+      var introDone = false;
+      function runIntro() {
+        if (introDone) return;
+        var root = document.getElementById('root');
+        var wrapper = root && root.firstElementChild;
+        if (!wrapper) { setTimeout(runIntro, 120); return; }
+
+        // Structural children of the app wrapper (header, page, footer, etc.)
+        var kids = Array.prototype.slice.call(wrapper.children);
+        var targets = kids.length > 1 ? kids : [wrapper];
+        targets = targets.filter(function (el) {
+          var s = getComputedStyle(el);
+          return s.display !== 'none' && s.visibility !== 'hidden';
+        });
+        if (!targets.length) { setTimeout(runIntro, 120); return; }
+
+        introDone = true;
+        gsap.set(targets, { opacity: 0 });
+        gsap.to(targets, {
+          opacity: 1,
+          duration: 0.9,
+          ease: 'power2.out',
+          stagger: 0.2,
+          clearProps: 'opacity',
+          onComplete: function () { gsap.set(targets, { clearProps: 'all' }); }
+        });
+      }
+      // Delay slightly so React can hydrate DOM
+      setTimeout(runIntro, 300);
+      // Safety: force clear any stuck opacity after 4s
+      setTimeout(function () {
+        var root = document.getElementById('root');
+        var wrapper = root && root.firstElementChild;
+        if (wrapper) {
+          var kids = Array.prototype.slice.call(wrapper.children);
+          var targets = kids.length > 1 ? kids : [wrapper];
+          gsap.set(targets, { clearProps: 'opacity' });
+        }
+      }, 4000);
+
+    })();
     </script>
+    <!-- ============ End premium motion initialization ============ -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
