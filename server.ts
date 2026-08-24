@@ -27,9 +27,9 @@ warmCacheFromStatic();
 // Server-render dynamic pages before the static middleware so crawlers receive
 // semantic HTML (H1, headings, editorial copy, internal links) in the raw
 // response instead of the empty JS shell. The client React app hydrates over it.
-// SSR cache: keyed by URL path, TTL 5 minutes
+// SSR cache: keyed by URL path, TTL 7 minutes
 const ssrCache = new Map<string, { html: string; ts: number }>();
-const SSR_TTL = 5 * 60 * 1000;
+const SSR_TTL = 7 * 60 * 1000;
 
 function serveSsr(render: () => Promise<SsrResult | null>, res: express.Response, next: express.NextFunction, cacheKey?: string) {
   const indexPath = path.join(distPath, 'index.html');
@@ -38,7 +38,7 @@ function serveSsr(render: () => Promise<SsrResult | null>, res: express.Response
   const key = cacheKey || '__default__';
   const cached = ssrCache.get(key);
   if (cached && Date.now() - cached.ts < SSR_TTL) {
-    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=300');
+    res.setHeader('Cache-Control', 'public, max-age=420, s-maxage=420, stale-while-revalidate=420');
     return res.type('html').send(cached.html);
   }
 
@@ -65,7 +65,7 @@ function serveSsr(render: () => Promise<SsrResult | null>, res: express.Response
       const oldest = ssrCache.keys().next().value;
       if (oldest) ssrCache.delete(oldest);
     }
-    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=300');
+    res.setHeader('Cache-Control', 'public, max-age=420, s-maxage=420, stale-while-revalidate=420');
     return res.type('html').send(full);
   })().catch(next);
 }

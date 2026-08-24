@@ -118,10 +118,12 @@ function DealsCountdown() {
 ───────────────────────────────────────────────────────────── */
 function UnifiedProductCard({
   product,
-  badge
+  badge,
+  eager = false
 }: {
   product: Product;
   badge?: string;
+  eager?: boolean;
 }) {
   const p = product;
   const currentPrice = Number(p.currentPrice || p.price || 0);
@@ -162,7 +164,8 @@ function UnifiedProductCard({
         <img
           src={proxyImageUrl(p.images?.[0] || p.productImage) || NO_IMAGE}
           alt={p.title}
-          loading="lazy"
+          loading={eager ? 'eager' : 'lazy'}
+          fetchPriority={eager ? 'high' : undefined}
           referrerPolicy="no-referrer"
           className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-500"
           onError={(e) => { (e.target as HTMLImageElement).src = NO_IMAGE; }}
@@ -439,6 +442,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
       ctaHref: h.href,
       image: proxyImageUrl(h.desktop) || '',
       mobileImage: proxyImageUrl(h.mobile) || '',
+      alt: h.alt || 'DawnWire featured deals',
     }));
   }, []);
 
@@ -560,7 +564,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                     <source media="(max-width: 767px)" srcSet={heroSlides[currentSlide].mobileImage || heroSlides[currentSlide].image} />
                     <img
                       src={heroSlides[currentSlide].image}
-                      alt="Featured deals banner"
+                      alt={heroSlides[currentSlide].alt}
                       loading={currentSlide === 0 ? 'eager' : 'lazy'}
                       fetchPriority={currentSlide === 0 ? 'high' : undefined}
                       className="w-full h-full object-cover"
@@ -654,7 +658,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
 {/* ─────────────────────────────────────────────────────────────
             6. TRUST STRIP — 5 equal columns, single row, premium
         ───────────────────────────────────────────────────────────── */}
-        <section data-reveal data-stagger data-bg-transition data-bg-start="#ffffff" data-bg-end="#f0f4f8" className="bg-white dark:bg-slate-900 border-y border-slate-200/60 dark:border-slate-800/60 px-4 md:px-6">
+        <section data-reveal data-stagger className="bg-white dark:bg-slate-900 border-y border-slate-200/60 dark:border-slate-800/60 px-4 md:px-6">
           <div className="grid grid-cols-5 gap-0" data-stagger>
               {[
                 { title: 'Independently Reviewed', desc: 'Lab-tested specs & verdicts', iconKey: 'Independently Reviewed', counter: 847 },
@@ -665,6 +669,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
               ].map((item, idx) => (
                 <div
                   key={item.title}
+                  data-stagger-item
                   className={`relative flex items-center gap-3 px-4 py-6 min-h-[110px] ${
                     idx < 4 ? 'border-r border-slate-200/60 dark:border-slate-800/60' : ''
                   }`}
@@ -684,7 +689,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                   <div className="min-w-0">
                     <p className="text-[15px] font-bold text-slate-900 dark:text-slate-100 leading-none whitespace-nowrap overflow-hidden text-ellipsis">{item.title}</p>
                     <p className="text-[12px] text-slate-500 dark:text-slate-400 leading-none mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">{item.desc}</p>
-                    <div data-counter={item.counter} data-counter-suffix="+" className="text-[14px] font-bold text-blue-600 dark:text-blue-400 mt-1"></div>
+                    <div data-counter={item.counter} data-counter-suffix="+" className="text-[14px] font-bold text-blue-600 dark:text-blue-400 mt-1">{item.counter.toLocaleString()}+</div>
                   </div>
                 </div>
               ))}
@@ -773,8 +778,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {topDeals.map((product) => (
-              <UnifiedProductCard key={product.id} product={product} />
+            {topDeals.map((product, idx) => (
+              <UnifiedProductCard key={product.id} product={product} eager={idx < 6} />
             ))}
           </div>
         </section>

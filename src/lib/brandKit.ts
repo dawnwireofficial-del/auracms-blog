@@ -3,11 +3,11 @@
 
 export const BRAND_KIT = {
   heroes: [
-    { desktop: 'https://iili.io/CZDYvmx.png', mobile: 'https://iili.io/CZD0XTb.png', href: '/categories/electronics' },
-    { desktop: 'https://iili.io/CZDa5Tx.png', mobile: 'https://iili.io/CZD1lDJ.png', href: '/categories/gaming' },
-    { desktop: 'https://iili.io/CZDatae.png', mobile: 'https://iili.io/CZDE7ql.png', href: '/categories/home-kitchen' },
-    { desktop: 'https://iili.io/CZDY3xV.png', mobile: 'https://iili.io/CZDlB07.png', href: '/categories/beauty-personal-care' },
-    { desktop: 'https://iili.io/CZDcTPI.png', mobile: 'https://iili.io/CZDGBQj.png', href: '/categories/office-productivity' },
+    { desktop: 'https://iili.io/CZDYvmx.png', mobile: 'https://iili.io/CZD0XTb.png', href: '/categories/electronics', alt: 'Electronics deals — headphones, monitors, laptops & smart home' },
+    { desktop: 'https://iili.io/CZDa5Tx.png', mobile: 'https://iili.io/CZD1lDJ.png', href: '/categories/gaming', alt: 'Gaming gear — keyboards, mice, headsets & accessories' },
+    { desktop: 'https://iili.io/CZDatae.png', mobile: 'https://iili.io/CZDE7ql.png', href: '/categories/home-kitchen', alt: 'Home & kitchen essentials — cookware, coffee & appliances' },
+    { desktop: 'https://iili.io/CZDY3xV.png', mobile: 'https://iili.io/CZDlB07.png', href: '/categories/beauty-personal-care', alt: 'Beauty & skincare — Korean skincare, serums & grooming' },
+    { desktop: 'https://iili.io/CZDcTPI.png', mobile: 'https://iili.io/CZDGBQj.png', href: '/categories/office-productivity', alt: 'Office & productivity — desks, chairs & workspace gear' },
   ],
   sidePromos: [
     { src: 'https://iili.io/CZDxVWu.png', href: '/categories/electronics', alt: 'Electronic deals' },

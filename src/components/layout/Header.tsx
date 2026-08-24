@@ -189,24 +189,31 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
 
   const normalizedQuery = searchQuery.trim().toLowerCase();
 
-  const searchMatchesProducts = normalizedQuery
+  // Debounced search to avoid blocking main thread on every keystroke
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(normalizedQuery), 200);
+    return () => clearTimeout(timer);
+  }, [normalizedQuery]);
+
+  const searchMatchesProducts = debouncedQuery
     ? products.filter((p) => {
         const matchCat = selectedSearchCat === 'all' || p.mainCategory.toLowerCase().includes(selectedSearchCat.toLowerCase());
         const matchText =
-          p.title.toLowerCase().includes(normalizedQuery) ||
-          p.brand.toLowerCase().includes(normalizedQuery) ||
-          p.mainCategory.toLowerCase().includes(normalizedQuery) ||
-          (p.mainFeatures && p.mainFeatures.some((f) => f.toLowerCase().includes(normalizedQuery)));
+          p.title.toLowerCase().includes(debouncedQuery) ||
+          p.brand.toLowerCase().includes(debouncedQuery) ||
+          p.mainCategory.toLowerCase().includes(debouncedQuery) ||
+          (p.mainFeatures && p.mainFeatures.some((f) => f.toLowerCase().includes(debouncedQuery)));
         return matchCat && matchText;
       }).slice(0, 5)
     : [];
 
-  const searchMatchesCategories = normalizedQuery
+  const searchMatchesCategories = debouncedQuery
     ? categories.filter(
         (c) =>
-          c.name.toLowerCase().includes(normalizedQuery) ||
-          (c.description && c.description.toLowerCase().includes(normalizedQuery)) ||
-          c.slug.toLowerCase().includes(normalizedQuery)
+          c.name.toLowerCase().includes(debouncedQuery) ||
+          (c.description && c.description.toLowerCase().includes(debouncedQuery)) ||
+          c.slug.toLowerCase().includes(debouncedQuery)
       ).slice(0, 3)
     : [];
 
@@ -216,7 +223,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
     <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800 shadow-xs shadow-slate-900/5 transition-all duration-300">
       {/* Top Utility Bar */}
       <div className="bg-slate-900 text-slate-300 text-[10px] font-medium py-0.5 px-4 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+        <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-slate-300 text-[10px]">
             <span className="flex items-center gap-1">
               <span className="w-1 h-1 rounded-full bg-emerald-400" />
@@ -238,7 +245,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
       </div>
 
       {/* Main Header Row */}
-      <div className="max-w-7xl mx-auto px-4 py-1.5 flex items-center justify-between gap-3">
+      <div className="max-w-[1600px] mx-auto px-4 py-1.5 flex items-center justify-between gap-3">
         {/* Search Bar with Category Selector & Live Search Autocomplete */}
         <div ref={searchWrapperRef} className="hidden lg:block relative flex-1 max-w-2xl">
           <form onSubmit={handleSearchSubmit} className="flex items-center bg-slate-50 dark:bg-slate-800/90 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:border-blue-500 transition-all">
@@ -586,7 +593,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAiFinder, onOpenChatbot })
 
       {/* Navigation Links Bar + Mega Menu Trigger */}
       <div className="hidden lg:block bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800 text-[11px] font-semibold py-1.5">
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
+        <div className="max-w-[1600px] mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-6">
             {/* Shop by Category Mega Menu Button */}
             <div

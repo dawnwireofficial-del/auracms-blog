@@ -84,24 +84,40 @@ export default function SiteEffects() {
         });
       });
 
-      // ---- 6. TEXT WORD-BY-WORD ANIMATIONS ----
+      // ---- 6. TEXT WORD-BY-WORD ANIMATIONS (only on leaf text nodes) ----
       textRefs.current = Array.from(document.querySelectorAll('[data-text-reveal]'));
       textRefs.current.forEach((el) => {
+        // Skip elements that contain child elements (links, badges, spans with icons)
+        // to avoid destroying innerHTML
+        if (el.children.length > 0) {
+          // Simple fade-up for elements with children
+          gsap.from(el, {
+            opacity: 0,
+            y: 30,
+            duration: 0.8,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 95%',
+              toggleActions: 'play none none reverse',
+            },
+          });
+          return;
+        }
+        
         const text = el.textContent || '';
         const words = text.split(' ').filter(w => w.length > 0);
         if (words.length < 2) return;
         
-        const originalHTML = el.innerHTML;
-        el.innerHTML = words.map(w => `<span class="dw-word" style="display:inline-block;opacity:0;transform:translateY(50px) rotateX(-90deg);">${w}</span>`).join(' ');
+        el.innerHTML = words.map(w => `<span class="dw-word" style="display:inline-block;opacity:0;transform:translateY(30px);">${w}</span>`).join(' ');
         const spans = Array.from(el.querySelectorAll('.dw-word'));
         
         gsap.to(spans, {
           opacity: 1,
           y: 0,
-          rotateX: 0,
-          duration: 0.8,
-          ease: 'power4.out',
-          stagger: 0.06,
+          duration: 0.6,
+          ease: 'power3.out',
+          stagger: 0.05,
           scrollTrigger: {
             trigger: el,
             start: 'top 95%',
@@ -268,14 +284,15 @@ export default function SiteEffects() {
     };
 
     // Initialize GSAP - wait for it to be available on window
-    const gsapTimer = setTimeout(() => waitForGSAP(), 100);
+    let gsapTimer: ReturnType<typeof setTimeout>;
     const waitForGSAP = () => {
       if (window.gsap && window.ScrollTrigger) {
-        initGSAP();
+        try { initGSAP(); } catch (e) { console.warn('[SiteEffects] GSAP init failed:', e); }
       } else {
-        setTimeout(waitForGSAP, 50);
+        gsapTimer = setTimeout(waitForGSAP, 50);
       }
     };
+    gsapTimer = setTimeout(waitForGSAP, 100);
 
     // ---- 1. scroll progress ----
     const onScroll = () => {

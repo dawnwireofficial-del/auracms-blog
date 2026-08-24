@@ -1166,6 +1166,8 @@
 @keyframes dw-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .dw-marquee-track { animation: dw-marquee 45s linear infinite; will-change: transform; }
 .dw-marquee:hover .dw-marquee-track { animation-play-state: paused; }
+/* When GSAP ScrollTrigger controls horizontal scroll, disable CSS animation to prevent conflict */
+.dw-marquee[data-horizontal-scroll] .dw-marquee-track { animation: none; }
 @media (prefers-reduced-motion: reduce) { .dw-marquee-track { animation: none; } }
 
 /* Premium thin scrollbar for dropdown/mega-menu panels */
