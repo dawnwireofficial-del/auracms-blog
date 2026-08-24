@@ -649,55 +649,22 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
         </section>
 
 {/* ─────────────────────────────────────────────────────────────
-            6. TRUST STRIP (5-Item Credibility Bar — Amazon Verified Links removed)
+            6. TRUST STRIP (5-Item Credibility Bar — minimal, horizontal)
         ───────────────────────────────────────────────────────────── */}
-        <section data-reveal className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 md:p-6 shadow-sm">
-          <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-6">
+        <section data-reveal className="py-6 md:py-8">
+          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
             {[
-              {
-                title: 'Independently Reviewed',
-                desc: 'Lab-tested specs & verdicts',
-                icon: '🛡️'
-              },
-              {
-                title: 'Live Price Checks',
-                desc: '24/7 Amazon sync',
-                icon: '⚡'
-              },
-              {
-                title: 'Price History Tracking',
-                desc: 'Real deal verification',
-                icon: '📉'
-              },
-              {
-                title: 'Expert Buying Guides',
-                desc: 'Unbiased category roundups',
-                icon: '📚'
-              },
-              {
-                title: 'Secure Affiliate Links',
-                desc: '100% free buyer service',
-                icon: '🔒'
-              }
+              { title: 'Independently Reviewed', desc: 'Lab-tested specs & verdicts', icon: '🛡️' },
+              { title: 'Live Price Checks', desc: '24/7 Amazon sync', icon: '⚡' },
+              { title: 'Price History Tracking', desc: 'Real deal verification', icon: '📉' },
+              { title: 'Expert Buying Guides', desc: 'Unbiased category roundups', icon: '📚' },
+              { title: 'Secure Affiliate Links', desc: '100% free buyer service', icon: '🔒' }
             ].map((item) => (
-              <div key={item.title} className="group flex items-center gap-3 p-3 md:p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 hover:border-blue-400/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 flex-1 md:flex-none min-w-[280px]">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg flex items-center justify-center shrink-0 bg-gradient-to-br from-blue-50 to-orange-50 dark:from-blue-900/30 dark:to-orange-900/30 border border-slate-200/80 dark:border-slate-700 group-hover:border-blue-400 group-hover:shadow-md transition-all duration-300">
-                  {BRAND_KIT.trustIcons[item.title] ? (
-                    <img
-                      src={BRAND_KIT.trustIcons[item.title]}
-                      alt={item.title}
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
-                      className="w-6 h-6 md:w-7 md:h-7 rounded object-contain"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                    />
-                  ) : (
-                    <span className="text-xl md:text-2xl" aria-hidden="true">{item.icon}</span>
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm md:text-base font-extrabold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors whitespace-nowrap">{item.title}</p>
-                  <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 leading-tight truncate">{item.desc}</p>
+              <div key={item.title} className="group flex items-center gap-3 whitespace-nowrap">
+                <span className="text-2xl md:text-3xl" aria-hidden="true">{item.icon}</span>
+                <div>
+                  <p className="text-sm md:text-base font-extrabold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{item.title}</p>
+                  <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 leading-tight">{item.desc}</p>
                 </div>
               </div>
             ))}
