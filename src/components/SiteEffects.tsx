@@ -49,13 +49,13 @@ export default function SiteEffects() {
       parallaxRefs.current.forEach((el) => {
         const speed = parseFloat(el.getAttribute('data-parallax') || '0.3');
         gsap.to(el, {
-          yPercent: -50 * speed,
+          yPercent: -100 * speed,
           ease: 'none',
           scrollTrigger: {
             trigger: el,
             start: 'top bottom',
             end: 'bottom top',
-            scrub: true,
+            scrub: 1,
           },
         });
       });
@@ -67,17 +67,17 @@ export default function SiteEffects() {
         if (children.length === 0) return;
         
         gsap.from(children, {
-          y: 60,
-          scale: 0.9,
-          rotation: -2,
+          y: 100,
+          scale: 0.8,
+          rotation: -5,
           opacity: 0,
-          duration: 0.8,
-          ease: 'power3.out',
-          stagger: 0.1,
+          duration: 1.2,
+          ease: 'elastic.out(1, 0.5)',
+          stagger: 0.15,
           scrollTrigger: {
             trigger: container,
-            start: 'top 85%',
-            end: 'bottom 20%',
+            start: 'top 90%',
+            end: 'bottom 10%',
             toggleActions: 'play none none reverse',
             once: false,
           },
@@ -91,22 +91,20 @@ export default function SiteEffects() {
         const words = text.split(' ').filter(w => w.length > 0);
         if (words.length < 2) return;
         
-        // Store original HTML
         const originalHTML = el.innerHTML;
-        
-        // Split into spans
-        el.innerHTML = words.map(w => `<span class="dw-word" style="display:inline-block;opacity:0;transform:translateY(30px);">${w}</span>`).join(' ');
+        el.innerHTML = words.map(w => `<span class="dw-word" style="display:inline-block;opacity:0;transform:translateY(50px) rotateX(-90deg);">${w}</span>`).join(' ');
         const spans = Array.from(el.querySelectorAll('.dw-word'));
         
         gsap.to(spans, {
           opacity: 1,
           y: 0,
-          duration: 0.6,
-          ease: 'power3.out',
-          stagger: 0.04,
+          rotateX: 0,
+          duration: 0.8,
+          ease: 'power4.out',
+          stagger: 0.06,
           scrollTrigger: {
             trigger: el,
-            start: 'top 90%',
+            start: 'top 95%',
             toggleActions: 'play none none reverse',
           },
         });
@@ -114,10 +112,10 @@ export default function SiteEffects() {
 
       // ---- 7. IMAGE PARALLAX & SCALE ON SCROLL ----
       document.querySelectorAll('[data-img-parallax]').forEach((img) => {
-        const speed = parseFloat(img.getAttribute('data-img-parallax') || '0.2');
+        const speed = parseFloat(img.getAttribute('data-img-parallax') || '0.3');
         gsap.to(img, {
-          scale: 1 + speed * 0.3,
-          yPercent: 30 * speed,
+          scale: 1 + speed * 0.5,
+          yPercent: 50 * speed,
           ease: 'none',
           scrollTrigger: {
             trigger: img,
@@ -269,8 +267,15 @@ export default function SiteEffects() {
       });
     };
 
-    // Initialize GSAP after a short delay to ensure it's loaded
-    const gsapTimer = setTimeout(initGSAP, 100);
+    // Initialize GSAP - wait for it to be available on window
+    const gsapTimer = setTimeout(() => waitForGSAP(), 100);
+    const waitForGSAP = () => {
+      if (window.gsap && window.ScrollTrigger) {
+        initGSAP();
+      } else {
+        setTimeout(waitForGSAP, 50);
+      }
+    };
 
     // ---- 1. scroll progress ----
     const onScroll = () => {

@@ -563,7 +563,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                       alt="Featured deals banner"
                       loading={currentSlide === 0 ? 'eager' : 'lazy'}
                       fetchPriority={currentSlide === 0 ? 'high' : undefined}
-                      className="w-full h-full object-cover hover:opacity-90 transition-opacity duration-500"
+                      className="w-full h-full object-cover"
+                      data-img-parallax="0.4"
                     />
                   </picture>
                 </motion.a>
@@ -653,14 +654,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
 {/* ─────────────────────────────────────────────────────────────
             6. TRUST STRIP — 5 equal columns, single row, premium
         ───────────────────────────────────────────────────────────── */}
-        <section data-reveal data-stagger className="bg-white dark:bg-slate-900 border-y border-slate-200/60 dark:border-slate-800/60 px-4 md:px-6">
+        <section data-reveal data-stagger data-bg-transition data-bg-start="#ffffff" data-bg-end="#f0f4f8" className="bg-white dark:bg-slate-900 border-y border-slate-200/60 dark:border-slate-800/60 px-4 md:px-6">
           <div className="grid grid-cols-5 gap-0" data-stagger>
               {[
-                { title: 'Independently Reviewed', desc: 'Lab-tested specs & verdicts', iconKey: 'Independently Reviewed' },
-                { title: 'Live Price Checks', desc: '24/7 Amazon sync', iconKey: 'Live Price Checks' },
-                { title: 'Price History Tracking', desc: 'Real deal verification', iconKey: 'Price History Tracking' },
-                { title: 'Expert Buying Guides', desc: 'Unbiased category roundups', iconKey: 'Expert Buying Guides' },
-                { title: 'Secure Affiliate Links', desc: '100% free buyer service', iconKey: 'Secure Affiliate Links' }
+                { title: 'Independently Reviewed', desc: 'Lab-tested specs & verdicts', iconKey: 'Independently Reviewed', counter: 847 },
+                { title: 'Live Price Checks', desc: '24/7 Amazon sync', iconKey: 'Live Price Checks', counter: 247 },
+                { title: 'Price History Tracking', desc: 'Real deal verification', iconKey: 'Price History Tracking', counter: 15234 },
+                { title: 'Expert Buying Guides', desc: 'Unbiased category roundups', iconKey: 'Expert Buying Guides', counter: 312 },
+                { title: 'Secure Affiliate Links', desc: '100% free buyer service', iconKey: 'Secure Affiliate Links', counter: 98 }
               ].map((item, idx) => (
                 <div
                   key={item.title}
@@ -683,6 +684,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
                   <div className="min-w-0">
                     <p className="text-[15px] font-bold text-slate-900 dark:text-slate-100 leading-none whitespace-nowrap overflow-hidden text-ellipsis">{item.title}</p>
                     <p className="text-[12px] text-slate-500 dark:text-slate-400 leading-none mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">{item.desc}</p>
+                    <div data-counter={item.counter} data-counter-suffix="+" className="text-[14px] font-bold text-blue-600 dark:text-blue-400 mt-1"></div>
                   </div>
                 </div>
               ))}
