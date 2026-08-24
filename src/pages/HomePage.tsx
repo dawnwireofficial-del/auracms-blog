@@ -663,11 +663,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
               ].map((item, idx) => (
                 <div
                   key={item.title}
-                  className={`relative flex items-center gap-3 px-4 py-5 min-h-[90px] ${
+                  className={`relative flex items-center gap-3 px-4 py-6 min-h-[110px] ${
                     idx < 4 ? 'border-r border-slate-200/60 dark:border-slate-800/60' : ''
                   }`}
                 >
-                  <div className="shrink-0 w-[64px] h-[64px] flex items-center justify-center">
+                  <div className="shrink-0 w-[80px] h-[80px] flex items-center justify-center">
                     {BRAND_KIT.trustIcons[item.iconKey] ? (
                       <img
                         src={BRAND_KIT.trustIcons[item.iconKey]}
