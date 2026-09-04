@@ -21,7 +21,7 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: team_XBNSPwcit0xkWNJb8CpPq6na
-          VERCEL_PROJECT_ID: prj_St3lzIAB1KNKuzhloL6Sah078ScG
-          VERCEL_PROJECT_NAME: auracms-blog
+          VERCEL_PROJECT_ID: prj_NQ5l926gtx1ENEkhtn5ruymlZXw4
+          VERCEL_PROJECT_NAME: dawnwire-blog
           VERCEL_GIT_REPO_ID: "1310817594"
         run: node scripts/vercel-deploy.mjs

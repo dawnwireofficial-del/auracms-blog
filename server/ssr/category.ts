@@ -1,5 +1,5 @@
 import { dbInstance } from '../db';
-import { getPublishedProductReviews } from '../seo-engine';
+import { getPublishedProductReviewsLight } from '../seo-engine';
 import { esc, val, mdToSimpleHtml, ssrFooter } from './common';
 import { SsrResult, truncateText } from './head';
 
@@ -23,7 +23,7 @@ export async function renderCategoryPageHtml(slug: string): Promise<SsrResult | 
 
   let reviews: any[] = [];
   try {
-    reviews = await getPublishedProductReviews();
+    reviews = await getPublishedProductReviewsLight();
   } catch (e) {
     console.error('[SSR category] reviews:', e);
   }

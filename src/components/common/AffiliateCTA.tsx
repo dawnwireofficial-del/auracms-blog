@@ -30,25 +30,29 @@ export const AffiliateCTA: React.FC<AffiliateCTAProps> = ({
   position = 'product_card',
   className = ''
 }) => {
-  const handleClick = (e: React.MouseEvent) => {
-    // Log affiliate click event
-    store.logAffiliateClick({
-      productId,
-      asin,
-      productTitle,
-      category,
-      brand,
-      ctaText: label,
-      ctaPosition: position,
-      pageSource: window.location.pathname,
-      device: window.innerWidth < 768 ? 'mobile' : 'desktop',
-      marketplace: 'US'
-    });
-  };
-
   // Cloaked redirect: routes through /api/public/go/product/:slug which only
   // ever redirects to the manually-pasted affiliate URL (or a clean public URL).
+  // The server logs the click there, so no client-side track call is needed.
   const cloakHref = productSlug ? `/api/public/go/product/${encodeURIComponent(productSlug)}${position && position !== 'product_card' ? `?placement=${encodeURIComponent(position)}` : ''}` : '';
+
+  const handleClick = (e: React.MouseEvent) => {
+    // Only log client-side when there is NO cloak route (no slug) — otherwise
+    // the same click would be counted twice (here AND in /go/product/:slug).
+    if (!cloakHref) {
+      store.logAffiliateClick({
+        productId,
+        asin,
+        productTitle,
+        category,
+        brand,
+        ctaText: label,
+        ctaPosition: position,
+        pageSource: window.location.pathname,
+        device: window.innerWidth < 768 ? 'mobile' : 'desktop',
+        marketplace: 'US'
+      });
+    }
+  };
 
   const getVariantStyles = () => {
     switch (variant) {

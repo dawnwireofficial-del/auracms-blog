@@ -46,6 +46,11 @@ export default function ProductCard({
   };
 
   const handleAffiliateClick = () => {
+    // The CTA href routes through /api/public/go/product/:slug which logs the
+    // click server-side. Only fall back to a client-side track when there is
+    // no slug to cloak (direct affiliate link) — otherwise clicks count twice.
+    const cloak = cloakHref(product.slug, viewMode === 'list' ? 'list_card' : 'grid_card');
+    if (cloak) return;
     fetch('/api/public/track/affiliate-click', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

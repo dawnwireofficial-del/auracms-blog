@@ -17,6 +17,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { GlobalGravityCanvas } from './components/experience/GlobalGravityCanvas';
 import { CanvasPerformanceManager } from './components/experience/CanvasPerformanceManager';
 import { installGlobalAuthInterceptor } from './lib/sessionGuard';
+import SiteEffects from './components/SiteEffects';
 
 const ProductCatalogPage = lazy(() => import('./pages/ProductCatalogPage').then(m => ({ default: m.ProductCatalogPage })));
 const BestCategoryPage = lazy(() => import('./pages/BestCategoryPage').then(m => ({ default: m.BestCategoryPage })));
@@ -29,7 +30,6 @@ const PostDetailPage = lazy(() => import('./pages/PostDetailPage'));
 const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })));
 const BrandsPage = lazy(() => import('./components/pages/BrandsPage'));
 const EventsPage = lazy(() => import('./pages/EventsPage'));
-import SiteEffects from './components/SiteEffects';
 const ChatbotDrawer = lazy(() => import('./components/ai/ChatbotDrawer').then(m => ({ default: m.ChatbotDrawer })));
 const AIProductFinderModal = lazy(() => import('./components/ai/AIProductFinderModal').then(m => ({ default: m.AIProductFinderModal })));
 const AboutPage = lazy(() => import('./components/pages/AboutPage'));
@@ -572,6 +572,9 @@ export function App() {
           setIsChatbotOpen(true);
         }}
       />
+
+      {/* Premium Site Effects (GSAP ScrollTrigger + Lenis + Custom Cursor) */}
+      <SiteEffects />
 
       <main id="main-content" className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
         <SiteEffects />

@@ -1,5 +1,5 @@
 import { dbInstance } from '../db';
-import { getPublishedProductReviews, getProductReviewBySlug } from '../seo-engine';
+import { getPublishedProductReviewsLight, getProductReviewBySlug } from '../seo-engine';
 import { esc, val, mdToSimpleHtml, ssrFooter } from './common';
 import { SsrResult, truncateText } from './head';
 
@@ -77,7 +77,7 @@ export async function renderProductPageHtml(slug: string): Promise<SsrResult | n
     const catId = cat?.id || categoryId;
     // Fetch all products only for related items (not for main product lookup)
     let allReviews: any[] = [];
-    try { allReviews = await getPublishedProductReviews(); } catch {}
+    try { allReviews = await getPublishedProductReviewsLight(); } catch {}
     related = (allReviews || [])
       .filter((r) => r.id !== p.id && r.status === 'published' && (r.category_id === catId || r.best_for === bestFor) && r.product_name)
       .sort((a: any, b: any) => Number(val(b, 'editorScore') || 0) - Number(val(a, 'editorScore') || 0))

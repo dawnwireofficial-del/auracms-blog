@@ -811,8 +811,10 @@ router.get('/knock-config', async (_req, res) => {
 router.get('/go/product/:slug', async (req, res) => {
   try {
     const slug = req.params.slug;
-    const reviews = await seo.getPublishedProductReviews();
-    const product = reviews.find((r: any) => r.slug === slug || r.product_name === slug);
+    // Single-row lookup — NEVER scan all published products here: a full
+    // select('*') of 1000 rows (incl. specs JSONB) costs tens of MB of
+    // Supabase egress per click, which is what blew the egress quota.
+    const product = await seo.getProductReviewBySlug(slug);
     if (!product) return res.status(404).json({ error: 'Product not found' });
 
     const src = typeof req.query.src === 'string' ? req.query.src.substring(0, 120) : '';

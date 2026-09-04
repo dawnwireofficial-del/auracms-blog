@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="DawnWire (dawnwire.com) is an AI-powered Amazon product review platform — independently scoring products across 30+ categories. Expert buying guides, live price-drop alerts, and honest editor scores. Not a retailer — we help you find the best deal on Amazon." />
+    <meta name="description" content="DawnWire (dawnwire.com) is an AI-powered Amazon product review platform — independently scoring 800+ products across 30+ categories. Expert buying guides, live price-drop alerts, and honest editor scores. Not a retailer — we help you find the best deal on Amazon." />
     <meta name="theme-color" content="#0A1F44" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
     <link rel="canonical" href="https://www.dawnwire.com/" />
@@ -11,7 +11,7 @@
     <link rel="alternate" href="https://www.dawnwire.com/" hrefLang="x-default" />
     <title>DawnWire.com — AI-Powered Amazon Product Reviews, Price-Drop Alerts &amp; Buying Guides</title>
     <meta property="og:title" content="DawnWire.com — AI-Powered Amazon Product Reviews &amp; Buying Guides" />
-    <meta property="og:description" content="DawnWire independently reviews and scores Amazon products. AI-powered buying guides, live price tracking, and honest editor verdicts across 30+ categories." />
+    <meta property="og:description" content="DawnWire independently reviews and scores 800+ Amazon products. AI-powered buying guides, live price tracking, and honest editor verdicts across 30+ categories." />
     <meta property="og:url" content="https://www.dawnwire.com/" />
     <meta property="og:image" content="https://www.dawnwire.com/logo/logo-transparent.png" />
     <meta property="og:type" content="website" />
@@ -19,14 +19,14 @@
     <meta property="og:site_name" content="DawnWire" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="DawnWire.com — AI-Powered Amazon Product Reviews &amp; Buying Guides" />
-    <meta name="twitter:description" content="DawnWire independently reviews Amazon products. AI-powered buying guides, price tracking, and honest editor scores across 30+ categories." />
+    <meta name="twitter:description" content="DawnWire independently reviews 800+ Amazon products. AI-powered buying guides, price tracking, and honest editor scores across 30+ categories." />
     <meta name="twitter:image" content="https://www.dawnwire.com/logo/logo-transparent.png" />
     <meta name="p:domain_verify" content="b10cacc817915bda455b11a0d6f9a4d7" />
     <meta name="google-site-verification" content="WOjYqiIfsOAz-zW1tzhD7_trio6ygVvRsHXan1wiy_g" />
     <meta name="author" content="DawnWire Editorial Team — dawnwire.com" />
     <meta name="keywords" content="dawnwire, dawnwire.com, amazon product reviews, AI buying guides, price drop alerts, product comparisons, editor scores, independent reviews" />
-    <meta property="article:published_time" content="2024-06-15T00:00:00Z" />
-    <meta property="article:modified_time" content="2026-08-24T00:00:00Z" />
+    <meta property="article:published_time" content="2024-01-01T00:00:00Z" />
+    <meta property="article:modified_time" content="2026-07-25T00:00:00Z" />
 
     <!-- ============ Premium motion layer: Lenis core styles + custom cursor tokens ============ -->
     <style>
@@ -110,12 +110,8 @@
       @media (prefers-reduced-motion: reduce) {
         .dw-cursor-wrap { display: none !important; }
       }
-    </style>
-    <!-- ============ End premium motion layer styles ============ -->
-
-    <style>
-      /* Styles for the server-rendered homepage block that appears before the
-         React app mounts. (The client app replaces this content on load.) */
+    <!-- Styles for the server-rendered homepage block that appears before the
+         React app mounts. (The client app replaces this content on load.) -->
       #home-seo-content{max-width:80rem;margin:0 auto;padding:2.5rem 1rem;color:#0f172a;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
       #home-seo-content h1{font-size:2.2rem;line-height:1.2;margin:0 0 1rem;font-weight:900}
       #home-seo-content h2{font-size:1.6rem;margin:2.5rem 0 .8rem;font-weight:800;color:#0f172a}
@@ -126,6 +122,7 @@
       #home-seo-content a{color:#1d4ed8;text-decoration:none;font-weight:500}
       #home-seo-content a:hover{text-decoration:underline;color:#246BFF}
     </style>
+    <!-- ============ End premium motion layer styles ============ -->
 
     <!-- Favicons (light / dark) -->
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-light/favicon-16x16.png" media="(prefers-color-scheme: light)" />
@@ -229,7 +226,7 @@
       "name": "DawnWire — Amazon Product Reviews & Buying Guides",
       "url": "https://www.dawnwire.com/",
       "isPartOf": { "@id": "https://www.dawnwire.com/#website" },
-      "description": "DawnWire is an AI-powered Amazon product review platform. Browse independent product reviews with editor scores, price-drop alerts, and expert buying guides across 19+ categories.",
+      "description": "DawnWire is an AI-powered Amazon product review platform. Browse 600+ independent product reviews with editor scores, price-drop alerts, and expert buying guides across 19+ categories.",
       "image": "https://www.dawnwire.com/logo/logo-transparent.png",
       "dateModified": "2026-08-20T00:00:00Z",
       "author": {
@@ -289,38 +286,7 @@
     </div>
     <div id="root"></div>
     <!-- Pre-React loader: premium DawnWire orbit loader -->
-    <div id="dawn-loader" style="position:fixed;inset:0;z-index:9999;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s ease,visibility 0.5s ease">
-      <style>
-        @keyframes dw-orbit-a { from { transform: rotate(0deg) translateX(52px) rotate(0deg); } to { transform: rotate(360deg) translateX(52px) rotate(-360deg); } }
-        @keyframes dw-orbit-b { from { transform: rotate(360deg) translateX(34px) rotate(-360deg); } to { transform: rotate(0deg) translateX(34px) rotate(0deg); } }
-        @keyframes dw-core-pulse { 0%,100% { transform: scale(1); filter: drop-shadow(0 0 14px rgba(36,107,255,0.35)); } 50% { transform: scale(1.07); filter: drop-shadow(0 0 26px rgba(255,138,0,0.45)); } }
-        @keyframes dw-word-shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
-        @keyframes dw-fade-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes dw-track { 0% { left: -40%; width: 40%; } 50% { left: 30%; width: 45%; } 100% { left: 100%; width: 40%; } }
-        .dw-loader-stage { position: relative; width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; }
-        .dw-loader-core { width: 74px; height: 74px; object-fit: contain; animation: dw-core-pulse 2.2s ease-in-out infinite; border-radius: 18px; }
-        .dw-orbit-ring { position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(36,107,255,0.12); }
-        .dw-orbit-ring.r2 { inset: 22px; border-color: rgba(255,138,0,0.15); }
-        .dw-orb { position: absolute; top: 50%; left: 50%; width: 11px; height: 11px; margin: -5.5px; border-radius: 50%; background: linear-gradient(135deg, #246BFF, #4F7CFF); box-shadow: 0 0 12px rgba(36,107,255,0.65); animation: dw-orbit-a 2.6s linear infinite; }
-        .dw-orb.b { width: 8px; height: 8px; margin: -4px; background: linear-gradient(135deg, #FF8A00, #FFB347); box-shadow: 0 0 10px rgba(255,138,0,0.6); animation: dw-orbit-b 1.9s linear infinite; }
-        .dw-word { margin-top: 26px; font-family: system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size: 26px; font-weight: 900; letter-spacing: 0.14em; background: linear-gradient(100deg,#0A1F44 30%,#246BFF 46%,#FF8A00 52%,#0A1F44 66%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: dw-word-shimmer 2.4s linear infinite; }
-        .dw-tag { margin-top: 6px; font-family: system-ui,-apple-system,sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.32em; text-transform: uppercase; color: #94a3b8; animation: dw-fade-up 0.9s ease 0.25s both; }
-        .dw-progress { position: relative; width: 210px; height: 3px; margin-top: 24px; border-radius: 999px; background: #EEF2F7; overflow: hidden; }
-        .dw-progress::after { content: ''; position: absolute; top: 0; bottom: 0; border-radius: 999px; background: linear-gradient(90deg,#246BFF,#FF8A00); animation: dw-track 1.6s ease-in-out infinite; }
-      </style>
-      <div class="dw-loader-stage">
-        <div class="dw-orbit-ring"></div>
-        <div class="dw-orbit-ring r2"></div>
-        <img src="/logo/dw-mark.png" alt="DawnWire" class="dw-loader-core" onerror="this.style.display='none'" />
-        <div class="dw-orb"></div>
-        <div class="dw-orb b"></div>
-      </div>
-      <div class="dw-word">DAWNWIRE</div>
-      <div class="dw-tag">Discover · Compare · Shop Smart</div>
-      <div class="dw-progress"></div>
-    </div>
-    <!-- End of premium DawnWire orbit loader -->
-    <!-- ============ CDN: GSAP + ScrollTrigger + Lenis ============ -->
+<!-- ============ CDN: GSAP + ScrollTrigger + Lenis ============ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>

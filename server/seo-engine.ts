@@ -190,6 +190,23 @@ export async function getPublishedProductReviews(): Promise<any[]> {
   return data || [];
 }
 
+// Lightweight list fetch: drops the heavy `specs` JSONB (galleries + review
+// arrays) that makes a full `select('*')` of 1000 rows transfer tens of MB per
+// call. Card/listing/SSR callers never need specs, so using this instead of
+// getPublishedProductReviews() slashes Supabase egress (the #1 quota killer).
+export const LIGHT_PRODUCT_COLUMNS = 'id,slug,product_name,brand,product_image,price,original_price,rating,review_count,editor_score,best_for,status,category_id,created_at,updated_at,affiliate_url,amazon_url,asin,key_features,review_summary,pros,cons,final_verdict,seo_title,seo_description,stock_status,deal_badge,coupon_code';
+
+export async function getPublishedProductReviewsLight(): Promise<any[]> {
+  const sb = await getClient();
+  let { data, error } = await sb.from('product_reviews').select(LIGHT_PRODUCT_COLUMNS).eq('status', 'published').order('created_at', { ascending: false }).limit(1000);
+  if (error || !data) {
+    console.warn('[Supabase getPublishedProductReviewsLight fallback]:', error?.message);
+    const res = await sb.from('product_reviews').select(LIGHT_PRODUCT_COLUMNS).eq('status', 'published').limit(1000);
+    data = res.data;
+  }
+  return data || [];
+}
+
 export async function getProductReviewById(id: string): Promise<any | null> {
   const sb = await getClient();
   const { data } = await sb.from('product_reviews').select('*').eq('id', id).maybeSingle();

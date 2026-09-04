@@ -1,5 +1,5 @@
 import { esc } from './common';
-import { getPublishedProductReviews } from '../seo-engine';
+import { getPublishedProductReviewsLight } from '../seo-engine';
 import type { SsrResult } from './head';
 
 // Lightweight SSR for the two SPA hub pages so crawlers get semantic HTML:
@@ -9,7 +9,7 @@ import type { SsrResult } from './head';
 export async function renderProductsHubHtml(): Promise<SsrResult> {
   const baseUrl = 'https://www.dawnwire.com';
   let reviews: any[] = [];
-  try { reviews = await getPublishedProductReviews(); } catch {}
+  try { reviews = await getPublishedProductReviewsLight(); } catch {}
   const items = (reviews || [])
     .filter((r: any) => r.slug && r.product_name)
     .sort((a: any, b: any) => Number(b.editor_score || 0) - Number(a.editor_score || 0))

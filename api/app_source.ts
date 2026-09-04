@@ -753,7 +753,10 @@ app.get('/api/llm/entities', (_req, res) => {
 app.get('/go/:slug', async (req, res) => {
   const url = await dbInstance.trackAffiliateClick(req.params.slug);
   if (!url) return res.status(404).send('<h1>Link Not Found</h1>');
-  res.redirect(302, url);
+  // Never let an Amazon click leave without the partner tag (commission).
+  const { isAmazonDomain, ensureTaggedAmazonUrl } = await import('../server/affiliate-health');
+  const dest = isAmazonDomain(url) ? ensureTaggedAmazonUrl(url) : url;
+  res.redirect(302, dest || url);
 });
 
 // Check redirect by source URL
