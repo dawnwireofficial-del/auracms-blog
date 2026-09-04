@@ -94,24 +94,67 @@ export async function getTrafficData(days: number = 30): Promise<{
 
 export async function getClickData(days: number = 30): Promise<{
   dailyClicks: { date: string; clicks: number }[];
+  todayClicks: number;
+  byPlacement: { placement: string; clicks: number }[];
   totalClicks: number;
   topLinks: { title: string; clicks: number; url: string }[];
 }> {
+  const empty = { dailyClicks: [], todayClicks: 0, byPlacement: [], totalClicks: 0, topLinks: [] };
   try {
-    const links = await dbInstance.getAffiliateLinks() as any[];
-    if (!links || links.length === 0) {
-      return { dailyClicks: [], totalClicks: 0, topLinks: [] };
-    }
-    const totalClicks = links.reduce((sum: number, l: any) => sum + (l.clickCount || l.click_count || 0), 0);
-    const topLinks = links
-      .map((l: any) => ({ title: l.title, clicks: l.clickCount || l.click_count || 0, url: l.shortSlug || '' }))
+    // Blog short-link (/go/:slug) clicks — stored as counters on affiliate_links.
+    const links = (await dbInstance.getAffiliateLinks()) as any[];
+    const linkClicks = links && links.length
+      ? links.reduce((sum: number, l: any) => sum + (l.clickCount || l.click_count || 0), 0)
+      : 0;
+    const topLinks = (links || [])
+      .map((l: any) => ({ title: l.title || l.shortSlug || 'Link', clicks: l.clickCount || l.click_count || 0, url: l.shortSlug || '' }))
       .sort((a: any, b: any) => b.clicks - a.clicks)
       .slice(0, 20);
 
-    return { dailyClicks: [], totalClicks, topLinks };
+    // Product CTA clicks — every /api/public/go/product/:slug redirect logs a
+    // row in affiliate_clicks. Aggregate for today / per-day / per-placement.
+    let productRows: any[] = [];
+    try {
+      const sb = await getClient();
+      const since = new Date(Date.now() - days * 86400000).toISOString();
+      const { data, error } = await sb.from('affiliate_clicks')
+        .select('created_at,cta_position,page_url,product_id')
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .limit(20000);
+      if (!error && data) productRows = data as any[];
+    } catch (e) { console.error('[Analytics] product clicks query:', e); }
+
+    const dateKey = (iso: string) => String(iso || '').slice(0, 10); // YYYY-MM-DD (UTC)
+    const today = new Date().toISOString().slice(0, 10);
+    const byDayMap = new Map<string, number>();
+    const byPlacementMap = new Map<string, number>();
+    let todayClicks = 0;
+    for (const r of productRows) {
+      const dk = dateKey(r.created_at);
+      byDayMap.set(dk, (byDayMap.get(dk) || 0) + 1);
+      if (dk === today) todayClicks++;
+      const placement = String(r.cta_position || 'other').slice(0, 60);
+      byPlacementMap.set(placement, (byPlacementMap.get(placement) || 0) + 1);
+    }
+    const dailyClicks = [...byDayMap.entries()]
+      .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+      .map(([date, clicks]) => ({ date, clicks }));
+    const byPlacement = [...byPlacementMap.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([placement, clicks]) => ({ placement, clicks }))
+      .slice(0, 15);
+
+    return {
+      dailyClicks,
+      todayClicks,
+      byPlacement,
+      totalClicks: linkClicks + productRows.length,
+      topLinks,
+    };
   } catch (e) {
     console.error('[Analytics] Failed to get click data:', e);
-    return { dailyClicks: [], totalClicks: 0, topLinks: [] };
+    return empty;
   }
 }
 

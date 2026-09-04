@@ -32,6 +32,57 @@ function encodeVal(v: any): any {
   return v;
 }
 
+function camelToSnake(s: string): string {
+  return s.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
+}
+
+function snakeToCamel(s: string): string {
+  return s.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
+}
+
+// Real column names per table (cached). Used to map camelCase JS payload keys
+// to the snake_case MySQL schema — without this, writes like
+// { productId, ctaPosition } hit "Unknown column 'productId'" and were
+// silently swallowed (see single()).
+const columnCache = new Map<string, Set<string>>();
+async function getColumns(table: string): Promise<Set<string>> {
+  const hit = columnCache.get(table);
+  if (hit) return hit;
+  try {
+    const [rows] = await pool.query(
+      'SELECT COLUMN_NAME AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?',
+      [table],
+    );
+    const set = new Set<string>((rows as any[]).map((r) => String(r.c)));
+    columnCache.set(table, set);
+    return set;
+  } catch {
+    return new Set();
+  }
+}
+
+// Map a camelCase payload key to the real snake_case column when possible.
+// Exact match wins, then camelToSnake, else the key is dropped (warned once).
+async function mapPayloadKeys(table: string, payload: any): Promise<any> {
+  if (!payload || typeof payload !== 'object') return payload;
+  const cols = await getColumns(table);
+  if (cols.size === 0) return payload;
+  const out: any = {};
+  for (const [k, v] of Object.entries(payload)) {
+    if (k === undefined || k === null) continue;
+    if (cols.has(k)) { out[k] = v; continue; }
+    const snake = camelToSnake(k);
+    if (cols.has(snake)) { out[snake] = v; continue; }
+    // Some legacy tables (categories, posts) use camelCase columns — support
+    // snake_case callers against them too.
+    const camel = snakeToCamel(k);
+    if (cols.has(camel)) { out[camel] = v; continue; }
+    // Column genuinely doesn't exist — drop rather than crash the whole write.
+    console.warn('[MySQL:' + table + '] dropping unknown write key:', k);
+  }
+  return out;
+}
+
 function decodeRow(table: string, row: any): any {
   if (!row) return row;
   const cols = JSON_COLUMNS[table];
@@ -128,6 +179,10 @@ export class SBQuery {
 
   single() {
     return this.exec().then((r: any) => {
+      // Real DB errors must surface — only empty SELECT results map to
+      // supabase's PGRST116 "no rows". Before this fix, a failed INSERT was
+      // rewritten into PGRST116, silently swallowing every write error.
+      if (r.error) return { data: null, error: r.error, count: r.count ?? null };
       const rows = Array.isArray(r.data) ? r.data : (r.data != null ? [r.data] : []);
       if (rows.length === 0) return { data: null, error: { code: 'PGRST116', message: 'No rows found' }, count: r.count ?? null };
       return { data: rows[0], error: null, count: r.count ?? null };
@@ -172,7 +227,8 @@ export class SBQuery {
       }
 
       if (this.mode === 'insert' || this.mode === 'upsert') {
-        const rowsArr = Array.isArray(this.payload) ? this.payload : [this.payload];
+        let rowsArr = Array.isArray(this.payload) ? this.payload : [this.payload];
+        rowsArr = await Promise.all(rowsArr.map((r) => mapPayloadKeys(this.table, r)));
         for (const r of rowsArr) if (!r.id) r.id = crypto.randomUUID();
         const allCols = [...new Set(rowsArr.flatMap(r => Object.keys(r)))];
         const values = rowsArr.map(r => allCols.map(c => encodeVal(r[c])));
@@ -192,7 +248,9 @@ export class SBQuery {
       }
 
       if (this.mode === 'update') {
-        const cols = Object.keys(this.payload);
+        const mapped = await mapPayloadKeys(this.table, this.payload);
+        this.payload = mapped;
+        const cols = Object.keys(mapped);
         if (cols.length === 0) return { data: null, error: null, count: null };
         const setClause = cols.map(c => '`' + c + '` = ?').join(', ');
         const params = [...cols.map(c => encodeVal(this.payload[c])), ...this.wparams];

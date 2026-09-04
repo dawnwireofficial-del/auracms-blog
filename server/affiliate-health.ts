@@ -71,14 +71,18 @@ export function generateAffiliateUrl(asin: string): string {
   return `https://www.amazon.com/dp/${asin}?tag=${encodeURIComponent(getAffiliateTag())}`;
 }
 
-// Canonical, ALWAYS-tagged Amazon outbound URL. Extracts the ASIN from any
-// Amazon URL shape (/dp/, /gp/product/, slug path) or takes an explicit hint,
-// then rebuilds https://www.amazon.com/dp/<ASIN>?tag=<partner-tag>. Every
-// monetized click must earn commission, so no untagged Amazon redirect may
-// leave the site. Non-Amazon URLs pass through unchanged.
+// ALWAYS-tagged Amazon outbound URL. Every monetized click must earn
+// commission, so no untagged Amazon redirect may leave the site. Non-Amazon
+// URLs pass through unchanged.
+//
+// If the URL already carries our tag it is returned AS-IS — this preserves
+// genuine SiteStripe links (linkCode/linkId/pd_rd_*/ref_=as_li_ss_tl) that
+// Amazon only honors with their exact tokens. Only untagged URLs are rebuilt
+// into the canonical https://www.amazon.com/dp/<ASIN>?tag=<partner-tag> form
 export function ensureTaggedAmazonUrl(url: string | null | undefined, asinHint?: string | null): string | null {
   if (!url) return null;
   if (!isAmazonDomain(url)) return url;
+  if (hasAffiliateTag(url, getAffiliateTag())) return url;
   const asin = normalizeAsin(asinHint || '') || extractAsinFromUrl(url);
   if (asin) return generateAffiliateUrl(asin);
   try {

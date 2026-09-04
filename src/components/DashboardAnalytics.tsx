@@ -37,6 +37,9 @@ interface TrafficData {
 
 interface ClickData {
   totalClicks: number;
+  todayClicks: number;
+  dailyClicks: { date: string; clicks: number }[];
+  byPlacement: { placement: string; clicks: number }[];
   topLinks: TopLink[];
 }
 
@@ -111,7 +114,7 @@ function useAnalytics(token: string) {
         fetch(`/api/admin/analytics/products?days=${days}`, { headers }).then(r => r.ok ? r.json() : null),
       ]);
       setTraffic(trafficRes || { totalViews: 0, totalVisitors: 0, dailyViews: [] });
-      setClicks(clicksRes || { totalClicks: 0, clicksByDay: [] });
+      setClicks(clicksRes || { totalClicks: 0, todayClicks: 0, dailyClicks: [], byPlacement: [], topLinks: [] });
       setEngagement(engagementRes || null);
       setContentPerf(perfRes || { totalPosts: 0, totalViews: 0, totalVisitors: 0, posts: [] });
       setRecentActivity(actRes || { pageViews: [], comments: [], subscriptions: [], messages: [] });
@@ -260,7 +263,8 @@ export default function DashboardAnalytics({ token }: { token: string }) {
                 ['Metric', 'Value'],
                 ['Total Views', String(traffic?.totalViews || 0)],
                 ['Unique Visitors', String(traffic?.totalVisitors || 0)],
-                ['Affiliate Clicks', String(clicks?.totalClicks || 0)],
+                ['Affiliate Clicks (period)', String(clicks?.totalClicks || 0)],
+                ['Affiliate Clicks (today)', String(clicks?.todayClicks || 0)],
                 ['Comments', String(engagement?.totalComments || 0)],
                 ['Subscribers', String(engagement?.totalSubscribers || 0)],
                 ['Published Posts', String(engagement?.totalPosts || 0)],
@@ -310,6 +314,7 @@ export default function DashboardAnalytics({ token }: { token: string }) {
           icon={<MousePointerClick className="h-5 w-5" />}
           label="Affiliate Clicks"
           value={(clicks?.totalClicks || 0).toLocaleString()}
+          sub={clicks && clicks.todayClicks > 0 ? `+${clicks.todayClicks} today` : 'No clicks yet'}
           color="bg-amber-50 dark:bg-amber-900/30 text-amber-600"
         />
         <StatCard
@@ -572,6 +577,57 @@ export default function DashboardAnalytics({ token }: { token: string }) {
               </div>
             ) : (
               <div className="py-8 text-center text-slate-400 dark:text-zinc-500 text-sm">No recent activity.</div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Click sources: placement breakdown + daily trend */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white dark:bg-zinc-800/80 rounded-xl border border-gray-100 dark:border-zinc-700 shadow-sm">
+          <SectionHeader icon={<MousePointerClick className="h-4 w-4" />} title="Clicks by Placement" badge={`${days}d`} />
+          <div className="p-5">
+            {clicks?.byPlacement && clicks.byPlacement.length > 0 ? (
+              <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                {clicks.byPlacement.map((p) => {
+                  const max = clicks.byPlacement[0]?.clicks || 1;
+                  const pct = Math.max(4, Math.round((p.clicks / max) * 100));
+                  return (
+                    <div key={p.placement} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-slate-600 dark:text-zinc-300 capitalize truncate pr-2">{p.placement.replace(/_/g, ' ')}</span>
+                        <span className="font-bold text-slate-800 dark:text-zinc-100 shrink-0">{p.clicks} <span className="text-[10px] font-medium text-slate-400 dark:text-zinc-500">clicks</span></span>
+                      </div>
+                      <div className="h-2 rounded-full bg-slate-100 dark:bg-zinc-700/50 overflow-hidden">
+                        <div className="h-full rounded-full bg-gradient-to-r from-[#246BFF] to-[#10b981]" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-10 text-center text-slate-400 dark:text-zinc-500 text-sm">
+                No product clicks recorded yet — clicks start counting the moment visitors tap &quot;Check Price on Amazon&quot;.
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-zinc-800/80 rounded-xl border border-gray-100 dark:border-zinc-700 shadow-sm">
+          <SectionHeader icon={<CalendarDays className="h-4 w-4" />} title="Daily Click Trend" badge={`${days}d`} />
+          <div className="p-5">
+            {clicks?.dailyClicks && clicks.dailyClicks.length > 0 ? (
+              <ResponsiveContainer width="100%" height={230}>
+                <LineChart data={clicks.dailyClicks}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(val) => { const d = new Date(val); return `${d.getMonth() + 1}/${d.getDate()}`; }} />
+                  <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
+                  <Tooltip contentStyle={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px' }} labelFormatter={(val) => new Date(val).toLocaleDateString()} />
+                  <Line type="monotone" dataKey="clicks" stroke="#f59e0b" strokeWidth={2} dot={false} name="Clicks" />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="py-12 text-center text-slate-400 dark:text-zinc-500 text-sm">No click activity in this period.</div>
             )}
           </div>
         </div>
