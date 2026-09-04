@@ -33,8 +33,9 @@ router.get('/posts/slug/:slug', async (req, res) => {
   let post: any = null;
   try {
     post = await dbInstance.getPostBySlug(req.params.slug);
-  } catch {
-    // DB down — serve the post from the homepage.json snapshot if present.
+  } catch { post = null; }
+  // DB down / row not found — serve the post from the homepage.json snapshot if present.
+  if (!post) {
     try {
       const hp = await fetchStaticCatalog('homepage.json');
       post = (hp?.posts || []).find((p: any) => p.slug === req.params.slug) || null;
@@ -822,20 +823,32 @@ router.delete('/wishlist/:id', async (req, res) => {
 
 // Recently viewed
 router.post('/recently-viewed', async (req, res) => {
-  await dbInstance.addRecentlyViewed(req.body);
-  res.json({ success: true });
+  try {
+    await dbInstance.addRecentlyViewed(req.body);
+    res.json({ success: true });
+  } catch {
+    res.json({ success: false });
+  }
 });
 router.get('/recently-viewed', async (req, res) => {
   const { userId, sessionId } = req.query;
   if (!userId && !sessionId) return res.json([]);
-  res.json(await dbInstance.getRecentlyViewed(userId as string, sessionId as string));
+  try {
+    res.json(await dbInstance.getRecentlyViewed(userId as string, sessionId as string));
+  } catch {
+    res.json([]);
+  }
 });
 
 // Saved comparisons
 router.get('/comparisons', async (req, res) => {
   const { userId, sessionId } = req.query;
   if (!userId && !sessionId) return res.json([]);
-  res.json(await dbInstance.getSavedComparisons(userId as string, sessionId as string));
+  try {
+    res.json(await dbInstance.getSavedComparisons(userId as string, sessionId as string));
+  } catch {
+    res.json([]);
+  }
 });
 router.post('/comparisons', async (req, res) => {
   res.json(await dbInstance.saveComparison(req.body));
