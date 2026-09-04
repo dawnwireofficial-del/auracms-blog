@@ -6,7 +6,12 @@
 // re-linked from the SiteStripe toolbar for full linkId tracking.
 //
 // Traffic metric: click_count (page_views was never populated in MySQL).
-// Usage: node scripts/migrate-site-stripe.mjs [--apply] [--top N]
+// Usage:
+//   node scripts/migrate-site-stripe.mjs            -- preview top-50 candidates
+//   node scripts/migrate-site-stripe.mjs --apply     -- write SiteStripe-format links
+//   node scripts/migrate-site-stripe.mjs --list-migrated [--top N]
+//        -- regenerate the CSV of ALREADY-migrated products (linkCode present)
+//          for optional re-linking from the SiteStripe toolbar (full linkId).
 import fs from 'fs';
 import mysql from 'mysql2/promise';
 
@@ -17,6 +22,7 @@ for (const line of fs.readFileSync('.env', 'utf8').split(/\r?\n/)) {
 }
 
 const APPLY = process.argv.includes('--apply');
+const LIST_MIGRATED = process.argv.includes('--list-migrated');
 const topIdx = process.argv.indexOf('--top');
 const TOP = Number(topIdx >= 0 ? process.argv[topIdx + 1] : 50) || 50;
 const TAG = env.AMAZON_PARTNER_TAG || 'dawnwire-20';
@@ -25,6 +31,17 @@ const c = await mysql.createConnection({
   host: env.MYSQL_HOST, port: Number(env.MYSQL_PORT),
   user: env.MYSQL_USER, password: env.MYSQL_PASSWORD, database: env.MYSQL_DATABASE,
 });
+
+// ALREADY-migrated (linkCode present) — used by --list-migrated to rebuild the toolbar CSV.
+const [migratedRows] = await c.query(
+  `SELECT id, slug, product_name, affiliate_url, amazon_url, asin, click_count, page_views
+   FROM product_reviews
+   WHERE status = 'published'
+     AND affiliate_url LIKE '%amazon%'
+     AND affiliate_url LIKE '%tag=${TAG}%'
+     AND affiliate_url LIKE '%linkCode=%'
+   ORDER BY click_count DESC, page_views DESC, created_at DESC`,
+);
 
 // System-generated = Amazon URL, tagged, NOT a manual/SiteStripe link.
 const [rows] = await c.query(
@@ -39,6 +56,22 @@ const [rows] = await c.query(
      AND affiliate_url NOT LIKE '%ref_=%'
    ORDER BY click_count DESC, page_views DESC, created_at DESC`,
 );
+
+if (LIST_MIGRATED) {
+  const list = migratedRows.slice(0, TOP);
+  const lines = [['slug', 'product_name', 'asin', 'click_count', 'current_url']];
+  for (const p of list) {
+    const asin = (p.affiliate_url || '').match(/\/dp\/([A-Z0-9]{10})/i)?.[1]?.toUpperCase()
+      || (p.amazon_url || '').match(/\/dp\/([A-Z0-9]{10})/i)?.[1]?.toUpperCase()
+      || (p.asin || '').toUpperCase();
+    lines.push([p.slug, (p.product_name || '').slice(0, 60), asin, String(p.click_count || 0), p.affiliate_url]);
+  }
+  fs.writeFileSync('site-stripe-migration.csv', lines.map((r) => r.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(',')).join('\n'));
+  console.log(`Already-migrated (linkCode) products: ${migratedRows.length} | top ${Math.min(TOP, migratedRows.length)} in CSV`);
+  lines.slice(1, 11).forEach((r) => console.log(`${r[0].slice(0, 55)} | clicks=${r[3]} | ${r[4].slice(0, 70)}`));
+  await c.end();
+  process.exit(0);
+}
 
 console.log(`System-generated candidates: ${rows.length} | migrating top ${Math.min(TOP, rows.length)} by traffic`);
 const top = rows.slice(0, TOP);
