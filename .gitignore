@@ -33,3 +33,6 @@ Hero Section/
 
 # Vercel deploy incremental manifest
 .vercel-deploy-manifest.json
+
+# Local QA screenshots
+qa-shots/
