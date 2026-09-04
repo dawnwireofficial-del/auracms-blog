@@ -30,7 +30,16 @@ router.get('/posts', async (req, res) => {
   res.json({ data: posts, total, limit, offset });
 });
 router.get('/posts/slug/:slug', async (req, res) => {
-  const post = await dbInstance.getPostBySlug(req.params.slug);
+  let post: any = null;
+  try {
+    post = await dbInstance.getPostBySlug(req.params.slug);
+  } catch {
+    // DB down — serve the post from the homepage.json snapshot if present.
+    try {
+      const hp = await fetchStaticCatalog('homepage.json');
+      post = (hp?.posts || []).find((p: any) => p.slug === req.params.slug) || null;
+    } catch { post = null; }
+  }
   if (!post || post.status !== 'published' || (post.visibility != null && post.visibility !== 'public')) return res.status(404).json({ error: 'Article not found' });
   res.json(post);
 });
@@ -62,7 +71,17 @@ router.get('/pages/:slug', async (req, res) => {
   if (!page || page.status !== 'published') return res.status(404).json({ error: 'Page not found' });
   res.json(page);
 });
-router.get('/affiliate', async (_req, res) => res.json((await dbInstance.getAffiliateLinks()).filter(l => l.status === 'active')));
+router.get('/affiliate', async (_req, res) => {
+  // Graceful degradation: cloak links come from the DB; return [] while it's
+  // unreachable so pages never 500 (cloak HREFs fall back to direct URLs).
+  let links: any[] = [];
+  try {
+    links = (await dbInstance.getAffiliateLinks()).filter((l: any) => l.status === 'active');
+  } catch {
+    console.log('[API] affiliate DB unavailable, returning empty link set');
+  }
+  res.json(links);
+});
 
 router.get('/comments/post/:postId', async (req, res) => res.json((await dbInstance.getComments()).filter(c => c.postId === req.params.postId && c.status === 'approved')));
 
@@ -163,13 +182,30 @@ router.get('/product-reviews/slug/:slug', async (req, res) => {
   
   // Fallback: try normalized match
   if (!found) {
-    const reviews = await seo.getPublishedProductReviews();
-    const normTarget = decodedSlug.replace(/[^a-z0-9]/g, '');
-    found = (reviews as any[]).find(r => {
-      if (!r.slug) return false;
-      const normSlug = r.slug.toLowerCase().replace(/[^a-z0-9]/g, '');
-      return normSlug === normTarget || normTarget.startsWith(normSlug) || normSlug.startsWith(normTarget);
-    });
+    try {
+      const reviews = await seo.getPublishedProductReviews();
+      const normTarget = decodedSlug.replace(/[^a-z0-9]/g, '');
+      found = (reviews as any[]).find(r => {
+        if (!r.slug) return false;
+        const normSlug = r.slug.toLowerCase().replace(/[^a-z0-9]/g, '');
+        return normSlug === normTarget || normTarget.startsWith(normSlug) || normSlug.startsWith(normTarget);
+      });
+    } catch { /* DB unavailable — fall through to static catalog */ }
+  }
+
+  // Last resort: match from the static catalog snapshot (deployed data, no DB).
+  if (!found) {
+    try {
+      const catalog = await fetchStaticCatalog('catalog.json');
+      const list: any[] = catalog?.products || [];
+      const normTarget = decodedSlug.replace(/[^a-z0-9]/g, '');
+      found = list.find((r: any) => {
+        const normSlug = String(r.slug || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        return normSlug === normTarget || String(r.id) === rawSlug
+          || String(r.asin || '').toUpperCase() === rawSlug.toUpperCase()
+          || normTarget.startsWith(normSlug) || normSlug.startsWith(normTarget);
+      }) || null;
+    } catch { /* no static catalog either */ }
   }
   
   if (!found) return res.status(404).json({ error: 'Product review not found' });
@@ -659,7 +695,12 @@ router.get(['/product-reviews', '/products'], async (req, res) => {
 router.get('/deals', async (req, res) => {
   const categoryId = req.query.categoryId as string;
   const dealType = req.query.dealType as string;
-  let deals = await dbInstance.getDeals(categoryId, 'active');
+  let deals: any[] = [];
+  try {
+    deals = await dbInstance.getDeals(categoryId, 'active');
+  } catch {
+    console.log('[API] deals DB unavailable, returning empty deal set');
+  }
   if (dealType) deals = deals.filter((d: any) => d.dealType === dealType);
   res.json(deals);
 });
