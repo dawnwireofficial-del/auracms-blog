@@ -41,7 +41,7 @@ router.get('/posts/slug/:slug', async (req, res) => {
       post = (hp?.posts || []).find((p: any) => p.slug === req.params.slug) || null;
     } catch { post = null; }
   }
-  if (!post || post.status !== 'published' || (post.visibility != null && post.visibility !== 'public')) return res.status(404).json({ error: 'Article not found' });
+  if (!post || (post.status != null && post.status !== 'published') || (post.visibility != null && post.visibility !== 'public')) return res.status(404).json({ error: 'Article not found' });
   res.json(post);
 });
 // Cache categories for 5 minutes
