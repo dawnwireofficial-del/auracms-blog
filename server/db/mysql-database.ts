@@ -137,8 +137,38 @@ export class MySQLDatabase {
     return this.one('affiliate_links', q => q.update(updates).eq('id', id).select().single());
   }
   async deleteAffiliateLink(id: string) { await this.sb().from('affiliate_links').delete().eq('id', id); return true; }
+
+  // NOTE: affiliate_clicks / product_reviews store SNAKE_CASE columns. The
+  // SBQuery adapter inserts raw keys, so camelCase payloads must be mapped
+  // explicitly (same as SupabaseDatabase.logAffiliateClick) or the insert
+  // silently dies with "Unknown column 'productId'".
   async logAffiliateClick(click: any) {
-    return this.one('affiliate_clicks', q => q.insert({ id: newId(), ...click, created_at: nowIso() }).select().single());
+    const row = await this.one('affiliate_clicks', q => q.insert({
+      id: newId(),
+      product_id: click.productId || null,
+      category_id: click.categoryId || null,
+      page_url: click.pageUrl || null,
+      page_type: click.pageType || null,
+      banner_id: click.bannerId || null,
+      section_type: click.sectionType || null,
+      cta_position: click.ctaPosition || null,
+      device_type: click.deviceType || null,
+      session_id: click.sessionId || null,
+      user_id: click.userId || null,
+      campaign: click.campaign || null,
+      article_id: click.articleId || null,
+      created_at: nowIso(),
+    }).select().single());
+    // Keep the per-product click counter in sync so product pages/dashboards
+    // can show "N people clicked this deal" without a join.
+    if (click.productId) {
+      try {
+        const cur = await this.one('product_reviews', q => q.select('click_count').eq('id', click.productId).maybeSingle());
+        const next = Number((cur as any)?.click_count ?? (cur as any)?.clickCount ?? 0) + 1;
+        await this.sb().from('product_reviews').update({ click_count: next }).eq('id', click.productId);
+      } catch (e) { console.error('Failed to increment click_count:', (e as Error).message); }
+    }
+    return row;
   }
   async getAffiliateClicks(options?: { limit?: number; offset?: number }) {
     return this.list('affiliate_clicks', q => {
@@ -353,8 +383,17 @@ export class MySQLDatabase {
   async deleteTestimonial(id: string) { await this.sb().from('testimonials').delete().eq('id', id); return true; }
 
   // ================= extra affiliate / analytics =================
-  async trackAffiliateClick(click: any) {
-    return this.one('affiliate_clicks', q => q.insert({ id: newId(), ...click, created_at: nowIso() }).select().single());
+  // /go/:slug short-link tracker — mirrors Supabase semantics: resolve the
+  // affiliate_links row by short_slug, bump its click_count, return the URL.
+  async trackAffiliateClick(slug: string) {
+    const link = await this.one('affiliate_links', q => q.select('*').eq('short_slug', slug).maybeSingle());
+    if (!link) return null;
+    try {
+      await this.sb().from('affiliate_links')
+        .update({ click_count: ((link as any).click_count || 0) + 1 })
+        .eq('id', (link as any).id);
+    } catch (e) { console.error('Failed to increment link click_count:', (e as Error).message); }
+    return (link as any).affiliate_url || (link as any).affiliateUrl || null;
   }
   async getClickAnalytics(options?: { limit?: number; offset?: number }) {
     return this.list('affiliate_clicks', q => {
