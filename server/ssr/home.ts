@@ -1,5 +1,4 @@
 import { dbInstance } from '../db';
-import { createClient } from '@supabase/supabase-js';
 import { readStaticCatalog } from '../api-cache';
 import { SsrResult } from './head';
 
@@ -47,35 +46,31 @@ async function loadHomeData() {
     if (staticCats) { categories = staticCats; console.log('[SSR] Using static categories'); }
   }
 
-  // Products & Posts: try Supabase with 8s timeout, fallback to static
+  // Products & Posts: use the same MySQL-backed data path as the live API
+  // (the legacy direct-Supabase queries hit a frozen project and return empty).
   try {
-    const sb = createClient(
-      process.env.SUPABASE_URL || '',
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || ''
-    );
-    const queryPromise = Promise.all([
-      sb.from('product_reviews')
-        .select('id, slug, product_name, brand, product_image, price, editor_score, rating, review_count, best_for')
-        .eq('status', 'published')
-        .order('editor_score', { ascending: false })
-        .limit(20),
-      sb.from('posts')
-        .select('id, slug, title, excerpt, featured_image, category_id, reading_time')
-        .eq('status', 'published')
-        .order('created_at', { ascending: false })
-        .limit(8),
-    ]);
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Supabase query timeout (8s)')), 8000)
-    );
-    const [prodRes, postRes] = await Promise.race([queryPromise, timeoutPromise]) as any;
-    products = (prodRes.data || []).filter((r: any) => r.product_name);
-    posts = (postRes.data || []).filter((p: any) => p.title && p.slug);
+    const { getPublishedProductReviewsLight } = await import('../seo-engine');
+    const allPublished = await getPublishedProductReviewsLight();
+    const valid = (allPublished || []).filter((r: any) => r.product_name && r.slug);
+    products = [...valid]
+      .sort((a: any, b: any) => (Number(val(b, 'editorScore')) || 0) - (Number(val(a, 'editorScore')) || 0))
+      .slice(0, 20);
   } catch (e) {
-    console.error('[SSR home] queries failed, using static fallback:', (e as Error).message);
+    console.error('[SSR home] product query failed:', (e as Error).message);
+  }
+
+  try {
+    const allPosts: any[] = await (dbInstance as any).getPosts({ limit: 30 });
+    const valid = (allPosts || []).filter((p: any) => p.title && p.slug);
+    // Prefer posts with a featured image so guide cards render with art
+    const withImage = valid.filter((p: any) => val(p, 'featuredImage'));
+    const withoutImage = valid.filter((p: any) => !val(p, 'featuredImage'));
+    posts = [...withImage, ...withoutImage].slice(0, 8);
+  } catch (e) {
+    console.error('[SSR home] post query failed:', (e as Error).message);
   }
   
-  // Fallback: use static homepage.json if Supabase failed
+  // Fallback: use static homepage.json if the DB path failed
   if (products.length === 0 || posts.length === 0) {
     const staticHome = readStaticCatalog('homepage.json');
     if (staticHome) {
