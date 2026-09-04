@@ -75,6 +75,23 @@ app.use((req, res, next) => {
 
 app.use(express.json({ limit: '10mb' }));
 
+// Some clients send sendBeacon payloads as text/plain (express.json skips
+// those, leaving req.body = {}). Parse them as JSON for the tracking routes.
+app.use('/api/public/track', (req, res, next) => {
+  const ct = (req.headers['content-type'] || '').toLowerCase();
+  if (ct.includes('text/plain') && (!req.body || Object.keys(req.body).length === 0)) {
+    let raw = '';
+    req.setEncoding('utf8');
+    req.on('data', (chunk) => { raw += chunk; if (raw.length > 100000) req.destroy(); });
+    req.on('end', () => {
+      try { req.body = JSON.parse(raw || '{}'); } catch { req.body = {}; }
+      next();
+    });
+    return;
+  }
+  next();
+});
+
 // 301 Redirect bare /review, /review/, /product, or /product/ to /products catalog page
 app.get(['/review', '/review/', '/product', '/product/'], (_req, res) => {
   return res.redirect(301, '/products');

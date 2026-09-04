@@ -23,11 +23,18 @@ export function trackEvent(action: string, category: string, label?: string, val
   } catch (e) { console.error(e) }
 }
 
+// sendBeacon with a plain string body sends Content-Type: text/plain, which
+// express.json() never parses (req.body stays {}). Always wrap in a Blob so
+// the payload actually arrives.
+function beacon(url: string, data: unknown) {
+  try {
+    navigator.sendBeacon?.(url, new Blob([JSON.stringify(data)], { type: 'application/json' }));
+  } catch (e) { console.error(e) }
+}
+
 export function trackAffiliateClick(linkSlug: string, linkTitle: string) {
   trackEvent('affiliate_click', 'affiliate', linkTitle);
-  try {
-    navigator.sendBeacon?.('/api/public/track/affiliate', JSON.stringify({ slug: linkSlug, title: linkTitle }));
-  } catch (e) { console.error(e) }
+  beacon('/api/public/track/affiliate', { slug: linkSlug, title: linkTitle });
 }
 
 export function trackConversion(action: string, value?: number) {
@@ -49,19 +56,19 @@ export function trackPageView(path: string, title: string, opts?: { productSlug?
       window.gtag('event', 'page_view', { page_path: path, page_title: title });
     }
     // Beacon to own analytics
-    if (typeof window !== 'undefined' && navigator.sendBeacon) {
+    if (typeof window !== 'undefined') {
       const sessionId = sessionStorage.getItem('dw_session') || (() => {
         const id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substring(2);
         sessionStorage.setItem('dw_session', id);
         return id;
       })();
-      navigator.sendBeacon('/api/public/track/page-view', JSON.stringify({
+      beacon('/api/public/track/page-view', {
         path,
         referrer: document.referrer || '',
         userAgent: navigator.userAgent,
         sessionId,
         productSlug: opts?.productSlug || undefined,
-      }));
+      });
     }
   } catch (e) { console.error(e) }
 }
