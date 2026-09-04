@@ -921,6 +921,65 @@ router.get('/user/comparisons', async (req, res) => {
 });
 
 // ===== AI Health Check =====
+// Public Pinterest product catalog (always-fresh CSV from the live DB, cached
+// 15 min). Lets Pinterest's catalog crawler ingest without admin auth. Link
+// column points at DawnWire product pages (image proxy URLs for media).
+let _pinCatCache: { data: string; ts: number } | null = null;
+router.get('/pinterest-catalog.csv', async (_req, res) => {
+  try {
+    if (!_pinCatCache || Date.now() - _pinCatCache.ts > 900_000) {
+      const reviews = await seo.getPublishedProductReviewsLight();
+      const baseUrl = process.env.APP_URL || 'https://www.dawnwire.com';
+      const esc = (val: any): string => {
+        if (val == null || val === '') return '';
+        const s = String(val).replace(/[\r\n\t]+/g, ' ').replace(/"/g, '""');
+        return `"${s}"`;
+      };
+      const price = (raw: any): string => {
+        if (!raw) return '';
+        const num = parseFloat(String(raw).replace(/[^0-9.]/g, ''));
+        if (isNaN(num) || num <= 0) return '';
+        return `${num.toFixed(2)} USD`;
+      };
+      const cols = ['id','item_group_id','title','description','link','image_link','price','availability','condition','google_product_category','product_type','additional_image_link','sale_price','brand','gender','age_group','size','size_type','shipping','custom_label_0','adwords_redirect'];
+      const rows = (reviews || [])
+        .filter((r: any) => r.product_name && r.status === 'published')
+        .map((r: any) => {
+          const name = r.product_name || '';
+          const slug = r.slug || r.id;
+          const link = `${baseUrl}/products/${encodeURIComponent(slug)}`;
+          const image = r.product_image || '';
+          const proxy = image ? `${baseUrl}/api/public/image-proxy?url=${encodeURIComponent(image)}` : '';
+          const p = price(r.price);
+          const orig = price(r.original_price);
+          const bf = r.best_for || '';
+          const dept = bf;
+          const desc = [
+            `${r.brand || ''} ${name}`.trim(),
+            bf ? `Best for: ${bf}` : '',
+            r.editor_score ? `DawnWire Editor Score: ${r.editor_score}/10` : '',
+            r.rating ? `Rating: ${r.rating}/5 (${r.review_count || 0} reviews)` : '',
+            'Reviewed by DawnWire — independent product research & buying guides.',
+            'DawnWire may earn a commission from qualifying purchases.',
+          ].filter(Boolean).join(' | ').substring(0, 4900);
+          const label = r.deal_badge ? 'deal' : (r.editor_score || 0) >= 8 ? 'top_rated' : 'standard';
+          return [
+            esc(r.id), esc(r.id), esc(`${r.brand ? r.brand + ' ' : ''}${name}`.substring(0, 100)), esc(desc),
+            esc(link), esc(proxy), p, esc(r.stock_status === 'out_of_stock' ? 'out of stock' : 'in stock'), 'new',
+            esc('Home & Garden'), esc(dept), '', orig || '', esc(r.brand || ''), 'unisex', 'adult', '', '', '',
+            esc(label), esc(link),
+          ].join(',');
+        });
+      _pinCatCache = { data: [cols.join(','), ...rows].join('\n'), ts: Date.now() };
+    }
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=900, s-maxage=900');
+    res.send(_pinCatCache.data);
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 router.get('/health/ai', async (_req, res) => {
   const testPrompt = 'Say hi in 3 words.';
   const testSystem = 'You are a test bot. Reply with exactly 3 words.';
