@@ -13,7 +13,16 @@ const router = express.Router();
 
 router.get('/settings', async (_req, res) => res.json(await dbInstance.getSettings()));
 router.get('/posts', async (req, res) => {
-  let posts = (await dbInstance.getPosts()).filter(p => p.status === 'published' && (p.visibility == null || p.visibility === 'public'));
+  // Graceful degradation: if the DB is unreachable (e.g. MySQL grants down),
+  // serve the last published posts snapshot from homepage.json instead of 500.
+  let posts: any[];
+  try {
+    posts = (await dbInstance.getPosts()).filter(p => p.status === 'published' && (p.visibility == null || p.visibility === 'public'));
+  } catch {
+    console.log('[API] posts DB unavailable, using homepage.json snapshot');
+    const hp = readStaticCatalog('homepage.json');
+    posts = (hp?.posts || []).filter((p: any) => p.status === 'published' || p.status == null);
+  }
   const limit = parseInt(req.query.limit as string) || 0;
   const offset = parseInt(req.query.offset as string) || 0;
   const total = posts.length;
@@ -374,7 +383,21 @@ router.get('/topic-cluster/:slug', async (req, res) => {
 
 // Brands
 router.get('/brands', async (req, res) => {
-  const brands = await dbInstance.getBrands();
+  // Graceful degradation: fall back to the static brands snapshot when the DB
+  // is unreachable, so the homepage brand rail never 500s.
+  let brands: any[];
+  try {
+    brands = await dbInstance.getBrands();
+  } catch {
+    console.log('[API] brands DB unavailable, using brands.json snapshot');
+    const snap = readStaticCatalog('brands.json');
+    brands = (Array.isArray(snap) ? snap : []).map((b: any) => ({
+      id: b.id || ('brand-' + String(b.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-')),
+      name: b.name,
+      slug: b.slug || String(b.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      status: b.status || 'active',
+    }));
+  }
   const active = brands.filter((b: any) => b.status === 'active');
   const limit = parseInt(req.query.limit as string);
   const offset = parseInt(req.query.offset as string) || 0;
@@ -643,7 +666,14 @@ router.get('/deals', async (req, res) => {
 
 // Homepage hero slides
 router.get('/homepage-hero', async (_req, res) => {
-  const heroSlides = (await dbInstance.getHomepageHeroSlides()).filter((s: any) => s.isActive).sort((a: any, b: any) => a.sortOrder - b.sortOrder);
+  // Graceful degradation: no hero slides when the DB is down (client already
+  // falls back to the static brand-kit hero imagery) — never 500.
+  let heroSlides: any[] = [];
+  try {
+    heroSlides = (await dbInstance.getHomepageHeroSlides()).filter((s: any) => s.isActive).sort((a: any, b: any) => a.sortOrder - b.sortOrder);
+  } catch {
+    console.log('[API] homepage-hero DB unavailable, returning empty hero set');
+  }
   res.json(heroSlides);
 });
 
