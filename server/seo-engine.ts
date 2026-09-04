@@ -308,8 +308,25 @@ export async function ensureBrandForProduct(brandName: string | null | undefined
   return data?.id || brand.id;
 }
 
+// Write-time guarantee: every Amazon URL stored on a product carries the
+// partner tag, no matter which entry point created/updated it (manual admin
+// form, extension, bulk importer, AI). Outbound clicks are also re-tagged by
+// the cloak, but tagging at rest keeps the DB itself commission-safe.
+async function enforceTaggedAmazonUrls(review: any): Promise<void> {
+  const { ensureTaggedAmazonUrl } = await import('./affiliate-health');
+  const asinHint = review.asin || (review.specs && (review.specs as any).asin) || null;
+  for (const key of ['affiliate_url', 'amazon_url']) {
+    const v = review[key];
+    if (v && String(v).toLowerCase().includes('amazon')) {
+      const tagged = ensureTaggedAmazonUrl(String(v), asinHint);
+      if (tagged) review[key] = tagged;
+    }
+  }
+}
+
 export async function createProductReview(review: any, slugSet?: Set<string> | null): Promise<any> {
   const sb = await getClient();
+  await enforceTaggedAmazonUrls(review);
   let slug = review.slug || slugify(review.product_name || 'product-review');
   const used = slugSet || (await sb.from('product_reviews').select('slug')).data?.map((r: any) => r.slug).filter(Boolean) || [];
   const usedSet = new Set(used);
@@ -398,6 +415,7 @@ async function findCategoryIdByName(name: string): Promise<string | null> {
 
 export async function updateProductReview(id: string, updates: any): Promise<any> {
   const sb = await getClient();
+  await enforceTaggedAmazonUrls(updates);
   const payload: any = { updated_at: new Date().toISOString() };
   for (const [key, value] of Object.entries(updates)) {
     if (key === 'images' || key === 'mainCategory') continue;

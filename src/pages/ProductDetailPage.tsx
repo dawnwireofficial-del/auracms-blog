@@ -130,11 +130,6 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
   useEffect(() => {
     if (!productSlug) return;
-    trackPageView(`/products/${productSlug}`, `Product: ${productSlug}`);
-  }, [productSlug]);
-
-  useEffect(() => {
-    if (!productSlug) return;
     let cancelled = false;
     // Optimistic partial render from the store (light, no specs) while the full row loads.
     const found = products.find((p) => p.slug === productSlug);

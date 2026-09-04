@@ -5,17 +5,31 @@ function getClient() {
   return getSupabaseAdmin();
 }
 
-export async function trackPageView(path: string, referrer: string, userAgent: string, sessionId: string, ip?: string): Promise<void> {
+export async function trackPageView(path: string, referrer: string, userAgent: string, sessionId: string, ip?: string, productSlug?: string): Promise<void> {
   try {
+    // Ignore crawlers/bots so the dashboard reflects human traffic.
+    const ua = String(userAgent || '').toLowerCase();
+    if (/bot|crawl|spider|slurp|bingpreview|headless|phantom|facebookexternalhit|whatsapp|telegrambot|curl|wget/i.test(ua)) return;
     const sb = await getClient();
     await sb.from('page_views').insert({
-      path,
-      referrer: referrer || null,
-      user_agent: userAgent || null,
-      session_id: sessionId || null,
-      ip: ip || null,
+      id: crypto.randomUUID(),
+      path: String(path || '/').slice(0, 1000),
+      referrer: referrer ? String(referrer).slice(0, 1000) : null,
+      user_agent: ua ? String(userAgent).slice(0, 500) : null,
+      session_id: sessionId ? String(sessionId).slice(0, 200) : null,
+      ip: ip ? String(ip).slice(0, 64) : null,
       created_at: new Date().toISOString(),
     });
+    // Keep per-product page_views in sync so the Product Performance table
+    // shows real view counts (this is the client-side view signal).
+    if (productSlug) {
+      try {
+        const { data: prod } = await sb.from('product_reviews').select('id,page_views').eq('slug', productSlug).limit(1).maybeSingle();
+        if (prod && prod.id) {
+          await sb.from('product_reviews').update({ page_views: Number(prod.page_views || 0) + 1 }).eq('id', prod.id);
+        }
+      } catch (e) { console.error('[Analytics] product page_views increment:', (e as Error).message); }
+    }
   } catch (e) {
     console.error('[Analytics] Failed to track page view:', e);
   }

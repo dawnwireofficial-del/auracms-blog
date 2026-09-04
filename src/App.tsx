@@ -18,6 +18,7 @@ import { GlobalGravityCanvas } from './components/experience/GlobalGravityCanvas
 import { CanvasPerformanceManager } from './components/experience/CanvasPerformanceManager';
 import { installGlobalAuthInterceptor } from './lib/sessionGuard';
 import SiteEffects from './components/SiteEffects';
+import { trackPageView } from './lib/tracker';
 
 const ProductCatalogPage = lazy(() => import('./pages/ProductCatalogPage').then(m => ({ default: m.ProductCatalogPage })));
 const BestCategoryPage = lazy(() => import('./pages/BestCategoryPage').then(m => ({ default: m.BestCategoryPage })));
@@ -132,11 +133,23 @@ export function App() {
   useEffect(() => {
     const handleImageError = (e: Event) => {
       const img = e.target as HTMLImageElement;
-      if (img && img.tagName === 'IMG' && !img.dataset.fallbackApplied && !(img.src || '').includes('/api/public/image-proxy')) {
-        img.dataset.fallbackApplied = 'true';
-        img.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f1f5f9"/><text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">Image unavailable</text></svg>');
-        img.onerror = null;
-      }
+      if (!img || img.tagName !== 'IMG' || img.dataset.fallbackApplied) return;
+      const src = img.src || '';
+      // Images already routed through the proxy have their own 200-placeholder semantics.
+      if (src.includes('/api/public/image-proxy')) return;
+      // Flaky / hotlink-protected hosts: retry once through the server-side proxy
+      // before giving up (the proxy streams the image or returns a 200 placeholder).
+      try {
+        const u = new URL(src);
+        if (['files.catbox.moe', 'catbox.moe', 'i.ibb.co', 'm.media-amazon.com', 'images-na.ssl-images-amazon.com'].includes(u.hostname)) {
+          img.dataset.fallbackApplied = 'true';
+          img.src = '/api/public/image-proxy?url=' + encodeURIComponent(src);
+          return;
+        }
+      } catch { /* relative or invalid src — fall through */ }
+      img.dataset.fallbackApplied = 'true';
+      img.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f1f5f9"/><text x="100" y="105" text-anchor="middle" fill="#94a3b8" font-size="14" font-family="sans-serif">Image unavailable</text></svg>');
+      img.onerror = null;
     };
     window.addEventListener('error', handleImageError, true);
     return () => window.removeEventListener('error', handleImageError, true);
@@ -219,6 +232,19 @@ export function App() {
       }
     };
   }, []);
+
+  // Central page-view analytics: fires once per route change (initial load,
+  // SPA navigations via navigateTo/popstate, and back/forward). Product pages
+  // additionally bump product_reviews.page_views server-side via productSlug.
+  useEffect(() => {
+    if (!pathname || pathname.startsWith('/admin')) return;
+    let productSlug: string | undefined;
+    if (pathname.startsWith('/products/') && pathname.length > '/products/'.length) {
+      productSlug = decodeURIComponent(pathname.replace('/products/', '').split('/')[0]);
+    }
+    trackPageView(pathname + (window.location.search || ''), document.title, productSlug ? { productSlug } : undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   const openChatbotWithProduct = (product: Product) => {
     setChatbotContextProduct(product);

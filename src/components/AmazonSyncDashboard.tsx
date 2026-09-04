@@ -49,6 +49,20 @@ interface Props {
   token: string;
 }
 
+// Settings fields arrive as an array, a comma string, or a JSON-encoded array —
+// never crash a render on a non-array.
+function commaList(v: any): string {
+  if (Array.isArray(v)) return v.join(', ');
+  if (typeof v === 'string') {
+    const t = v.trim();
+    if (t.startsWith('[')) {
+      try { const p = JSON.parse(t); if (Array.isArray(p)) return p.join(', '); } catch { /* fall through */ }
+    }
+    return t;
+  }
+  return '';
+}
+
 export default function AmazonSyncDashboard({ token }: Props) {
   const [stats, setStats] = useState<SyncStats | null>(null);
   const [products, setProducts] = useState<SyncProduct[]>([]);
@@ -426,11 +440,11 @@ export default function AmazonSyncDashboard({ token }: Props) {
               </div>
               <div>
                 <label className="text-xs text-slate-500 block mb-1">Fields to sync (comma-separated)</label>
-                <input type="text" name="fields_to_sync" defaultValue={(syncSettings?.fields_to_sync || []).join(', ')} className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100 font-mono" />
+                <input type="text" name="fields_to_sync" defaultValue={commaList(syncSettings?.fields_to_sync)} className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100 font-mono" />
               </div>
               <div>
                 <label className="text-xs text-slate-500 block mb-1">Fields that auto-overwrite (comma-separated)</label>
-                <input type="text" name="fields_auto_overwrite" defaultValue={(syncSettings?.fields_auto_overwrite || []).join(', ')} className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100 font-mono" />
+                <input type="text" name="fields_auto_overwrite" defaultValue={commaList(syncSettings?.fields_auto_overwrite)} className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100 font-mono" />
               </div>
               <label className="flex items-center gap-3">
                 <input type="checkbox" name="notify_on_failure" defaultChecked={syncSettings?.notify_on_failure} className="rounded border-slate-300" />

@@ -125,9 +125,11 @@ export default function ShoppingAssistant({ pageContext }: Props) {
     productImage: p.productImage || p.product_image || '',
     originalPrice: p.originalPrice || p.original_price || '',
     bestFor: p.bestFor || p.best_for || '',
-    keyFeatures: p.keyFeatures || p.key_features || [],
-    pros: p.pros || [],
-    cons: p.cons || [],
+    keyFeatures: Array.isArray(p.keyFeatures || p.key_features)
+      ? (p.keyFeatures || p.key_features)
+      : (typeof (p.keyFeatures || p.key_features) === 'string' && (p.keyFeatures || p.key_features) ? [(p.keyFeatures || p.key_features)] : []),
+    pros: Array.isArray(p.pros) ? p.pros : (typeof p.pros === 'string' && p.pros ? [p.pros] : []),
+    cons: Array.isArray(p.cons) ? p.cons : (typeof p.cons === 'string' && p.cons ? [p.cons] : []),
     affiliateUrl: p.affiliateUrl || p.affiliate_url || '',
     discountPercentage: p.discountPercentage || p.discount_percentage || 0,
     stockStatus: p.stockStatus || p.stock_status || '',

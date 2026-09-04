@@ -245,10 +245,10 @@ router.post('/track/affiliate', async (req, res) => {
 
 router.post('/track/page-view', async (req, res) => {
   try {
-    const { path, referrer, userAgent, sessionId } = req.body;
+    const { path, referrer, userAgent, sessionId, productSlug } = req.body;
     const { trackPageView } = await import('../../server/analytics');
     const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress;
-    await trackPageView(path, referrer, userAgent, sessionId, ip);
+    await trackPageView(path, referrer, userAgent, sessionId, ip, productSlug);
     res.json({ success: true });
   } catch { res.json({ success: true }); }
 });
@@ -288,8 +288,8 @@ router.get('/video-proxy', async (req, res) => {
   }
 });
 
-// Server-side image proxy for Amazon CDN (avoids hotlinking blocks)
-const ALLOWED_IMAGE_DOMAINS = ['m.media-amazon.com', 'images-na.ssl-images-amazon.com', 'images.unsplash.com'];
+// Server-side image proxy for Amazon CDN / flaky hosts (avoids hotlinking blocks)
+const ALLOWED_IMAGE_DOMAINS = ['m.media-amazon.com', 'images-na.ssl-images-amazon.com', 'images.unsplash.com', 'files.catbox.moe', 'catbox.moe', 'i.ibb.co'];
 
 const IMAGE_PLACEHOLDER_SVG = Buffer.from(
   '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800"><rect width="800" height="800" fill="#e2e8f0"/><rect x="240" y="180" width="320" height="240" rx="24" fill="#cbd5e1"/><circle cx="352" cy="268" r="36" fill="#94a3b8"/><path d="M252 552 L380 424 L486 530 L560 456 L672 568" stroke="#94a3b8" stroke-width="26" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="400" cy="616" r="14" fill="#94a3b8"/><text x="400" y="692" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#94a3b8" text-anchor="middle">Image unavailable</text></svg>',
@@ -362,8 +362,12 @@ router.get('/topic-cluster/:slug', async (req, res) => {
   const cluster = clusters.find((c: any) => c.slug === req.params.slug);
   if (!cluster) return res.status(404).json({ error: 'Cluster not found' });
   const posts = await dbInstance.getPosts();
-  const clusterPosts = posts.filter((p: any) => cluster.clusterPostIds.includes(p.id));
-  res.json({ ...cluster, clusterPosts });
+  // MySQL rows carry snake_case cluster_post_ids (often a JSON string)
+  const rawIds = (cluster as any).cluster_post_ids ?? (cluster as any).clusterPostIds ?? [];
+  let ids: string[] = [];
+  try { ids = typeof rawIds === 'string' ? JSON.parse(rawIds) : Array.isArray(rawIds) ? rawIds : []; } catch { ids = []; }
+  const clusterPosts = posts.filter((p: any) => ids.includes(p.id || p.ID));
+  res.json({ ...cluster, clusterPostIds: ids, clusterPosts });
 });
 
 // ====== Affiliate Platform Public Routes ======

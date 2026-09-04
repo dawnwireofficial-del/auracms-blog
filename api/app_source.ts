@@ -165,12 +165,12 @@ app.use((_req, res, next) => {
   res.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   res.set('Content-Security-Policy', [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://cdn.jsdelivr.net https://fonts.googleapis.com",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
     "img-src 'self' data: blob: https: *",
     "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
     "frame-src 'self' https://www.googletagmanager.com https://www.youtube.com https://connect.facebook.net",
-    "connect-src 'self' https://api.cohere.com https://www.google-analytics.com https://analytics.google.com https://m.media-amazon.com https://images-na.ssl-images-amazon.com https://api.imgbb.com https://api.knock.app wss://api.knock.app",
+    "connect-src 'self' https://api.cohere.com https://www.google-analytics.com https://analytics.google.com https://m.media-amazon.com https://images-na.ssl-images-amazon.com https://api.imgbb.com https://api.knock.app wss://api.knock.app https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
     "media-src 'self' https: blob:",
   ].join('; '));
   next();

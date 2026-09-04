@@ -43,7 +43,7 @@ export function trackConversion(action: string, value?: number) {
   } catch (e) { console.error(e) }
 }
 
-export function trackPageView(path: string, title: string) {
+export function trackPageView(path: string, title: string, opts?: { productSlug?: string }) {
   try {
     if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
       window.gtag('event', 'page_view', { page_path: path, page_title: title });
@@ -60,6 +60,7 @@ export function trackPageView(path: string, title: string) {
         referrer: document.referrer || '',
         userAgent: navigator.userAgent,
         sessionId,
+        productSlug: opts?.productSlug || undefined,
       }));
     }
   } catch (e) { console.error(e) }

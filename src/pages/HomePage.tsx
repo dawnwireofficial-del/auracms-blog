@@ -512,6 +512,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenAiFinder, onOpenChatbo
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-orange-500 selection:text-white">
+      {/* SEO/accessibility H1 — hero is banner art, so the page H1 is visually hidden (matches SSR H1) */}
+      <h1 className="sr-only">DawnWire: AI-Powered Amazon Product Reviews, Price-Drop Deals &amp; Buying Guides</h1>
+
       {/* ─────────────────────────────────────────────────────────────
           FTC Affiliate Disclosure Banner
       ───────────────────────────────────────────────────────────── */}

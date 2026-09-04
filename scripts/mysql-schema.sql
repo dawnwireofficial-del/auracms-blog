@@ -537,6 +537,34 @@ PRIMARY KEY (`id`),
 UNIQUE KEY `u_slug` (`slug`(64))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `page_views` (
+  `id` VARCHAR(36) NULL,
+  `path` MEDIUMTEXT NULL,
+  `referrer` MEDIUMTEXT NULL,
+  `user_agent` MEDIUMTEXT NULL,
+  `session_id` MEDIUMTEXT NULL,
+  `ip` VARCHAR(64) NULL,
+  `created_at` VARCHAR(35) NULL,
+PRIMARY KEY (`id`),
+KEY `idx_page_views_created` (`created_at`),
+KEY `idx_page_views_path` (`path`(64))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `topic_clusters` (
+  `id` VARCHAR(36) NULL,
+  `name` MEDIUMTEXT NULL,
+  `slug` MEDIUMTEXT NULL,
+  `description` MEDIUMTEXT NULL,
+  `pillar_page_id` VARCHAR(36) NULL,
+  `pillar_page_slug` MEDIUMTEXT NULL,
+  `pillar_page_title` MEDIUMTEXT NULL,
+  `cluster_post_ids` MEDIUMTEXT NULL,
+  `status` MEDIUMTEXT NULL,
+  `created_at` VARCHAR(35) NULL,
+  `updated_at` VARCHAR(35) NULL,
+PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `portfolio_projects` (
   `id` VARCHAR(36) NULL,
   `title` MEDIUMTEXT NULL,
