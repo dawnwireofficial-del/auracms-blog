@@ -691,6 +691,152 @@ router.put('/affiliate/link/:id', authenticate, requireRole(['super_admin', 'adm
   } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
+// ====== Bulk paste: Amazon affiliate links for many products at once ======
+// Accepts one Amazon URL per line (SiteStripe full links, plain `?tag=` links,
+// or amzn.to short links). Each is matched to a published product by ASIN and
+// the URL is stored EXACTLY as pasted — tagged SiteStripe links (linkCode /
+// linkId / ref_=as_li_ss_tl) pass through unchanged on the /go redirect, which
+// is what Amazon's own SiteStripe links require for full reporting fidelity.
+// Pass { dryRun: true } to preview matches without writing anything.
+router.post('/affiliate/bulk-link', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
+  try {
+    const u = (req as any).user;
+    const raw: unknown = (req.body || {}).links;
+    const links: string[] = Array.isArray(raw)
+      ? raw.filter((x: unknown): x is string => typeof x === 'string' && !!x.trim())
+      : typeof raw === 'string'
+        ? raw.split(/\r?\n/).map((s: string) => s.trim()).filter(Boolean)
+        : [];
+    const dryRun = !!(req.body || {}).dryRun;
+    if (!links.length) return res.status(400).json({ error: 'Paste at least one Amazon link (one per line)' });
+    if (links.length > 500) return res.status(400).json({ error: 'Max 500 links per batch' });
+
+    const m = await affiliateHealth();
+    const tag = m.getAffiliateTag();
+    const extractAsin = (url: string): string | null => {
+      const mm = url.match(/\/dp\/([A-Z0-9]{10})/i) || url.match(/\/gp\/product\/([A-Z0-9]{10})/i) || url.match(/\/gp\/aw\/d\/([A-Z0-9]{10})/i);
+      return mm ? mm[1].toUpperCase() : null;
+    };
+
+    // Resolve amzn.to short links (no visible ASIN/tag) to their final URL.
+    const resolveShort = async (url: string): Promise<string | null> => {
+      try {
+        if (!/^https?:\/\/amzn\.to\//i.test(url)) return null;
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 8000);
+        const r = await fetch(url, {
+          redirect: 'follow',
+          signal: ctrl.signal,
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36' },
+        });
+        clearTimeout(timer);
+        return r.url || null;
+      } catch { return null; }
+    };
+
+    // One catalog pass, indexed by ASIN (published products only).
+    const byAsin = new Map<string, any>();
+    for (const p of await seo.getProductReviews()) {
+      if (p.status !== 'published') continue;
+      const key = String(p.asin || '').trim().toUpperCase();
+      if (key) byAsin.set(key, p);
+      const fromAmazonUrl = extractAsin(p.amazon_url || '');
+      if (fromAmazonUrl) byAsin.set(fromAmazonUrl, p);
+      if (!key && extractAsin(p.affiliate_url || '')) byAsin.set(extractAsin(p.affiliate_url || '')!, p);
+    }
+
+    const sb = await getSupabaseAdmin();
+    const results: { url: string; asin: string | null; matched: boolean; product?: string; slug?: string; changed?: boolean; note?: string }[] = [];
+    const concurrency = 3;
+    let idx = 0;
+    const worker = async () => {
+      while (idx < links.length) {
+        const line = links[idx++];
+        const trimmed = line.trim();
+        let asin: string | null = extractAsin(trimmed);
+        let storedUrl = trimmed;
+        let resolveNote = '';
+
+        if (!m.isAmazonDomain(trimmed)) {
+          results.push({ url: trimmed, asin: null, matched: false, note: 'Not an Amazon URL — skipped' });
+          continue;
+        }
+        if (/^https?:\/\/amzn\.to\//i.test(trimmed)) {
+          const finalUrl = await resolveShort(trimmed);
+          if (!finalUrl) {
+            results.push({ url: trimmed, asin: null, matched: false, note: 'Could not resolve amzn.to link' });
+            continue;
+          }
+          asin = extractAsin(finalUrl);
+          storedUrl = trimmed; // keep the short link as pasted (Amazon encodes the tracking ID in it)
+          resolveNote = 'resolved amzn.to';
+          if (!asin) {
+            results.push({ url: trimmed, asin: null, matched: false, note: 'Resolved but no ASIN found in destination' });
+            continue;
+          }
+        }
+        if (!asin) {
+          results.push({ url: trimmed, asin: null, matched: false, note: 'No ASIN found in URL (need /dp/ASIN or amzn.to)' });
+          continue;
+        }
+
+        const product = byAsin.get(asin) || null;
+        if (!product) {
+          results.push({ url: trimmed, asin, matched: false, note: `No published DawnWire product with ASIN ${asin}` });
+          continue;
+        }
+
+        const oldUrl = product.affiliate_url || null;
+        const hasTag = new RegExp(`[?&]tag=${tag}(&|$)`).test(trimmed);
+        const noteParts: string[] = [resolveNote].filter(Boolean);
+        if (!hasTag && !/amzn\.to/i.test(trimmed)) noteParts.push('no tag= param (will be tag-forced on redirect)');
+        if (oldUrl && oldUrl === trimmed) {
+          results.push({ url: trimmed, asin, matched: true, product: product.product_name, slug: product.slug, changed: false, note: 'Already the stored link' });
+          continue;
+        }
+
+        if (!dryRun) {
+          await seo.updateProductReview(product.id, { affiliate_url: trimmed });
+          await sb.from('affiliate_link_log').insert({
+            id: crypto.randomUUID(),
+            product_id: product.id,
+            old_url: oldUrl,
+            new_url: trimmed,
+            updated_by: u.name || u.id,
+            source: 'admin-bulk',
+          });
+          try {
+            const evalResult = m.evaluateLink({ ...product, affiliate_url: trimmed });
+            await sb.from('affiliate_health').upsert({
+              product_id: product.id,
+              asin: evalResult.asin,
+              affiliate_tag: tag,
+              validation_status: evalResult.status,
+              marked_for_update: false,
+              last_checked_at: new Date().toISOString(),
+              checked_by: `admin:${u.name || u.id}`, // eslint-disable-line
+              updated_at: new Date().toISOString(),
+            }, { onConflict: 'product_id' });
+          } catch { /* health refresh is best-effort */ }
+        }
+        results.push({
+          url: trimmed, asin, matched: true, product: product.product_name, slug: product.slug,
+          changed: dryRun ? true : (oldUrl !== trimmed),
+          note: noteParts.join('; ') || 'Stored exactly as pasted',
+        });
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(concurrency, links.length) }, worker));
+
+    const updated = results.filter((r) => r.matched && r.changed).length;
+    const unchanged = results.filter((r) => r.matched && !r.changed).length;
+    const unmatched = results.filter((r) => !r.matched).length;
+    res.json({ dryRun, total: results.length, updated, unchanged, unmatched, results });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Mark / unmark for manual update
 router.post('/affiliate/mark/:id', authenticate, requireRole(['super_admin', 'admin', 'editor']), async (req, res) => {
   try {

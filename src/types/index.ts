@@ -685,6 +685,10 @@ export interface AffiliateClick {
   userId?: string;
   campaign?: string;
   articleId?: string;
+  /** Browser user-agent captured at click time (bot detection). */
+  userAgent?: string | null;
+  /** True when the click came from a bot/script/preview scraper. */
+  isBot?: boolean;
   createdAt: string;
 }
 

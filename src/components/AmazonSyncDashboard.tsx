@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { proxyImageUrl } from '../utils/safeRender';
-import { RefreshCw, Play, Pause, Settings, AlertTriangle, CheckCircle, XCircle, Clock, TrendingUp, TrendingDown, DollarSign, Package, Search, Filter, ChevronDown, ExternalLink, BarChart3, Activity, Link2 } from 'lucide-react';
+import { RefreshCw, Play, Pause, Settings, AlertTriangle, CheckCircle, XCircle, Clock, TrendingUp, TrendingDown, DollarSign, Package, Search, Filter, ChevronDown, ExternalLink, BarChart3, Activity, Link2, ClipboardList } from 'lucide-react';
 import AffiliateHealthDashboard from './AffiliateHealthDashboard';
+import BulkAffiliateLinkPaster from './admin/BulkAffiliateLinkPaster';
 
 interface SyncStats {
   totalConnected: number;
@@ -72,7 +73,7 @@ export default function AmazonSyncDashboard({ token }: Props) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'settings' | 'credentials' | 'affiliate'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'settings' | 'credentials' | 'affiliate' | 'bulk-links'>('overview');
   const [syncSettings, setSyncSettings] = useState<any>(null);
   const [credentials, setCredentials] = useState<any[]>([]);
   const [marketplaces, setMarketplaces] = useState<any[]>([]);
@@ -544,6 +545,7 @@ export default function AmazonSyncDashboard({ token }: Props) {
           { key: 'overview', icon: BarChart3, label: 'Overview' },
           { key: 'products', icon: Package, label: 'Products' },
           { key: 'affiliate', icon: Link2, label: 'Affiliate Audit' },
+          { key: 'bulk-links', icon: ClipboardList, label: 'Bulk Links' },
           { key: 'settings', icon: Settings, label: 'Settings' },
           { key: 'credentials', icon: Activity, label: 'Credentials' },
         ].map(tab => (
@@ -558,6 +560,7 @@ export default function AmazonSyncDashboard({ token }: Props) {
       {activeTab === 'overview' && renderOverview()}
       {activeTab === 'products' && renderProducts()}
       {activeTab === 'affiliate' && <AffiliateHealthDashboard token={token} />}
+      {activeTab === 'bulk-links' && <BulkAffiliateLinkPaster token={token} />}
       {activeTab === 'settings' && renderSettings()}
       {activeTab === 'credentials' && renderCredentials()}
     </div>

@@ -797,7 +797,13 @@ router.delete('/price-alerts/:id', async (req, res) => {
 // Track affiliate click
 router.post('/track/affiliate-click', async (req, res) => {
   const { productId, categoryId, pageUrl, pageType, ctaPosition, deviceType, sessionId, userId, campaign, articleId } = req.body;
-  await dbInstance.logAffiliateClick({ productId, categoryId, pageUrl, pageType, ctaPosition, deviceType, sessionId, userId, campaign, articleId });
+  const userAgent = (req.headers['user-agent'] as string) || null;
+  const { isLikelyBot } = await import('../../server/bot-detect');
+  await dbInstance.logAffiliateClick({
+    productId, categoryId, pageUrl, pageType, ctaPosition, deviceType, sessionId, userId, campaign, articleId,
+    userAgent,
+    isBot: isLikelyBot(userAgent),
+  });
   res.json({ success: true });
 });
 
@@ -824,6 +830,8 @@ router.get('/go/product/:slug', async (req, res) => {
     const src = typeof req.query.src === 'string' ? req.query.src.substring(0, 120) : '';
     const placement = typeof req.query.placement === 'string' ? req.query.placement.substring(0, 120) : '';
     const pageUrl = `/products/${product.slug}${src ? `?src=${encodeURIComponent(src)}` : ''}`;
+    const userAgent = (req.headers['user-agent'] as string) || null;
+    const { isLikelyBot } = await import('../../server/bot-detect');
     await dbInstance.logAffiliateClick({
       productId: product.id,
       ctaPosition: placement || 'go_cloak',
@@ -831,6 +839,8 @@ router.get('/go/product/:slug', async (req, res) => {
       pageType: 'go_cloak',
       campaign: src || undefined,
       deviceType: 'desktop',
+      userAgent,
+      isBot: isLikelyBot(userAgent),
     });
 
     const { isAmazonDomain, ensureTaggedAmazonUrl } = await import('../../server/affiliate-health');

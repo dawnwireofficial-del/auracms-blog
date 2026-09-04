@@ -41,6 +41,17 @@ interface ClickData {
   dailyClicks: { date: string; clicks: number }[];
   byPlacement: { placement: string; clicks: number }[];
   topLinks: TopLink[];
+  botClicks?: number;
+  todayBotClicks?: number;
+}
+
+// Human vs bot/test traffic note — every click is classified at log time, so
+// the "Affiliate Clicks" cards show REAL human clicks only.
+function botNote(clicks: ClickData | null): string | undefined {
+  const humans = clicks?.todayClicks || 0;
+  const bots = clicks?.todayBotClicks || 0;
+  if (humans === 0 && bots === 0) return undefined;
+  return bots > 0 ? `${humans} human · ${bots} bot/test filtered today` : `${humans} human today`;
 }
 
 interface EngagementData {
@@ -114,7 +125,7 @@ function useAnalytics(token: string) {
         fetch(`/api/admin/analytics/products?days=${days}`, { headers }).then(r => r.ok ? r.json() : null),
       ]);
       setTraffic(trafficRes || { totalViews: 0, totalVisitors: 0, dailyViews: [] });
-      setClicks(clicksRes || { totalClicks: 0, todayClicks: 0, dailyClicks: [], byPlacement: [], topLinks: [] });
+      setClicks(clicksRes || { totalClicks: 0, todayClicks: 0, dailyClicks: [], byPlacement: [], topLinks: [], botClicks: 0, todayBotClicks: 0 });
       setEngagement(engagementRes || null);
       setContentPerf(perfRes || { totalPosts: 0, totalViews: 0, totalVisitors: 0, posts: [] });
       setRecentActivity(actRes || { pageViews: [], comments: [], subscriptions: [], messages: [] });
@@ -312,9 +323,11 @@ export default function DashboardAnalytics({ token }: { token: string }) {
         />
         <StatCard
           icon={<MousePointerClick className="h-5 w-5" />}
-          label="Affiliate Clicks"
+          label="Affiliate Clicks (human)"
           value={(clicks?.totalClicks || 0).toLocaleString()}
-          sub={clicks && clicks.todayClicks > 0 ? `+${clicks.todayClicks} today` : 'No clicks yet'}
+          sub={(clicks && (clicks.todayClicks > 0 || (clicks.todayBotClicks || 0) > 0))
+            ? botNote(clicks)
+            : 'No human clicks yet'}
           color="bg-amber-50 dark:bg-amber-900/30 text-amber-600"
         />
         <StatCard

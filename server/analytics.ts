@@ -5,24 +5,36 @@ function getClient() {
   return getSupabaseAdmin();
 }
 
+// Rows written before the is_bot flag existed (or via older code paths) have no
+// flag — treat them as human (page views were previously dropped for bots, so
+// this is accurate for page_views; affiliate_clicks history is backfilled).
+function isHumanRow(v: any): boolean {
+  if (!v) return false;
+  return !(v.is_bot === 1 || v.is_bot === true || v.is_bot === '1');
+}
+
 export async function trackPageView(path: string, referrer: string, userAgent: string, sessionId: string, ip?: string, productSlug?: string): Promise<void> {
   try {
-    // Ignore crawlers/bots so the dashboard reflects human traffic.
-    const ua = String(userAgent || '').toLowerCase();
-    if (/bot|crawl|spider|slurp|bingpreview|headless|phantom|facebookexternalhit|whatsapp|telegrambot|curl|wget/i.test(ua)) return;
     const sb = await getClient();
+    // Classify at write time: bots/test traffic are stored but flagged so the
+    // dashboard can show real human numbers while still surfacing how much
+    // junk is being filtered out.
+    const { isLikelyBot } = await import('./bot-detect');
+    const isBot = isLikelyBot(userAgent || null);
     await sb.from('page_views').insert({
       id: crypto.randomUUID(),
       path: String(path || '/').slice(0, 1000),
       referrer: referrer ? String(referrer).slice(0, 1000) : null,
-      user_agent: ua ? String(userAgent).slice(0, 500) : null,
+      user_agent: userAgent ? String(userAgent).slice(0, 500) : null,
       session_id: sessionId ? String(sessionId).slice(0, 200) : null,
       ip: ip ? String(ip).slice(0, 64) : null,
+      is_bot: isBot ? 1 : 0,
       created_at: new Date().toISOString(),
     });
     // Keep per-product page_views in sync so the Product Performance table
-    // shows real view counts (this is the client-side view signal).
-    if (productSlug) {
+    // shows real view counts (this is the client-side view signal). Only real
+    // human views increment the counter.
+    if (productSlug && !isBot) {
       try {
         const { data: prod } = await sb.from('product_reviews').select('id,page_views').eq('slug', productSlug).limit(1).maybeSingle();
         if (prod && prod.id) {
@@ -42,6 +54,7 @@ export async function getTrafficData(days: number = 30): Promise<{
   topPages: { path: string; views: number; visitors: number }[];
   topReferrers: { referrer: string; count: number }[];
   avgTimeOnPage: number;
+  botViews: number;
 }> {
   try {
     const sb = await getClient();
@@ -50,21 +63,24 @@ export async function getTrafficData(days: number = 30): Promise<{
 
     const { data: views } = await sb
       .from('page_views')
-      .select('created_at,session_id,path,referrer')
+      .select('created_at,session_id,path,referrer,is_bot')
+      .eq('is_bot', false)
       .gte('created_at', since.toISOString())
       .order('created_at', { ascending: false })
       .limit(10000);
 
-    if (!views || views.length === 0) {
-      return { dailyViews: [], totalViews: 0, totalVisitors: 0, topPages: [], topReferrers: [], avgTimeOnPage: 0 };
+    const humans = (views || []).filter(isHumanRow);
+    const botViews = (views || []).length - humans.length;
+    if (humans.length === 0) {
+      return { dailyViews: [], totalViews: 0, totalVisitors: 0, topPages: [], topReferrers: [], avgTimeOnPage: 0, botViews };
     }
 
-    const totalViews = views.length;
-    const uniqueSessions = new Set(views.map((v: any) => v.session_id).filter(Boolean));
+    const totalViews = humans.length;
+    const uniqueSessions = new Set(humans.map((v: any) => v.session_id).filter(Boolean));
     const totalVisitors = uniqueSessions.size;
 
     const dailyMap = new Map<string, { views: number; sessions: Set<string> }>();
-    for (const v of views) {
+    for (const v of humans) {
       const date = new Date(v.created_at).toISOString().split('T')[0];
       if (!dailyMap.has(date)) dailyMap.set(date, { views: 0, sessions: new Set() });
       const day = dailyMap.get(date)!;
@@ -76,7 +92,7 @@ export async function getTrafficData(days: number = 30): Promise<{
       .sort((a, b) => a.date.localeCompare(b.date));
 
     const pageMap = new Map<string, { views: number; sessions: Set<string> }>();
-    for (const v of views) {
+    for (const v of humans) {
       if (!pageMap.has(v.path)) pageMap.set(v.path, { views: 0, sessions: new Set() });
       const page = pageMap.get(v.path)!;
       page.views++;
@@ -88,7 +104,7 @@ export async function getTrafficData(days: number = 30): Promise<{
       .slice(0, 20);
 
     const refMap = new Map<string, number>();
-    for (const v of views) {
+    for (const v of humans) {
       if (v.referrer) {
         const host = extractReferrerHost(v.referrer);
         refMap.set(host, (refMap.get(host) || 0) + 1);
@@ -99,10 +115,10 @@ export async function getTrafficData(days: number = 30): Promise<{
       .sort((a, b) => b.count - a.count)
       .slice(0, 20);
 
-    return { dailyViews, totalViews, totalVisitors, topPages, topReferrers, avgTimeOnPage: 0 };
+    return { dailyViews, totalViews, totalVisitors, topPages, topReferrers, avgTimeOnPage: 0, botViews };
   } catch (e) {
     console.error('[Analytics] Failed to get traffic data:', e);
-    return { dailyViews: [], totalViews: 0, totalVisitors: 0, topPages: [], topReferrers: [], avgTimeOnPage: 0 };
+    return { dailyViews: [], totalViews: 0, totalVisitors: 0, topPages: [], topReferrers: [], avgTimeOnPage: 0, botViews: 0 };
   }
 }
 
@@ -112,8 +128,10 @@ export async function getClickData(days: number = 30): Promise<{
   byPlacement: { placement: string; clicks: number }[];
   totalClicks: number;
   topLinks: { title: string; clicks: number; url: string }[];
+  botClicks: number;
+  todayBotClicks: number;
 }> {
-  const empty = { dailyClicks: [], todayClicks: 0, byPlacement: [], totalClicks: 0, topLinks: [] };
+  const empty = { dailyClicks: [], todayClicks: 0, byPlacement: [], totalClicks: 0, topLinks: [], botClicks: 0, todayBotClicks: 0 };
   try {
     // Blog short-link (/go/:slug) clicks — stored as counters on affiliate_links.
     const links = (await dbInstance.getAffiliateLinks()) as any[];
@@ -127,12 +145,14 @@ export async function getClickData(days: number = 30): Promise<{
 
     // Product CTA clicks — every /api/public/go/product/:slug redirect logs a
     // row in affiliate_clicks. Aggregate for today / per-day / per-placement.
+    // Two passes: humans (is_bot=false) drive the real numbers; bot/test clicks
+    // are counted separately so the dashboard can show the split.
     let productRows: any[] = [];
     try {
       const sb = await getClient();
       const since = new Date(Date.now() - days * 86400000).toISOString();
       const { data, error } = await sb.from('affiliate_clicks')
-        .select('created_at,cta_position,page_url,product_id')
+        .select('created_at,cta_position,page_url,product_id,is_bot')
         .gte('created_at', since)
         .order('created_at', { ascending: false })
         .limit(20000);
@@ -141,10 +161,16 @@ export async function getClickData(days: number = 30): Promise<{
 
     const dateKey = (iso: string) => String(iso || '').slice(0, 10); // YYYY-MM-DD (UTC)
     const today = new Date().toISOString().slice(0, 10);
+    const humans = productRows.filter(isHumanRow);
+    const bots = productRows.length - humans.length;
+    let todayBotClicks = 0;
+    for (const r of productRows) {
+      if (!isHumanRow(r) && dateKey(r.created_at) === today) todayBotClicks++;
+    }
     const byDayMap = new Map<string, number>();
     const byPlacementMap = new Map<string, number>();
     let todayClicks = 0;
-    for (const r of productRows) {
+    for (const r of humans) {
       const dk = dateKey(r.created_at);
       byDayMap.set(dk, (byDayMap.get(dk) || 0) + 1);
       if (dk === today) todayClicks++;
@@ -163,8 +189,10 @@ export async function getClickData(days: number = 30): Promise<{
       dailyClicks,
       todayClicks,
       byPlacement,
-      totalClicks: linkClicks + productRows.length,
+      totalClicks: linkClicks + humans.length,
       topLinks,
+      botClicks: bots,
+      todayBotClicks,
     };
   } catch (e) {
     console.error('[Analytics] Failed to get click data:', e);
@@ -187,7 +215,7 @@ export async function getEngagementData(days: number = 30): Promise<{
       sb.from('comments').select('id').gte('created_at', since.toISOString()),
       sb.from('newsletter_subscribers').select('id').gte('created_at', since.toISOString()),
       sb.from('posts').select('id,status').limit(1000),
-      sb.from('page_views').select('path').gte('created_at', since.toISOString()).limit(5000),
+      sb.from('page_views').select('path').eq('is_bot', false).gte('created_at', since.toISOString()).limit(5000),
     ]);
 
     const publishedPosts = (posts.data || []).filter((p: any) => p.status === 'published').length;
@@ -218,7 +246,7 @@ export async function getContentPerformance(days: number = 30): Promise<{
 
     const [postsRes, viewsRes] = await Promise.all([
       sb.from('posts').select('id,title,slug,status').eq('status', 'published').limit(1000),
-      sb.from('page_views').select('path,created_at,session_id').gte('created_at', since.toISOString()).limit(10000),
+      sb.from('page_views').select('path,created_at,session_id').eq('is_bot', false).gte('created_at', since.toISOString()).limit(10000),
     ]);
 
     const published = (postsRes.data || []) as any[];
@@ -264,7 +292,7 @@ export async function getRecentActivity(days: number = 7): Promise<{
     since.setDate(since.getDate() - days);
 
     const [views, comments, subs, msgs] = await Promise.all([
-      sb.from('page_views').select('path,created_at,session_id').gte('created_at', since.toISOString()).order('created_at', { ascending: false }).limit(50),
+      sb.from('page_views').select('path,created_at,session_id').eq('is_bot', false).gte('created_at', since.toISOString()).order('created_at', { ascending: false }).limit(50),
       sb.from('comments').select('content,author,created_at').gte('created_at', since.toISOString()).order('created_at', { ascending: false }).limit(20),
       sb.from('newsletter_subscribers').select('email,created_at').gte('created_at', since.toISOString()).order('created_at', { ascending: false }).limit(20),
       sb.from('messages').select('name,subject,created_at').gte('created_at', since.toISOString()).order('created_at', { ascending: false }).limit(20),
@@ -327,10 +355,10 @@ export async function getProductAnalytics(days: number = 30): Promise<{
   try {
     const sb = await getClient();
     const [pageViews, affiliateLinks, reviews, rawClicks] = await Promise.all([
-      sb.from('page_views').select('path').gte('created_at', new Date(Date.now() - days * 86400000).toISOString()).limit(5000),
+      sb.from('page_views').select('path').eq('is_bot', false).gte('created_at', new Date(Date.now() - days * 86400000).toISOString()).limit(5000),
       sb.from('affiliate_links').select('title, click_count, clicks_by_page').limit(1000),
       sb.from('product_reviews').select('id, product_name, slug').eq('status', 'published').limit(500),
-      sb.from('affiliate_clicks').select('product_id').gte('created_at', new Date(Date.now() - days * 86400000).toISOString()).limit(5000),
+      sb.from('affiliate_clicks').select('product_id').eq('is_bot', false).gte('created_at', new Date(Date.now() - days * 86400000).toISOString()).limit(5000),
     ]);
 
     const viewCounts = new Map<string, number>();

@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { Pool } from 'pg';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { getSupabase, getSupabaseAdmin } from '../lib/supabase';
+import { isLikelyBot } from '../bot-detect';
 import {
   User, Post, Category, Tag, Comment, AffiliateLink,
   Page, SiteSettings, MediaItem, ContactMessage,
@@ -1169,6 +1170,8 @@ export class SupabaseDatabase {
   // ====== Affiliate Click Tracking ======
   async logAffiliateClick(input: Omit<AffiliateClick, 'id' | 'createdAt'>): Promise<void> {
     const sb = await this.ready();
+    const ua = (input as any).userAgent ? String((input as any).userAgent).slice(0, 500) : null;
+    const isBot = typeof (input as any).isBot === 'boolean' ? (input as any).isBot : isLikelyBot(ua);
     await sb.from('affiliate_clicks').insert({
       id: crypto.randomUUID(),
       product_id: input.productId, category_id: input.categoryId, page_url: input.pageUrl,
@@ -1176,6 +1179,8 @@ export class SupabaseDatabase {
       cta_position: input.ctaPosition, device_type: input.deviceType,
       session_id: input.sessionId, user_id: input.userId, campaign: input.campaign,
       article_id: input.articleId,
+      user_agent: ua,
+      is_bot: isBot ? 1 : 0,
     });
     if (input.productId) {
       const { data: cur } = await sb.from('product_reviews').select('click_count').eq('id', input.productId).maybeSingle();

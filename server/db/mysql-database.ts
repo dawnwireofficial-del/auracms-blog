@@ -4,6 +4,7 @@
  */
 import crypto from 'crypto';
 import { createSupabaseClient } from './mysql-adapter';
+import { isLikelyBot } from '../bot-detect';
 
 function snakeToCamel(str: string): string {
   return str.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
@@ -143,6 +144,8 @@ export class MySQLDatabase {
   // explicitly (same as SupabaseDatabase.logAffiliateClick) or the insert
   // silently dies with "Unknown column 'productId'".
   async logAffiliateClick(click: any) {
+    const ua = click.userAgent ? String(click.userAgent).slice(0, 500) : null;
+    const isBot = typeof click.isBot === 'boolean' ? click.isBot : isLikelyBot(ua);
     const row = await this.one('affiliate_clicks', q => q.insert({
       id: newId(),
       product_id: click.productId || null,
@@ -157,6 +160,8 @@ export class MySQLDatabase {
       user_id: click.userId || null,
       campaign: click.campaign || null,
       article_id: click.articleId || null,
+      user_agent: ua,
+      is_bot: isBot ? 1 : 0,
       created_at: nowIso(),
     }).select().single());
     // Keep the per-product click counter in sync so product pages/dashboards
