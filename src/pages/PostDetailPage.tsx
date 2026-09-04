@@ -97,8 +97,10 @@ export default function PostDetailPage({ slug }: PostDetailPageProps) {
     return () => { active = false; };
   }, [slug]);
 
-  const renderBodyWithAffiliates = (content: string) => {
-    const parts = content.split(/(\[affiliate-card:[\w-]+\])/g);
+  const renderBodyWithAffiliates = (content?: string) => {
+    const body = (content || '').trim();
+    if (!body) return null;
+    const parts = body.split(/(\[affiliate-card:[\w-]+\])/g);
     return parts.map((part, index) => {
       const match = part.match(/\[affiliate-card:([\w-]+)\]/);
       if (match) {
@@ -154,6 +156,9 @@ export default function PostDetailPage({ slug }: PostDetailPageProps) {
   }
 
   const cat = categories.find(c => c.id === post.categoryId);
+  const postTags = Array.isArray(post.tags) ? post.tags : [];
+  const pubDate = post.publishedAt || post.createdAt || '';
+  const readableDate = pubDate ? (() => { try { return new Date(pubDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }); } catch { return ''; } })() : '';
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-800 dark:text-zinc-200 pb-20">
@@ -209,7 +214,7 @@ export default function PostDetailPage({ slug }: PostDetailPageProps) {
             <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-zinc-400">
               <div className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-[#246BFF]" />
-                <span className="font-mono text-[10px] uppercase tracking-wider">{new Date(post.publishedAt || post.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                <span className="font-mono text-[10px] uppercase tracking-wider">{readableDate}</span>
               </div>
               <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-zinc-600" />
               <div className="flex items-center gap-1.5">
@@ -224,11 +229,13 @@ export default function PostDetailPage({ slug }: PostDetailPageProps) {
 
           <div className="px-6 md:px-10 pb-8">
             <article className="prose max-w-none text-slate-800 dark:text-zinc-200 leading-relaxed font-sans text-sm md:text-base space-y-6 markdown-body">
-              {renderBodyWithAffiliates(post.content)}
+              {renderBodyWithAffiliates(post.content) || (
+                <p className="text-sm text-slate-500 dark:text-zinc-400">Full article content is temporarily unavailable — please check back soon.</p>
+              )}
             </article>
           </div>
 
-          {post.tags.length > 0 && (
+          {postTags.length > 0 && (
             <div className="px-6 md:px-10 pb-6">
               <div className="flex flex-wrap gap-2 border-t border-slate-200 dark:border-zinc-700/80 pt-6">
                 {post.tags.map((tag) => (

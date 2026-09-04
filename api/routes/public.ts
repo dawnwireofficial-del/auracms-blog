@@ -11,6 +11,57 @@ import { cachedQuery, readStaticCatalog, fetchStaticCatalog } from '../../server
 
 const router = express.Router();
 
+// Snapshot rows (homepage.json posts) are lightweight snake_case rows without
+// content/tags/dates. DB adapters return full camelCase Posts, so map snapshot
+// rows to that same shape before serving them.
+function deriveGuideTags(title: string, slug: string): string[] {
+  // Snapshot posts are 'best-X-2026' buying guides stored without tags; UI rails
+  // filter on a 'buying guide' tag, so derive it from the slug while the DB is
+  // unreachable (DB-served rows always carry real tags).
+  const m = /^best[-_](.+?)(?:[-_]\d{4})?$/.exec((slug || '').trim());
+  if (!m) return [];
+  const topic = m[1].replace(/[-_]+/g, ' ').trim();
+  const tags = ['buying guide'];
+  if (topic) tags.push(topic);
+  return tags;
+}
+function toPostShape(row: any): any {
+  const excerpt = row.excerpt || '';
+  const title = row.title || row.slug || 'Untitled';
+  const slug = row.slug || '';
+  const content =
+    row.content ||
+    row.body ||
+    `# ${title}\n\n${excerpt}\n\n_This article is temporarily unavailable in full — please check back soon._`;
+  const rawTags = Array.isArray(row.tags) ? row.tags : Array.isArray(row.seo_keywords) ? row.seo_keywords : [];
+  return {
+    id: row.id,
+    slug,
+    title,
+    excerpt,
+    content,
+    featuredImage: row.featuredImage || row.featured_image || '',
+    featuredImageAlt: row.featuredImageAlt || row.featured_image_alt || '',
+    authorId: row.authorId || row.author_id || null,
+    categoryId: row.categoryId ?? row.category_id ?? null,
+    productId: row.productId || row.product_id || null,
+    tags: rawTags.length ? rawTags : deriveGuideTags(title, slug),
+    status: row.status || 'published',
+    visibility: row.visibility || 'public',
+    seoTitle: row.seoTitle || row.seo_title || title,
+    seoDescription: row.seoDescription || row.seo_description || excerpt,
+    seoKeywords: Array.isArray(row.seoKeywords) ? row.seoKeywords : Array.isArray(row.seo_keywords) ? row.seo_keywords : [],
+    publishedAt: row.publishedAt || row.published_at || row.createdAt || row.created_at || null,
+    createdAt: row.createdAt || row.created_at || null,
+    updatedAt: row.updatedAt || row.updated_at || null,
+    readingTime: row.readingTime || row.reading_time || 5,
+    isFeatured: !!row.isFeatured || !!row.is_featured,
+    isTrending: !!row.isTrending || !!row.is_trending,
+    isEditorsPick: !!row.isEditorsPick || !!row.is_editors_pick,
+    allowComments: row.allowComments !== false && row.allow_comments !== false,
+  };
+}
+
 router.get('/settings', async (_req, res) => res.json(await dbInstance.getSettings()));
 router.get('/posts', async (req, res) => {
   // Graceful degradation: if the DB is unreachable (e.g. MySQL grants down),
@@ -21,7 +72,7 @@ router.get('/posts', async (req, res) => {
   } catch {
     console.log('[API] posts DB unavailable, using homepage.json snapshot');
     const hp = await fetchStaticCatalog('homepage.json');
-    posts = (hp?.posts || []).filter((p: any) => p.status === 'published' || p.status == null);
+    posts = (hp?.posts || []).filter((p: any) => p.status === 'published' || p.status == null).map(toPostShape);
   }
   const limit = parseInt(req.query.limit as string) || 0;
   const offset = parseInt(req.query.offset as string) || 0;
@@ -38,7 +89,8 @@ router.get('/posts/slug/:slug', async (req, res) => {
   if (!post) {
     try {
       const hp = await fetchStaticCatalog('homepage.json');
-      post = (hp?.posts || []).find((p: any) => p.slug === req.params.slug) || null;
+      const row = (hp?.posts || []).find((p: any) => p.slug === req.params.slug);
+      if (row) post = toPostShape(row);
     } catch { post = null; }
   }
   if (!post || (post.status != null && post.status !== 'published') || (post.visibility != null && post.visibility !== 'public')) return res.status(404).json({ error: 'Article not found' });
