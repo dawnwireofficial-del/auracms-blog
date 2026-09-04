@@ -46,13 +46,16 @@ async function main() {
     const m = JSON.parse(ev.data);
     if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); }
     else if (m.method === 'Runtime.consoleAPICalled' && m.params.type === 'error') {
-      consoleMsgs.push(m.params.args.map(a => a.value ?? a.description ?? '').join(' ').slice(0, 220));
+      consoleMsgs.push(m.params.args.map(a => a.value ?? a.description ?? JSON.stringify(a)).join(' ').slice(0, 500));
     } else if (m.method === 'Log.entryAdded' && m.params.entry.level === 'error') {
-      consoleMsgs.push(m.params.entry.text.slice(0, 220));
+      consoleMsgs.push((m.params.entry.text + ' ' + (m.params.entry.url || '')).slice(0, 500));
+    } else if (m.method === 'Network.loadingFailed') {
+      consoleMsgs.push('NET ' + (m.params.type || '') + ' ' + (m.params.errorText || '') + ' ' + (m.params.blockedReason || ''));
     }
   };
   await cdp('Runtime.enable'); await cdp('Log.enable');
   await cdp('Page.enable');
+  await cdp('Network.enable');
   if (mobile) {
     await cdp('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
   } else {
