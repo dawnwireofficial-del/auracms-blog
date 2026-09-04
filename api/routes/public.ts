@@ -834,14 +834,21 @@ router.get('/go/product/:slug', async (req, res) => {
     });
 
     const { isAmazonDomain, ensureTaggedAmazonUrl } = await import('../../server/affiliate-health');
-    // EVERY outbound Amazon click must carry the partner tag (commission).
-    // Prefer the stored affiliate link, fall back to the public URL — both are
-    // rebuilt as canonical /dp/<ASIN>?tag=<partner-tag> by the helper.
+    // Every outbound click must be trackable. Amazon destinations are rebuilt
+    // as canonical /dp/<ASIN>?tag=<partner-tag> so the Associates commission is
+    // never lost. Non-Amazon destinations (Walmart/eBay/Best Buy/other networks)
+    // already carry their own tracking params on the stored affiliate_url — we
+    // simply redirect to them (they were validated + suffixed at import time).
     const rawDest = product.affiliate_url || product.amazon_url || '';
-    if (!rawDest || !isAmazonDomain(rawDest)) return res.status(404).json({ error: 'No Amazon destination URL' });
-    const destination = ensureTaggedAmazonUrl(rawDest, product.asin || product.specs?.asin || null);
-    if (!destination) return res.status(404).json({ error: 'No destination URL' });
-    return res.redirect(302, destination);
+    if (!rawDest) return res.status(404).json({ error: 'No destination URL' });
+    if (isAmazonDomain(rawDest)) {
+      const destination = ensureTaggedAmazonUrl(rawDest, product.asin || product.specs?.asin || null);
+      if (!destination) return res.status(404).json({ error: 'No destination URL' });
+      return res.redirect(302, destination);
+    }
+    // Sanity: never redirect to javascript:/data: URLs.
+    if (!/^https?:\/\//i.test(rawDest)) return res.status(404).json({ error: 'Invalid destination URL' });
+    return res.redirect(302, rawDest);
   } catch (e: any) {
     return res.status(500).json({ error: e.message });
   }

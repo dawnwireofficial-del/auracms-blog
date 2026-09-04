@@ -33,6 +33,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const testBtn = document.getElementById('testBtn');
   const statusDiv = document.getElementById('status');
   const statusSettings = document.getElementById('statusSettings');
+  const affInputs = {
+    amazon: document.getElementById('affAmazonTag'),
+    walmart: document.getElementById('affWalmart'),
+    ebay: document.getElementById('affEbay'),
+    bestbuy: document.getElementById('affBestbuy'),
+    aliexpress: document.getElementById('affAliexpress'),
+  };
 
   // ─── Store detection ───
   const STORE_PATTERNS = [
@@ -65,9 +72,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // ─── Load saved settings ───
-  const saved = await chrome.storage.sync.get(['apiUrl', 'apiToken', 'autoImport']);
+  const saved = await chrome.storage.sync.get(['apiUrl', 'apiToken', 'autoImport', 'affiliateParams']);
   if (saved.apiUrl) apiUrlInput.value = saved.apiUrl;
   if (saved.apiToken) apiTokenInput.value = saved.apiToken;
+  const aff = saved.affiliateParams || {};
+  if (aff.amazon?.tag) affInputs.amazon.value = aff.amazon.tag;
+  if (aff.walmart?.suffix) affInputs.walmart.value = aff.walmart.suffix;
+  if (aff.ebay?.suffix) affInputs.ebay.value = aff.ebay.suffix;
+  if (aff.bestbuy?.suffix) affInputs.bestbuy.value = aff.bestbuy.suffix;
+  if (aff.aliexpress?.suffix) affInputs.aliexpress.value = aff.aliexpress.suffix;
   if (saved.autoImport) {
     autoImportToggle.classList.add('on');
     autoImportInfo.style.display = 'block';
@@ -342,8 +355,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       setStatus(statusSettings, 'Please enter your API token from DawnWire admin settings.', 'error');
       return;
     }
-    await chrome.storage.sync.set({ apiUrl, apiToken });
-    setStatus(statusSettings, 'Settings saved!', 'success');
+    const affiliateParams = {};
+    const mk = (key) => ({ suffix: (affInputs[key]?.value || '').trim() });
+    const amazonTag = (affInputs.amazon?.value || '').trim();
+    affiliateParams.amazon = { tag: amazonTag || 'dawnwire-20' };
+    for (const key of ['walmart', 'ebay', 'bestbuy', 'aliexpress']) {
+      const val = (affInputs[key]?.value || '').trim();
+      if (val) affiliateParams[key] = mk(key);
+    }
+    await chrome.storage.sync.set({ apiUrl, apiToken, affiliateParams });
+    setStatus(statusSettings, 'Settings saved! Commission links will use these tracking params.', 'success');
   });
 
   // ─── Settings: Test ───

@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     'apiUrl', 'apiToken', 'pinterestToken', 'pinterestBoard',
     'facebookToken', 'facebookPageId', 'instagramToken', 'instagramBusinessId',
     'autoPin', 'priorityPins', 'includePrice', 'includeScore',
-    'pinsPerDay', 'minScore', 'recentPins'
+    'pinsPerDay', 'minScore', 'recentPins', 'affiliateParams'
   ]);
 
   // Populate settings
@@ -42,6 +42,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (settings.instagramBusinessId) document.getElementById('instagramBusinessId').value = settings.instagramBusinessId;
   if (settings.pinsPerDay) document.getElementById('pinsPerDay').value = settings.pinsPerDay;
   if (settings.minScore) document.getElementById('minScore').value = settings.minScore;
+  // Affiliate network tracking params
+  const aff = settings.affiliateParams || {};
+  if (aff.amazon?.tag) document.getElementById('affAmazonTag').value = aff.amazon.tag;
+  if (aff.walmart?.suffix) document.getElementById('affWalmart').value = aff.walmart.suffix;
+  if (aff.ebay?.suffix) document.getElementById('affEbay').value = aff.ebay.suffix;
+  if (aff.bestbuy?.suffix) document.getElementById('affBestbuy').value = aff.bestbuy.suffix;
+  if (aff.aliexpress?.suffix) document.getElementById('affAliexpress').value = aff.aliexpress.suffix;
 
   // Toggle states
   if (settings.autoPin !== false) document.getElementById('autoPinToggle').classList.add('active');
@@ -502,6 +509,13 @@ async function saveSettings() {
     facebookPageId: document.getElementById('facebookPageId').value,
     instagramToken: document.getElementById('instagramToken').value,
     instagramBusinessId: document.getElementById('instagramBusinessId').value,
+    affiliateParams: {
+      amazon: { tag: document.getElementById('affAmazonTag').value.trim() || 'dawnwire-20' },
+      walmart: document.getElementById('affWalmart').value.trim() ? { suffix: document.getElementById('affWalmart').value.trim() } : undefined,
+      ebay: document.getElementById('affEbay').value.trim() ? { suffix: document.getElementById('affEbay').value.trim() } : undefined,
+      bestbuy: document.getElementById('affBestbuy').value.trim() ? { suffix: document.getElementById('affBestbuy').value.trim() } : undefined,
+      aliexpress: document.getElementById('affAliexpress').value.trim() ? { suffix: document.getElementById('affAliexpress').value.trim() } : undefined,
+    },
   };
 
   await chrome.storage.sync.set(newSettings);

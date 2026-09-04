@@ -390,6 +390,24 @@
     <input type="password" id="apiToken" placeholder="Paste your admin token" />
     <p class="hint">Get this from Admin &#8594; Settings &#8594; Browser Extension API Token</p>
 
+    <div class="affiliate-head">Affiliate Networks <span style="opacity:.55">(earn commission on every store)</span></div>
+    <p class="hint" style="margin-top:-6px">Amazon defaults to your <b>dawnwire-20</b> tag. For other stores, paste the tracking suffix from that network's affiliate tools (Walmart Impact, eBay Partner Network, Best Buy affiliate, AliExpress). Non-Amazon imports keep the clean store URL until you add a suffix here.</p>
+
+    <label>Amazon Associates Tag</label>
+    <input type="text" id="affAmazonTag" placeholder="dawnwire-20" />
+
+    <label>Walmart tracking suffix</label>
+    <input type="text" id="affWalmart" placeholder="wmlspartner=wmpi&amp;wl0=YOURID" />
+
+    <label>eBay tracking suffix</label>
+    <input type="text" id="affEbay" placeholder="mkcid=1&amp;mkrid=711-00000-00000-0&amp;customid=dawnwire" />
+
+    <label>Best Buy tracking suffix</label>
+    <input type="text" id="affBestbuy" placeholder="afftag=YOURID&amp;AID=YOURID" />
+
+    <label>AliExpress tracking suffix</label>
+    <input type="text" id="affAliexpress" placeholder="aff_platform=portals-tool&amp;aff_trace_key=YOURKEY" />
+
     <button id="saveBtn" class="btn btn-primary">Save Settings</button>
     <button id="testBtn" class="btn btn-secondary">Test Connection</button>
 

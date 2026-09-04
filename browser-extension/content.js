@@ -13,7 +13,7 @@
 
   // Full product payload for a reimport — refreshes reviews, images, specs, ASIN,
   // price, rating etc. on the existing row instead of only patching a few fields.
-  function fullImportPayload(data) {
+  async function fullImportPayload(data) {
     const specs = {
       ...(data.specs || {}),
       asin: data.asin || '',
@@ -32,13 +32,14 @@
     if (data.savings) specs.savings = data.savings;
     if (data.priceRange) specs.priceRange = data.priceRange;
     if (data.videoUrl) specs.video_url = data.videoUrl;
-    // Always ensure affiliate tag on Amazon URLs
-    let affUrl = data.amazon_url || null;
-    if (affUrl && affUrl.includes('amazon') && !affUrl.includes('tag=')) {
-      affUrl += (affUrl.includes('?') ? '&' : '?') + 'tag=dawnwire-20';
-    } else if (affUrl && affUrl.includes('amazon') && affUrl.includes('tag=')) {
-      affUrl = affUrl.replace(/tag=[^&]+/, 'tag=dawnwire-20');
-    }
+    // Commission-tracking params per store network (falls back to Amazon tag)
+    const storeKey = data.source || (data.amazon_url && data.amazon_url.includes('amazon.') ? 'amazon' : 'other');
+    let params = {};
+    try {
+      const stored = await chromeStorageGet();
+      params = stored.affiliateParams || {};
+    } catch (e) { /* ignore */ }
+    const affUrl = applyAffiliateParams(data.amazon_url || null, storeKey, params);
     return {
       product_name: data.product_name || null,
       brand: data.brand || null,
@@ -79,7 +80,7 @@
               const updRes = await fetch(baseUrl + '/api/admin/seo/product-reviews/' + dupData.id, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiToken },
-                body: JSON.stringify(fullImportPayload(data))
+                body: JSON.stringify(await fullImportPayload(data))
               });
               const updResult = await updRes.json();
               if (updRes.ok) {
@@ -120,7 +121,7 @@
   async function chromeStorageGet() {
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-        return await chrome.storage.sync.get(['apiUrl', 'apiToken']);
+        return await chrome.storage.sync.get(['apiUrl', 'apiToken', 'affiliateParams']);
       }
     } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     try {
@@ -129,6 +130,19 @@
       if (apiToken) return { apiUrl, apiToken };
     } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
     return { apiUrl: '', apiToken: '' };
+  }
+
+  // Shared affiliate-parameter logic (kept in sync with background.js)
+  function applyAffiliateParams(rawUrl, source, params) {
+    if (!rawUrl) return null;
+    const cfg = (params && params[source]) || null;
+    if (source === 'amazon' || /amazon\./.test(rawUrl)) {
+      const tag = (cfg && cfg.tag) || 'dawnwire-20';
+      if (rawUrl.includes('tag=')) return rawUrl.replace(/tag=[^&]+/, 'tag=' + encodeURIComponent(tag));
+      return rawUrl + (rawUrl.includes('?') ? '&' : '?') + 'tag=' + encodeURIComponent(tag);
+    }
+    if (!cfg || !cfg.suffix) return rawUrl;
+    return rawUrl + (rawUrl.includes('?') ? '&' : '?') + cfg.suffix;
   }
 
   function isAmazon() { return SITE.includes('amazon.'); }
@@ -1710,9 +1724,11 @@
       return { product_name, brand, product_image, price, rating: rRating, reviewCount: rCount, key_features, pros: [], cons: [], review_summary, amazon_url, asin, gallery, videoUrl, variations, listPrice: discount.listPrice, savings: discount.savings, priceRange, specs, detailBullets, stockStatus, dealBadge, bestSellersRank, category, bestFor, source: 'amazon', ingredients, unitSize, unitPrice, bsrDetail, reviewHighlights, reviews, reviewStats };
     }
 
-    // Generic fallback for other stores
+    // Generic fallback for other stores — keep the canonical page URL so the
+    // product can still carry commission tracking once a network is configured.
     const get = (sel) => doc.querySelector(sel);
-    return { product_name: get('h1')?.textContent?.trim() || '', brand: '', product_image: get('img[src]')?.getAttribute('src') || '', price: get('[class*="price"]')?.textContent?.trim() || '', rating: 0, reviewCount: 0, key_features: [], pros: [], cons: [], review_summary: '', amazon_url: '', asin: '', gallery: [], videoUrl: '', variations: [], listPrice: '', savings: '', priceRange: undefined, specs: {}, detailBullets: {}, stockStatus: 'in_stock', dealBadge: '', bestSellersRank: '', category: '', bestFor: '', source: 'other', ingredients: '', unitSize: '', unitPrice: '', bsrDetail: [], reviewHighlights: '', reviews: [], reviewStats: { total: 0, average: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } } };
+    const canonical = doc.querySelector('link[rel="canonical"]')?.getAttribute('href') || window.location.href.split('?')[0].split('#')[0];
+    return { product_name: get('h1')?.textContent?.trim() || get('[class*="title"]')?.textContent?.trim() || document.title.replace(/\s*[|\-–].*$/, '').trim() || '', brand: '', product_image: get('img[src]')?.getAttribute('src') || '', price: get('[class*="price"]')?.textContent?.trim() || '', rating: 0, reviewCount: 0, key_features: [], pros: [], cons: [], review_summary: '', amazon_url: canonical, asin: '', gallery: [], videoUrl: '', variations: [], listPrice: '', savings: '', priceRange: undefined, specs: {}, detailBullets: {}, stockStatus: 'in_stock', dealBadge: '', bestSellersRank: '', category: '', bestFor: '', source: 'other', ingredients: '', unitSize: '', unitPrice: '', bsrDetail: [], reviewHighlights: '', reviews: [], reviewStats: { total: 0, average: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } } };
   }
 
   if (isProductPage()) {

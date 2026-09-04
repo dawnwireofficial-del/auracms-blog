@@ -154,8 +154,32 @@ async function checkAutoImport(url) {
 }
 
 async function getSettings() {
-  const result = await chrome.storage.sync.get(['apiUrl', 'apiToken']);
-  return { apiUrl: result.apiUrl || DEFAULT_API_URL, apiToken: result.apiToken || '' };
+  const result = await chrome.storage.sync.get(['apiUrl', 'apiToken', 'affiliateParams']);
+  return {
+    apiUrl: result.apiUrl || DEFAULT_API_URL,
+    apiToken: result.apiToken || '',
+    // Per-store tracking parameter strings the user pastes from each affiliate
+    // network's tools (e.g. Walmart Impact deep link params, eBay Partner
+    // Network mkrid/customid, etc.). Amazon has a sensible default.
+    affiliateParams: result.affiliateParams || {},
+  };
+}
+
+// Applies the correct commission-tracking parameters to an outbound store URL.
+// `source` is the store key detected on the page (amazon/walmart/bestbuy/...).
+function applyAffiliateParams(rawUrl, source, params) {
+  if (!rawUrl) return null;
+  const cfg = (params && params[source]) || null;
+  // Default: Amazon Associates tag. Overridable via settings.
+  if (source === 'amazon' || /amazon\./.test(rawUrl)) {
+    const tag = (cfg && cfg.tag) || 'dawnwire-20';
+    if (rawUrl.includes('tag=')) return rawUrl.replace(/tag=[^&]+/, 'tag=' + encodeURIComponent(tag));
+    return rawUrl + (rawUrl.includes('?') ? '&' : '?') + 'tag=' + encodeURIComponent(tag);
+  }
+  if (!cfg || !cfg.suffix) return rawUrl; // no network configured → keep clean URL
+  const sep = rawUrl.includes('?') ? '&' : '?';
+  let out = rawUrl + sep + cfg.suffix;
+  return out;
 }
 
 function apiHeaders() {
@@ -165,7 +189,7 @@ function apiHeaders() {
   }));
 }
 
-function fullImportPayload(data) {
+async function fullImportPayload(data) {
   const specs = {
     ...(data.specs || {}),
     asin: data.asin || '',
@@ -196,13 +220,10 @@ function fullImportPayload(data) {
   if (data.savings && !specs.savings) specs.savings = data.savings;
   if (data.priceRange) specs.priceRange = data.priceRange;
   if (data.videoUrl) specs.video_url = data.videoUrl;
-  // Always ensure affiliate tag is present on Amazon URLs
-  let affiliateUrl = data.amazon_url || null;
-  if (affiliateUrl && affiliateUrl.includes('amazon') && !affiliateUrl.includes('tag=')) {
-    affiliateUrl += (affiliateUrl.includes('?') ? '&' : '?') + 'tag=dawnwire-20';
-  } else if (affiliateUrl && affiliateUrl.includes('amazon') && affiliateUrl.includes('tag=')) {
-    affiliateUrl = affiliateUrl.replace(/tag=[^&]+/, 'tag=dawnwire-20');
-  }
+  // Always ensure commission-tracking parameters are present (per store network)
+  const settings = await getSettings();
+  const storeKey = data.source || (data.amazon_url && data.amazon_url.includes('amazon.') ? 'amazon' : 'other');
+  let affiliateUrl = applyAffiliateParams(data.amazon_url || data.pageUrl || null, storeKey, settings.affiliateParams);
   return {
     product_name: data.product_name || null,
     brand: data.brand || null,
@@ -286,7 +307,7 @@ async function handleImport(data) {
         const updateRes = await fetch(baseUrl + '/api/admin/seo/product-reviews/' + dupData.id, {
           method: 'PUT',
           headers,
-          body: JSON.stringify(fullImportPayload(data))
+          body: JSON.stringify(await fullImportPayload(data))
         });
         if (updateRes.ok) {
           try {
