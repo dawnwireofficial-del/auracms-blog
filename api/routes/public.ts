@@ -7,7 +7,7 @@ import * as seo from '../../server/seo-engine';
 import { findEntities } from '../../server/entities';
 import { sendContactNotification, sendCommentNotification } from '../../server/email';
 import { sendDripEmail, getNextDripStep } from '../../server/drip-campaign';
-import { cachedQuery, readStaticCatalog } from '../../server/api-cache';
+import { cachedQuery, readStaticCatalog, fetchStaticCatalog } from '../../server/api-cache';
 
 const router = express.Router();
 
@@ -20,7 +20,7 @@ router.get('/posts', async (req, res) => {
     posts = (await dbInstance.getPosts()).filter(p => p.status === 'published' && (p.visibility == null || p.visibility === 'public'));
   } catch {
     console.log('[API] posts DB unavailable, using homepage.json snapshot');
-    const hp = readStaticCatalog('homepage.json');
+    const hp = await fetchStaticCatalog('homepage.json');
     posts = (hp?.posts || []).filter((p: any) => p.status === 'published' || p.status == null);
   }
   const limit = parseInt(req.query.limit as string) || 0;
@@ -44,7 +44,7 @@ router.get('/categories', async (_req, res) => {
         return all.filter((c: any) => c.status === 'active');
       } catch {
         console.log('[API] Categories DB unavailable, using static fallback');
-        const staticCats = readStaticCatalog('categories.json');
+        const staticCats = await fetchStaticCatalog('categories.json');
         return staticCats || [];
       }
     }, 300_000, 600_000);
@@ -390,7 +390,7 @@ router.get('/brands', async (req, res) => {
     brands = await dbInstance.getBrands();
   } catch {
     console.log('[API] brands DB unavailable, using brands.json snapshot');
-    const snap = readStaticCatalog('brands.json');
+    const snap = await fetchStaticCatalog('brands.json');
     brands = (Array.isArray(snap) ? snap : []).map((b: any) => ({
       id: b.id || ('brand-' + String(b.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-')),
       name: b.name,
@@ -543,14 +543,14 @@ router.get(['/product-reviews', '/products'], async (req, res) => {
         );
         const { data } = await Promise.race([queryPromise, timeoutPromise]) as any;
         // Reject throttled / partial results — compare against static catalog count
-        const catalogSnapshot = readStaticCatalog('catalog.json');
+        const catalogSnapshot = await fetchStaticCatalog('catalog.json');
         const expectedMin = Math.min((catalogSnapshot?.products?.length || 835), 100);
         if (data && data.length >= expectedMin) return data;
         console.log(`[API] Supabase returned ${data?.length || 0} products (expected >= ${expectedMin}), falling back to static catalog`);
       }
       // Fallback: static catalog.json
       console.log(`[API] Using static catalog for ${cacheKey}`);
-      const catalog = readStaticCatalog('catalog.json');
+      const catalog = await fetchStaticCatalog('catalog.json');
       if (catalog?.products) return catalog.products;
       // Last resort: try getPublishedProductReviews
       const fallback = await seo.getPublishedProductReviews();
@@ -560,7 +560,7 @@ router.get(['/product-reviews', '/products'], async (req, res) => {
     console.error(`[API] product-reviews cache error:`, e.message);
     // Absolute last resort
     try {
-      const catalog = readStaticCatalog('catalog.json');
+      const catalog = await fetchStaticCatalog('catalog.json');
       items = catalog?.products || [];
     } catch { items = []; }
   }

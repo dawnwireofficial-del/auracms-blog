@@ -105,6 +105,29 @@ export function readStaticCatalog(file: string): any {
 }
 
 /**
+ * Async static-catalog read for serverless runtimes: the Lambda bundle does
+ * NOT reliably contain public/data (includeFiles is string-only and computed
+ * pre-build), so fall back to fetching the same file from our own static CDN
+ * (`/data/*.json` is served by the filesystem handler, not the function — no
+ * recursion). Local/dev runs hit the filesystem candidates first.
+ */
+export async function fetchStaticCatalog(file: string): Promise<any> {
+  const local = readStaticCatalog(file);
+  if (local) return local;
+  try {
+    const base = (process.env.APP_URL || 'https://www.dawnwire.com').replace(/\/$/, '');
+    const r = await fetch(`${base}/data/${file}`, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) });
+    if (r.ok) {
+      const j = await r.json();
+      return j && typeof j === 'object' ? j : null;
+    }
+  } catch (e: any) {
+    console.error(`[Cache] fetchStaticCatalog failed for ${file}:`, e.message);
+  }
+  return null;
+}
+
+/**
  * Warm up the cache with static catalog data.
  * Call this on first request to avoid cold-start Supabase hits.
  */
