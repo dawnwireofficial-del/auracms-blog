@@ -514,10 +514,36 @@ router.post('/product-reviews/bulk-auto-process', authenticate, requireRole(['su
 
 router.get('/product-reviews/check-duplicate', authenticate, async (req, res) => {
   try {
-    const asin = req.query.asin as string;
-    const name = req.query.name as string;
-    const url = req.query.url as string;
+    const asin = (req.query.asin as string) || '';
+    const name = (req.query.name as string) || '';
+    const url = (req.query.url as string) || '';
     if (!asin && !name && !url) return res.json({ duplicate: false });
+
+    const isMysql = !!process.env.MYSQL_URL;
+    if (isMysql) {
+      // MySQL backend: query the real `asin` column (older rows may only have
+      // asin nested inside the specs JSON, so fall back to a LIKE).
+      const { pool } = await import('../../server/db/mysql-adapter');
+      if (asin) {
+        const [byAsin] = await pool.query('SELECT id FROM product_reviews WHERE asin = ? LIMIT 1', [asin]);
+        if ((byAsin as any[]).length) return res.json({ duplicate: true, id: (byAsin as any[])[0].id });
+        const [bySpecs] = await pool.query('SELECT id FROM product_reviews WHERE specs LIKE ? LIMIT 1', [`%"asin":"${asin}"%`]);
+        if ((bySpecs as any[]).length) return res.json({ duplicate: true, id: (bySpecs as any[])[0].id });
+      }
+      if (name) {
+        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        if (slug) {
+          const [bySlug] = await pool.query('SELECT id FROM product_reviews WHERE slug = ? LIMIT 1', [slug]);
+          if ((bySlug as any[]).length) return res.json({ duplicate: true, id: (bySlug as any[])[0].id });
+        }
+      }
+      if (url) {
+        const [byUrl] = await pool.query('SELECT id FROM product_reviews WHERE amazon_url = ? OR affiliate_url = ? OR affiliate_url LIKE ? LIMIT 1', [url, url, `%${url}%`]);
+        if ((byUrl as any[]).length) return res.json({ duplicate: true, id: (byUrl as any[])[0].id });
+      }
+      return res.json({ duplicate: false });
+    }
+
     const sb = await (await import('../../server/lib/supabase')).getSupabaseAdmin();
     if (asin) {
       const { data } = await sb.from('product_reviews').select('id').filter('specs->>asin', 'eq', asin).maybeSingle();
