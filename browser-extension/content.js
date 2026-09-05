@@ -39,7 +39,13 @@
       const stored = await chromeStorageGet();
       params = stored.affiliateParams || {};
     } catch (e) { /* ignore */ }
-    const affUrl = applyAffiliateParams(data.amazon_url || null, storeKey, params);
+    // If a real SiteStripe deep link was captured on the page, keep it (it has
+    // tag + linkCode/linkId/pd_rd_ tokens); otherwise mint from amazon_url.
+    const affUrl = applyAffiliateParams(
+      (data.affiliate_url && data.affiliate_url.includes('tag=')) ? data.affiliate_url : (data.amazon_url || null),
+      storeKey,
+      params
+    );
     return {
       product_name: data.product_name || null,
       brand: data.brand || null,
@@ -101,13 +107,16 @@
       if (!res.ok) return { success: false, error: result.error || 'HTTP ' + res.status };
       const id = result.id || result.review?.id;
       let affiliateLink = null;
-      if (id && data.amazon_url) {
+      const affLinkUrl = (data.affiliate_url && data.affiliate_url.includes('tag='))
+        ? data.affiliate_url
+        : (data.amazon_url || data.affiliate_url || '');
+      if (id && affLinkUrl) {
         try {
           const slug = data.asin || result.slug || 'product-' + Date.now();
           const affRes = await fetch(baseUrl + '/api/admin/affiliate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiToken },
-            body: JSON.stringify({ title: (data.product_name || '').substring(0, 100), affiliate_url: affUrl || data.amazon_url, short_slug: slug, button_text: 'Check Price', status: 'active', no_follow: true, sponsored: true, open_in_new_tab: true })
+            body: JSON.stringify({ title: (data.product_name || '').substring(0, 100), affiliate_url: affLinkUrl, short_slug: slug, button_text: 'Check Price', status: 'active', no_follow: true, sponsored: true, open_in_new_tab: true })
           });
           if (affRes.ok) { const affData = await affRes.json(); affiliateLink = '/go/' + (affData.short_slug || affData.slug || slug); }
         } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
@@ -144,6 +153,184 @@
     if (!cfg || !cfg.suffix) return rawUrl;
     return rawUrl + (rawUrl.includes('?') ? '&' : '?') + cfg.suffix;
   }
+
+  // ─── SiteStripe affiliate URL capture ──────────────────────────────────────
+  // When the user is logged into Amazon Associates, SiteStripe shows the
+  // product's affiliate link in a toolbar / "Share affiliate link" popover.
+  // Two layouts exist:
+  //   • Classic: the link already sits in a textarea on the page (#stripeNav).
+  //   • New T1 popover (id="amzn-ss-…"): radios for Short/Full Link + a
+  //     "Copy affiliate link" button that GENERATES the URL on click (fills a
+  //     textarea + writes the clipboard).
+  // So we capture from (a) any textarea/input already holding a tagged URL,
+  // (b) a clipboard hook that records what SiteStripe copies, and (c) an
+  // active "prime" that selects Full Link + presses Copy when the popover is
+  // open. The imported product then keeps the REAL deep link (tag + linkCode /
+  // linkId / pd_rd_ tokens) instead of a bare ?tag= URL we mint ourselves.
+  let _dwSsCache = '';
+  let _dwSsHooksInstalled = false;
+
+  function _isTaggedAmazonUrl(u, asinHint) {
+    if (!/^https?:\/\//i.test(u || '')) return false;
+    if (!/amazon\.[a-z.]+(\/|$)/i.test(u)) return false;
+    const m = String(u).match(/(?:dp|gp\/product)\/([A-Z0-9]{10})/i);
+    if (!m) return false;
+    if (!u.includes('tag=')) return false;
+    if (asinHint && m[1].toUpperCase() !== String(asinHint).toUpperCase()) return false;
+    return true;
+  }
+  function _isDeepAffiliateUrl(u) { return /(linkCode=|linkId=|pd_rd_|ref_=as_li)/.test(u || ''); }
+
+  function _recordSiteStripeUrl(u) {
+    const t = String(u || '').trim();
+    if (!_isTaggedAmazonUrl(t, '')) return;
+    // Keep the best candidate: a genuine deep (full) link beats a bare ?tag=
+    // link; otherwise the newest capture wins (user may switch product).
+    if (!_dwSsCache) { _dwSsCache = t; return; }
+    const newDeep = _isDeepAffiliateUrl(t);
+    const curDeep = _isDeepAffiliateUrl(_dwSsCache);
+    if (newDeep && !curDeep) _dwSsCache = t;
+    else if (newDeep === curDeep) _dwSsCache = t;
+  }
+
+  // Re-scan every tagged Amazon URL currently on the page into the cache.
+  function _scanSiteStripeDom() {
+    try {
+      const els = document.querySelectorAll('textarea, input[type="text"], input[type="url"], input:not([type]), a[href*="tag="]');
+      for (const el of els) {
+        const v = el.value || el.textContent || el.getAttribute('href') || '';
+        for (const raw of (String(v).match(/https?:\/\/[^\s"'<>]+/gi) || [])) {
+          const u = raw.replace(/[),.;]+$/, '');
+          if (_isTaggedAmazonUrl(u, '')) _recordSiteStripeUrl(u);
+        }
+      }
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
+  }
+
+  function _installSiteStripeHooks() {
+    if (_dwSsHooksInstalled) return;
+    _dwSsHooksInstalled = true;
+    try {
+      // 1) Clipboard hook — the popover's "Copy affiliate link" writes the
+      // exact generated URL through navigator.clipboard.writeText. Record it.
+      if (navigator && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        const orig = navigator.clipboard.writeText.bind(navigator.clipboard);
+        navigator.clipboard.writeText = (text) => {
+          try { _recordSiteStripeUrl(text); } catch (e) { console.error('[DawnWire]', e); /* toasts removed */ }
+          return orig(text);
+        };
+      }
+      // 2) After SiteStripe generates a link it drops a textarea/input into the
+      // popover — re-scan briefly after any copy / format-selection click.
+      document.addEventListener('click', (ev) => {
+        const t = ev.target;
+        const hit = t && t.closest && t.closest('#stripeNav, [class*="amzn-ss"], [class*="stripe"], [data-action*="amzn-ss"]');
+        if (!hit) return;
+        const started = Date.now();
+        const poll = setInterval(() => {
+          _scanSiteStripeDom();
+          if (_dwSsCache || Date.now() - started > 2500) clearInterval(poll);
+        }, 150);
+      }, true);
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
+  }
+
+  // Actively ask the open SiteStripe popover for the FULL (deep) link: select
+  // the "Full Link" radio and press "Copy affiliate link", then read whatever
+  // Amazon drops into the page (textarea / clipboard hook). Resolves with the
+  // deep link for this ASIN or '' when the popover isn't available.
+  function primeSiteStripeFullLink(asinHint, maxWaitMs) {
+    return new Promise((resolve) => {
+      try {
+        if (!isAmazon()) return resolve('');
+        _installSiteStripeHooks();
+        _scanSiteStripeDom();
+        const fullRadio = document.querySelector('#amzn-ss-full-link-radio-button, [data-action="amzn-ss-get-link-fulllink"]');
+        const copyBtn = document.querySelector('#amzn-ss-copy-affiliate-link-btn-announce, [data-action="amzn-ss-copy-affiliate-link"]');
+        if (!fullRadio && !copyBtn) return resolve(captureSiteStripeUrl(asinHint));
+        // Default radio is "Short Link" — switch to Full Link so the captured
+        // URL carries linkCode/linkId/pd_rd_ tokens (the long link).
+        if (fullRadio) {
+          const radioInput = fullRadio.querySelector && fullRadio.querySelector('input[type="radio"]');
+          const fullChecked = (fullRadio.getAttribute && fullRadio.getAttribute('aria-checked') === 'true')
+            || (document.querySelector('#amzn-ss-full-link-radio-button[aria-checked="true"]'));
+          try {
+            if (radioInput) { if (!radioInput.checked) radioInput.click(); }
+            else if (!fullChecked && fullRadio.click) fullRadio.click();
+          } catch (e) { console.error('[DawnWire]', e); /* toasts removed */ }
+        }
+        // No link visible yet → pressing Copy makes Amazon generate + expose it.
+        if (copyBtn && !captureSiteStripeUrl(asinHint)) {
+          // Click the native button when present (bubbles to the
+          // [data-action="amzn-ss-copy-affiliate-link"] handler); fall back to
+          // clicking the data-action wrapper itself in other layouts.
+          const btn = document.querySelector('#amzn-ss-copy-affiliate-link-btn-announce, [data-action="amzn-ss-copy-affiliate-link"]');
+          try { if (btn && btn.click) btn.click(); } catch (e) { console.error('[DawnWire]', e); /* toasts removed */ }
+        }
+        const deadline = Date.now() + (maxWaitMs || 3000);
+        const poll = setInterval(() => {
+          const got = captureSiteStripeUrl(asinHint);
+          if (got || Date.now() > deadline) { clearInterval(poll); resolve(got); }
+        }, 150);
+      } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ resolve(''); }
+    });
+  }
+
+  function captureSiteStripeUrl(asinHint) {
+    try {
+      _installSiteStripeHooks();
+      _scanSiteStripeDom();
+      const tokens = [];
+      const collect = (v) => {
+        const s = (v || '').trim();
+        if (s) tokens.push(s);
+      };
+      // SiteStripe link boxes (classic textarea + T1 popover) + any text/URL
+      // input on the page.
+      document.querySelectorAll('#amzn-ss-text-shortlink-textarea, #amzn-ss-text-fulllink-textarea, [class*="amzn-ss-text"], textarea, input[type="text"], input[type="url"], input:not([type])').forEach((el) => {
+        collect(el.value || el.textContent);
+      });
+      // Anchors that already carry a tag (e.g. toolbar-generated links).
+      document.querySelectorAll('a[href*="tag="]').forEach((a) => collect(a.getAttribute('href')));
+      // Elements whose visible text is a URL (toolbar may render it in a div).
+      document.querySelectorAll('[class*="amzn-ss"], [class*="stripe"], #stripeNav a, #stripeNav input').forEach((el) => {
+        collect(el.value || el.textContent || el.getAttribute('href'));
+      });
+      // Anything SiteStripe copied/generated earlier in this page session.
+      if (_dwSsCache) tokens.unshift(_dwSsCache);
+
+      const urlTokenRe = /https?:\/\/[^\s"'<>]+/gi;
+      const asinMatch = (u) => { const m = u.match(/(?:dp|gp\/product)\/([A-Z0-9]{10})/i); return m ? m[1] : ''; };
+      let best = '';
+      for (const raw of tokens) {
+        for (const t of (raw.match(urlTokenRe) || [])) {
+          const u = t.replace(/[),.;]+$/, '');
+          if (!_isTaggedAmazonUrl(u, asinHint)) continue;
+          // Only accept the CURRENT product's link (toolbar links for other
+          // products on the page must not leak in).
+          if (asinHint && asinMatch(u).toUpperCase() !== asinHint.toUpperCase()) continue;
+          const isDeep = _isDeepAffiliateUrl(u);
+          if (isDeep) return u; // genuine SiteStripe long link wins
+          if (!best) best = u;
+        }
+      }
+      return best;
+    } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ return ''; }
+  }
+
+  // Expose the SiteStripe capture helpers (debugging + automated tests).
+  try {
+    if (!window.__dawnwireSs) window.__dawnwireSs = {};
+    Object.assign(window.__dawnwireSs, {
+      captureSiteStripeUrl,
+      primeSiteStripeFullLink,
+      _isTaggedAmazonUrl,
+      _isDeepAffiliateUrl,
+      _recordSiteStripeUrl,
+      get cache() { return _dwSsCache; },
+      clearCache() { _dwSsCache = ''; },
+    });
+  } catch (e) { console.error('[DawnWire]', e); /* toasts removed for cleaner UX */ }
 
   function isAmazon() { return SITE.includes('amazon.'); }
   function isWalmart() { return SITE.includes('walmart.'); }
@@ -1084,6 +1271,12 @@
       videoUrl = extractVideoUrl();
     }
 
+    let affiliate_url = '';
+    if (isAmazon()) {
+      // Prefer the REAL SiteStripe deep link shown by the Associates toolbar.
+      affiliate_url = captureSiteStripeUrl(asin) || '';
+    }
+
     if (isWalmart()) {
       const titleEl = document.querySelector('[data-testid="product-title"], .prod-title, h1');
       product_name = titleEl?.textContent?.trim() || '';
@@ -1209,7 +1402,7 @@
       savings: discount.savings, priceRange, specs, detailBullets, stockStatus, dealBadge,
       bestSellersRank, category, bestFor, source,
       ingredients, unitSize, unitPrice, bsrDetail, reviewHighlights,
-      reviews, reviewStats,
+      reviews, reviewStats, affiliate_url,
     };
   }
 
@@ -1261,6 +1454,14 @@
             ${data.reviews?.length ? '<span class="dw-badge-variation">👤 ' + data.reviews.length + ' loaded</span>' : ''}
             ${variationsDisplay.map(v => '<span class="dw-badge-variation">' + v + '</span>').join('')}
           </div>
+          ${data.source === 'amazon' ? `
+          <div class="dw-banner-row" style="margin-top:6px">
+            <input id="dw-aff-url-field" type="url" placeholder="Amazon affiliate link (auto-detected from SiteStripe, or paste the long link here)" value="${esc(data.affiliate_url || '').replace(/"/g, '&quot;')}"
+              style="flex:1;min-width:0;padding:7px 10px;border:1px solid #4b5563;border-radius:8px;background:#111827;color:#f9fafb;font-size:11px;font-family:monospace" />
+          </div>
+          <div class="dw-banner-row" style="font-size:10px;color:#8899bb;margin-top:2px">
+            💡 Logged into Amazon Associates? If the SiteStripe <b>Share affiliate link</b> popup is open, Import grabs the <b>Full Link</b> automatically (or you can paste it here). Empty → auto-adds <b>tag=dawnwire-20</b>.
+          </div>` : ''}
         </div>
         <div class="dw-btn-row">
           <button id="dw-import-btn" class="dw-btn dw-btn-primary">Import to DawnWire</button>
@@ -1270,11 +1471,38 @@
     `;
     document.body.prepend(banner);
 
+    // SiteStripe may hold or generate the long link after the banner shows
+    // (popover open + copy click). Passively watch a few seconds and prefill
+    // the field the moment a tagged deep link for THIS product appears.
+    if (data.source === 'amazon' && data.asin) {
+      const affWatch = setInterval(() => {
+        const got = captureSiteStripeUrl(data.asin);
+        if (!got) return;
+        clearInterval(affWatch);
+        const f = document.getElementById('dw-aff-url-field');
+        if (f && !String(f.value || '').trim()) { f.value = got; }
+      }, 400);
+      setTimeout(() => clearInterval(affWatch), 10000);
+    }
+
     document.getElementById('dw-import-btn')?.addEventListener('click', async () => {
       const btn = document.getElementById('dw-import-btn');
       if (btn) { btn.textContent = 'Importing...'; btn.disabled = true; }
       try {
         const d = extractProductData();
+        // Honor the visible affiliate field (auto-detected or user-pasted).
+        const affField = document.getElementById('dw-aff-url-field');
+        let affValue = (affField?.value || '').trim();
+        // Popover open but nothing captured yet? Ask SiteStripe for the Full
+        // (deep) long link at import time so the product keeps the real URL.
+        if (!affValue && d.source === 'amazon' && d.asin) {
+          const primed = await primeSiteStripeFullLink(d.asin, 2500);
+          if (primed) {
+            affValue = primed;
+            if (affField) affField.value = primed;
+          }
+        }
+        if (affValue) d.affiliate_url = affValue;
         const result = await sendMessage({ type: 'IMPORT_PRODUCT', data: d });
         if (result?.success) {
           showToast(result.updated ? '🔄 Updated! Price/stats refreshed.' : '✅ Imported! Review created as draft.', 'success');
@@ -1721,7 +1949,9 @@
       });
       if (bestSellersRank) specs.bestSellersRank = bestSellersRank;
 
-      return { product_name, brand, product_image, price, rating: rRating, reviewCount: rCount, key_features, pros: [], cons: [], review_summary, amazon_url, asin, gallery, videoUrl, variations, listPrice: discount.listPrice, savings: discount.savings, priceRange, specs, detailBullets, stockStatus, dealBadge, bestSellersRank, category, bestFor, source: 'amazon', ingredients, unitSize, unitPrice, bsrDetail, reviewHighlights, reviews, reviewStats };
+      // The offline (fetch+DOMParser) path has no live SiteStripe toolbar, so no
+    // affiliate capture — the server/background will mint a tagged URL instead.
+    return { product_name, brand, product_image, price, rating: rRating, reviewCount: rCount, key_features, pros: [], cons: [], review_summary, amazon_url, asin, gallery, videoUrl, variations, listPrice: discount.listPrice, savings: discount.savings, priceRange, specs, detailBullets, stockStatus, dealBadge, bestSellersRank, category, bestFor, source: 'amazon', ingredients, unitSize, unitPrice, bsrDetail, reviewHighlights, reviews, reviewStats, affiliate_url: '' };
     }
 
     // Generic fallback for other stores — keep the canonical page URL so the

@@ -1,5 +1,6 @@
 import express from 'express';
 import { getSupabaseAdmin } from '../../server/lib/supabase';
+import { resolveBoardForProduct, PIN_BOARD_KEYWORDS } from '../../server/pinterest';
 import { authenticate, requireRole } from './middleware';
 
 const router = express.Router();
@@ -135,6 +136,87 @@ router.delete('/credentials/:id', authenticate, requireRole(['super_admin', 'adm
 
     if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET active Pinterest credential (full token) — used by the browser extension
+// so the admin configures the token once in the dashboard and every device
+// picks it up. The extension authenticates with the same admin token it uses
+// for imports, so requireRole keeps this locked down.
+router.get('/credentials/active/pinterest', authenticate, requireRole(['super_admin', 'admin']), async (_req, res) => {
+  try {
+    const supabase = await getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from('social_media_credentials')
+      .select('*')
+      .eq('platform', 'pinterest')
+      .eq('is_active', true)
+      .single();
+
+    if (error || !data || !data.access_token) {
+      return res.status(404).json({ error: 'No active Pinterest credentials configured' });
+    }
+
+    res.json({
+      success: true,
+      platform: 'pinterest',
+      access_token: data.access_token,
+      board_id: data.board_id || '',
+      profile_name: data.profile_name || '',
+      // Recommended per-category board names — pins auto-route to whichever of
+      // these the account has (matched by keyword against the product category).
+      category_boards: Object.values(PIN_BOARD_KEYWORDS),
+    });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST resolve the Pinterest board for a product (server-side, category-aware).
+// Used by the browser extension so it gets the same DB-backed routing as the
+// scheduler instead of duplicating a weaker client-side matcher.
+// Body: { product_id } or { slug }.
+router.post('/resolve-board', authenticate, requireRole(['super_admin', 'admin']), async (req, res) => {
+  try {
+    const { product_id, slug } = req.body || {};
+    if (!product_id && !slug) {
+      return res.status(400).json({ error: 'product_id or slug is required' });
+    }
+
+    const supabase = await getSupabaseAdmin();
+    const { data: cred } = await supabase
+      .from('social_media_credentials')
+      .select('*')
+      .eq('platform', 'pinterest')
+      .eq('is_active', true)
+      .single();
+    if (!cred?.access_token || !cred?.board_id) {
+      return res.status(404).json({ error: 'No active Pinterest credentials configured' });
+    }
+
+    const { getProductReviewById, getProductReviewBySlug } = await import('../../server/seo-engine');
+    const product = product_id
+      ? await getProductReviewById(product_id).catch(() => null)
+      : await getProductReviewBySlug(slug).catch(() => null);
+
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    const { resolveBoardForProduct, resolveCategoryName, PIN_BOARD_KEYWORDS } = await import('../../server/pinterest');
+    const boardId = await resolveBoardForProduct(cred.access_token, cred.board_id, product);
+    const categoryName = await resolveCategoryName(product.category_id || product.categoryId);
+
+    res.json({
+      success: true,
+      board_id: boardId,
+      default_board: boardId === cred.board_id,
+      product_id: product.id || product_id,
+      category_name: categoryName || '',
+      category_boards: Object.values(PIN_BOARD_KEYWORDS),
+    });
   } catch (e: any) {
     res.status(500).json({ error: e.message });
   }
@@ -344,9 +426,14 @@ router.post('/publish', authenticate, requireRole(['super_admin', 'admin']), asy
         if (publishData.error) throw new Error(publishData.error.message);
         platformPostId = publishData.id || '';
       } else if (platform === 'pinterest') {
-        // Pinterest API v5: POST /v5/pins
+        // Pinterest API v5: POST /v5/pins — route to the niche board for this
+        // product's category, falling back to the configured default board.
         const boardId = cred.board_id;
         if (!boardId) throw new Error('Board ID not configured');
+
+        const { getProductReviewById } = await import('../../server/seo-engine');
+        const productRow = await getProductReviewById(product_id).catch(() => null);
+        const targetBoard = await resolveBoardForProduct(token, boardId, productRow || { id: product_id });
 
         const pinRes = await fetch('https://api.pinterest.com/v5/pins', {
           method: 'POST',
@@ -355,7 +442,7 @@ router.post('/publish', authenticate, requireRole(['super_admin', 'admin']), asy
             'Authorization': `Bearer ${token}`,
           },
           body: JSON.stringify({
-            board_id: boardId,
+            board_id: targetBoard,
             title: caption.split('\n')[0].substring(0, 100),
             description: caption,
             link: link || `https://www.dawnwire.com/products/${product_id}`,
@@ -455,11 +542,16 @@ router.post('/publish-all', authenticate, requireRole(['super_admin', 'admin']),
             if (pData.error) throw new Error(pData.error.message);
             platformPostId = pData.id || '';
           } else if (platform === 'pinterest' && cred.board_id) {
+            // Route to the niche board for this product's category.
+            const { getProductReviewById } = await import('../../server/seo-engine');
+            const productRow = await getProductReviewById(product_id).catch(() => null);
+            const targetBoard = await resolveBoardForProduct(cred.access_token, cred.board_id, productRow || { id: product_id });
+
             const pinRes = await fetch('https://api.pinterest.com/v5/pins', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cred.access_token}` },
               body: JSON.stringify({
-                board_id: cred.board_id,
+                board_id: targetBoard,
                 title: caption.split('\n')[0].substring(0, 100),
                 description: caption,
                 link: link || `https://www.dawnwire.com/products/${product_id}`,

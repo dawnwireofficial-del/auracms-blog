@@ -42,6 +42,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (settings.instagramBusinessId) document.getElementById('instagramBusinessId').value = settings.instagramBusinessId;
   if (settings.pinsPerDay) document.getElementById('pinsPerDay').value = settings.pinsPerDay;
   if (settings.minScore) document.getElementById('minScore').value = settings.minScore;
+
+  // If Pinterest creds aren't saved locally, pull them from the DawnWire account
+  // (single source of truth: Admin → Social Media → Settings).
+  if (!settings.pinterestToken || !settings.pinterestBoard) {
+    syncPinterestFromAccount();
+  }
   // Affiliate network tracking params
   const aff = settings.affiliateParams || {};
   if (aff.amazon?.tag) document.getElementById('affAmazonTag').value = aff.amazon.tag;
@@ -110,6 +116,8 @@ function setupEventListeners() {
   document.getElementById('saveScheduleBtn').addEventListener('click', saveScheduleSettings);
   document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
   document.getElementById('testConnectionBtn').addEventListener('click', testConnection);
+  const syncBtn = document.getElementById('syncPinterestBtn');
+  if (syncBtn) syncBtn.addEventListener('click', () => syncPinterestFromAccount(true));
 }
 
 // ─── Platform Status ─────────────────────────────────────────────────────────
@@ -496,6 +504,53 @@ function addLog(message, type = 'info') {
   entry.className = `log-entry log-${type}`;
   entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
   log.insertBefore(entry, log.firstChild);
+}
+
+// ─── Sync Pinterest Credentials from DawnWire Account ────────────────────────
+// Fetches the active Pinterest token + board from the DawnWire dashboard using
+// the admin API token, then saves them locally so auto-pinning works everywhere.
+async function syncPinterestFromAccount(manual = false) {
+  const apiUrl = (document.getElementById('settingsApiUrl')?.value || settings.apiUrl || DEFAULT_API_URL).trim();
+  const apiToken = (document.getElementById('settingsApiToken')?.value || settings.apiToken || '').trim();
+
+  if (!apiToken) {
+    if (manual) addLog('Add your API token first, then sync Pinterest settings.', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${apiUrl}/api/admin/social-media/credentials/active/pinterest`, {
+      headers: { 'Authorization': `Bearer ${apiToken}` },
+    });
+    if (!res.ok) {
+      if (manual) addLog('No Pinterest credentials saved in the DawnWire dashboard yet.', 'error');
+      return;
+    }
+    const data = await res.json();
+    if (!data?.success || !data.access_token || !data.board_id) {
+      if (manual) addLog('Pinterest credentials are incomplete in the dashboard.', 'error');
+      return;
+    }
+
+    const pinterestTokenEl = document.getElementById('pinterestToken');
+    const pinterestBoardEl = document.getElementById('pinterestBoard');
+    if (pinterestTokenEl) pinterestTokenEl.value = data.access_token;
+    if (pinterestBoardEl) pinterestBoardEl.value = data.board_id;
+
+    settings = {
+      ...settings,
+      pinterestToken: data.access_token,
+      pinterestBoard: data.board_id,
+    };
+    await chrome.storage.sync.set({ pinterestToken: data.access_token, pinterestBoard: data.board_id });
+    updatePlatformStatuses();
+
+    if (manual) {
+      addLog('✅ Pinterest credentials synced from DawnWire account!', 'success');
+    }
+  } catch (e) {
+    if (manual) addLog(`Sync failed: ${e.message}`, 'error');
+  }
 }
 
 // ─── Settings ────────────────────────────────────────────────────────────────

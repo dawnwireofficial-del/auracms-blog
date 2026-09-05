@@ -1358,7 +1358,12 @@ const SocialMediaManager: React.FC<{ token: string }> = ({ token }) => {
                     <>📖 <a href="https://developers.facebook.com/docs/instagram-api/getting-started" target="_blank" rel="noopener" className="underline hover:text-blue-500">Instagram Graph API Guide</a> · Requires Facebook Page + Business Account</>
                   )}
                   {platform.key === 'pinterest' && (
-                    <>📖 <a href="https://developers.pinterest.com/docs/getting-started/" target="_blank" rel="noopener" className="underline hover:text-blue-500">Pinterest API Guide</a> · <a href="https://developers.pinterest.com/apps/" target="_blank" rel="noopener" className="underline hover:text-blue-500">Create App</a></>
+                    <>
+                      📖 <a href="https://developers.pinterest.com/docs/getting-started/" target="_blank" rel="noopener" className="underline hover:text-blue-500">Pinterest API Guide</a> · <a href="https://developers.pinterest.com/apps/" target="_blank" rel="noopener" className="underline hover:text-blue-500">Create App</a>
+                      <div className="mt-2 text-[10px] text-slate-400">
+                        🎯 <strong>Niche boards:</strong> pins auto-route to the board matching each product's category (e.g. "Beauty", "Electronics", "Home & Kitchen", "Gaming", "Fitness"). Create boards with those names for better niche ranking — otherwise everything goes to the default board above.
+                      </div>
+                    </>
                   )}
                 </div>
               </div>

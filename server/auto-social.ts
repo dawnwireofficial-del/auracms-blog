@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from './lib/supabase';
+import { resolveBoardForProduct } from './pinterest';
 
 // ─── UTM Helper ──────────────────────────────────────────────────────────────
 // Appends UTM tracking params so analytics can attribute traffic source.
@@ -50,6 +51,11 @@ let processedDate = new Date().toISOString().slice(0, 10);
 
 async function autoPinProduct(product: any, boardId: string, accessToken: string): Promise<{ success: boolean; pinId?: string; error?: string }> {
   try {
+    // Route to the board matching this product's category (falls back to the
+    // configured default board when no niche board matches).
+    const targetBoard = await resolveBoardForProduct(accessToken, boardId, product);
+    if (!targetBoard) return { success: false, error: 'No Pinterest board configured' };
+
     // Build SEO-optimized pin
     const title = product.product_name
       ? `${product.product_name} Review — DawnWire Score ${product.editor_score || '?'}/10`
@@ -79,7 +85,7 @@ async function autoPinProduct(product: any, boardId: string, accessToken: string
         'Authorization': `Bearer ${accessToken}`,
       },
       body: JSON.stringify({
-        board_id: boardId,
+        board_id: targetBoard,
         title: title.substring(0, 100),
         description,
         link,

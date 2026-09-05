@@ -1,5 +1,12 @@
 // ─── DawnWire Social Auto-Post Background Service Worker ──────────────────────
 // Handles auto-pinning, scheduling, and background social media posting.
+//
+// The manifest registers THIS file as the MV3 service worker. It imports
+// ./background.js so the product-import handlers (IMPORT_PRODUCT, IMPORT_BATCH,
+// IMPORT_FROM_URL, GET_QUEUE_STATUS, RESUME_QUEUE, CLEAR_QUEUE, TEST_CONNECTION,
+// CHECK_AUTO_IMPORT + the tab auto-import watcher) are active too — without this
+// import, store-page imports via content.js silently fail ("message port closed").
+import './background.js';
 
 const DEFAULT_API_URL = 'https://www.dawnwire.com';
 
@@ -12,6 +19,133 @@ function withUTM(url, platform) {
     u.searchParams.set('utm_campaign', 'auto_social');
     return u.toString();
   } catch { return url; }
+}
+
+// ─── Pinterest Credentials ───────────────────────────────────────────────────
+// Single source of truth: the admin dashboard stores the Pinterest token + board
+// in the DawnWire database. This fetches them from the server using the same
+// admin token the extension already holds, falling back to locally saved values
+// (chrome.storage.sync) for setups that never configured the dashboard.
+async function getPinterestCredentials() {
+  try {
+    const { apiUrl, apiToken } = await chrome.storage.sync.get(['apiUrl', 'apiToken']);
+    if (apiUrl && apiToken) {
+      const res = await fetch(`${apiUrl}/api/admin/social-media/credentials/active/pinterest`, {
+        headers: { 'Authorization': `Bearer ${apiToken}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.success && data.access_token && data.board_id) {
+          return { token: data.access_token, board: data.board_id };
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('[DawnWire] Pinterest server credentials fetch failed, using local settings:', e.message);
+  }
+
+  const local = await chrome.storage.sync.get(['pinterestToken', 'pinterestBoard']);
+  if (local.pinterestToken && local.pinterestBoard) {
+    return { token: local.pinterestToken, board: local.pinterestBoard };
+  }
+  return null;
+}
+
+// ─── Per-Category Board Routing ───────────────────────────────────────────────
+// Pins land on the niche board matching the product's category (Beauty,
+// Electronics, Home & Kitchen, …) so each board ranks for its keywords.
+// Falls back to the default board when nothing matches.
+
+// Category slug → keyword used to match against Pinterest board names.
+const PIN_BOARD_KEYWORDS = {
+  'beauty-personal-care': 'Beauty',
+  'home-kitchen': 'Kitchen',
+  'electronics': 'Electronics',
+  'technology': 'Technology',
+  'gaming': 'Gaming',
+  'sports-outdoors': 'Sports',
+  'fitness': 'Fitness',
+  'baby-products': 'Baby',
+  'automotive': 'Automotive',
+  'toys-games': 'Toys',
+  'office-productivity': 'Office',
+  'ai-software-tools': 'AI',
+};
+
+let boardsCache = { at: 0, boards: [] };
+
+async function fetchUserBoards(token) {
+  if (Date.now() - boardsCache.at < 5 * 60 * 1000) return boardsCache.boards;
+  const boards = [];
+  let bookmark = null;
+  try {
+    do {
+      const url = new URL('https://api.pinterest.com/v5/boards');
+      url.searchParams.set('page_size', '100');
+      if (bookmark) url.searchParams.set('bookmark', bookmark);
+      const res = await fetch(url.toString(), {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!res.ok) break;
+      const data = await res.json();
+      if (Array.isArray(data.items)) {
+        for (const b of data.items) {
+          if (b?.id && b?.name) boards.push({ id: b.id, name: b.name });
+        }
+      }
+      bookmark = data?.bookmark || null;
+    } while (bookmark && boards.length < 500);
+  } catch (e) {
+    console.warn('[DawnWire] Pinterest board fetch failed:', e.message);
+  }
+  boardsCache = { at: Date.now(), boards };
+  return boards;
+}
+
+function normalizeBoardText(s) {
+  return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ');
+}
+
+function productCategorySignals(product) {
+  const signals = [];
+  if (product?.best_for) signals.push(String(product.best_for));
+  if (product?.category) signals.push(String(product.category));
+  if (product?.specs?.details?.department) signals.push(String(product.specs.details.department));
+  if (product?.specs?.details?.category) signals.push(String(product.specs.details.category));
+  for (const [slug, word] of Object.entries(PIN_BOARD_KEYWORDS)) {
+    if (String(product?.category || '').includes(slug)) signals.push(word);
+  }
+  return signals.filter(Boolean);
+}
+
+async function resolveBoardForProduct(token, defaultBoardId, product) {
+  if (!defaultBoardId) return '';
+  const signals = productCategorySignals(product);
+  if (signals.length === 0) return defaultBoardId;
+
+  const boards = await fetchUserBoards(token);
+  if (boards.length === 0) return defaultBoardId;
+
+  let bestId = defaultBoardId;
+  let bestScore = 0;
+  for (const board of boards) {
+    const name = normalizeBoardText(board.name);
+    let score = 0;
+    for (const signal of signals) {
+      const norm = normalizeBoardText(signal);
+      if (!norm) continue;
+      for (const token of norm.split(' ')) {
+        if (token.length < 3) continue;
+        if (name.includes(token)) score += 1;
+      }
+      if (name.includes(norm)) score += 2;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestId = board.id;
+    }
+  }
+  return bestScore >= 1 ? bestId : defaultBoardId;
 }
 
 // ─── Auto-Pin Queue ──────────────────────────────────────────────────────────
@@ -43,11 +177,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // ─── Auto-Pin Single Product ─────────────────────────────────────────────────
 async function autoPinProduct(product) {
-  const settings = await chrome.storage.sync.get(['pinterestToken', 'pinterestBoard']);
+  const creds = await getPinterestCredentials();
 
-  if (!settings.pinterestToken || !settings.pinterestBoard) {
+  if (!creds) {
     return { success: false, error: 'Pinterest credentials not configured' };
   }
+
+  const { token, board } = creds;
 
   const title = product.title
     ? `${product.title} — DawnWire Score ${product.editor_score || '?'}/10`
@@ -70,14 +206,17 @@ async function autoPinProduct(product) {
   const imageUrl = product.product_image || product.image || '';
   if (!imageUrl) return { success: false, error: 'No product image' };
 
+  // Route to the niche board matching this product's category.
+  const targetBoard = await resolveBoardForProduct(token, board, product);
+
   const pinRes = await fetch('https://api.pinterest.com/v5/pins', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${settings.pinterestToken}`,
+      'Authorization': `Bearer ${token}`,
     },
     body: JSON.stringify({
-      board_id: settings.pinterestBoard,
+      board_id: targetBoard,
       title: title.substring(0, 100),
       description,
       link,
@@ -110,11 +249,11 @@ async function batchAutoPin() {
   if (autoPinRunning) return { success: false, error: 'Already running' };
 
   const settings = await chrome.storage.sync.get([
-    'apiUrl', 'apiToken', 'pinterestToken', 'pinterestBoard',
-    'autoPin', 'minScore', 'pinsPerDay'
+    'apiUrl', 'apiToken', 'autoPin', 'minScore', 'pinsPerDay'
   ]);
 
-  if (!settings.pinterestToken || !settings.pinterestBoard) {
+  const creds = await getPinterestCredentials();
+  if (!creds) {
     return { success: false, error: 'Pinterest not configured' };
   }
 

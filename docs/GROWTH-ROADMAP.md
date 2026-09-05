@@ -74,7 +74,10 @@ affiliate product sites.
 
 **Cadence once live:** 10–30 pins/day (auto-scheduler), 1 new board per
 category (Electronics, Beauty, Home & Kitchen, Gaming, …) so each board ranks
-for its niche.
+for its niche. **Auto-routing is built**: pins resolve the product's category
+(best_for / category slug / department) against your board names and land on the
+best-matching niche board, falling back to the default board. Just create the
+boards in Pinterest with those names — no config needed.
 
 ### Engine B — SEO (compounding, 3–6 month ramp)
 - ✅ 836 product pages, SSR homepage + category + post pages (Google sees full HTML)
@@ -138,14 +141,20 @@ how many products lack a tag/image/category. Fix = re-import via extension.
 > Nobody gets $10K/month in month one — the math above shows exactly what the
 > traffic numbers have to be, and the pipelines to generate them are now built.
 > The one human input required today: **a fresh Pinterest access token** (the one
-> on file expired) + pasting it into the extension, then clicking "Start".
+> on file expired), saved once in the admin dashboard. The extension now syncs
+> it automatically — no second paste needed.
 
 ---
 
 ## 6. Quick-start checklist (do this now)
 
 - [ ] **Get fresh Pinterest token** (developers.pinterest.com → app → token) — 15 min
-- [ ] Paste it in **Extension popup → Settings** (also add FB/IG tokens later)
+- [ ] Save it in **Admin → Social Media → Settings → Pinterest** (Board ID too)
+      — single source of truth; the extension pulls it automatically via
+      `GET /api/admin/social-media/credentials/active/pinterest`, and the
+      server-side auto-social scheduler posts from the same stored credential.
+- [ ] (Extension, optional) popup → Settings → **🔄 Sync from DawnWire account**
+      fills the token/board locally, or auto-syncs on open when empty
 - [ ] Add the catalog feed URL in Pinterest Business → Catalogs
 - [ ] Turn on auto-pin in the extension; verify first pin lands on your board
 - [ ] Run `node scripts/audit-products.mjs` weekly; re-import anything missing a tag

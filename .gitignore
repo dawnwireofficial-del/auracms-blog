@@ -36,3 +36,6 @@ Hero Section/
 
 # Local QA screenshots
 qa-shots/
+
+# Headless-Chrome QA runtime dirs
+.chrome-qa/

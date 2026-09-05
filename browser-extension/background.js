@@ -223,7 +223,13 @@ async function fullImportPayload(data) {
   // Always ensure commission-tracking parameters are present (per store network)
   const settings = await getSettings();
   const storeKey = data.source || (data.amazon_url && data.amazon_url.includes('amazon.') ? 'amazon' : 'other');
-  let affiliateUrl = applyAffiliateParams(data.amazon_url || data.pageUrl || null, storeKey, settings.affiliateParams);
+  // If a real SiteStripe deep link was captured on the page, keep it (it has
+  // tag + linkCode/linkId/pd_rd_ tokens); otherwise mint from amazon_url.
+  let affiliateUrl = applyAffiliateParams(
+    (data.affiliate_url && data.affiliate_url.includes('tag=')) ? data.affiliate_url : (data.amazon_url || data.pageUrl || null),
+    storeKey,
+    settings.affiliateParams
+  );
   return {
     product_name: data.product_name || null,
     brand: data.brand || null,
@@ -339,7 +345,10 @@ async function handleImport(data) {
 
   // 3. Auto-create cloaked affiliate link
   let affiliateLink = null;
-  const rawUrl = data.amazon_url || data.affiliate_url || '';
+  // Prefer a captured SiteStripe deep link; fall back to the plain product URL.
+  const rawUrl = (data.affiliate_url && data.affiliate_url.includes('tag='))
+    ? data.affiliate_url
+    : (data.amazon_url || data.affiliate_url || '');
   if (reviewId && rawUrl) {
     try {
       const slug = data.asin || (result.review?.slug || result.slug || 'product-' + Date.now());
